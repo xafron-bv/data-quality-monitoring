@@ -1,4 +1,6 @@
 import pandas as pd
+import json
+import os
 from typing import List, Dict, Any
 from validators.interfaces import ReporterInterface
 
@@ -8,17 +10,15 @@ class MaterialReporter(ReporterInterface):
     errors into human-readable messages.
     """
 
-    ERROR_MESSAGES = {
-        "MISSING_VALUE": "The material field is empty or missing.",
-        "EXTRANEOUS_WHITESPACE": "The material string has leading or trailing spaces.",
-        "LINE_BREAK_FOUND": "The material string contains a line break, which is not allowed.",
-        "INVALID_CHARACTERS": "The material string contains invalid characters: {chars}. Only letters, numbers, and '%' are permitted.",
-        "SUM_NOT_100": "The composition percentages sum to {sum}, but should sum to 100.",
-        "MISSING_COMPOSITION": "The material string lists a material name but is missing a numeric percentage.",
-        "PERCENT_MISMATCH": "Mismatch between numbers and percent signs. Found {numbers_found} numbers and {percents_found} '%' signs.",
-        "AMBIGUOUS_STRUCTURE": "The structure is ambiguous. It starts and ends with a word without a clear delimiter (e.g., 'Color 100% Material').",
-        "DEFAULT": "The material string '{error_data}' is invalid for an unknown reason."
-    }
+    def __init__(self):
+        """Initialize the reporter and load error messages from the JSON file."""
+        # Load error messages from the JSON file
+        error_messages_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "validators", "material", "error_messages.json"
+        )
+        with open(error_messages_path, 'r') as f:
+            self.ERROR_MESSAGES = json.load(f)
 
     def generate_report(self, validation_errors: List[Dict[str, Any]], original_df: pd.DataFrame) -> List[Dict[str, Any]]:
         """

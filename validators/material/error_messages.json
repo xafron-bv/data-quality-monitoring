@@ -1,0 +1,17 @@
+{
+  "MISSING_VALUE": "The material field is empty or missing.",
+  "EXTRANEOUS_WHITESPACE": "The material string has leading or trailing spaces.",
+  "LINE_BREAK_FOUND": "The material string contains a line break, which is not allowed.",
+  "INVALID_CHARACTERS": "The material string contains invalid characters: {chars}. Only letters, numbers, and '%' are permitted.",
+  "SUM_NOT_100": "The composition percentages sum to {sum}, but should sum to 100.",
+  "MISSING_COMPOSITION": "The material string lists a material name but is missing a numeric percentage.",
+  "PERCENT_MISMATCH": "Mismatch between numbers and percent signs. Found {numbers_found} numbers and {percents_found} '%' signs.",
+  "AMBIGUOUS_STRUCTURE": "The structure is ambiguous. It starts and ends with a word without a clear delimiter (e.g., 'Color 100% Material').",
+  "EMPTY_PART": "A component of the material composition is empty.",
+  "DEFAULT": "The material string '{error_data}' is invalid for an unknown reason.",
+  "DUPLICATE_MATERIAL_NAME": "The material name '{material}' is duplicated.",
+  "CARE_INSTRUCTION_FOUND": "The material string appears to contain care instructions, which are not allowed.",
+  "MALFORMED_TOKEN": "The material string contains a malformed token: {token}.",
+  "INVALID_HYPHEN_DELIMITER": "The material string uses a hyphen as a delimiter after a percentage sign, which is an invalid format.",
+  "MISSING_PERCENTAGE_SIGN": "The number '{number}' is not followed by a percentage sign '%'."
+}

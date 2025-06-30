@@ -232,7 +232,7 @@ This will automatically look for:
 
     rules_path = f"rules/{column_name}.json"
     validator_module_str = f"validators.{column_name}.validate:{capitalized_name}Validator"
-    reporter_module_str = f"validators.{column_name}.report:{capitalized_name}Reporter"
+    reporter_module_str = f"validators.report:{capitalized_name}Reporter"
     
     print(f"--- Loading assets for column: '{column_name}' ---")
     print(f"Rules: {rules_path}")
