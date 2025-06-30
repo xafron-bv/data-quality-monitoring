@@ -1,2 +1,6 @@
 data/
+virtenv/
+__pycache__/
+cache/
+
 material-validator

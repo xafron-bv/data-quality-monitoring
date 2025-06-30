@@ -1,0 +1,22 @@
+--- Summary of Undetected Errors ---
+
+- Error Type: inject_color_error
+  - Definition: Adds a color attribute.
+  - Count: 55
+  - Examples:
+    - 'Blue 55% Polyester - 40% Acrylic - 5% Wool'
+    - 'Blue 85% Acrylic - 10% Nylon - 5% Polyester'
+    - 'Blue 57% Acrylic - 24% Wool 19% Nylon'
+
+- Error Type: inject_trademark_error
+  - Definition: Adds a trademark symbol.
+  - Count: 2
+  - Examples:
+    - '34% Acrylic - 34% Cotton™ - 22% Nylon - 8% Wool - 2% Spandex'
+    - '86% Cotton™ - 14% Polyester'
+
+- Error Type: inject_multiple_spaces_error
+  - Definition: Adds multiple spaces between words.
+  - Count: 1
+  - Examples:
+    - 'Front:   100%   Silk   Back:   100%   Viscose'
