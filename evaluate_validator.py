@@ -224,7 +224,7 @@ def evaluate(validator, samples, ignore_errors=None):
         
     return results
 
-def generate_undetected_error_summary(evaluation_results, output_path='undetected_error_summary.txt'):
+def generate_undetected_error_summary(evaluation_results, output_path='evaluations/undetected_error_summary.txt'):
     """Generates a summary of undetected errors, grouped by type."""
     error_definitions = {
         func.__name__: func.__doc__.strip() for func in ERROR_FUNCTIONS
@@ -295,7 +295,7 @@ def main():
     validator = MaterialValidator()
     evaluation_results = evaluate(validator, error_samples, ignore_errors=args.ignore_errors)
     
-    results_path = 'evaluation_results.json'
+    results_path = 'evaluations/evaluation_results.json'
     with open(results_path, 'w') as f:
         json.dump(evaluation_results, f, indent=4)
     print(f"\nEvaluation results saved to '{results_path}'")
