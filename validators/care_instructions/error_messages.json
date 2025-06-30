@@ -1,1 +1,17 @@
-{}
+{
+  "MISSING_VALUE": "The value is missing or empty.",
+  "INVALID_TYPE": "The value has an invalid data type. A string is expected.",
+  "HAS_LEADING_OR_TRAILING_WHITESPACE": "The value has leading or trailing whitespace.",
+  "CONTAINS_MULTIPLE_SPACES": "The value contains multiple spaces between words.",
+  "CONTAINS_LINE_BREAK": "The value contains one or more line breaks.",
+  "CONTAINS_HTML": "The value contains HTML tags.",
+  "INCORRECT_CAPITALIZATION": "An instruction is not in uppercase as required.",
+  "CONTAINS_EMOJI": "The value contains emojis or unsupported symbols.",
+  "CONTAINS_DISALLOWED_SYMBOLS": "The value contains disallowed symbols.",
+  "INVALID_DELIMITER": "The value uses an invalid delimiter; instructions must be separated by periods.",
+  "INVALID_TEMPERATURE_FORMAT": "The temperature instruction is malformed. Expected format is 'WASSEN OP MAX XX°C'.",
+  "UNKNOWN_INSTRUCTION": "The value contains an unknown, abbreviated, or malformed instruction.",
+  "CONTAINS_PREPENDED_TEXT": "The value contains unexpected text at the beginning.",
+  "CONTAINS_APPENDED_TEXT": "The value contains unexpected text at the end.",
+  "MISSING_INSTRUCTION": "The value indicates a missing instruction."
+}

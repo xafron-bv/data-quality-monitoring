@@ -2,94 +2,208 @@
   "error_rules": [
     {
       "rule_name": "inject_unicode_error",
-      "description": "Injects a common unicode encoding error.",
+      "description": "Injects a common unicode encoding error in care instructions.",
       "operation": "string_replace",
-      "params": { "find": "é", "replace": "Ãª" }
+      "params": { "find": "°C", "replace": "°Ã" }
     },
     {
-      "rule_name": "inject_composition_sum_error",
-      "description": "Changes a composition percentage so it doesn't sum to 100.",
-      "operation": "string_replace",
-      "params": { "find": "100%", "replace": "99%" }
+      "rule_name": "inject_missing_temperature_value",
+      "description": "Removes the temperature value in washing instructions.",
+      "operation": "regex_replace",
+      "params": { "pattern": "(MAX\\s+)\\d+", "replace": "$1" }
     },
     {
-      "rule_name": "inject_missing_percentage_sign_error",
-      "description": "Removes a percentage sign.",
+      "rule_name": "inject_wrong_temperature_sign",
+      "description": "Removes the degree symbol in temperature specifications.",
       "operation": "string_replace",
-      "params": { "find": "%", "replace": "" }
+      "params": { "find": "°C", "replace": "C" }
+    },
+    {
+      "rule_name": "inject_disallowed_symbol_registered",
+      "description": "Adds a registered trademark symbol to care instructions.",
+      "operation": "string_replace",
+      "params": { "find": "BLEKEN", "replace": "BLEKEN®" },
+      "conditions": [{ "type": "contains", "value": "BLEKEN" }]
+    },
+    {
+      "rule_name": "inject_incorrect_capitalization",
+      "description": "Converts care instructions to incorrect mixed case.",
+      "operation": "string_replace",
+      "params": { "find": "NIET", "replace": "Niet" }
+    },
+    {
+      "rule_name": "inject_temperature_range_error",
+      "description": "Changes a specific temperature to a range, which is incorrect format.",
+      "operation": "string_replace",
+      "params": { "find": "40°C", "replace": "30-40°C" }
     },
     {
       "rule_name": "inject_disallowed_symbol_trademark",
-      "description": "Adds a trademark symbol, which is not a valid composition character.",
+      "description": "Adds a trademark symbol to care instructions.",
       "operation": "string_replace",
-      "params": { "find": "Cotton", "replace": "Cotton™" },
-      "conditions": [{ "type": "contains", "value": "Cotton" }]
+      "params": { "find": "WASSEN", "replace": "WASSEN™" },
+      "conditions": [{ "type": "contains", "value": "WASSEN" }]
+    },
+    {
+      "rule_name": "inject_html_tag_error",
+      "description": "Inserts HTML tags into care instructions.",
+      "operation": "string_replace",
+      "params": { "find": "STRIJKEN", "replace": "<b>STRIJKEN</b>" },
+      "conditions": [{ "type": "contains", "value": "STRIJKEN" }]
+    },
+    {
+      "rule_name": "inject_numerical_word_error",
+      "description": "Replaces numerical temperature with word equivalent.",
+      "operation": "string_replace",
+      "params": { "find": "40°C", "replace": "veertig°C" }
     },
     {
       "rule_name": "inject_delimiter_error",
-      "description": "Replaces a standard comma delimiter with a semicolon.",
+      "description": "Replaces a standard period delimiter with a semicolon in care instructions.",
       "operation": "string_replace",
-      "params": { "find": ",", "replace": ";" }
+      "params": { "find": ".", "replace": ";" }
     },
     {
       "rule_name": "inject_leading_trailing_space_error",
-      "description": "Adds unnecessary leading and trailing whitespace.",
+      "description": "Adds unnecessary leading and trailing whitespace to care instructions.",
       "operation": "add_whitespace"
     },
     {
       "rule_name": "inject_appended_care_instruction_error",
-      "description": "Appends a non-material instruction to the string.",
+      "description": "Appends an English care instruction to a non-English instruction set.",
       "operation": "append",
       "params": { "text": " - Machine wash cold" }
     },
     {
       "rule_name": "inject_prepended_color_error",
-      "description": "Prepends a color attribute to the string.",
+      "description": "Prepends a color attribute to the care instructions.",
       "operation": "prepend",
       "params": { "text": "Blue " }
     },
     {
-      "rule_name": "inject_missing_composition_value_error",
-      "description": "Removes the numerical composition for a material.",
+      "rule_name": "inject_missing_temperature_value_error",
+      "description": "Removes the numerical temperature in care instructions.",
       "operation": "regex_replace",
-      "params": { "pattern": "\\d+(\\.\\d+)?%\\s+", "replace": "" },
-      "conditions": [{ "type": "contains", "value": "%" }]
+      "params": { "pattern": "(MAX\\s*)\\d+(°C)", "replace": "$1$2" },
+      "conditions": [{ "type": "contains", "value": "MAX" }]
     },
     {
-      "rule_name": "inject_decimal_composition_error",
-      "description": "Changes an integer percentage to a decimal.",
+      "rule_name": "inject_decimal_temperature_error",
+      "description": "Changes an integer temperature to a decimal.",
       "operation": "string_replace",
-      "params": { "find": "100", "replace": "99.9" }
+      "params": { "find": "40°C", "replace": "40.5°C" }
     },
     {
-      "rule_name": "inject_malformed_structure_error",
-      "description": "Changes the format to 'material name' then 'number'.",
+      "rule_name": "inject_malformed_instruction_error",
+      "description": "Changes the format of an instruction to lowercase and removes standard punctuation.",
       "operation": "string_replace",
-      "params": { "find": "100% Cotton", "replace": "cotton 100" },
-      "conditions": [{ "type": "contains", "value": "100% Cotton" }]
+      "params": { "find": "NIET BLEKEN", "replace": "niet bleken" },
+      "conditions": [{ "type": "contains", "value": "NIET BLEKEN" }]
     },
     {
       "rule_name": "inject_hyphen_delimiter_error",
-      "description": "Incorrectly uses a hyphen as a delimiter within a composition.",
+      "description": "Incorrectly uses a hyphen as a delimiter between care instructions.",
       "operation": "string_replace",
-      "params": { "find": "% ", "replace": "%-" }
+      "params": { "find": ". ", "replace": " - " }
     },
     {
       "rule_name": "inject_multiple_spaces_error",
-      "description": "Adds multiple spaces between words.",
+      "description": "Adds multiple spaces between words in care instructions.",
       "operation": "string_replace",
       "params": { "find": " ", "replace": "   " }
     },
     {
       "rule_name": "inject_line_break_error",
-      "description": "Adds a line break in the middle of the string.",
+      "description": "Adds a line break in the middle of care instructions.",
       "operation": "regex_replace",
       "params": { "pattern": "\\s", "replace": "\n", "count": 1 }
     },
     {
       "rule_name": "inject_random_noise_error",
-      "description": "Injects random characters or duplicates parts of the string.",
+      "description": "Injects random characters or duplicates parts of care instructions.",
       "operation": "random_noise"
+    },
+    {
+      "rule_name": "inject_missing_drying_instruction",
+      "description": "Removes the drying instruction.",
+      "operation": "string_replace",
+      "params": { "find": "NIET IN DE DROGER", "replace": "" },
+      "conditions": [{ "type": "contains", "value": "NIET IN DE DROGER" }]
+    },
+    {
+      "rule_name": "inject_abbreviated_instruction",
+      "description": "Abbreviates a care instruction inappropriately.",
+      "operation": "string_replace",
+      "params": { "find": "NIET STRIJKEN", "replace": "N.STRIJK" },
+      "conditions": [{ "type": "contains", "value": "NIET STRIJKEN" }]
+    },
+    {
+      "rule_name": "inject_emoji_error",
+      "description": "Adds emojis to care instructions which are not valid.",
+      "operation": "string_replace",
+      "params": { "find": "WASSEN", "replace": "WASSEN 🧼" },
+      "conditions": [{ "type": "contains", "value": "WASSEN" }]
+    },
+    {
+      "rule_name": "inject_instruction_order_error",
+      "description": "Rearranges the order of care instructions.",
+      "operation": "string_replace",
+      "params": {
+        "find": "NIET BLEKEN. NIET IN DE DROGER",
+        "replace": "NIET IN DE DROGER. NIET BLEKEN"
+      },
+      "conditions": [
+        { "type": "contains", "value": "NIET BLEKEN. NIET IN DE DROGER" }
+      ]
+    },
+    {
+      "rule_name": "inject_special_character_error",
+      "description": "Introduces special characters in care instructions.",
+      "operation": "string_replace",
+      "params": { "find": "NIET STOMEN", "replace": "NIET STOMEN!" }
+    }
+  ],
+  "evaluator_rules": [
+    {
+      "rule_name": "validate_care_instructions",
+      "description": "Validates that care instructions are from a predefined list of allowed values.",
+      "operation": "validate_allowed_values",
+      "params": {
+        "allowed_values": [
+          "WASSEN OP MAX 40°C.WAS IN VERGELIJKBARE KLEUREN. NIET BLEKEN. NIET IN DE DROGER. NIET STRIJKEN. NIET STOMEN.",
+          "WASSEN OP MAX 30°C. WAS IN VERGELIJKBARE KLEUREN. NIET BLEKEN. NIET IN DE DROGER. STRIJKEN OP LAGE TEMPERATUUR. NIET STOMEN"
+        ]
+      }
+    },
+    {
+      "rule_name": "validate_formatting",
+      "description": "Validates that care instructions follow proper formatting rules.",
+      "operation": "validate_format",
+      "params": {
+        "format_rules": [
+          {
+            "rule_type": "capitalization",
+            "description": "All care instructions must be in uppercase"
+          },
+          {
+            "rule_type": "punctuation",
+            "description": "Instructions should be separated by periods"
+          },
+          {
+            "rule_type": "whitespace",
+            "description": "No leading or trailing whitespace allowed"
+          }
+        ]
+      }
+    },
+    {
+      "rule_name": "validate_temperature_format",
+      "description": "Validates temperature format in washing instructions.",
+      "operation": "validate_pattern",
+      "params": {
+        "pattern": "MAX \\d+°C",
+        "description": "Temperature must be specified as 'MAX' followed by a number and '°C'"
+      }
     }
   ]
 }
