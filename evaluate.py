@@ -258,16 +258,20 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Example Usage:
-  python evaluate.py data/source.csv material --output-dir results/material_test
+  python evaluate.py data/source.csv --column material --output-dir results/material_test
+  python evaluate.py data/source.csv --column "Care Instructions" --validator care_instructions
 
 This will automatically look for:
-- Rules:      rules/material.json
-- Validator:  validators/material/validate.py (expecting class 'MaterialValidator')
-- Reporter:   validators/material/report.py (expecting class 'MaterialReporter')
+- Rules:      rules/<validator>.json
+- Validator:  validators/<validator>/validate.py (expecting class '<CapitalizedValidator>Validator')
+- Reporter:   validators/report.py (expecting class '<CapitalizedValidator>Reporter')
+
+If --validator is not specified, it defaults to the value of --column (converted to snake_case if needed).
 """
     )
     parser.add_argument("source_data", help="Path to the source CSV data file.")
-    parser.add_argument("--column", help="The target column to validate (e.g., 'material', 'color'). This determines which rules and modules to load.")
+    parser.add_argument("--column", required=True, help="The target column to validate in the CSV file (e.g., 'material', 'Care Instructions').")
+    parser.add_argument("--validator", help="The validator name to use for files and classes (e.g., 'material', 'care_instructions'). Defaults to the column name if not provided.")
     parser.add_argument("--num-samples", type=int, default=32, help="Number of samples to generate for evaluation (default: 32).")
     parser.add_argument("--max-errors", type=int, default=3, help="Maximum number of errors to combine in a single sample (default: 3).")
     parser.add_argument("--output-dir", default="evaluation_results", help="Directory to save all evaluation results and generated samples.")
@@ -275,15 +279,25 @@ This will automatically look for:
     parser.add_argument("--ignore-fp", action="store_true", help="If set, false positives will be ignored in the evaluation.")
     args = parser.parse_args()
 
-    # --- Derive paths and class names from the 'column' argument ---
+    # --- Derive paths and class names ---
     column_name = args.column
-    capitalized_name = column_name.capitalize()
+    
+    # If validator name is not provided, default to column name (converted to snake_case)
+    if args.validator:
+        validator_name = args.validator
+    else:
+        # Convert column name to snake_case if needed (e.g., "Care Instructions" -> "care_instructions")
+        validator_name = column_name.lower().replace(' ', '_')
+    
+    capitalized_name = ''.join(word.capitalize() for word in validator_name.split('_'))
 
-    rules_path = f"rules/{column_name}.json"
-    validator_module_str = f"validators.{column_name}.validate:{capitalized_name}Validator"
+    rules_path = f"rules/{validator_name}.json"
+    validator_module_str = f"validators.{validator_name}.validate:{capitalized_name}Validator"
     reporter_module_str = f"validators.report:{capitalized_name}Reporter"
     
-    print(f"--- Loading assets for column: '{column_name}' ---")
+    print(f"--- Evaluation Setup ---")
+    print(f"Target column: '{column_name}'")
+    print(f"Using validator: '{validator_name}'")
     print(f"Rules: {rules_path}")
     print(f"Validator: {validator_module_str}")
     print(f"Reporter: {reporter_module_str}\n")
@@ -312,12 +326,12 @@ This will automatically look for:
     reporter = ReporterClass()
     
     # Run evaluation
-    error_samples = generate_error_samples(df, args.column, rules, args.num_samples, args.max_errors, args.output_dir)
-    evaluation_results = evaluate(validator, reporter, error_samples, args.column, 
+    error_samples = generate_error_samples(df, column_name, rules, args.num_samples, args.max_errors, args.output_dir)
+    evaluation_results = evaluate(validator, reporter, error_samples, column_name, 
                                 args.ignore_errors, args.ignore_fp)
     
     # Derive error_messages_path
-    error_messages_path = f"validators/{column_name}/error_messages.json"
+    error_messages_path = f"validators/{validator_name}/error_messages.json"
     # Report results
     generate_summary_report(evaluation_results, args.output_dir, args.ignore_fp, error_messages_path)
 
