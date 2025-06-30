@@ -109,7 +109,7 @@ def generate_error_samples(df: pd.DataFrame, column: str, rules: list, num_sampl
     print("Sample generation complete.")
     return samples
 
-def evaluate(validator, reporter, samples, column, ignore_errors=None):
+def evaluate(validator, reporter, samples, column, ignore_errors=None, ignore_false_positives=False):
     """Evaluates the validator and reporter, returning a detailed analysis."""
     if ignore_errors is None:
         ignore_errors = []
@@ -134,25 +134,42 @@ def evaluate(validator, reporter, samples, column, ignore_errors=None):
         # --- Analysis ---
         true_positives = detected_indices.intersection(injected_indices)
         false_negatives = injected_indices - detected_indices # Injected but not detected
-        false_positives = detected_indices - injected_indices # Detected but not injected
+        
+        # Only calculate false positives if we're not ignoring them
+        if ignore_false_positives:
+            false_positives = set()  # Empty set if we're ignoring false positives
+            fp_details = []  # Empty list for false positive details
+            ignored_fp_count = len(detected_indices - injected_indices)  # Count of ignored FPs
+        else:
+            false_positives = detected_indices - injected_indices
+            fp_details = [e for e in detected_by_validator if e['row_index'] in false_positives]
+            ignored_fp_count = 0
 
         results.append({
             "sample_index": i,
-            "true_positives": list(true_positives),
+            "true_positives": true_positives,
             "false_negatives": [e for e in injected_errors_to_consider if e['row_index'] in false_negatives],
-            "false_positives": [e for e in detected_by_validator if e['row_index'] in false_positives],
-            "ignored_error_count": len(injected_errors_info) - len(injected_errors_to_consider)
+            "false_positives": fp_details,
+            "ignored_error_count": len(injected_errors_info) - len(injected_errors_to_consider),
+            "ignored_fp_count": ignored_fp_count
         })
         
     return results
 
-def generate_summary_report(evaluation_results, output_dir):
+def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
     """Generates and prints a summary, saving full results to the output directory."""
     
     all_fn = [error for res in evaluation_results for error in res['false_negatives']]
     all_fp = [error for res in evaluation_results for error in res['false_positives']]
+    total_ignored_errors = sum(res.get('ignored_error_count', 0) for res in evaluation_results)
+    total_ignored_fps = sum(res.get('ignored_fp_count', 0) for res in evaluation_results)
 
     summary_lines = ["="*80, "EVALUATION SUMMARY REPORT", "="*80]
+    
+    # --- Summary stats ---
+    summary_lines.append(f"\n--- Summary Statistics ---")
+    summary_lines.append(f"  - Total errors ignored: {total_ignored_errors}")
+    summary_lines.append(f"  - Total false positives ignored: {total_ignored_fps}")
 
     # --- False Negatives (Missed Errors) ---
     summary_lines.append(f"\n--- False Negatives (Missed Errors): {len(all_fn)} Total ---")
@@ -170,19 +187,20 @@ def generate_summary_report(evaluation_results, output_dir):
                 summary_lines.append(f"    - Example: '{ex}'")
 
     # --- False Positives (Incorrectly Flagged) ---
-    summary_lines.append(f"\n--- False Positives (Incorrectly Flagged): {len(all_fp)} Total ---")
-    if not all_fp:
-        summary_lines.append("Excellent! No valid data was incorrectly flagged as an error.")
-    else:
-        fp_by_type = {}
-        for fp in all_fp:
-            code = fp['error_code']
-            fp_by_type.setdefault(code, []).append(fp['error_data'])
+    if not ignore_fp:
+        summary_lines.append(f"\n--- False Positives (Incorrectly Flagged): {len(all_fp)} Total ---")
+        if not all_fp:
+            summary_lines.append("Excellent! No valid data was incorrectly flagged as an error.")
+        else:
+            fp_by_type = {}
+            for fp in all_fp:
+                code = fp['error_code']
+                fp_by_type.setdefault(code, []).append(fp['error_data'])
 
-        for code, examples in fp_by_type.items():
-            summary_lines.append(f"\n  - Error Code: '{code}' (Flagged {len(examples)} times)")
-            for ex in list(set(examples))[:3]:
-                summary_lines.append(f"    - Example: '{ex}'")
+            for code, examples in fp_by_type.items():
+                summary_lines.append(f"\n  - Error Code: '{code}' (Flagged {len(examples)} times)")
+                for ex in list(set(examples))[:3]:
+                    summary_lines.append(f"    - Example: '{ex}'")
     
     summary_lines.append("\n" + "="*80)
     summary_text = "\n".join(summary_lines)
@@ -224,6 +242,7 @@ This will automatically look for:
     parser.add_argument("--max-errors", type=int, default=3, help="Maximum number of errors to combine in a single sample (default: 3).")
     parser.add_argument("--output-dir", default="evaluation_results", help="Directory to save all evaluation results and generated samples.")
     parser.add_argument("--ignore-errors", nargs='+', default=[], help="A list of error rule names to ignore during evaluation (e.g., inject_unicode_error).")
+    parser.add_argument("--ignore-fp", action="store_true", help="If set, false positives will be ignored in the evaluation.")
     args = parser.parse_args()
 
     # --- Derive paths and class names from the 'column' argument ---
@@ -264,10 +283,11 @@ This will automatically look for:
     
     # Run evaluation
     error_samples = generate_error_samples(df, args.column, rules, args.num_samples, args.max_errors, args.output_dir)
-    evaluation_results = evaluate(validator, reporter, error_samples, args.column, args.ignore_errors)
+    evaluation_results = evaluate(validator, reporter, error_samples, args.column, 
+                                args.ignore_errors, args.ignore_fp)
     
     # Report results
-    generate_summary_report(evaluation_results, args.output_dir)
+    generate_summary_report(evaluation_results, args.output_dir, args.ignore_fp)
 
 
 if __name__ == '__main__':
