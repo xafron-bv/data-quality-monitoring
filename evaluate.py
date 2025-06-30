@@ -156,9 +156,8 @@ def evaluate(validator, reporter, samples, column, ignore_errors=None, ignore_fa
         
     return results
 
-def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
-    """Generates and prints a summary, saving full results to the output directory."""
-    
+def generate_summary_report(evaluation_results, output_dir, ignore_fp=False, error_messages_path=None):
+    """Generates and prints a summary, saving full results to the output directory. Also checks for missing error messages."""
     all_fn = [error for res in evaluation_results for error in res['false_negatives']]
     all_fp = [error for res in evaluation_results for error in res['false_positives']]
     total_ignored_errors = sum(res.get('ignored_error_count', 0) for res in evaluation_results)
@@ -201,7 +200,38 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
                 summary_lines.append(f"\n  - Error Code: '{code}' (Flagged {len(examples)} times)")
                 for ex in list(set(examples))[:3]:
                     summary_lines.append(f"    - Example: '{ex}'")
-    
+
+    # --- Check for missing error messages ---
+    if error_messages_path:
+        try:
+            with open(error_messages_path, 'r') as f:
+                error_messages = json.load(f)
+        except Exception as e:
+            error_messages = {}
+            summary_lines.append(f"\n[WARNING] Could not load error messages from {error_messages_path}: {e}")
+        # Collect all error codes from validator output
+        all_error_codes = set()
+        for res in evaluation_results:
+            for fp in res.get('false_positives', []):
+                if 'error_code' in fp:
+                    all_error_codes.add(fp['error_code'])
+            for fn in res.get('false_negatives', []):
+                if 'error_rule' in fn:
+                    all_error_codes.add(fn['error_rule'])
+        # Also check for error codes in true positives
+        for res in evaluation_results:
+            for tp_idx in res.get('true_positives', []):
+                # Not enough info to get error_code for true positives, so skip
+                pass
+        # Check for missing error messages
+        missing = [code for code in all_error_codes if code not in error_messages]
+        if missing:
+            summary_lines.append("\n[WARNING] The following error codes are missing human-readable messages in the error_messages.json file:")
+            for code in missing:
+                summary_lines.append(f"  - {code}")
+        else:
+            summary_lines.append("\nAll error codes have human-readable messages defined.")
+
     summary_lines.append("\n" + "="*80)
     summary_text = "\n".join(summary_lines)
     print(summary_text)
@@ -286,8 +316,10 @@ This will automatically look for:
     evaluation_results = evaluate(validator, reporter, error_samples, args.column, 
                                 args.ignore_errors, args.ignore_fp)
     
+    # Derive error_messages_path
+    error_messages_path = f"validators/{column_name}/error_messages.json"
     # Report results
-    generate_summary_report(evaluation_results, args.output_dir, args.ignore_fp)
+    generate_summary_report(evaluation_results, args.output_dir, args.ignore_fp, error_messages_path)
 
 
 if __name__ == '__main__':
