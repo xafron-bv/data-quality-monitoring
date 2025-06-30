@@ -5,6 +5,7 @@ import os
 import json
 import sys
 import argparse
+import string
 from material_validator import MaterialValidator
 
 def inject_unicode_error(material):
@@ -91,12 +92,44 @@ def inject_line_break_error(material):
         return material.replace(' ', '\n', 1)
     return material
 
+def inject_randomly_generated_noise_error(material):
+    """Injects randomly generated noise into the material string."""
+    if not isinstance(material, str) or not material.strip():
+        return material
+
+    def _add_random_chars(s):
+        """Injects a short, random alphanumeric string."""
+        noise_len = random.randint(2, 5)
+        random_noise = ''.join(random.choices(string.ascii_letters + string.digits, k=noise_len))
+        insert_pos = random.randint(0, len(s))
+        return f"{s[:insert_pos]}{random_noise}{s[insert_pos:]}"
+
+    def _add_random_numbers(s):
+        """Injects a random number as a separate token."""
+        random_num_str = str(random.randint(100, 9999))
+        insert_pos = random.randint(0, len(s))
+        return f"{s[:insert_pos]} {random_num_str} {s[insert_pos:]}".strip()
+
+    def _duplicate_part(s):
+        """Duplicates a component of the material string."""
+        parts = [p.strip() for p in s.replace(',', ' ').split(' ') if p.strip()]
+        if not parts:
+            return s
+        part_to_add = random.choice(parts)
+        return f"{s}, {part_to_add}"
+
+    # A list of the noise functions to choose from
+    noise_functions = [_add_random_chars, _add_random_numbers, _duplicate_part]
+    
+    chosen_noise_function = random.choice(noise_functions)
+    return chosen_noise_function(material)
+
 ERROR_FUNCTIONS = [
     inject_unicode_error, inject_composition_error, inject_percentage_sign_error,
     inject_trademark_error, inject_delimiter_error, inject_spacing_error,
     inject_care_instruction_error, inject_color_error, inject_missing_composition_error,
     inject_decimal_error, inject_format_error, inject_hyphen_delimiter_error,
-    inject_multiple_spaces_error, inject_line_break_error
+    inject_multiple_spaces_error, inject_line_break_error, inject_randomly_generated_noise_error
 ]
 
 def generate_error_samples(df, num_samples=32, max_errors=3, cache_dir='cache'):

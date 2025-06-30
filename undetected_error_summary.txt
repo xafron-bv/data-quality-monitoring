@@ -1,2 +1,9 @@
 --- Summary of Undetected Errors ---
-No errors were missed by the validator. Great job!
+
+- Error Type: inject_randomly_generated_noise_error
+  - Definition: Injects randomly generated noise into the material string.
+  - Count: 5
+  - Examples:
+    - 'Front: 100% SilkVmhkt Back: 100% Viscose'
+    - '100% ViwhFRscose'
+    - 'Front: 100% Silk BazjDJck: 100% Viscose'
