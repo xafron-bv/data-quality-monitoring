@@ -99,19 +99,25 @@ ERROR_FUNCTIONS = [
     inject_multiple_spaces_error, inject_line_break_error
 ]
 
-def generate_error_samples(df, num_samples=32, cache_dir='cache'):
+def generate_error_samples(df, num_samples=32, max_errors=3, cache_dir='cache'):
     """
     Generates samples with errors, saving them to a cache directory.
+    
+    Args:
+        df: DataFrame containing the data to inject errors into
+        num_samples: Number of samples to generate
+        max_errors: Maximum number of errors to combine in a single sample
+        cache_dir: Directory to save the samples to
     """
     samples = []
     os.makedirs(cache_dir, exist_ok=True)
-    print(f"Generating {num_samples} samples and saving to '{cache_dir}/' directory...")
+    print(f"Generating {num_samples} samples with up to {max_errors} errors per sample and saving to '{cache_dir}/' directory...")
 
     for i in range(num_samples):
         df_copy = df.copy()
         injected_errors = []
         
-        num_errors_to_inject = random.randint(1, 3) 
+        num_errors_to_inject = random.randint(1, max_errors) 
         error_rows_indices = random.sample(range(len(df_copy)), k=min(len(df_copy), 20)) 
         
         for idx in error_rows_indices:
@@ -232,6 +238,18 @@ def main():
         default=[],
         help="A list of error function names to ignore during evaluation (e.g., inject_spacing_error inject_multiple_spaces_error)."
     )
+    parser.add_argument(
+        "--num-samples",
+        type=int,
+        default=32,
+        help="Number of samples to generate for evaluation (default: 32)."
+    )
+    parser.add_argument(
+        "--max-errors",
+        type=int,
+        default=3,
+        help="Maximum number of errors to combine in a single sample (default: 3)."
+    )
     args = parser.parse_args()
         
     try:
@@ -240,7 +258,7 @@ def main():
         print(f"Error: '{args.input_file}' not found.")
         return
 
-    error_samples = generate_error_samples(df, num_samples=32)
+    error_samples = generate_error_samples(df, num_samples=args.num_samples, max_errors=args.max_errors)
     validator = MaterialValidator()
     evaluation_results = evaluate(validator, error_samples, ignore_errors=args.ignore_errors)
     
@@ -260,6 +278,7 @@ def main():
     print("\n--- Overall Performance ---")
     if args.ignore_errors:
         print(f"Ignoring the following error types: {', '.join(args.ignore_errors)}")
+    print(f"Using {args.num_samples} samples with up to {args.max_errors} combined errors per sample")
     print(f"Total injected errors considered: {total_injected}")
     print(f"Total correctly detected errors: {total_tp}")
     print(f"Overall detection accuracy: {overall_accuracy:.2f}%")
