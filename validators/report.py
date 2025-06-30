@@ -55,7 +55,15 @@ class Reporter(ReporterInterface):
         report = []
         for error in validation_errors:
             error_code = error.get("error_code", "DEFAULT")
-            message_template = self.ERROR_MESSAGES.get(error_code, self.ERROR_MESSAGES["DEFAULT"])
+            
+            # First try to get the template for the specific error code
+            # If not found, try to use DEFAULT, and if that's not available, use a generic message
+            if error_code in self.ERROR_MESSAGES:
+                message_template = self.ERROR_MESSAGES[error_code]
+            elif "DEFAULT" in self.ERROR_MESSAGES:
+                message_template = self.ERROR_MESSAGES["DEFAULT"]
+            else:
+                message_template = "Unknown error with data: {error_data}"
             
             # Format the message with specific details from the error
             details = error.get("details", {}) or {}  # Ensure details is a dict even if None
