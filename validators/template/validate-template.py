@@ -3,7 +3,7 @@ from typing import List, Dict, Any, Optional
 
 from validators.interfaces import ValidatorInterface
 
-class GenericValidatorTemplate(ValidatorInterface):
+class Validator(ValidatorInterface):
     """
     A completely empty template for a custom column validator.
 
