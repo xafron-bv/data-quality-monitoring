@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xafron - Pitch Deck</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #0f172a; /* slate-900 */
+            overflow: hidden; /* Prevent scrolling the whole page */
+        }
+        .slide {
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6rem 2rem 4rem; /* Added top padding to avoid nav overlap */
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.6s ease-in-out, visibility 0.6s;
+        }
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 10;
+        }
+        .card {
+            background-color: white;
+            border-radius: 1.5rem;
+            padding: 2rem; /* Adjusted padding for smaller screens */
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15);
+            max-width: 1000px;
+            width: 100%;
+            max-height: calc(100vh - 10rem);
+            overflow-y: auto;
+        }
+        @media (min-width: 768px) {
+            .card {
+                padding: 3rem;
+            }
+        }
+        h1, h2, h3 {
+            font-weight: 700;
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .pill {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+        .icon-container {
+            background-color: #e0e7ff; /* indigo-100 */
+            color: #4f46e5; /* indigo-600 */
+            border-radius: 50%;
+            width: 4rem;
+            height: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        .icon-container svg {
+            width: 2rem;
+            height: 2rem;
+        }
+        .nav-link.active {
+            color: #3b82f6; /* blue-600 */
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-sm shadow-md z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="font-bold text-2xl gradient-text">Xafron</span>
+                </div>
+                <div class="hidden md:block">
+                    <div id="top-nav" class="ml-10 flex items-baseline space-x-4">
+                        <a href="#hero" data-slide="0" class="nav-link text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                        <a href="#problem" data-slide="1" class="nav-link text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Problem</a>
+                        <a href="#solution" data-slide="2" class="nav-link text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Solution</a>
+                        <a href="#advantage" data-slide="3" class="nav-link text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Advantage</a>
+                        <a href="#tech" data-slide="4" class="nav-link text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Technology</a>
+                        <a href="#contact" data-slide="5" class="nav-link text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Contact</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <main>
+        <!-- Hero Section -->
+        <section id="hero" class="slide">
+            <div class="text-center">
+                <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight">
+                    <span class="gradient-text">Trust Your Data.</span>
+                    <br>
+                    <span class="text-slate-800">From the Very First Byte.</span>
+                </h1>
+                <p class="mt-6 max-w-2xl mx-auto text-lg text-slate-600">
+                    Xafron provides intelligent data validation and anomaly detection at the source, ensuring every pipeline is built on a foundation of clean, reliable data.
+                </p>
+            </div>
+        </section>
+
+        <!-- Problem Section -->
+        <section id="problem" class="slide">
+            <div class="card">
+                <div class="text-center mb-12">
+                    <p class="pill bg-red-100 text-red-800">The Problem</p>
+                    <h2 class="text-4xl md:text-5xl mt-4 font-bold text-slate-900">Garbage In, Garbage Everywhere</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg text-slate-600">Data quality is often an afterthought. Errors originating at the source silently corrupt your entire data pipeline, leading to flawed analytics, broken models, and costly, preventable mistakes.</p>
+                </div>
+                <div class="grid md:grid-cols-3 gap-8 text-center">
+                    <div class="p-6 border border-slate-200 rounded-xl">
+                        <div class="icon-container mx-auto bg-red-100 text-red-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-slate-800">Neglected at the Source</h3>
+                        <p class="mt-2 text-slate-500">Validation is typically applied too late, after bad data has already spread.</p>
+                    </div>
+                    <div class="p-6 border border-slate-200 rounded-xl">
+                        <div class="icon-container mx-auto bg-red-100 text-red-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-slate-800">Propagating Errors</h3>
+                        <p class="mt-2 text-slate-500">A single source error can cause a cascade of failures downstream.</p>
+                    </div>
+                    <div class="p-6 border border-slate-200 rounded-xl">
+                        <div class="icon-container mx-auto bg-red-100 text-red-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-slate-800">Unintended Consequences</h3>
+                        <p class="mt-2 text-slate-500">Results in unreliable reports, poor business decisions, and loss of trust in data.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Solution Section -->
+        <section id="solution" class="slide">
+            <div class="card">
+                 <div class="text-center mb-12">
+                    <p class="pill bg-green-100 text-green-800">The Solution</p>
+                    <h2 class="text-4xl md:text-5xl mt-4 font-bold text-slate-900">Validate and Purify at the Point of Entry</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg text-slate-600">Xafron integrates directly with your data sources, providing a powerful suite of tools to detect anomalies, validate data, and perform automatic cleanups before bad data ever enters your system.</p>
+                </div>
+                <div class="grid md:grid-cols-3 gap-8">
+                     <div class="p-6 bg-slate-50 rounded-xl">
+                        <div class="icon-container bg-blue-100 text-blue-600">
+                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" /></svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-slate-800">Source-Level Anomaly Detection</h3>
+                        <p class="mt-2 text-slate-500">Identify unexpected patterns, outliers, and deviations in real-time as data is generated.</p>
+                    </div>
+                    <div class="p-6 bg-slate-50 rounded-xl">
+                        <div class="icon-container bg-blue-100 text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-slate-800">Customizable Error Validation</h3>
+                        <p class="mt-2 text-slate-500">Define and enforce bespoke validation rules tailored to your specific business logic and data types.</p>
+                    </div>
+                    <div class="p-6 bg-slate-50 rounded-xl">
+                        <div class="icon-container bg-blue-100 text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.898 20.562L16.25 21.75l-.648-1.188a2.25 2.25 0 01-1.4-1.4l-1.188-.648 1.188-.648a2.25 2.25 0 011.4-1.4l.648-1.188.648 1.188a2.25 2.25 0 011.4 1.4l1.188.648-1.188.648a2.25 2.25 0 01-1.4 1.4z" /></svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-slate-800">Automatic Cleanup & Feedback</h3>
+                        <p class="mt-2 text-slate-500">Automate data correction for common issues and provide direct feedback to data providers via an intuitive dashboard.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Competitive Advantage Section -->
+        <section id="advantage" class="slide">
+            <div class="card">
+                <div class="text-center mb-12">
+                    <p class="pill bg-purple-100 text-purple-800">Our Advantage</p>
+                    <h2 class="text-4xl md:text-5xl mt-4 font-bold text-slate-900">A Collaborative, Source-First Approach</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg text-slate-600">Unlike generic data quality tools, we partner with you to build validation at the source, creating a powerful, self-improving data ecosystem.</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div class="p-6">
+                        <h3 class="text-2xl font-semibold text-slate-800 mb-4">What Sets Us Apart</h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start">
+                                <svg class="flex-shrink-0 h-6 w-6 text-purple-600 mr-3 mt-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <div>
+                                    <h4 class="font-semibold">Bespoke Solutions</h4>
+                                    <p class="text-slate-500">We don't offer a one-size-fits-all product. We collaborate with you to build validation logic that understands the unique context of your business.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="flex-shrink-0 h-6 w-6 text-purple-600 mr-3 mt-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <div>
+                                    <h4 class="font-semibold">Direct Feedback Loop</h4>
+                                    <p class="text-slate-500">Our dashboard provides clear, actionable feedback to data providers, empowering them to improve quality at the source.</p>
+                                </div>
+                            </li>
+                             <li class="flex items-start">
+                                <svg class="flex-shrink-0 h-6 w-6 text-purple-600 mr-3 mt-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <div>
+                                    <h4 class="font-semibold">Proactive, Not Reactive</h4>
+                                    <p class="text-slate-500">We prevent bad data from entering your pipeline, saving you from the expensive and time-consuming process of cleaning it up later.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="p-6">
+                        <img src="./dashboard.png" alt="Intuitive Dashboard" class="rounded-lg shadow-xl w-full h-auto">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technology Section -->
+        <section id="tech" class="slide">
+            <div class="card">
+                <div class="text-center mb-12">
+                     <p class="pill bg-indigo-100 text-indigo-800">Our Technology</p>
+                    <h2 class="text-4xl md:text-5xl mt-4 font-bold text-slate-900">Intelligently Engineered for Accuracy</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg text-slate-600">We leverage a sophisticated blend of Large Language Models and proven machine learning techniques to deliver robust, nuanced, and self-improving data validation.</p>
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="p-6 border border-slate-200 rounded-xl">
+                        <h3 class="text-xl font-semibold text-slate-800">LLM-Based Learning</h3>
+                        <p class="mt-2 text-slate-500">We use LLMs to interpret data and generate human-readable feedback, making error resolution faster and more intuitive.</p>
+                    </div>
+                    <div class="p-6 border border-slate-200 rounded-xl">
+                        <h3 class="text-xl font-semibold text-slate-800">Validators & Evaluators</h3>
+                        <p class="mt-2 text-slate-500">Our system uses precise error functions calculated from custom validators and evaluators to create highly reliable field validation.</p>
+                    </div>
+                    <div class="p-6 border border-slate-200 rounded-xl">
+                        <h3 class="text-xl font-semibold text-slate-800">Auto-Encoders</h3>
+                        <p class="mt-2 text-slate-500">A key part of our anomaly detection, auto-encoders learn the "normal" state of your data to flag deviations.</p>
+                    </div>
+                    <div class="p-6 border border-slate-200 rounded-xl">
+                        <h3 class="text-xl font-semibold text-slate-800">Case-Based Reasoning (CBR)</h3>
+                        <p class="mt-2 text-slate-500">By comparing new data points to a library of historical cases, CBR helps identify subtle and context-specific anomalies.</p>
+                    </div>
+                    <div class="p-6 border border-slate-200 rounded-xl">
+                        <h3 class="text-xl font-semibold text-slate-800">Embedding-Based Similarity</h3>
+                        <p class="mt-2 text-slate-500">We transform data into vector embeddings to perform powerful similarity searches, uncovering inconsistencies that other methods miss.</p>
+                    </div>
+                    <div class="p-6 border border-slate-200 rounded-xl">
+                        <h3 class="text-xl font-semibold text-slate-800">Scalable Architecture</h3>
+                        <p class="mt-2 text-slate-500">Built for performance and reliability, our architecture can handle high-volume data streams without compromising speed.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="slide bg-slate-900">
+            <div class="text-center">
+                <h2 class="text-5xl md:text-6xl font-extrabold tracking-tight text-white">Ready to Build on a Foundation of Trust?</h2>
+                <p class="mt-6 max-w-2xl mx-auto text-lg text-slate-300">
+                    Let's talk about how Xafron can bring certainty and reliability to your data infrastructure.
+                </p>
+                <div class="mt-10">
+                    <a href="mailto:admin@xafron.nl" class="bg-white text-blue-600 font-semibold px-10 py-4 rounded-full shadow-lg hover:bg-slate-100 transition-transform transform hover:scale-105">
+                        Get In Touch
+                    </a>
+                </div>
+                 <p class="mt-8 text-slate-400">admin@xafron.nl</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Slide Navigation Controls -->
+    <div class="fixed bottom-5 right-5 z-50 flex items-center space-x-4">
+        <span id="slide-counter" class="text-sm font-medium text-slate-500"></span>
+        <button id="prev-slide" class="bg-white p-2 rounded-full shadow-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed">
+            <svg class="h-6 w-6 text-slate-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+        </button>
+        <button id="next-slide" class="bg-white p-2 rounded-full shadow-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed">
+            <svg class="h-6 w-6 text-slate-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+        </button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get all the elements we need
+            const slides = document.querySelectorAll('.slide');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const prevButton = document.getElementById('prev-slide');
+            const nextButton = document.getElementById('next-slide');
+            const slideCounter = document.getElementById('slide-counter');
+            
+            let currentSlide = 0;
+            const totalSlides = slides.length;
+
+            function showSlide(slideIndex) {
+                // Ensure index is within bounds
+                if (slideIndex >= totalSlides) {
+                    slideIndex = totalSlides - 1;
+                }
+                if (slideIndex < 0) {
+                    slideIndex = 0;
+                }
+
+                // Deactivate all slides and nav links
+                slides.forEach(slide => slide.classList.remove('active'));
+                navLinks.forEach(link => link.classList.remove('active'));
+
+                // Activate the correct slide and nav link
+                slides[slideIndex].classList.add('active');
+                if (navLinks[slideIndex]) {
+                    navLinks[slideIndex].classList.add('active');
+                }
+                
+                currentSlide = slideIndex;
+
+                // Update UI elements
+                updateControls();
+            }
+
+            function updateControls() {
+                // Update slide counter
+                slideCounter.textContent = `Slide ${currentSlide + 1} of ${totalSlides}`;
+
+                // Update button states
+                prevButton.disabled = currentSlide === 0;
+                nextButton.disabled = currentSlide === totalSlides - 1;
+            }
+
+            // Event Listeners for Next/Prev buttons
+            nextButton.addEventListener('click', () => {
+                showSlide(currentSlide + 1);
+            });
+
+            prevButton.addEventListener('click', () => {
+                showSlide(currentSlide - 1);
+            });
+
+            // Event Listeners for top navigation
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault(); // Prevent default anchor behavior
+                    const slideIndex = parseInt(e.target.getAttribute('data-slide'));
+                    showSlide(slideIndex);
+                });
+            });
+            
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight') {
+                    showSlide(currentSlide + 1);
+                } else if (e.key === 'ArrowLeft') {
+                    showSlide(currentSlide - 1);
+                }
+            });
+
+            // Initial setup
+            showSlide(0);
+        });
+    </script>
+
+</body>
+</html>
