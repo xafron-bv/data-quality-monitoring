@@ -127,6 +127,15 @@ def evaluate(validator, reporter, samples, column, ignore_errors=None, ignore_fa
         # Run validator and reporter
         detected_by_validator = validator.bulk_validate(df_with_errors, column)
         reported_by_reporter = reporter.generate_report(detected_by_validator, df_with_errors)
+        
+        # Create a mapping of row_index to display_message from the reporter
+        report_messages = {report['row_index']: report for report in reported_by_reporter}
+        
+        # Enhance validator results with reporter messages
+        for error in detected_by_validator:
+            row_idx = error['row_index']
+            if row_idx in report_messages:
+                error['display_message'] = report_messages[row_idx].get('display_message', '')
 
         detected_indices = {e['row_index'] for e in detected_by_validator}
         injected_indices = {e['row_index'] for e in injected_errors_to_consider}
@@ -156,8 +165,8 @@ def evaluate(validator, reporter, samples, column, ignore_errors=None, ignore_fa
         
     return results
 
-def generate_summary_report(evaluation_results, output_dir, ignore_fp=False, error_messages_path=None):
-    """Generates and prints a summary, saving full results to the output directory. Also checks for missing error messages."""
+def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
+    """Generates and prints a summary, saving full results to the output directory."""
     all_fn = [error for res in evaluation_results for error in res['false_negatives']]
     all_fp = [error for res in evaluation_results for error in res['false_positives']]
     total_ignored_errors = sum(res.get('ignored_error_count', 0) for res in evaluation_results)
@@ -200,37 +209,22 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False, err
                 summary_lines.append(f"\n  - Error Code: '{code}' (Flagged {len(examples)} times)")
                 for ex in list(set(examples))[:3]:
                     summary_lines.append(f"    - Example: '{ex}'")
-
-    # --- Check for missing error messages ---
-    if error_messages_path:
-        try:
-            with open(error_messages_path, 'r') as f:
-                error_messages = json.load(f)
-        except Exception as e:
-            error_messages = {}
-            summary_lines.append(f"\n[WARNING] Could not load error messages from {error_messages_path}: {e}")
-        # Collect all error codes from validator output
-        all_error_codes = set()
-        for res in evaluation_results:
-            for fp in res.get('false_positives', []):
+    
+    # Check for potential missing error messages by looking for error formatting issues in reporter output
+    error_formatting_issues = set()
+    for res in evaluation_results:
+        # Look through reported errors for formatting issues
+        for fp in res.get('false_positives', []):
+            if 'display_message' in fp and fp['display_message'].startswith('Error formatting message:'):
                 if 'error_code' in fp:
-                    all_error_codes.add(fp['error_code'])
-            for fn in res.get('false_negatives', []):
-                if 'error_rule' in fn:
-                    all_error_codes.add(fn['error_rule'])
-        # Also check for error codes in true positives
-        for res in evaluation_results:
-            for tp_idx in res.get('true_positives', []):
-                # Not enough info to get error_code for true positives, so skip
-                pass
-        # Check for missing error messages
-        missing = [code for code in all_error_codes if code not in error_messages]
-        if missing:
-            summary_lines.append("\n[WARNING] The following error codes are missing human-readable messages in the error_messages.json file:")
-            for code in missing:
-                summary_lines.append(f"  - {code}")
-        else:
-            summary_lines.append("\nAll error codes have human-readable messages defined.")
+                    error_formatting_issues.add(fp['error_code'])
+    
+    if error_formatting_issues:
+        summary_lines.append("\n[WARNING] The following error codes had formatting issues in their messages:")
+        for code in sorted(error_formatting_issues):
+            summary_lines.append(f"  - {code}")
+            
+    summary_lines.append("\n" + "="*80)
 
     summary_lines.append("\n" + "="*80)
     summary_text = "\n".join(summary_lines)
@@ -263,8 +257,8 @@ Example Usage:
 
 This will automatically look for:
 - Rules:      rules/<validator>.json
-- Validator:  validators/<validator>/validate.py (expecting class '<CapitalizedValidator>Validator')
-- Reporter:   validators/report.py (expecting class '<CapitalizedValidator>Reporter')
+- Validator:  validators/<validator>/validate.py (expecting class 'Validator')
+- Reporter:   validators/report.py (expecting class 'Reporter')
 
 If --validator is not specified, it defaults to the value of --column (converted to snake_case if needed).
 """
@@ -289,11 +283,9 @@ If --validator is not specified, it defaults to the value of --column (converted
         # Convert column name to snake_case if needed (e.g., "Care Instructions" -> "care_instructions")
         validator_name = column_name.lower().replace(' ', '_')
     
-    capitalized_name = ''.join(word.capitalize() for word in validator_name.split('_'))
-
     rules_path = f"rules/{validator_name}.json"
-    validator_module_str = f"validators.{validator_name}.validate:{capitalized_name}Validator"
-    reporter_module_str = f"validators.report:{capitalized_name}Reporter"
+    validator_module_str = f"validators.{validator_name}.validate:Validator"
+    reporter_module_str = f"validators.report:Reporter"
     
     print(f"--- Evaluation Setup ---")
     print(f"Target column: '{column_name}'")
@@ -323,17 +315,15 @@ If --validator is not specified, it defaults to the value of --column (converted
     ReporterClass = load_module_class(reporter_module_str)
     
     validator = ValidatorClass()
-    reporter = ReporterClass()
+    reporter = ReporterClass(validator_name)
     
     # Run evaluation
     error_samples = generate_error_samples(df, column_name, rules, args.num_samples, args.max_errors, args.output_dir)
     evaluation_results = evaluate(validator, reporter, error_samples, column_name, 
                                 args.ignore_errors, args.ignore_fp)
     
-    # Derive error_messages_path
-    error_messages_path = f"validators/{validator_name}/error_messages.json"
     # Report results
-    generate_summary_report(evaluation_results, args.output_dir, args.ignore_fp, error_messages_path)
+    generate_summary_report(evaluation_results, args.output_dir, args.ignore_fp)
 
 
 if __name__ == '__main__':

@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Optional
 from validators.interfaces import ValidatorInterface
 
 
-class MaterialValidator(ValidatorInterface):
+class Validator(ValidatorInterface):
     """
     A high-speed, deterministic validator for material composition strings,
     refactored to use the ValidatorInterface template.
