@@ -3,4 +3,5 @@ virtenv/
 __pycache__/
 cache/
 evaluations/
+evaluation_results/
 material-validator

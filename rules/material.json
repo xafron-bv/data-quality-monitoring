@@ -1,0 +1,95 @@
+{
+  "error_rules": [
+    {
+      "rule_name": "inject_unicode_error",
+      "description": "Injects a common unicode encoding error.",
+      "operation": "string_replace",
+      "params": { "find": "é", "replace": "Ãª" }
+    },
+    {
+      "rule_name": "inject_composition_sum_error",
+      "description": "Changes a composition percentage so it doesn't sum to 100.",
+      "operation": "string_replace",
+      "params": { "find": "100%", "replace": "99%" }
+    },
+    {
+      "rule_name": "inject_missing_percentage_sign_error",
+      "description": "Removes a percentage sign.",
+      "operation": "string_replace",
+      "params": { "find": "%", "replace": "" }
+    },
+    {
+      "rule_name": "inject_disallowed_symbol_trademark",
+      "description": "Adds a trademark symbol, which is not a valid composition character.",
+      "operation": "string_replace",
+      "params": { "find": "Cotton", "replace": "Cotton™" },
+      "conditions": [{ "type": "contains", "value": "Cotton" }]
+    },
+    {
+      "rule_name": "inject_delimiter_error",
+      "description": "Replaces a standard comma delimiter with a semicolon.",
+      "operation": "string_replace",
+      "params": { "find": ",", "replace": ";" }
+    },
+    {
+      "rule_name": "inject_leading_trailing_space_error",
+      "description": "Adds unnecessary leading and trailing whitespace.",
+      "operation": "add_whitespace"
+    },
+    {
+      "rule_name": "inject_appended_care_instruction_error",
+      "description": "Appends a non-material instruction to the string.",
+      "operation": "append",
+      "params": { "text": " - Machine wash cold" }
+    },
+    {
+      "rule_name": "inject_prepended_color_error",
+      "description": "Prepends a color attribute to the string.",
+      "operation": "prepend",
+      "params": { "text": "Blue " }
+    },
+    {
+      "rule_name": "inject_missing_composition_value_error",
+      "description": "Removes the numerical composition for a material.",
+      "operation": "regex_replace",
+      "params": { "pattern": "\\d+(\\.\\d+)?%\\s+", "replace": "" },
+      "conditions": [{ "type": "contains", "value": "%" }]
+    },
+    {
+      "rule_name": "inject_decimal_composition_error",
+      "description": "Changes an integer percentage to a decimal.",
+      "operation": "string_replace",
+      "params": { "find": "100", "replace": "99.9" }
+    },
+    {
+      "rule_name": "inject_malformed_structure_error",
+      "description": "Changes the format to 'material name' then 'number'.",
+      "operation": "string_replace",
+      "params": { "find": "100% Cotton", "replace": "cotton 100" },
+      "conditions": [{ "type": "contains", "value": "100% Cotton" }]
+    },
+    {
+      "rule_name": "inject_hyphen_delimiter_error",
+      "description": "Incorrectly uses a hyphen as a delimiter within a composition.",
+      "operation": "string_replace",
+      "params": { "find": "% ", "replace": "%-" }
+    },
+    {
+      "rule_name": "inject_multiple_spaces_error",
+      "description": "Adds multiple spaces between words.",
+      "operation": "string_replace",
+      "params": { "find": " ", "replace": "   " }
+    },
+    {
+      "rule_name": "inject_line_break_error",
+      "description": "Adds a line break in the middle of the string.",
+      "operation": "regex_replace",
+      "params": { "pattern": "\\s", "replace": "\n", "count": 1 }
+    },
+    {
+      "rule_name": "inject_random_noise_error",
+      "description": "Injects random characters or duplicates parts of the string.",
+      "operation": "random_noise"
+    }
+  ]
+}
