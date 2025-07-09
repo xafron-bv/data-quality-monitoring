@@ -1,0 +1,48 @@
+{
+  "error_rules": [
+    {
+      "rule_name": "replace_slash_format",
+      "description": "Replaces slash with hyphen in text containing slashes",
+      "operation": "regex_replace",
+      "params": {
+        "pattern": "\\s\\/\\s",
+        "replace": " - "
+      },
+      "conditions": [{ "type": "contains", "value": " / " }]
+    },
+    {
+      "rule_name": "extra_space",
+      "description": "Adds an extra space before or after text",
+      "operation": "add_whitespace",
+      "conditions": []
+    },
+    {
+      "rule_name": "random_text_noise",
+      "description": "Injects random noise characters into text",
+      "operation": "random_noise",
+      "conditions": []
+    },
+
+    {
+      "rule_name": "remove_space_after_slash",
+      "description": "Removes the space after a slash in text",
+      "operation": "regex_replace",
+      "params": {
+        "pattern": "\\s\\/\\s",
+        "replace": " /"
+      },
+      "conditions": [{ "type": "contains", "value": " / " }]
+    },
+    {
+      "rule_name": "merge_words",
+      "description": "Merges two words by removing the space between them",
+      "operation": "regex_replace",
+      "params": {
+        "pattern": "([A-Za-z]+)\\s([A-Za-z]+)",
+        "replace": "\\1\\2",
+        "count": 1
+      },
+      "conditions": [{ "type": "contains", "value": " " }]
+    }
+  ]
+}
