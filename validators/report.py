@@ -3,6 +3,7 @@ import json
 import os
 from typing import List, Dict, Any
 from validators.interfaces import ReporterInterface
+from validators.validation_error import ValidationError
 
 class Reporter(ReporterInterface):
     """
@@ -41,12 +42,12 @@ class Reporter(ReporterInterface):
             import sys
             sys.exit(1)
 
-    def generate_report(self, validation_errors: List[Dict[str, Any]], original_df: pd.DataFrame) -> List[Dict[str, Any]]:
+    def generate_report(self, validation_errors: List[ValidationError], original_df: pd.DataFrame) -> List[Dict[str, Any]]:
         """
         Generates human-readable messages for a list of validation errors from any validator.
         
         Args:
-            validation_errors: List of validation error dictionaries from a validator
+            validation_errors: List of ValidationError objects from a validator
             original_df: Original dataframe that was validated
             
         Returns:
@@ -54,7 +55,7 @@ class Reporter(ReporterInterface):
         """
         report = []
         for error in validation_errors:
-            error_code = error.get("error_code", "DEFAULT")
+            error_code = error.error_type
             
             # First try to get the template for the specific error code
             # If not found, try to use DEFAULT, and if that's not available, use a generic message
@@ -66,8 +67,9 @@ class Reporter(ReporterInterface):
                 message_template = "Unknown error with data: {error_data}"
             
             # Format the message with specific details from the error
-            details = error.get("details", {}) or {}  # Ensure details is a dict even if None
-            details['error_data'] = error.get('error_data', '')  # Add original data for context
+            details = error.details.copy() if error.details else {}  # Create a copy to avoid modifying the original
+            details['error_data'] = error.error_data  # Add original data for context
+            details['confidence'] = error.confidence  # Add confidence for potential use in message
             
             try:
                 display_message = message_template.format(**details)
@@ -78,8 +80,10 @@ class Reporter(ReporterInterface):
                 display_message = f"Error formatting message: {str(e)}"
 
             report.append({
-                "row_index": error["row_index"],
-                "error_data": error["error_data"],
-                "display_message": display_message
+                "row_index": error.row_index,
+                "error_data": error.error_data,
+                "display_message": display_message,
+                "column_name": error.column_name,  # Add column name to the report
+                "confidence": error.confidence     # Add confidence to the report
             })
         return report
