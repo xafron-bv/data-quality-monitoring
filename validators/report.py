@@ -2,7 +2,7 @@ import pandas as pd
 import json
 import os
 from typing import List, Dict, Any
-from validators.interfaces import ReporterInterface
+from validators.reporter_interface import ReporterInterface
 from validators.validation_error import ValidationError
 
 class Reporter(ReporterInterface):
