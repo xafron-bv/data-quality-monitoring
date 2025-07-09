@@ -1,0 +1,11 @@
+{
+  "MISSING_VALUE": "Size value is missing. A valid size must be provided.",
+  "INVALID_TYPE": "Size must be a string or a numeric value.",
+  "RANDOM_NOISE": "Size contains random characters or invalid input. Valid sizes include standard letter sizes (XS, S, M, L, XL, etc.) or numeric sizes.",
+  "INVALID_PREFIX": "Size value contains an invalid prefix. Remove 'SIZE:' prefix from the value.",
+  "FRACTIONAL_SIZE": "Invalid fractional size format. Use proper fraction notation without dollar signs.",
+  "LEADING_TRAILING_SPACE": "Size value contains leading or trailing spaces which should be removed.",
+  "APPENDED_SUFFIX": "Size value contains unnecessary suffix text in parentheses which should be removed.",
+  "DECIMAL_IN_INTEGER": "Size value uses decimal notation with a dollar sign. Remove the dollar sign for proper decimal notation.",
+  "WRONG_DELIMITER": "Size value uses incorrect delimiter. Use '/' instead of '-' for size ranges."
+}
