@@ -1,0 +1,7 @@
+{
+  "UNUSUAL_SIZE_VALUE": "Anomaly detected: The size '{size}' appears in only {frequency} out of {total_sizes} records, which is unusually rare.",
+  "UNUSUAL_SIZE_FORMAT": "Anomaly detected: The size '{size}' uses an unusual format pattern compared to most size values in the dataset.",
+  "UNEXPECTED_NUMERIC_PATTERN": "Anomaly detected: The size '{size}' has numeric value {numeric_value}, which falls outside the normal range of {normal_range}.",
+  "SIZE_OUTLIER": "Anomaly detected: The size '{size}' is an outlier for the category '{category}'. Most sizes in this category are between {normal_range}.",
+  "DEFAULT": "Anomaly detected in size value: '{error_data}'."
+}

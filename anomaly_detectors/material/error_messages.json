@@ -1,0 +1,8 @@
+{
+  "UNCOMMON_MATERIAL": "Anomaly detected: Material '{material}' is uncommon, appearing in only {frequency} out of {total_records} records.",
+  "UNUSUAL_PERCENTAGE": "Anomaly detected: The percentage of {material} ({percentage}%) is unusual. Typical range is {typical_range}.",
+  "UNEXPECTED_COMPOSITION": "Anomaly detected: The composition '{error_data}' follows an unexpected pattern.",
+  "UNUSUAL_MATERIAL_COMBINATION": "Anomaly detected: The combination of materials {materials} is unusual, appearing in only {frequency} out of {total_records} records.",
+  "INCONSISTENT_FORMAT": "Anomaly detected: The format of '{error_data}' is inconsistent with common patterns in the dataset.",
+  "DEFAULT": "Anomaly detected in material composition: '{error_data}'."
+}

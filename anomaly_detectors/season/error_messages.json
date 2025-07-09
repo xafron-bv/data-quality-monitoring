@@ -1,0 +1,7 @@
+{
+  "UNCOMMON_SEASON_FORMAT": "Anomaly detected: The season '{season}' uses an uncommon format pattern compared to other season values.",
+  "UNUSUAL_SEASON": "Anomaly detected: The season '{season}' appears in only {frequency} out of {total_seasons} records, which is unusually rare.",
+  "TEMPORAL_ANOMALY": "Anomaly detected: The season '{season}' references year {year}, which is outside the typical range of {typical_range}.",
+  "INCONSISTENT_SEASON_PATTERN": "Anomaly detected: The season name in '{season}' is inconsistent with common season names like {common_season_names}.",
+  "DEFAULT": "Anomaly detected in season value: '{error_data}'."
+}
