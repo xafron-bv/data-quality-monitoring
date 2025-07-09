@@ -39,18 +39,18 @@ class Validator(ValidatorInterface):
         """
         # <<< LLM: BEGIN IMPLEMENTATION >>>
         #
-        # Define error codes and all validation logic here.
+        # Implement validation logic here, using the ErrorCode enum.
         #
         # Example for a "user_age" column:
         #
         # if pd.isna(value):
-        #     return {"error_code": "MISSING_AGE", "details": {}}
+        #     return {"error_code": self.ErrorCode.MISSING_VALUE, "details": {}}
         #
         # if not isinstance(value, (int, float)):
-        #     return {"error_code": "INVALID_TYPE", "details": {"expected": "integer"}}
+        #     return {"error_code": self.ErrorCode.INVALID_TYPE, "details": {"expected": "integer"}}
         #
         # if not (18 <= value <= 120):
-        #     return {"error_code": "AGE_OUT_OF_RANGE", "details": {"age": value}}
+        #     return {"error_code": self.ErrorCode.AGE_OUT_OF_RANGE, "details": {"age": value}}
         #
 
         # If all checks pass, the value is valid.
