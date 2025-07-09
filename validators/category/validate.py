@@ -3,7 +3,7 @@ import re
 from enum import Enum
 from typing import List, Dict, Any, Optional
 
-from validators.interfaces import ValidatorInterface
+from validators.validator_interface import ValidatorInterface
 from validators.validation_error import ValidationError
 
 class Validator(ValidatorInterface):
@@ -110,28 +110,3 @@ class Validator(ValidatorInterface):
         return None
         
         # <<< LLM: END IMPLEMENTATION >>>
-
-
-    def bulk_validate(self, df: pd.DataFrame, column_name: str) -> List[ValidationError]:
-        """
-        Validates a column and returns a list of ValidationError objects.
-        This method is a non-editable engine that runs the `_validate_entry` logic.
-        """
-        validation_errors = []
-        for index, row in df.iterrows():
-            data = row[column_name]
-
-            # The implemented logic in _validate_entry is called for every row.
-            validation_error = self._validate_entry(data)
-
-            # If the custom logic returned an error, add context and add it to the list
-            if validation_error:
-                # Add row and column context to the validation error
-                error_with_context = validation_error.with_context(
-                    row_index=index,
-                    column_name=column_name,
-                    error_data=data
-                )
-                validation_errors.append(error_with_context)
-                
-        return validation_errors
