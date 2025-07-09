@@ -1,4 +1,5 @@
 import pandas as pd
+from enum import Enum
 from typing import List, Dict, Any, Optional
 
 from validators.interfaces import ValidatorInterface
@@ -15,6 +16,13 @@ class Validator(ValidatorInterface):
        containing 'error_code' and 'details' for invalid data.
     4. Do NOT modify the `bulk_validate` method.
     """
+
+    class ErrorCode(str, Enum):
+        """Enumeration for validator error codes."""
+        # Define your error codes here
+        # Example: MISSING_VALUE = "MISSING_VALUE"
+        # Example: INVALID_TYPE = "INVALID_TYPE"
+        pass
 
     def _validate_entry(self, value: Any) -> Optional[Dict[str, Any]]:
         """
