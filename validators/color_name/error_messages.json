@@ -1,0 +1,8 @@
+{
+  "EXTRA_SPACE": "Color name contains leading, trailing, or excessive spaces. Please remove unnecessary spaces.",
+  "MERGED_WORDS": "Color name contains merged words without proper spacing. Please add appropriate spaces between distinct words.",
+  "RANDOM_TEXT_NOISE": "Color name contains random characters or noise that makes it difficult to understand. Please remove invalid characters.",
+  "INVALID_FORMAT": "Color name uses incorrect separator format. Please use '/' instead of '-' when combining colors.",
+  "MISSING_VALUE": "Color name is missing. Please provide a valid color name.",
+  "INVALID_TYPE": "Color name must be a text string. Please provide a valid color name as text."
+}
