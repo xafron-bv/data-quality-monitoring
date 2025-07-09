@@ -146,44 +146,5 @@
       "operation": "regex_replace",
       "params": { "pattern": "\\b(\\d+)\\b", "replace": "$1 1/2" }
     }
-  ],
-  "evaluator_rules": [
-    {
-      "rule_name": "validate_european_size_format",
-      "description": "Validates that European sizes follow the correct format.",
-      "operation": "validate_pattern",
-      "params": {
-        "pattern": "EU\\s+\\d+",
-        "description": "European sizes must be specified as 'EU' followed by a number"
-      }
-    },
-    {
-      "rule_name": "validate_us_size_format",
-      "description": "Validates that US sizes follow the correct format.",
-      "operation": "validate_pattern",
-      "params": {
-        "pattern": "US\\s+\\d+",
-        "description": "US sizes must be specified as 'US' followed by a number"
-      }
-    },
-    {
-      "rule_name": "validate_size_within_range",
-      "description": "Validates that numerical sizes fall within acceptable ranges.",
-      "operation": "validate_range",
-      "params": {
-        "eu_range": { "min": 34, "max": 46 },
-        "us_range": { "min": 2, "max": 14 },
-        "description": "Size values must fall within the standard range"
-      }
-    },
-    {
-      "rule_name": "validate_letter_size_format",
-      "description": "Validates that letter sizes use standard abbreviations.",
-      "operation": "validate_allowed_values",
-      "params": {
-        "allowed_values": ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
-        "description": "Letter sizes must use standard abbreviations"
-      }
-    }
   ]
 }

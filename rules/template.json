@@ -1,84 +1,62 @@
 /* 
   Rule Structure Documentation:
   
-  - Rules are divided into 'error_rules' (for injecting errors) and 'evaluator_rules' (for validating correctness)
+  - Rules are di      ]
+    },to 'error_rules' (for injecting errors) and 'evaluator_rules' (for validating correctness)
   - Each rule needs a unique rule_name, descriptive description, and an operation type
   - Supported operations for error_rules: string_replace, regex_replace, prepend, append, add_whitespace, random_noise
   - Operations can be conditional using the 'conditions' array with type 'contains'
   - For regex_replace, you can limit replacements with the 'count' parameter
+
+  IMPORTANT REGEX NOTES:
+  - When using 'regex_replace', use standard Python re module syntax
+  - Do NOT use advanced regex escape sequences like \L (lowercase) or \U (uppercase)
+  - For captured groups, use \1, \2 (not $1, $2) in the replacement string
+  - When in doubt, prefer 'string_replace' over 'regex_replace' for simplicity
+  - Rules operate directly on cell values in the specified column, not on column headers
 */
 {
   "error_rules": [
     {
       /* 
         Supported operations:
-        - string_replace: Simple find and replace
-        - regex_replace: Pattern-based replacement using regular expressions
+        - string_replace: Simple find and replace (safest option, prefer this for most cases)
+        - regex_replace: Pattern-based replacement using regular expressions (use \1 not $1 for captures)
         - prepend: Add text to the beginning
         - append: Add text to the end
-        - add_whitespace: Add spaces around the text
-        - random_noise: Inject random characters
+        - add_whitespace: Add spaces around the text (doesn't need find/replace params)
+        - random_noise: Inject random characters (doesn't need find/replace params)
+
+        IMPORTANT: Rules target the actual values in the specified column, not column headers.
+        For conditional rules, use conditions that check the cell value, not the column name.
       */
       "rule_name": "inject_error_placeholder",
-      "description": "A placeholder for an actual error injection rule to be added later",
+      "description": "Example of a simple string replacement error injection rule",
       "operation": "string_replace",
       "params": {
         /* For string_replace: use 'find' and 'replace' */
-        "find": "A",
-        "replace": "?"
+        "find": "Category_Name",
+        "replace": "Wrong_Category"
         /* For regex_replace: use 'pattern' instead of 'find', and you can add 'count' to limit replacements */
-      }
+      },
+      "conditions": [{ "type": "contains", "value": "Category_Name" }]
+    },
+    {
+      "rule_name": "regex_replace_example",
+      "description": "Example of a proper regex replacement rule",
+      "operation": "regex_replace",
+      "params": {
+        "pattern": "([A-Z])([a-z]+)",
+        "replace": "\\1\\2_Error",
+        "count": 1
+      },
+      "conditions": [{ "type": "contains", "value": "SomeValue" }]
       /* 
       Optional conditions example:
       "conditions": [
         { "type": "contains", "value": "some text that must be present for this rule to apply" }
       ]
       */
-    }
-  ],
-
-  /* Example evaluator_rules: */
-  "evaluator_rules": [
-    {
-      "rule_name": "validate_example_pattern",
-      "description": "Example validator that uses regex pattern matching",
-      "operation": "validate_pattern",
-      "params": {
-        "pattern": "example\\s+pattern",
-        "description": "Validation description for error messages"
-      }
-    },
-    {
-      "rule_name": "validate_allowed_values",
-      "description": "Example validator that checks for allowed values",
-      "operation": "validate_allowed_values",
-      "params": {
-        "allowed_values": ["VALUE1", "VALUE2"],
-        "description": "Values must be from the predefined list"
-      }
-    },
-    {
-      "rule_name": "validate_format",
-      "description": "Example validator for format rules",
-      "operation": "validate_format",
-      "params": {
-        "format_rules": [
-          {
-            "rule_type": "capitalization",
-            "description": "Text must follow specific capitalization rules"
-          }
-        ]
-      }
-    },
-    {
-      "rule_name": "validate_range",
-      "description": "Example validator for numerical ranges",
-      "operation": "validate_range",
-      "params": {
-        "min": 0,
-        "max": 100,
-        "description": "Value must be within specified range"
-      }
     }
   ]
 }
