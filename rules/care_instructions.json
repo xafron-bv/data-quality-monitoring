@@ -145,18 +145,6 @@
       "conditions": [{ "type": "contains", "value": "WASSEN" }]
     },
     {
-      "rule_name": "inject_instruction_order_error",
-      "description": "Rearranges the order of care instructions.",
-      "operation": "string_replace",
-      "params": {
-        "find": "NIET BLEKEN. NIET IN DE DROGER",
-        "replace": "NIET IN DE DROGER. NIET BLEKEN"
-      },
-      "conditions": [
-        { "type": "contains", "value": "NIET BLEKEN. NIET IN DE DROGER" }
-      ]
-    },
-    {
       "rule_name": "inject_special_character_error",
       "description": "Introduces special characters in care instructions.",
       "operation": "string_replace",
