@@ -61,6 +61,24 @@ def apply_error_rule(data_string: str, rule: dict):
             parts = data_string.split()
             if not parts: return data_string
             return data_string + " " + random.choice(parts)
+    elif op == "regex_extract_validate":
+        extract_pattern = params["extract_pattern"]
+        match = re.search(extract_pattern, data_string)
+        if match and match.lastindex is not None and match.lastindex >= 1:
+            extracted_value = match.group(1)
+            # Evaluate the validation condition
+            try:
+                if eval(params["validation"], {"value": extracted_value}):
+                    return extracted_value
+                else:
+                    # If validation fails, return the original data
+                    return data_string
+            except Exception as e:
+                print(f"Validation expression error: {e}")
+                return data_string
+        else:
+            # If no match or no group(1), return the original data
+            return data_string
     return data_string
 
 

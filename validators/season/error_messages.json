@@ -1,0 +1,8 @@
+{
+  "MISSING_VALUE": "Season value is missing or empty. Season information is required.",
+  "INVALID_TYPE": "Season value must be a text string. Please provide season in 'YYYY Season' format.",
+  "INVALID_FORMAT": "Season must be in the format 'YYYY Season' (e.g., '2022 Fall'). Please check the format.",
+  "INVALID_YEAR": "Season year must be a 4-digit number between 1900 and 2030. Please provide a valid year.",
+  "INVALID_SEASON_NAME": "Invalid season name. Valid season names are: Spring, Summer, Fall, Winter, Resort, Holiday, Pre-Fall, and Pre-Spring.",
+  "FUTURE_SEASON": "Season year is too far in the future. Year must not be more than 5 years from the current year."
+}
