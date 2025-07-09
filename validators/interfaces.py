@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 import pandas as pd
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
+
+from validators.validation_error import ValidationError
 
 class ValidatorInterface(ABC):
     """
@@ -11,7 +13,7 @@ class ValidatorInterface(ABC):
     """
 
     @abstractmethod
-    def bulk_validate(self, df: pd.DataFrame, column_name: str) -> List[Dict[str, Any]]:
+    def bulk_validate(self, df: pd.DataFrame, column_name: str) -> List[ValidationError]:
         """
         Validates a specific column in a DataFrame and returns a list of errors.
 
@@ -20,12 +22,8 @@ class ValidatorInterface(ABC):
             column_name (str): The name of the column to validate within the DataFrame.
 
         Returns:
-            List[Dict[str, Any]]: A list of dictionaries, where each dictionary
-            represents a single validation error. The dictionary must contain at least:
-            - 'row_index': The integer index of the row containing the error.
-            - 'error_data': The problematic data from the specified column.
-            - 'error_code': A machine-readable string identifying the error type.
-            - 'details': A dictionary with specific details about the error.
+            List[ValidationError]: A list of ValidationError instances representing
+            the validation errors found in the specified column.
         """
         pass
 
@@ -38,12 +36,12 @@ class ReporterInterface(ABC):
     """
 
     @abstractmethod
-    def generate_report(self, validation_errors: List[Dict[str, Any]], original_df: pd.DataFrame) -> List[Dict[str, Any]]:
+    def generate_report(self, validation_errors: List[ValidationError], original_df: pd.DataFrame) -> List[Dict[str, Any]]:
         """
         Generates human-readable messages for a list of validation errors.
 
         Args:
-            validation_errors (List[Dict[str, Any]]): The list of error dictionaries
+            validation_errors (List[ValidationError]): The list of ValidationError objects
                 produced by a Validator.
             original_df (pd.DataFrame): The original DataFrame, useful for providing
                 additional context in the report message.
