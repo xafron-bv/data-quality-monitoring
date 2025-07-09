@@ -1,0 +1,57 @@
+{
+  "error_rules": [
+    {
+      "rule_name": "season_whitespace_error",
+      "description": "Add extra whitespace to the season value",
+      "operation": "add_whitespace",
+      "params": {},
+      "conditions": [{ "type": "contains", "value": "Fall" }]
+    },
+    {
+      "rule_name": "season_random_noise",
+      "description": "Add random noise characters to the season value",
+      "operation": "random_noise",
+      "params": {
+        "probability": 0.3,
+        "characters": "!@#$%^&*"
+      },
+      "conditions": []
+    },
+    {
+      "rule_name": "append_incorrect_suffix",
+      "description": "Add incorrect suffix to the season value",
+      "operation": "append",
+      "params": {
+        "text": " Collection"
+      },
+      "conditions": [{ "type": "contains", "value": "Fall" }]
+    },
+    {
+      "rule_name": "prepend_incorrect_prefix",
+      "description": "Add incorrect prefix to the season value",
+      "operation": "prepend",
+      "params": {
+        "text": "Season: "
+      },
+      "conditions": []
+    },
+    {
+      "rule_name": "year_only_error",
+      "description": "Replace the season value with only a year",
+      "operation": "replace_with",
+      "params": {
+        "text": "2024"
+      },
+      "conditions": []
+    },
+    {
+      "rule_name": "season_name_only_error",
+      "description": "Replace the season value with only a season name",
+      "operation": "replace_with",
+      "params": {
+        "text": "Winter"
+      },
+      "conditions": []
+    }
+  ]
+}

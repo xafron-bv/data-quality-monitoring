@@ -1,8 +1,6 @@
 /* 
   Rule Structure Documentation:
   
-  - Rules are di      ]
-    },to 'error_rules' (for injecting errors) and 'evaluator_rules' (for validating correctness)
   - Each rule needs a unique rule_name, descriptive description, and an operation type
   - Supported operations for error_rules: string_replace, regex_replace, prepend, append, add_whitespace, random_noise
   - Operations can be conditional using the 'conditions' array with type 'contains'

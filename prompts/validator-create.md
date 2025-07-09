@@ -1,3 +1,3 @@
 # Validator create
 
-based on the reports in the summary_report.txt, implement the validation rules and human readable error messages in error_message.json for each error code you create. Do not read any files outside of what is attached to this prompt.
+From summary_report.txt, generate general validation rules, each with a unique error code and a human-readable message. Output this map as error_message.json. Do not use other files or create rules that only fix the specific errors found in the report.
