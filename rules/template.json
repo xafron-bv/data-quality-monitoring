@@ -1,0 +1,84 @@
+/* 
+  Rule Structure Documentation:
+  
+  - Rules are divided into 'error_rules' (for injecting errors) and 'evaluator_rules' (for validating correctness)
+  - Each rule needs a unique rule_name, descriptive description, and an operation type
+  - Supported operations for error_rules: string_replace, regex_replace, prepend, append, add_whitespace, random_noise
+  - Operations can be conditional using the 'conditions' array with type 'contains'
+  - For regex_replace, you can limit replacements with the 'count' parameter
+*/
+{
+  "error_rules": [
+    {
+      /* 
+        Supported operations:
+        - string_replace: Simple find and replace
+        - regex_replace: Pattern-based replacement using regular expressions
+        - prepend: Add text to the beginning
+        - append: Add text to the end
+        - add_whitespace: Add spaces around the text
+        - random_noise: Inject random characters
+      */
+      "rule_name": "inject_error_placeholder",
+      "description": "A placeholder for an actual error injection rule to be added later",
+      "operation": "string_replace",
+      "params": {
+        /* For string_replace: use 'find' and 'replace' */
+        "find": "A",
+        "replace": "?"
+        /* For regex_replace: use 'pattern' instead of 'find', and you can add 'count' to limit replacements */
+      }
+      /* 
+      Optional conditions example:
+      "conditions": [
+        { "type": "contains", "value": "some text that must be present for this rule to apply" }
+      ]
+      */
+    }
+  ],
+
+  /* Example evaluator_rules: */
+  "evaluator_rules": [
+    {
+      "rule_name": "validate_example_pattern",
+      "description": "Example validator that uses regex pattern matching",
+      "operation": "validate_pattern",
+      "params": {
+        "pattern": "example\\s+pattern",
+        "description": "Validation description for error messages"
+      }
+    },
+    {
+      "rule_name": "validate_allowed_values",
+      "description": "Example validator that checks for allowed values",
+      "operation": "validate_allowed_values",
+      "params": {
+        "allowed_values": ["VALUE1", "VALUE2"],
+        "description": "Values must be from the predefined list"
+      }
+    },
+    {
+      "rule_name": "validate_format",
+      "description": "Example validator for format rules",
+      "operation": "validate_format",
+      "params": {
+        "format_rules": [
+          {
+            "rule_type": "capitalization",
+            "description": "Text must follow specific capitalization rules"
+          }
+        ]
+      }
+    },
+    {
+      "rule_name": "validate_range",
+      "description": "Example validator for numerical ranges",
+      "operation": "validate_range",
+      "params": {
+        "min": 0,
+        "max": 100,
+        "description": "Value must be within specified range"
+      }
+    }
+  ]
+}

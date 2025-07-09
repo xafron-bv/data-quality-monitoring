@@ -1,0 +1,189 @@
+{
+  "error_rules": [
+    {
+      "rule_name": "inject_wrong_size_format",
+      "description": "Changes European size format to incorrect format (removing the standard notation).",
+      "operation": "string_replace",
+      "params": { "find": "EU ", "replace": "" }
+    },
+    {
+      "rule_name": "inject_mixed_size_systems",
+      "description": "Incorrectly mixes European and US size systems.",
+      "operation": "string_replace",
+      "params": { "find": "EU 40", "replace": "EU 40 (US 8)" }
+    },
+    {
+      "rule_name": "inject_invalid_size_value",
+      "description": "Replaces a valid size with an invalid size value outside the normal range.",
+      "operation": "regex_replace",
+      "params": {
+        "pattern": "\\b(EU\\s+)(3[4-9]|4[0-6])\\b",
+        "replace": "$1999"
+      }
+    },
+    {
+      "rule_name": "inject_size_typo",
+      "description": "Introduces a typo in size notation.",
+      "operation": "string_replace",
+      "params": { "find": "Small", "replace": "Smal" },
+      "conditions": [{ "type": "contains", "value": "Small" }]
+    },
+    {
+      "rule_name": "inject_letter_for_number_size",
+      "description": "Replaces a numerical size with alphabetical characters.",
+      "operation": "regex_replace",
+      "params": { "pattern": "\\b(EU\\s+)(\\d+)\\b", "replace": "$1XYZ" }
+    },
+    {
+      "rule_name": "inject_emoji_in_size",
+      "description": "Adds emoji to size notation which is invalid.",
+      "operation": "string_replace",
+      "params": { "find": "Large", "replace": "Large 👕" },
+      "conditions": [{ "type": "contains", "value": "Large" }]
+    },
+    {
+      "rule_name": "inject_special_characters_in_size",
+      "description": "Adds invalid special characters to size notation.",
+      "operation": "string_replace",
+      "params": { "find": "Medium", "replace": "Medium*" },
+      "conditions": [{ "type": "contains", "value": "Medium" }]
+    },
+    {
+      "rule_name": "inject_unicode_error_in_size",
+      "description": "Introduces a Unicode encoding error in size text.",
+      "operation": "string_replace",
+      "params": { "find": "Extra", "replace": "ExtrÃ" }
+    },
+    {
+      "rule_name": "inject_decimal_in_integer_size",
+      "description": "Changes an integer size to decimal, which is invalid.",
+      "operation": "regex_replace",
+      "params": { "pattern": "\\b(\\d+)\\b", "replace": "$1.5" }
+    },
+    {
+      "rule_name": "inject_leading_trailing_space_in_size",
+      "description": "Adds unnecessary whitespace to size notation.",
+      "operation": "add_whitespace"
+    },
+    {
+      "rule_name": "inject_incorrect_capitalization_in_size",
+      "description": "Changes capitalization in standardized size notation.",
+      "operation": "string_replace",
+      "params": { "find": "LARGE", "replace": "Large" },
+      "conditions": [{ "type": "contains", "value": "LARGE" }]
+    },
+    {
+      "rule_name": "inject_wrong_size_delimiter",
+      "description": "Replaces standard size delimiter with incorrect one.",
+      "operation": "string_replace",
+      "params": { "find": "/", "replace": "-" }
+    },
+    {
+      "rule_name": "inject_line_break_in_size",
+      "description": "Adds an inappropriate line break in size notation.",
+      "operation": "regex_replace",
+      "params": { "pattern": "(EU)\\s+(\\d+)", "replace": "$1\n$2", "count": 1 }
+    },
+    {
+      "rule_name": "inject_inappropriate_size_abbreviation",
+      "description": "Abbreviates size notation inappropriately.",
+      "operation": "string_replace",
+      "params": { "find": "Extra Large", "replace": "XL" },
+      "conditions": [{ "type": "contains", "value": "Extra Large" }]
+    },
+    {
+      "rule_name": "inject_size_range_error",
+      "description": "Changes a specific size to a range, which may be invalid in certain contexts.",
+      "operation": "regex_replace",
+      "params": { "pattern": "(EU\\s+)(\\d+)", "replace": "$1$2-$2+2" }
+    },
+    {
+      "rule_name": "inject_trademark_in_size",
+      "description": "Adds a trademark symbol to size notation which is invalid.",
+      "operation": "string_replace",
+      "params": { "find": "Small", "replace": "Small™" },
+      "conditions": [{ "type": "contains", "value": "Small" }]
+    },
+    {
+      "rule_name": "inject_html_in_size",
+      "description": "Inserts HTML tags into size notation.",
+      "operation": "string_replace",
+      "params": { "find": "Medium", "replace": "<b>Medium</b>" },
+      "conditions": [{ "type": "contains", "value": "Medium" }]
+    },
+    {
+      "rule_name": "inject_random_noise_in_size",
+      "description": "Injects random characters into size notation.",
+      "operation": "random_noise"
+    },
+    {
+      "rule_name": "inject_multiple_spaces_in_size",
+      "description": "Adds multiple spaces between size components.",
+      "operation": "string_replace",
+      "params": { "find": " ", "replace": "   " }
+    },
+    {
+      "rule_name": "inject_wrong_order_size_components",
+      "description": "Reverses the order of size components.",
+      "operation": "regex_replace",
+      "params": { "pattern": "(EU)\\s+(\\d+)", "replace": "$2 $1" }
+    },
+    {
+      "rule_name": "inject_invalid_size_prefix",
+      "description": "Adds an invalid prefix to size notation.",
+      "operation": "prepend",
+      "params": { "text": "SIZE: " }
+    },
+    {
+      "rule_name": "inject_appended_size_suffix",
+      "description": "Appends an invalid suffix to size notation.",
+      "operation": "append",
+      "params": { "text": " (Perfect Fit)" }
+    },
+    {
+      "rule_name": "inject_fractional_size_error",
+      "description": "Replaces integer size with fractional size which may be invalid in some systems.",
+      "operation": "regex_replace",
+      "params": { "pattern": "\\b(\\d+)\\b", "replace": "$1 1/2" }
+    }
+  ],
+  "evaluator_rules": [
+    {
+      "rule_name": "validate_european_size_format",
+      "description": "Validates that European sizes follow the correct format.",
+      "operation": "validate_pattern",
+      "params": {
+        "pattern": "EU\\s+\\d+",
+        "description": "European sizes must be specified as 'EU' followed by a number"
+      }
+    },
+    {
+      "rule_name": "validate_us_size_format",
+      "description": "Validates that US sizes follow the correct format.",
+      "operation": "validate_pattern",
+      "params": {
+        "pattern": "US\\s+\\d+",
+        "description": "US sizes must be specified as 'US' followed by a number"
+      }
+    },
+    {
+      "rule_name": "validate_size_within_range",
+      "description": "Validates that numerical sizes fall within acceptable ranges.",
+      "operation": "validate_range",
+      "params": {
+        "eu_range": { "min": 34, "max": 46 },
+        "us_range": { "min": 2, "max": 14 },
+        "description": "Size values must fall within the standard range"
+      }
+    },
+    {
+      "rule_name": "validate_letter_size_format",
+      "description": "Validates that letter sizes use standard abbreviations.",
+      "operation": "validate_allowed_values",
+      "params": {
+        "allowed_values": ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+        "description": "Letter sizes must use standard abbreviations"
+      }
+    }
+  ]
+}
