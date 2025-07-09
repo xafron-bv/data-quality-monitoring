@@ -1,0 +1,7 @@
+{
+  "UNUSUAL_LENGTH": "Anomaly detected: The care instructions are {length} characters long, which is outside the typical range of {typical_range}.",
+  "UNUSUAL_INSTRUCTION_SET": "Anomaly detected: This combination of care instructions is rare, appearing in only {frequency} out of {total_instructions} records.",
+  "UNUSUAL_STRUCTURE": "Anomaly detected: The structure of these care instructions is unusual compared to most records in the dataset.",
+  "UNCOMMON_PATTERN": "Anomaly detected: The formatting pattern used in these care instructions is uncommon compared to other records.",
+  "DEFAULT": "Anomaly detected in care instructions: '{error_data}'."
+}

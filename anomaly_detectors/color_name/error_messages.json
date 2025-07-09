@@ -1,0 +1,6 @@
+{
+  "RARE_COLOR": "Anomaly detected: Color '{color}' is rare, appearing in only {frequency} out of {total_colors} records.",
+  "UNUSUAL_CAPITALIZATION": "Anomaly detected: Color '{error_data}' has unusual capitalization pattern compared to other colors.",
+  "UNUSUAL_CHARACTER_SET": "Anomaly detected: Color '{error_data}' uses unusual characters. Most color names only use {common_set}.",
+  "DEFAULT": "Anomaly detected in color name: '{error_data}'."
+}
