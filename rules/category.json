@@ -1,0 +1,44 @@
+{
+  "error_rules": [
+    {
+      "rule_name": "category_whitespace_error",
+      "description": "Add unnecessary whitespace to category names",
+      "operation": "add_whitespace"
+    },
+    {
+      "rule_name": "category_random_noise",
+      "description": "Inject random noise characters into category names",
+      "operation": "random_noise"
+    },
+    {
+      "rule_name": "empty_category_error",
+      "description": "Replace category with empty string",
+      "operation": "string_replace",
+      "params": {
+        "find": "Jackets",
+        "replace": ""
+      },
+      "conditions": [{ "type": "contains", "value": "Jackets" }]
+    },
+    {
+      "rule_name": "inject_html_tag",
+      "description": "Insert HTML tags into category name",
+      "operation": "string_replace",
+      "params": {
+        "find": "Jackets",
+        "replace": "<b>Jackets</b>"
+      },
+      "conditions": [{ "type": "contains", "value": "Jackets" }]
+    },
+    {
+      "rule_name": "inject_special_characters",
+      "description": "Add special characters to category name",
+      "operation": "string_replace",
+      "params": {
+        "find": "Jackets",
+        "replace": "Jackets*"
+      },
+      "conditions": [{ "type": "contains", "value": "Jackets" }]
+    }
+  ]
+}

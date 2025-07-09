@@ -1,3 +1,6 @@
 # Create a new rule
 
-Create rules for size (european or american size for clothing) error injection rules based on the the rules for other rules attached
+add error injection rules for article_structure_name_2 column based on the type of data in that column and baed on the template.json rules, add it next to the template.json
+
+
+
