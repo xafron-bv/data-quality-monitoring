@@ -4,6 +4,7 @@ from enum import Enum
 from typing import List, Dict, Any, Optional
 
 from validators.interfaces import ValidatorInterface
+from validators.validation_error import ValidationError
 
 class Validator(ValidatorInterface):
     """
@@ -31,7 +32,7 @@ class Validator(ValidatorInterface):
         DECIMAL_IN_INTEGER = "DECIMAL_IN_INTEGER"
         WRONG_DELIMITER = "WRONG_DELIMITER"
 
-    def _validate_entry(self, value: Any) -> Optional[Dict[str, Any]]:
+    def _validate_entry(self, value: Any) -> Optional[ValidationError]:
         """
         Validates a size value entry for common errors.
 
@@ -40,12 +41,15 @@ class Validator(ValidatorInterface):
 
         Returns:
             - None if the value is valid.
-            - A dictionary with 'error_code' (str) and 'details' (dict) if the
-              value is invalid.
+            - A ValidationError instance if the value is invalid.
         """
         # Check for missing values
         if pd.isna(value) or value == '':
-            return {"error_code": self.ErrorCode.MISSING_VALUE, "details": {}}
+            return ValidationError(
+                error_type=self.ErrorCode.MISSING_VALUE,
+                confidence=1.0,
+                details={}
+            )
         
         # Ensure value is a string for proper validation
         if not isinstance(value, str):
@@ -53,39 +57,60 @@ class Validator(ValidatorInterface):
             if isinstance(value, (int, float)):
                 value = str(value)
             else:
-                return {"error_code": self.ErrorCode.INVALID_TYPE, 
-                        "details": {"expected": "string or numeric", "received": str(type(value))}}
+                return ValidationError(
+                    error_type=self.ErrorCode.INVALID_TYPE,
+                    confidence=1.0,
+                    details={"expected": "string or numeric", "received": str(type(value))}
+                )
         
         # Check for leading or trailing spaces
         if value != value.strip():
-            return {"error_code": self.ErrorCode.LEADING_TRAILING_SPACE, 
-                    "details": {"original": value, "stripped": value.strip()}}
+            return ValidationError(
+                error_type=self.ErrorCode.LEADING_TRAILING_SPACE,
+                confidence=1.0,
+                details={"original": value, "stripped": value.strip()}
+            )
         
         # Check for invalid prefixes like "SIZE:"
         if re.match(r'^SIZE:\s', value, re.IGNORECASE):
-            return {"error_code": self.ErrorCode.INVALID_PREFIX, 
-                    "details": {"prefix": value.split()[0]}}
+            return ValidationError(
+                error_type=self.ErrorCode.INVALID_PREFIX,
+                confidence=0.95,
+                details={"prefix": value.split()[0]}
+            )
         
         # Check for appended suffixes like "(Perfect Fit)"
         if re.search(r'\(.+\)$', value):
             match = re.search(r'(.*?)(\(.+\))$', value)
-            return {"error_code": self.ErrorCode.APPENDED_SUFFIX, 
-                    "details": {"size_part": match.group(1).strip(), "suffix": match.group(2)}}
+            return ValidationError(
+                error_type=self.ErrorCode.APPENDED_SUFFIX,
+                confidence=0.9,
+                details={"size_part": match.group(1).strip(), "suffix": match.group(2)}
+            )
         
         # Check for incorrect fractional notation with '$'
         if re.match(r'^\$\d+\s\d+/\d+$', value):
-            return {"error_code": self.ErrorCode.FRACTIONAL_SIZE, 
-                    "details": {"fractional_size": value}}
+            return ValidationError(
+                error_type=self.ErrorCode.FRACTIONAL_SIZE,
+                confidence=0.95,
+                details={"fractional_size": value}
+            )
         
         # Check for decimal in integer size with '$'
         if re.match(r'^\$\d+\.\d+$', value):
-            return {"error_code": self.ErrorCode.DECIMAL_IN_INTEGER, 
-                    "details": {"decimal_size": value}}
+            return ValidationError(
+                error_type=self.ErrorCode.DECIMAL_IN_INTEGER,
+                confidence=0.95,
+                details={"decimal_size": value}
+            )
         
         # Check for wrong delimiters (e.g., "M-L" instead of "M/L")
         if re.match(r'^[XSMLxsml]+-[XSMLxsml]+$', value):
-            return {"error_code": self.ErrorCode.WRONG_DELIMITER, 
-                    "details": {"delimiter_value": value}}
+            return ValidationError(
+                error_type=self.ErrorCode.WRONG_DELIMITER,
+                confidence=0.85,
+                details={"delimiter_value": value}
+            )
         
         # Check for random noise/invalid characters in size
         # Valid sizes should be either standard letter sizes or numeric sizes
@@ -99,31 +124,36 @@ class Validator(ValidatorInterface):
         
         if not any(re.match(pattern, value) for pattern in valid_patterns):
             # If it doesn't match any of our valid patterns, it might contain random noise
-            return {"error_code": self.ErrorCode.RANDOM_NOISE, 
-                    "details": {"invalid_size": value}}
+            return ValidationError(
+                error_type=self.ErrorCode.RANDOM_NOISE,
+                confidence=0.8,
+                details={"invalid_size": value}
+            )
         
         # If all checks pass, the value is valid.
         return None
 
 
-    def bulk_validate(self, df: pd.DataFrame, column_name: str) -> List[Dict[str, Any]]:
+    def bulk_validate(self, df: pd.DataFrame, column_name: str) -> List[ValidationError]:
         """
-        Validates a column and returns a list of structured errors.
+        Validates a column and returns a list of ValidationError objects.
         This method is a non-editable engine that runs the `_validate_entry` logic.
         """
-        errors = []
+        validation_errors = []
         for index, row in df.iterrows():
             data = row[column_name]
 
             # The implemented logic in _validate_entry is called for every row.
             validation_error = self._validate_entry(data)
 
-            # If the custom logic returned an error, format it as per the interface.
+            # If the custom logic returned an error, add context and add it to the list
             if validation_error:
-                errors.append({
-                    "row_index": index,
-                    "error_data": data,
-                    **validation_error
-                })
+                # Add row and column context to the validation error
+                error_with_context = validation_error.with_context(
+                    row_index=index,
+                    column_name=column_name,
+                    error_data=data
+                )
+                validation_errors.append(error_with_context)
                 
-        return errors
+        return validation_errors

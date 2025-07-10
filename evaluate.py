@@ -12,6 +12,7 @@ import re
 # Add the script's directory to the Python path.
 # This ensures that top-level modules like 'interfaces.py' are found
 # when validator/reporter modules are loaded dynamically from subdirectories.
+from validators.validation_error import ValidationError
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -151,11 +152,13 @@ def evaluate(validator, reporter, samples, column, ignore_errors=None, ignore_fa
         
         # Enhance validator results with reporter messages
         for error in detected_by_validator:
-            row_idx = error['row_index']
+            row_idx = error.row_index
             if row_idx in report_messages:
-                error['display_message'] = report_messages[row_idx].get('display_message', '')
+                # We can't directly set attributes on ValidationError objects, so we'll
+                # store the display message separately if needed later
+                report_messages[row_idx]['validator_error'] = error
 
-        detected_indices = {e['row_index'] for e in detected_by_validator}
+        detected_indices = {e.row_index for e in detected_by_validator}
         injected_indices = {e['row_index'] for e in injected_errors_to_consider}
         
         # --- Analysis ---
@@ -169,7 +172,7 @@ def evaluate(validator, reporter, samples, column, ignore_errors=None, ignore_fa
             ignored_fp_count = len(detected_indices - injected_indices)  # Count of ignored FPs
         else:
             false_positives = detected_indices - injected_indices
-            fp_details = [e for e in detected_by_validator if e['row_index'] in false_positives]
+            fp_details = [e for e in detected_by_validator if e.row_index in false_positives]
             ignored_fp_count = 0
 
         results.append({
@@ -220,8 +223,8 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
         else:
             fp_by_type = {}
             for fp in all_fp:
-                code = fp['error_code']
-                fp_by_type.setdefault(code, []).append(fp['error_data'])
+                code = fp.error_type
+                fp_by_type.setdefault(code, []).append(fp.error_data)
 
             for code, examples in fp_by_type.items():
                 summary_lines.append(f"\n  - Error Code: '{code}' (Flagged {len(examples)} times)")
