@@ -1,10 +1,12 @@
 import pandas as pd
 import re
+import pandas as pd
+import re
 from enum import Enum
 from typing import List, Dict, Any, Optional
 
-# The ValidatorInterface is expected to be in a file named 'interfaces.py'
 from validators.interfaces import ValidatorInterface
+from validators.validation_error import ValidationError
 
 
 class Validator(ValidatorInterface):
@@ -38,7 +40,7 @@ class Validator(ValidatorInterface):
         normalized_s = re.sub(r'\s+', ' ', s.strip())
         return self.tokenizer_regex.findall(normalized_s)
 
-    def _validate_entry(self, value: Any) -> Optional[Dict[str, Any]]:
+    def _validate_entry(self, value: Any) -> Optional[ValidationError]:
         """
         Contains the specific validation logic for a single material string.
         This method checks for data quality, format, and composition rules.
@@ -125,24 +127,26 @@ class Validator(ValidatorInterface):
         return None
         # <<< LLM: END IMPLEMENTATION >>>
 
-    def bulk_validate(self, df: pd.DataFrame, column_name: str) -> List[Dict[str, Any]]:
+    def bulk_validate(self, df: pd.DataFrame, column_name: str) -> List[ValidationError]:
         """
-        Validates a column and returns a list of structured errors.
+        Validates a column and returns a list of ValidationError objects.
         This method is a non-editable engine that runs the `_validate_entry` logic.
         """
-        errors = []
+        validation_errors = []
         for index, row in df.iterrows():
             data = row[column_name]
 
             # The implemented logic in _validate_entry is called for every row.
             validation_error = self._validate_entry(data)
 
-            # If the custom logic returned an error, format it as per the interface.
+            # If the custom logic returned an error, add context and add it to the list
             if validation_error:
-                errors.append({
-                    "row_index": index,
-                    "error_data": data,
-                    **validation_error
-                })
+                # Add row and column context to the validation error
+                error_with_context = validation_error.with_context(
+                    row_index=index,
+                    column_name=column_name,
+                    error_data=data
+                )
+                validation_errors.append(error_with_context)
                 
-        return errors
+        return validation_errors

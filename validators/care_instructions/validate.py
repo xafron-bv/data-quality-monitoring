@@ -4,6 +4,7 @@ from enum import Enum
 from typing import List, Dict, Any, Optional
 
 from validators.interfaces import ValidatorInterface
+from validators.validation_error import ValidationError
 
 class Validator(ValidatorInterface):
     """
@@ -35,61 +36,117 @@ class Validator(ValidatorInterface):
         CONTAINS_APPENDED_TEXT = "CONTAINS_APPENDED_TEXT"
         MISSING_INSTRUCTION = "MISSING_INSTRUCTION"
 
-    def _validate_entry(self, value: Any) -> Optional[Dict[str, Any]]:
+    def _validate_entry(self, value: Any) -> Optional[ValidationError]:
         """
         Contains the specific validation logic for a single data entry.
         """
         # <<< LLM: BEGIN IMPLEMENTATION >>>
         if pd.isna(value) or not str(value).strip():
-            return {"error_code": self.ErrorCode.MISSING_VALUE, "details": {}}
+            return ValidationError(
+                error_type=self.ErrorCode.MISSING_VALUE,
+                confidence=1.0,
+                details={}
+            )
 
         if not isinstance(value, str):
-            return {"error_code": self.ErrorCode.INVALID_TYPE, "details": {"expected": "string"}}
+            return ValidationError(
+                error_type=self.ErrorCode.INVALID_TYPE,
+                confidence=1.0,
+                details={"expected": "string"}
+            )
 
         if value.strip() != value:
-            return {"error_code": self.ErrorCode.HAS_LEADING_OR_TRAILING_WHITESPACE, "details": {}}
+            return ValidationError(
+                error_type=self.ErrorCode.HAS_LEADING_OR_TRAILING_WHITESPACE,
+                confidence=0.95,
+                details={}
+            )
         
         # From this point, work with the stripped value
         value = value.strip()
 
         if not value.startswith("WASSEN OP MAX"):
-            return {"error_code": self.ErrorCode.CONTAINS_PREPENDED_TEXT, "details": {}}
+            return ValidationError(
+                error_type=self.ErrorCode.CONTAINS_PREPENDED_TEXT,
+                confidence=0.9,
+                details={}
+            )
 
         if ' - ' in value and 'Machine wash cold' in value:
-             return {"error_code": self.ErrorCode.CONTAINS_APPENDED_TEXT, "details": {}}
+             return ValidationError(
+                error_type=self.ErrorCode.CONTAINS_APPENDED_TEXT,
+                confidence=0.9,
+                details={}
+             )
 
         if '  ' in value:
-            return {"error_code": self.ErrorCode.CONTAINS_MULTIPLE_SPACES, "details": {}}
+            return ValidationError(
+                error_type=self.ErrorCode.CONTAINS_MULTIPLE_SPACES,
+                confidence=0.85,
+                details={}
+            )
 
         if '\n' in value or '\r' in value:
-            return {"error_code": self.ErrorCode.CONTAINS_LINE_BREAK, "details": {}}
+            return ValidationError(
+                error_type=self.ErrorCode.CONTAINS_LINE_BREAK,
+                confidence=0.95,
+                details={}
+            )
 
         if re.search(r'<.*?>', value):
-            return {"error_code": self.ErrorCode.CONTAINS_HTML, "details": {}}
+            return ValidationError(
+                error_type=self.ErrorCode.CONTAINS_HTML,
+                confidence=0.98,
+                details={}
+            )
 
         emoji_pattern = re.compile("[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF™®🧼]")
         if emoji_pattern.search(value):
-            return {"error_code": self.ErrorCode.CONTAINS_EMOJI, "details": {}}
+            return ValidationError(
+                error_type=self.ErrorCode.CONTAINS_EMOJI,
+                confidence=0.95,
+                details={}
+            )
 
         if 'Ã' in value:
-             return {"error_code": self.ErrorCode.CONTAINS_DISALLOWED_SYMBOLS, "details": {"symbol": "Ã"}}
+             return ValidationError(
+                error_type=self.ErrorCode.CONTAINS_DISALLOWED_SYMBOLS,
+                confidence=0.9,
+                details={"symbol": "Ã"}
+             )
 
         if ';' in value or ( ' - ' in value and 'NIET' in value):
-            return {"error_code": self.ErrorCode.INVALID_DELIMITER, "details": {}}
+            return ValidationError(
+                error_type=self.ErrorCode.INVALID_DELIMITER,
+                confidence=0.9,
+                details={}
+            )
         
         if '. .' in value or '..' in value:
-            return {"error_code": self.ErrorCode.MISSING_INSTRUCTION, "details": {}}
+            return ValidationError(
+                error_type=self.ErrorCode.MISSING_INSTRUCTION,
+                confidence=0.9,
+                details={}
+            )
 
         temp_pattern = r'WASSEN OP MAX (\d{2}°C)'
         if not re.search(temp_pattern, value):
-             return {"error_code": self.ErrorCode.INVALID_TEMPERATURE_FORMAT, "details": {"value": value}}
+             return ValidationError(
+                error_type=self.ErrorCode.INVALID_TEMPERATURE_FORMAT,
+                confidence=0.9,
+                details={"value": value}
+             )
 
         # Check for non-uppercase instructions
         instructions = value.split('. ')
         for instruction in instructions:
             # Find instruction that is not the temperature and is not fully uppercase
             if instruction and "WASSEN OP MAX" not in instruction and instruction != instruction.upper():
-                return {"error_code": self.ErrorCode.INCORRECT_CAPITALIZATION, "details": {"instruction": instruction}}
+                return ValidationError(
+                    error_type=self.ErrorCode.INCORRECT_CAPITALIZATION,
+                    confidence=0.85,
+                    details={"instruction": instruction}
+                )
 
         allowed_instructions = {
             'WASSEN OP MAX 30°C', 'WASSEN OP MAX 40°C', 'WAS IN VERGELIJKBARE KLEUREN', 
@@ -102,30 +159,36 @@ class Validator(ValidatorInterface):
             if part not in allowed_instructions:
                  # Check again for valid temperature format before flagging as unknown
                 if not re.fullmatch(r'WASSEN OP MAX \d{2}°C', part):
-                    return {"error_code": self.ErrorCode.UNKNOWN_INSTRUCTION, "details": {"instruction": part}}
+                    return ValidationError(
+                        error_type=self.ErrorCode.UNKNOWN_INSTRUCTION,
+                        confidence=0.8,
+                        details={"instruction": part}
+                    )
 
         return None
         # <<< LLM: END IMPLEMENTATION >>>
 
 
-    def bulk_validate(self, df: pd.DataFrame, column_name: str) -> List[Dict[str, Any]]:
+    def bulk_validate(self, df: pd.DataFrame, column_name: str) -> List[ValidationError]:
         """
-        Validates a column and returns a list of structured errors.
+        Validates a column and returns a list of ValidationError objects.
         This method is a non-editable engine that runs the `_validate_entry` logic.
         """
-        errors = []
+        validation_errors = []
         for index, row in df.iterrows():
             data = row[column_name]
 
             # The implemented logic in _validate_entry is called for every row.
             validation_error = self._validate_entry(data)
 
-            # If the custom logic returned an error, format it as per the interface.
+            # If the custom logic returned an error, add context and add it to the list
             if validation_error:
-                errors.append({
-                    "row_index": index,
-                    "error_data": data,
-                    **validation_error
-                })
+                # Add row and column context to the validation error
+                error_with_context = validation_error.with_context(
+                    row_index=index,
+                    column_name=column_name,
+                    error_data=data
+                )
+                validation_errors.append(error_with_context)
                 
-        return errors
+        return validation_errors

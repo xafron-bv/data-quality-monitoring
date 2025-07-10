@@ -1,8 +1,10 @@
 import pandas as pd
+import re
 from enum import Enum
 from typing import List, Dict, Any, Optional
 
 from validators.interfaces import ValidatorInterface
+from validators.validation_error import ValidationError
 
 class Validator(ValidatorInterface):
     """
@@ -27,7 +29,7 @@ class Validator(ValidatorInterface):
         SPECIAL_CHARACTERS = "SPECIAL_CHARACTERS"
         HTML_TAGS = "HTML_TAGS"
 
-    def _validate_entry(self, value: Any) -> Optional[Dict[str, Any]]:
+    def _validate_entry(self, value: Any) -> Optional[ValidationError]:
         """
         Contains the specific validation logic for a single data entry.
         This method MUST be implemented by the LLM.
@@ -37,35 +39,58 @@ class Validator(ValidatorInterface):
 
         Returns:
             - None if the value is valid.
-            - A dictionary with 'error_code' (str) and 'details' (dict) if the
-              value is invalid.
+            - A ValidationError instance if the value is invalid.
         """
         # <<< LLM: BEGIN IMPLEMENTATION >>>
         import re
 
         # Check for missing value
         if pd.isna(value):
-            return {"error_code": self.ErrorCode.MISSING_VALUE, "details": {}}
+            return ValidationError(
+                error_type=self.ErrorCode.MISSING_VALUE,
+                confidence=1.0,
+                details={}
+            )
         
         # Check for invalid type
         if not isinstance(value, str):
-            return {"error_code": self.ErrorCode.INVALID_TYPE, "details": {"expected": "string", "actual": str(type(value))}}
+            return ValidationError(
+                error_type=self.ErrorCode.INVALID_TYPE,
+                confidence=1.0,
+                details={"expected": "string", "actual": str(type(value))}
+            )
         
         # Check for empty category
         if value == "":
-            return {"error_code": self.ErrorCode.EMPTY_CATEGORY, "details": {}}
+            return ValidationError(
+                error_type=self.ErrorCode.EMPTY_CATEGORY,
+                confidence=1.0,
+                details={}
+            )
         
         # Check for whitespace errors (leading/trailing spaces)
         if value.strip() != value:
-            return {"error_code": self.ErrorCode.WHITESPACE_ERROR, "details": {"original": value, "stripped": value.strip()}}
+            return ValidationError(
+                error_type=self.ErrorCode.WHITESPACE_ERROR,
+                confidence=0.95,
+                details={"original": value, "stripped": value.strip()}
+            )
         
         # Check for HTML tags
         if re.search(r'<[^>]+>', value):
-            return {"error_code": self.ErrorCode.HTML_TAGS, "details": {"category": value}}
+            return ValidationError(
+                error_type=self.ErrorCode.HTML_TAGS,
+                confidence=0.98,
+                details={"category": value}
+            )
         
         # Check for special characters (excluding alphanumeric, spaces, hyphens, and underscores)
         if re.search(r'[^\w\s\-]', value):
-            return {"error_code": self.ErrorCode.SPECIAL_CHARACTERS, "details": {"category": value}}
+            return ValidationError(
+                error_type=self.ErrorCode.SPECIAL_CHARACTERS,
+                confidence=0.9,
+                details={"category": value}
+            )
         
         # Check for random noise (characters that don't form valid words)
         # More comprehensive check for random noise - detects:
@@ -75,7 +100,11 @@ class Validator(ValidatorInterface):
            re.search(r'([A-Z][a-z]){2,}', value) or \
            re.search(r'([a-z][A-Z]){2,}', value) or \
            re.search(r'[A-Za-z]\d[A-Za-z]', value):
-            return {"error_code": self.ErrorCode.RANDOM_NOISE, "details": {"category": value}}
+            return ValidationError(
+                error_type=self.ErrorCode.RANDOM_NOISE,
+                confidence=0.85,
+                details={"category": value}
+            )
 
         # If all checks pass, the value is valid.
         return None
@@ -83,24 +112,26 @@ class Validator(ValidatorInterface):
         # <<< LLM: END IMPLEMENTATION >>>
 
 
-    def bulk_validate(self, df: pd.DataFrame, column_name: str) -> List[Dict[str, Any]]:
+    def bulk_validate(self, df: pd.DataFrame, column_name: str) -> List[ValidationError]:
         """
-        Validates a column and returns a list of structured errors.
+        Validates a column and returns a list of ValidationError objects.
         This method is a non-editable engine that runs the `_validate_entry` logic.
         """
-        errors = []
+        validation_errors = []
         for index, row in df.iterrows():
             data = row[column_name]
 
             # The implemented logic in _validate_entry is called for every row.
             validation_error = self._validate_entry(data)
 
-            # If the custom logic returned an error, format it as per the interface.
+            # If the custom logic returned an error, add context and add it to the list
             if validation_error:
-                errors.append({
-                    "row_index": index,
-                    "error_data": data,
-                    **validation_error
-                })
+                # Add row and column context to the validation error
+                error_with_context = validation_error.with_context(
+                    row_index=index,
+                    column_name=column_name,
+                    error_data=data
+                )
+                validation_errors.append(error_with_context)
                 
-        return errors
+        return validation_errors
