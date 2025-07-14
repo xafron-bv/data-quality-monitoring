@@ -70,7 +70,8 @@ def create_triplets(clean_values, rules, num_triplets=5000):
             triplets.append(InputExample(texts=[anchor, positive, negative]))
     return triplets
 
-def fine_tune_model(df, error_rules_map, base_model='bert-base-uncased', epochs=2, batch_size=16):
+## GPU-FAST: Add 'device' argument and increase default batch size for GPU performance.
+def fine_tune_model(df, error_rules_map, device, base_model='bert-base-uncased', epochs=2, batch_size=128):
     tuned_model_paths = {}
     for column, rules in error_rules_map.items():
         if column not in df.columns or not rules: continue
@@ -83,7 +84,8 @@ def fine_tune_model(df, error_rules_map, base_model='bert-base-uncased', epochs=
             continue
         word_embedding_model = models.Transformer(base_model)
         pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension())
-        model = SentenceTransformer(modules=[word_embedding_model, pooling_model])
+        ## GPU-FAST: Initialize the model directly on the specified device ('cuda' or 'cpu').
+        model = SentenceTransformer(modules=[word_embedding_model, pooling_model], device=device)
         train_loss = losses.TripletLoss(model=model)
         train_dataloader = DataLoader(train_examples, shuffle=True, batch_size=batch_size)
         model.fit(train_objectives=[(train_dataloader, train_loss)], epochs=epochs, show_progress_bar=True)
@@ -98,6 +100,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fine-tune and evaluate a semantic anomaly detector.")
     parser.add_argument("csv_file", help="The path to the input CSV file.")
     args = parser.parse_args()
+
+    ## GPU-FAST: Automatically detect and set the device for PyTorch.
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"INFO: Using device: {device}")
 
     try:
         clean_df = pd.read_csv(args.csv_file)
@@ -119,57 +125,56 @@ if __name__ == "__main__":
 
 
     # STAGE 1: FINE-TUNE THE MODELS
-    # Increased epochs to 2 for more robust training.
-    tuned_model_paths = fine_tune_model(clean_df, error_rules_map, epochs=2)
+    ## GPU-FAST: Pass the detected device to the fine-tuning function.
+    tuned_model_paths = fine_tune_model(clean_df, error_rules_map, device=device, epochs=2)
 
     # STAGE 2: EVALUATE THE FINE-TUNED MODELS
-    # We will split the data: 70% to train our detector, 30% to test it.
     train_df = clean_df.sample(frac=0.7, random_state=42)
     test_df_clean = clean_df.drop(train_df.index)
-    
-    # Inject errors into the test set to create our evaluation ground truth.
+
     anomalous_test_df = create_anomalous_dataset(test_df_clean, error_rules_map, anomaly_fraction=0.5)
     true_anomalies = set(anomalous_test_df[anomalous_test_df['is_anomaly']].index)
-    
+
     for column, model_path in tuned_model_paths.items():
         if not os.path.exists(model_path):
             print(f"\n--- Skipping evaluation for column: '{column}' (no model was trained) ---")
             continue
 
         print(f"\n--- Evaluating fine-tuned model for column: '{column}' ---")
-        
-        # Load the specialized model we just trained
-        tuned_model = SentenceTransformer(model_path)
-        
+
+        ## GPU-FAST: Load the model onto the specified device.
+        tuned_model = SentenceTransformer(model_path, device=device)
+
         # Train the Isolation Forest detector ONLY on clean data embeddings
         clean_train_values = train_df[column].dropna().unique()
-        clean_embeddings = tuned_model.encode(clean_train_values, show_progress_bar=False)
-        
-        # The 'contamination' parameter is an estimate of the proportion of outliers.
-        # Since we train on clean data, we set it to a very small value.
+        ## GPU-FAST: Encode on the GPU with a larger batch size and visible progress bar.
+        clean_embeddings = tuned_model.encode(clean_train_values, show_progress_bar=True, batch_size=256)
+
+        # This part remains on the CPU as scikit-learn does not use the GPU.
         detector = IsolationForest(contamination=0.01, random_state=42).fit(clean_embeddings)
-        
+
         # Generate embeddings for the entire test set (clean + anomalous)
         test_values = anomalous_test_df[column].dropna().astype(str).tolist()
-        test_embeddings = tuned_model.encode(test_values, show_progress_bar=False)
-        
+        ## GPU-FAST: Encode on the GPU with a larger batch size and visible progress bar.
+        test_embeddings = tuned_model.encode(test_values, show_progress_bar=True, batch_size=256)
+
         # Predict which ones are anomalies (-1 means anomaly, 1 means normal)
         predictions = detector.predict(test_embeddings)
-        
+
         # Get the indices of the predicted anomalies
         results_df = anomalous_test_df[anomalous_test_df[column].isin(test_values)].copy()
         results_df['prediction'] = predictions
         predicted_anomalies = set(results_df[results_df['prediction'] == -1].index)
-        
+
         # Calculate and print metrics
         tp = len(true_anomalies.intersection(predicted_anomalies))
         fp = len(predicted_anomalies.difference(true_anomalies))
         fn = len(true_anomalies.difference(predicted_anomalies))
-        
+
         precision = tp / (tp + fp) if (tp + fp) > 0 else 0
         recall = tp / (tp + fn) if (tp + fn) > 0 else 0
         f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
-        
+
         print("Detector Performance:")
         print(f"  - True Positives (found injected anomalies):    {tp}")
         print(f"  - False Positives (flagged clean data):         {fp}")
