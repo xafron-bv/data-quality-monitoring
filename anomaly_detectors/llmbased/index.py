@@ -10,7 +10,7 @@ from datasets import Dataset
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, Trainer, TrainingArguments
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
-# --- Error Injection and Data Prep Functions ---
+# --- Functions (Error Injection, Data Prep, Training) remain the same ---
 
 def apply_error_rule(value, rule):
     if 'conditions' in rule and rule['conditions']:
@@ -58,11 +58,7 @@ def compute_metrics(pred):
     acc = accuracy_score(labels, preds)
     return {'accuracy': acc, 'f1': f1, 'precision': precision, 'recall': recall}
 
-# --- Model Training Function ---
-
 def train_and_evaluate_classifier(df, column, rules, device, model_name, num_epochs):
-    """Fine-tunes and evaluates a classifier with configurable model and epochs."""
-    
     texts, labels = create_augmented_dataset(df[column], rules)
     if not texts:
         print(f"Could not create a dataset for '{column}'. Skipping."); return
@@ -79,22 +75,19 @@ def train_and_evaluate_classifier(df, column, rules, device, model_name, num_epo
     model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=2)
     model.to(device)
     
-    # MODIFIED: Arguments compatible with older transformers versions
     training_args = TrainingArguments(
         output_dir=f'./results_{column.replace(" ", "_").lower()}',
         num_train_epochs=num_epochs,
         learning_rate=2e-5,
         per_device_train_batch_size=16,
         per_device_eval_batch_size=16,
-        warmup_steps=50,
+        warmup_ratio=0.1,
         weight_decay=0.01,
-        logging_dir='./logs',
-        logging_steps=50,
-        # The modern arguments below are removed to prevent the error
-        # evaluation_strategy="epoch",
-        # save_strategy="epoch",
-        # load_best_model_at_end=True,
-        # metric_for_best_model="f1",
+        logging_strategy="epoch",
+        evaluation_strategy="epoch",
+        save_strategy="epoch",
+        load_best_model_at_end=True,
+        metric_for_best_model="f1",
     )
     
     trainer = Trainer(
@@ -106,12 +99,7 @@ def train_and_evaluate_classifier(df, column, rules, device, model_name, num_epo
     )
     
     trainer.train()
-    
-    print(f"\n--- Final Performance for column: '{column}' ---")
-    final_metrics = trainer.evaluate()
-    print(f"  - Precision: {final_metrics.get('eval_precision', 0):.2f}")
-    print(f"  - Recall:    {final_metrics.get('eval_recall', 0):.2f}")
-    print(f"  - F1-Score:  {final_metrics.get('eval_f1', 0):.2f}")
+    print(f"\n--- Best F1-Score achieved for column: '{column}' during training ---")
 
 # --- Main Execution ---
 
@@ -131,38 +119,56 @@ if __name__ == "__main__":
         df = pd.read_csv(args.csv_file)
     except Exception as e:
         print(f"Error loading CSV: {e}"); exit()
-        
+    
+    # --- MODIFIED: Using your explicit mapping ---
+    
+    # 1. Define the mapping from rule filename (without .json) to DataFrame column name
+    rule_to_column_map = {
+        "category": "article_structure_name_2",
+        "season": "season",
+        "color_name": "colour_name",
+        "care_instructions": "Care Instructions"
+    }
+
+    # 2. Define the training configurations for each DataFrame column
     column_configs = {
-        'Care Instructions': {'model': 'distilbert-base-uncased', 'epochs': 2},
-        'colour_name':       {'model': 'distilbert-base-uncased', 'epochs': 3},
-        'material':          {'model': 'distilbert-base-uncased', 'epochs': 2},
-        'season':            {'model': 'distilbert-base-uncased', 'epochs': 2},
-        'size_name':         {'model': 'bert-base-uncased', 'epochs': 3},
+        'Care Instructions':        {'model': 'distilbert-base-uncased', 'epochs': 2},
+        'colour_name':              {'model': 'distilbert-base-uncased', 'epochs': 3},
+        'season':                   {'model': 'distilbert-base-uncased', 'epochs': 2},
+        'article_structure_name_2': {'model': 'distilbert-base-uncased', 'epochs': 2},
+        # You can add other column configs here if needed
     }
 
     rules_dir = 'rules'
-    for column, config in column_configs.items():
-        if column not in df.columns: continue
+    
+    # 3. Iterate through the mapping to run the training and evaluation
+    for rule_name, column_name in rule_to_column_map.items():
+        if column_name not in df.columns:
+            print(f"Warning: Column '{column_name}' not found in the CSV. Skipping.")
+            continue
         
-        print(f"\n{'='*20} Starting Process for Column: {column} {'='*20}")
-        print(f"Using model: {config['model']}, Training for: {config['epochs']} epochs")
+        # Get the configuration for the current column, or use a default
+        config = column_configs.get(column_name, {'model': 'distilbert-base-uncased', 'epochs': 2})
         
-        file_name = f'{column.lower().replace(" ", "_")}.json'
-        file_path = os.path.join(rules_dir, file_name)
+        print(f"\n{'='*20} Starting Process for Column: {column_name} {'='*20}")
+        print(f"Using rule file: '{rule_name}.json', Model: {config['model']}, Epochs: {config['epochs']}")
+        
+        file_path = os.path.join(rules_dir, f'{rule_name}.json')
         rules = []
         try:
             with open(file_path, 'r') as f:
                 rules = json.load(f).get('error_rules', [])
         except FileNotFoundError:
-            print(f"Warning: Rule file '{file_path}' not found.")
+            print(f"Error: Rule file '{file_path}' not found.")
+            continue # Skip to the next item in the map
         
         if not rules:
-            print(f"No rules found for '{column}'. Skipping.")
+            print(f"No rules found in '{file_path}'. Skipping.")
             continue
             
         train_and_evaluate_classifier(
             df, 
-            column, 
+            column_name, 
             rules, 
             device=device, 
             model_name=config['model'],
