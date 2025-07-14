@@ -10,7 +10,7 @@ from datasets import Dataset
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, Trainer, TrainingArguments
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
-# --- 1. Error Injection Engine ---
+# --- Error Injection and Data Prep Functions ---
 
 def apply_error_rule(value, rule):
     if 'conditions' in rule and rule['conditions']:
@@ -33,35 +33,23 @@ def apply_error_rule(value, rule):
         return val_str[:pos] + char + val_str[pos:]
     return value
 
-# --- 2. Data Preparation for Classification ---
-
 def create_augmented_dataset(data_series, rules):
-    """
-    Creates a large, balanced dataset from the entire data series,
-    not just the unique values.
-    """
     print("Generating augmented classification dataset from all rows...")
     clean_texts = data_series.dropna().astype(str).tolist()
-    
     anomalous_texts = []
     if not rules:
         print("Warning: No rules provided. Cannot generate anomalous data.")
         return [], []
-
     for text in clean_texts:
         rule = random.choice(rules)
         anomaly = apply_error_rule(text, rule)
         if anomaly == text and len(rules) > 1:
             anomaly = apply_error_rule(text, random.choice(rules))
         anomalous_texts.append(anomaly)
-
     texts = clean_texts + anomalous_texts
-    labels = [0] * len(clean_texts) + [1] * len(anomalous_texts) # 0 for clean, 1 for anomaly
-    
+    labels = [0] * len(clean_texts) + [1] * len(anomalous_texts)
     print(f"Dataset created with {len(clean_texts)} clean and {len(anomalous_texts)} anomalous examples.")
     return texts, labels
-
-# --- 3. Model Training and Evaluation ---
 
 def compute_metrics(pred):
     labels = pred.label_ids
@@ -70,96 +58,113 @@ def compute_metrics(pred):
     acc = accuracy_score(labels, preds)
     return {'accuracy': acc, 'f1': f1, 'precision': precision, 'recall': recall}
 
-def train_and_evaluate_classifier(df, column, rules, device, model_name='distilbert-base-uncased'):
-    """Fine-tunes and evaluates a classifier for a specific column on the specified device."""
+# --- Model Training Function ---
+
+def train_and_evaluate_classifier(df, column, rules, device, model_name, num_epochs):
+    """Fine-tunes and evaluates a classifier with configurable model and epochs."""
     
-    # 1. Prepare Augmented Dataset
     texts, labels = create_augmented_dataset(df[column], rules)
     if not texts:
-        print(f"Could not create a dataset for '{column}'. Skipping.")
-        return
+        print(f"Could not create a dataset for '{column}'. Skipping."); return
 
     dataset = Dataset.from_dict({'text': texts, 'label': labels}).shuffle(seed=42)
     
-    # 2. Tokenize Data
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     def tokenize_function(examples):
         return tokenizer(examples['text'], padding="max_length", truncation=True, max_length=64)
     tokenized_dataset = dataset.map(tokenize_function, batched=True)
 
-    # 3. Split into Train and Test sets
     train_dataset, eval_dataset = tokenized_dataset.train_test_split(test_size=0.25).values()
     
-    # 4. Define Model and move it to the GPU
     model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=2)
     model.to(device)
     
-    # Using modern, compatible arguments for TrainingArguments
-    # The Trainer will automatically place data on the same device as the model.
+    # MODIFIED: Arguments compatible with older transformers versions
     training_args = TrainingArguments(
         output_dir=f'./results_{column.replace(" ", "_").lower()}',
-        num_train_epochs=2,
-        per_device_train_batch_size=32,
-        per_device_eval_batch_size=32,
-        warmup_ratio=0.1,
+        num_train_epochs=num_epochs,
+        learning_rate=2e-5,
+        per_device_train_batch_size=16,
+        per_device_eval_batch_size=16,
+        warmup_steps=50,
         weight_decay=0.01,
         logging_dir='./logs',
-        logging_strategy="epoch",
-        evaluation_strategy="epoch",
-        save_strategy="epoch",
-        load_best_model_at_end=True,
-        metric_for_best_model="f1",
+        logging_steps=50,
+        # The modern arguments below are removed to prevent the error
+        # evaluation_strategy="epoch",
+        # save_strategy="epoch",
+        # load_best_model_at_end=True,
+        # metric_for_best_model="f1",
     )
     
-    # 5. Train the Model
     trainer = Trainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         compute_metrics=compute_metrics,
-        tokenizer=tokenizer,
     )
     
     trainer.train()
     
-    # 6. Final Evaluation Results
-    print(f"\n--- Best F1-Score achieved for column: '{column}' during training ---")
-    
-# --- 4. Main Execution ---
+    print(f"\n--- Final Performance for column: '{column}' ---")
+    final_metrics = trainer.evaluate()
+    print(f"  - Precision: {final_metrics.get('eval_precision', 0):.2f}")
+    print(f"  - Recall:    {final_metrics.get('eval_recall', 0):.2f}")
+    print(f"  - F1-Score:  {final_metrics.get('eval_f1', 0):.2f}")
+
+# --- Main Execution ---
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fine-tune a classifier for anomaly detection.")
     parser.add_argument("csv_file", help="The path to the input CSV file.")
     args = parser.parse_args()
     
-    # --- ADDED: Check for GPU and set the device ---
-    if torch.cuda.is_available():
-        device = torch.device("cuda")
-        print("✅ GPU found. Using CUDA.")
+    if torch.backends.mps.is_available():
+        device = torch.device("mps"); print("✅ Apple M1/M2 GPU found. Using MPS.")
+    elif torch.cuda.is_available():
+        device = torch.device("cuda"); print("✅ NVIDIA GPU found. Using CUDA.")
     else:
-        device = torch.device("cpu")
-        print("⚠️ No GPU found. Using CPU.")
+        device = torch.device("cpu"); print("⚠️ No GPU found. Using CPU.")
 
     try:
         df = pd.read_csv(args.csv_file)
     except Exception as e:
         print(f"Error loading CSV: {e}"); exit()
-
-    rule_files = {
-        'Care Instructions': 'care_instructions.json', 'colour_name': 'color_name.json',
-        'material': 'material.json', 'season': 'season.json', 'size_name': 'size.json'
+        
+    column_configs = {
+        'Care Instructions': {'model': 'distilbert-base-uncased', 'epochs': 2},
+        'colour_name':       {'model': 'distilbert-base-uncased', 'epochs': 3},
+        'material':          {'model': 'distilbert-base-uncased', 'epochs': 2},
+        'season':            {'model': 'distilbert-base-uncased', 'epochs': 2},
+        'size_name':         {'model': 'bert-base-uncased', 'epochs': 3},
     }
-    rules_dir = 'rules'
-    error_rules_map = {}
-    for col, file_name in rule_files.items():
-        file_path = os.path.join(rules_dir, file_name)
-        try:
-            with open(file_path, 'r') as f: error_rules_map[col] = json.load(f)['error_rules']
-        except FileNotFoundError: print(f"Warning: Rule file '{file_path}' not found.")
-        error_rules_map.setdefault(col, [])
 
-    for column, rules in error_rules_map.items():
-        if column not in df.columns or not rules: continue
+    rules_dir = 'rules'
+    for column, config in column_configs.items():
+        if column not in df.columns: continue
+        
         print(f"\n{'='*20} Starting Process for Column: {column} {'='*20}")
-        train_and_evaluate_classifier(df, column, rules, device=device)
+        print(f"Using model: {config['model']}, Training for: {config['epochs']} epochs")
+        
+        file_name = f'{column.lower().replace(" ", "_")}.json'
+        file_path = os.path.join(rules_dir, file_name)
+        rules = []
+        try:
+            with open(file_path, 'r') as f:
+                rules = json.load(f).get('error_rules', [])
+        except FileNotFoundError:
+            print(f"Warning: Rule file '{file_path}' not found.")
+        
+        if not rules:
+            print(f"No rules found for '{column}'. Skipping.")
+            continue
+            
+        train_and_evaluate_classifier(
+            df, 
+            column, 
+            rules, 
+            device=device, 
+            model_name=config['model'],
+            num_epochs=config['epochs']
+        )
