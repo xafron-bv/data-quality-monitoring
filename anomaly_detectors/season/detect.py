@@ -112,7 +112,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
         if self.total_seasons > 10 and 0 < season_frequency < self.total_seasons * 0.05:
             return AnomalyError(
                 anomaly_type=self.ErrorCode.UNUSUAL_SEASON,
-                confidence=min(0.85, 1.0 - (season_frequency / self.total_seasons)),
+                anomaly_score=min(0.85, 1.0 - (season_frequency / self.total_seasons)),
                 details={
                     "season": value,
                     "frequency": season_frequency,
@@ -127,7 +127,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
         if self.total_seasons > 10 and 0 < format_frequency < self.total_seasons * 0.05:
             return AnomalyError(
                 anomaly_type=self.ErrorCode.UNCOMMON_SEASON_FORMAT,
-                confidence=min(0.8, 1.0 - (format_frequency / self.total_seasons)),
+                anomaly_score=min(0.8, 1.0 - (format_frequency / self.total_seasons)),
                 details={
                     "season": value,
                     "format": format_pattern,
@@ -151,7 +151,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
                 if (year < min_year - 1) or (year > self.current_year + 2):
                     return AnomalyError(
                         anomaly_type=self.ErrorCode.TEMPORAL_ANOMALY,
-                        confidence=0.85,
+                        anomaly_score=0.85,
                         details={
                             "season": value,
                             "year": year,
@@ -170,7 +170,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
                 # This is an unusual season name
                 return AnomalyError(
                     anomaly_type=self.ErrorCode.INCONSISTENT_SEASON_PATTERN,
-                    confidence=min(0.75, 1.0 - (name_frequency / self.total_seasons)),
+                    anomaly_score=min(0.75, 1.0 - (name_frequency / self.total_seasons)),
                     details={
                         "season": value,
                         "season_name": season_name,

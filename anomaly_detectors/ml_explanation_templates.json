@@ -1,0 +1,13 @@
+{
+  "default": "This value was detected as anomalous by the {model_name} model with a score of {score:.2f}.",
+  "high_score": "This value is highly anomalous according to the {model_name} model (score: {score:.2f}).",
+  "outlier": "This value is a statistical outlier, {z_score:.2f} standard deviations from the mean.",
+  "cluster": "This value doesn't match the typical patterns for this category.",
+  "feature_contribution": "The unusual aspects of this value are: {top_features}.",
+  "nearest_neighbors": "This value is significantly different from typical similar items.",
+  "contextual": "This value is unusual given the context of {context_features}.",
+  "time_series": "This value deviates from the expected temporal pattern.",
+  "novelty": "This value represents a new pattern not seen in the training data.",
+  "distribution": "This value falls in the {percentile:.1f}th percentile of the distribution.",
+  "mixed_model": "Multiple models in our detection pipeline flagged this value as anomalous."
+}
