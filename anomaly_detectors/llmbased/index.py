@@ -6,11 +6,9 @@ import re
 import random
 import os
 import torch
-from sentence_transformers import SentenceTransformer, losses, models
-from torch.utils.data import DataLoader
-from sentence_transformers.readers import InputExample
-from sklearn.ensemble import IsolationForest
-from collections import defaultdict
+from datasets import Dataset
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, Trainer, TrainingArguments
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 # --- 1. Error Injection Engine ---
 
@@ -18,12 +16,12 @@ def apply_error_rule(value, rule):
     if 'conditions' in rule and rule['conditions']:
         should_apply = False
         for cond in rule['conditions']:
-            if cond['type'] == 'contains' and cond['value'] in str(value):
+            if cond['type'] == 'contains' and str(cond['value']) in str(value):
                 should_apply = True; break
         if not should_apply: return value
     op, params = rule['operation'], rule.get('params', {})
     val_str = str(value)
-    if op == 'string_replace': return val_str.replace(params['find'], params['replace'])
+    if op == 'string_replace': return val_str.replace(str(params['find']), str(params['replace']))
     if op == 'regex_replace': return re.sub(params['pattern'], params['replace'], val_str, count=params.get('count', 0))
     if op == 'add_whitespace': return f" {val_str} "
     if op == 'append': return val_str + params['text']
@@ -35,78 +33,116 @@ def apply_error_rule(value, rule):
         return val_str[:pos] + char + val_str[pos:]
     return value
 
-def create_anomalous_dataset(df, error_rules_map, anomaly_fraction=0.15):
-    print(f"\nInjecting anomalies into {anomaly_fraction:.0%} of the data for testing...")
-    anomalous_df = df.copy()
-    anomalous_df['is_anomaly'] = False
-    anomaly_indices = df.sample(frac=anomaly_fraction, random_state=42).index
-    anomalous_df.loc[anomaly_indices, 'is_anomaly'] = True
-    for col_name, rules in error_rules_map.items():
-        if col_name not in anomalous_df.columns or not rules: continue
-        col_indices = anomalous_df[anomalous_df['is_anomaly']].index
-        for idx in col_indices:
-            if not rules: continue
-            rule = random.choice(rules)
-            original_value = anomalous_df.loc[idx, col_name]
-            modified_value = apply_error_rule(original_value, rule)
-            if modified_value != original_value:
-                anomalous_df.loc[idx, col_name] = modified_value
-    print(f"Injection complete. {len(anomaly_indices)} rows were marked for corruption.")
-    return anomalous_df
+# --- 2. Data Preparation for Classification ---
 
-# --- 2. Fine-Tuning Stage ---
+def create_augmented_dataset(data_series, rules):
+    """
+    Creates a large, balanced dataset from the entire data series,
+    not just the unique values.
+    """
+    print("Generating augmented classification dataset from all rows...")
+    clean_texts = data_series.dropna().astype(str).tolist()
+    
+    anomalous_texts = []
+    if not rules:
+        print("Warning: No rules provided. Cannot generate anomalous data.")
+        return [], []
 
-def create_triplets(clean_values, rules, num_triplets=5000):
-    triplets = []
-    unique_values = list(clean_values)
-    if len(unique_values) < 2: return []
-    print(f"Generating {num_triplets} triplets...")
-    for _ in range(num_triplets):
-        anchor, positive = random.sample(unique_values, 2)
-        if not rules: continue
+    for text in clean_texts:
         rule = random.choice(rules)
-        negative = apply_error_rule(anchor, rule)
-        if negative != anchor:
-            triplets.append(InputExample(texts=[anchor, positive, negative]))
-    return triplets
+        anomaly = apply_error_rule(text, rule)
+        if anomaly == text and len(rules) > 1:
+            anomaly = apply_error_rule(text, random.choice(rules))
+        anomalous_texts.append(anomaly)
 
-## GPU-FAST: Add 'device' argument and increase default batch size for GPU performance.
-def fine_tune_model(df, error_rules_map, device, base_model='bert-base-uncased', epochs=2, batch_size=128):
-    tuned_model_paths = {}
-    for column, rules in error_rules_map.items():
-        if column not in df.columns or not rules: continue
-        print(f"\n--- Fine-tuning model for column: '{column}' ---")
-        output_path = f'tuned_model_{column.replace(" ", "_").lower()}'
-        clean_values = df[column].dropna().unique()
-        train_examples = create_triplets(clean_values, rules)
-        if not train_examples:
-            print(f"Not enough unique values/rules in '{column}'. Skipping fine-tuning.")
-            continue
-        word_embedding_model = models.Transformer(base_model)
-        pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension())
-        ## GPU-FAST: Initialize the model directly on the specified device ('cuda' or 'cpu').
-        model = SentenceTransformer(modules=[word_embedding_model, pooling_model], device=device)
-        train_loss = losses.TripletLoss(model=model)
-        train_dataloader = DataLoader(train_examples, shuffle=True, batch_size=batch_size)
-        model.fit(train_objectives=[(train_dataloader, train_loss)], epochs=epochs, show_progress_bar=True)
-        model.save(output_path)
-        tuned_model_paths[column] = output_path
-        print(f"Fine-tuned model saved to: {output_path}")
-    return tuned_model_paths
+    texts = clean_texts + anomalous_texts
+    labels = [0] * len(clean_texts) + [1] * len(anomalous_texts) # 0 for clean, 1 for anomaly
+    
+    print(f"Dataset created with {len(clean_texts)} clean and {len(anomalous_texts)} anomalous examples.")
+    return texts, labels
 
-# --- 3. Main Execution and Evaluation ---
+# --- 3. Model Training and Evaluation ---
+
+def compute_metrics(pred):
+    labels = pred.label_ids
+    preds = pred.predictions.argmax(-1)
+    precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average='binary', zero_division=0)
+    acc = accuracy_score(labels, preds)
+    return {'accuracy': acc, 'f1': f1, 'precision': precision, 'recall': recall}
+
+def train_and_evaluate_classifier(df, column, rules, device, model_name='distilbert-base-uncased'):
+    """Fine-tunes and evaluates a classifier for a specific column on the specified device."""
+    
+    # 1. Prepare Augmented Dataset
+    texts, labels = create_augmented_dataset(df[column], rules)
+    if not texts:
+        print(f"Could not create a dataset for '{column}'. Skipping.")
+        return
+
+    dataset = Dataset.from_dict({'text': texts, 'label': labels}).shuffle(seed=42)
+    
+    # 2. Tokenize Data
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    def tokenize_function(examples):
+        return tokenizer(examples['text'], padding="max_length", truncation=True, max_length=64)
+    tokenized_dataset = dataset.map(tokenize_function, batched=True)
+
+    # 3. Split into Train and Test sets
+    train_dataset, eval_dataset = tokenized_dataset.train_test_split(test_size=0.25).values()
+    
+    # 4. Define Model and move it to the GPU
+    model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=2)
+    model.to(device)
+    
+    # Using modern, compatible arguments for TrainingArguments
+    # The Trainer will automatically place data on the same device as the model.
+    training_args = TrainingArguments(
+        output_dir=f'./results_{column.replace(" ", "_").lower()}',
+        num_train_epochs=2,
+        per_device_train_batch_size=32,
+        per_device_eval_batch_size=32,
+        warmup_ratio=0.1,
+        weight_decay=0.01,
+        logging_dir='./logs',
+        logging_strategy="epoch",
+        evaluation_strategy="epoch",
+        save_strategy="epoch",
+        load_best_model_at_end=True,
+        metric_for_best_model="f1",
+    )
+    
+    # 5. Train the Model
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
+        compute_metrics=compute_metrics,
+        tokenizer=tokenizer,
+    )
+    
+    trainer.train()
+    
+    # 6. Final Evaluation Results
+    print(f"\n--- Best F1-Score achieved for column: '{column}' during training ---")
+    
+# --- 4. Main Execution ---
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Fine-tune and evaluate a semantic anomaly detector.")
+    parser = argparse.ArgumentParser(description="Fine-tune a classifier for anomaly detection.")
     parser.add_argument("csv_file", help="The path to the input CSV file.")
     args = parser.parse_args()
-
-    ## GPU-FAST: Automatically detect and set the device for PyTorch.
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    print(f"INFO: Using device: {device}")
+    
+    # --- ADDED: Check for GPU and set the device ---
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        print("✅ GPU found. Using CUDA.")
+    else:
+        device = torch.device("cpu")
+        print("⚠️ No GPU found. Using CPU.")
 
     try:
-        clean_df = pd.read_csv(args.csv_file)
+        df = pd.read_csv(args.csv_file)
     except Exception as e:
         print(f"Error loading CSV: {e}"); exit()
 
@@ -120,66 +156,10 @@ if __name__ == "__main__":
         file_path = os.path.join(rules_dir, file_name)
         try:
             with open(file_path, 'r') as f: error_rules_map[col] = json.load(f)['error_rules']
-        except FileNotFoundError: print(f"Warning: Rule file '{file_path}' not found. Assigning empty rules.")
+        except FileNotFoundError: print(f"Warning: Rule file '{file_path}' not found.")
         error_rules_map.setdefault(col, [])
 
-
-    # STAGE 1: FINE-TUNE THE MODELS
-    ## GPU-FAST: Pass the detected device to the fine-tuning function.
-    tuned_model_paths = fine_tune_model(clean_df, error_rules_map, device=device, epochs=2)
-
-    # STAGE 2: EVALUATE THE FINE-TUNED MODELS
-    train_df = clean_df.sample(frac=0.7, random_state=42)
-    test_df_clean = clean_df.drop(train_df.index)
-
-    anomalous_test_df = create_anomalous_dataset(test_df_clean, error_rules_map, anomaly_fraction=0.5)
-    true_anomalies = set(anomalous_test_df[anomalous_test_df['is_anomaly']].index)
-
-    for column, model_path in tuned_model_paths.items():
-        if not os.path.exists(model_path):
-            print(f"\n--- Skipping evaluation for column: '{column}' (no model was trained) ---")
-            continue
-
-        print(f"\n--- Evaluating fine-tuned model for column: '{column}' ---")
-
-        ## GPU-FAST: Load the model onto the specified device.
-        tuned_model = SentenceTransformer(model_path, device=device)
-
-        # Train the Isolation Forest detector ONLY on clean data embeddings
-        clean_train_values = train_df[column].dropna().unique()
-        ## GPU-FAST: Encode on the GPU with a larger batch size and visible progress bar.
-        clean_embeddings = tuned_model.encode(clean_train_values, show_progress_bar=True, batch_size=256)
-
-        # This part remains on the CPU as scikit-learn does not use the GPU.
-        detector = IsolationForest(contamination=0.01, random_state=42).fit(clean_embeddings)
-
-        # Generate embeddings for the entire test set (clean + anomalous)
-        test_values = anomalous_test_df[column].dropna().astype(str).tolist()
-        ## GPU-FAST: Encode on the GPU with a larger batch size and visible progress bar.
-        test_embeddings = tuned_model.encode(test_values, show_progress_bar=True, batch_size=256)
-
-        # Predict which ones are anomalies (-1 means anomaly, 1 means normal)
-        predictions = detector.predict(test_embeddings)
-
-        # Get the indices of the predicted anomalies
-        results_df = anomalous_test_df[anomalous_test_df[column].isin(test_values)].copy()
-        results_df['prediction'] = predictions
-        predicted_anomalies = set(results_df[results_df['prediction'] == -1].index)
-
-        # Calculate and print metrics
-        tp = len(true_anomalies.intersection(predicted_anomalies))
-        fp = len(predicted_anomalies.difference(true_anomalies))
-        fn = len(true_anomalies.difference(predicted_anomalies))
-
-        precision = tp / (tp + fp) if (tp + fp) > 0 else 0
-        recall = tp / (tp + fn) if (tp + fn) > 0 else 0
-        f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
-
-        print("Detector Performance:")
-        print(f"  - True Positives (found injected anomalies):    {tp}")
-        print(f"  - False Positives (flagged clean data):         {fp}")
-        print(f"  - False Negatives (missed injected anomalies):  {fn}")
-        print("---")
-        print(f"  - Precision: {precision:.2f}")
-        print(f"  - Recall:    {recall:.2f}")
-        print(f"  - F1-Score:  {f1_score:.2f}")
+    for column, rules in error_rules_map.items():
+        if column not in df.columns or not rules: continue
+        print(f"\n{'='*20} Starting Process for Column: {column} {'='*20}")
+        train_and_evaluate_classifier(df, column, rules, device=device)
