@@ -42,6 +42,7 @@ if __name__ == "__main__":
     parser.add_argument("csv_file", help="The path to the input CSV file.")
     parser.add_argument("--use-hp-search", action="store_true", help="Use RECALL-FOCUSED hyperparameter search.")
     parser.add_argument("--hp-trials", type=int, default=15, help="Number of hyperparameter search trials (default: 15).")
+    parser.add_argument("--rules", nargs='+', default=None, help="List of rule file names to include in training/hp search (by rule name, space-separated, e.g. 'size material'). If not set, all rules are used.")
     args = parser.parse_args()
     
     print("🎯 RECALL-OPTIMIZED Anomaly Detection Training")
@@ -72,19 +73,24 @@ if __name__ == "__main__":
     torch.manual_seed(42)
     np.random.seed(42)
     
+    selected_rules = set(args.rules) if args.rules else None
+
     for rule_name, column_name in rule_to_column_map.items():
+        # If --columns is set, skip rule_names not in the list
+        if selected_rules and rule_name not in selected_rules:
+            continue
         if column_name not in df.columns:
             print(f"Warning: Column '{column_name}' not found in the CSV. Skipping.")
             continue
-        
+
         config = column_configs.get(column_name, {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2})
-        
+
         print(f"\n{'='*20} Starting Process for Column: {column_name} {'='*20}")
         print(f"Using rule file: '{rule_name}.json', Model: {config['model']}, Epochs: {config['epochs']}")
-        
+
         if args.use_hp_search:
             print(f"Hyperparameter search enabled with {args.hp_trials} trials")
-        
+
         file_path = os.path.join(rules_dir, f'{rule_name}.json')
         rules = []
         try:
@@ -92,11 +98,11 @@ if __name__ == "__main__":
         except FileNotFoundError:
             print(f"Error: Rule file '{file_path}' not found.")
             continue
-        
+
         if not rules:
             print(f"No rules found in '{file_path}'. Skipping.")
             continue
-        
+
         # Determine best parameters based on whether HP search is enabled
         if args.use_hp_search:
             best_params, best_recall, best_precision, best_f1, search_results = random_hyperparameter_search(
@@ -109,12 +115,12 @@ if __name__ == "__main__":
             # Use recall-optimized parameters
             best_params = get_optimal_parameters(column_name, config['model'], config['epochs'])
             print(f"Using RECALL-OPTIMIZED parameters for '{column_name}'")
-            
+
         train_and_evaluate_similarity_model(
-            df, 
-            column_name, 
-            rules, 
-            device=device, 
+            df,
+            column_name,
+            rules,
+            device=device,
             best_params=best_params
         )
     
