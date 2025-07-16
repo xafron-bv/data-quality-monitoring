@@ -601,19 +601,19 @@ def demonstrate_similarity(model, data_series, column_name):
                 similarity = cosine_similarity(clean_embedding, corrupted_embedding)[0][0]
                 
                 print(f"  {i+1}. Clean: '{clean_text}' vs Corrupted: '{corrupted_text}'")
-                print(f"     Similarity: {similarity:.4f} {'✅ GOOD (low similarity = anomaly detected)' if similarity < 0.8 else '❌ BAD (high similarity = anomaly missed)'}")
+                print(f"     Similarity: {similarity:.4f} {'GOOD (low similarity = anomaly detected)' if similarity < 0.8 else 'BAD (high similarity = anomaly missed)'}")
     
     # Show embeddings dimensionality
     print(f"\nEmbedding dimension: {embeddings.shape[1]}")
     print(f"Total samples processed: {len(sample_texts)}")
-    print(f"💡 For anomaly detection: Clean texts should be similar to each other, corrupted texts should be dissimilar.")
+    print(f"For anomaly detection: Clean texts should be similar to each other, corrupted texts should be dissimilar.")
 
 def test_anomaly_detection(model, clean_texts, rules, column_name, threshold=0.7):
     """
     Test the trained model's ability to detect anomalies.
     Returns the percentage of anomalies correctly detected.
     """
-    print(f"\n🔍 Testing anomaly detection for '{column_name}'...")
+    print(f"\nTesting anomaly detection for '{column_name}'...")
     
     if not rules or len(clean_texts) < 2:
         print("Not enough data to test anomaly detection.")
@@ -648,16 +648,16 @@ def test_anomaly_detection(model, clean_texts, rules, column_name, threshold=0.7
             # Check if anomaly was detected (similarity below threshold)
             if similarity < threshold:
                 detected_anomalies += 1
-                status = "✅ DETECTED"
+                status = "DETECTED"
             else:
-                status = "❌ MISSED"
+                status = "MISSED"
             
             print(f"  Clean: '{clean_text}' vs Corrupted: '{corrupted_text}' -> {similarity:.3f} {status}")
             total_tests += 1
     
     if total_tests > 0:
         detection_rate = (detected_anomalies / total_tests) * 100
-        print(f"\n🎯 Anomaly Detection Rate: {detection_rate:.1f}% ({detected_anomalies}/{total_tests})")
+        print(f"\nAnomaly Detection Rate: {detection_rate:.1f}% ({detected_anomalies}/{total_tests})")
         return detection_rate
     else:
         print("No anomalies could be generated for testing.")
@@ -674,11 +674,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     if torch.backends.mps.is_available():
-        device = torch.device("mps"); print("✅ Apple M1/M2 GPU found. Using MPS.")
+        device = torch.device("mps"); print("Apple M1/M2 GPU found. Using MPS.")
     elif torch.cuda.is_available():
-        device = torch.device("cuda"); print("✅ NVIDIA GPU found. Using CUDA.")
+        device = torch.device("cuda"); print("NVIDIA GPU found. Using CUDA.")
     else:
-        device = torch.device("cpu"); print("⚠️ No GPU found. Using CPU.")
+        device = torch.device("cpu"); print("No GPU found. Using CPU.")
 
     try:
         df = pd.read_csv(args.csv_file)
@@ -736,7 +736,7 @@ if __name__ == "__main__":
         print(f"Using rule file: '{rule_name}.json', Model: {config['model']}, Epochs: {config['epochs']}")
         
         if args.use_hp_search:
-            print(f"🔍 Hyperparameter search enabled with {args.hp_trials} trials")
+            print(f"Hyperparameter search enabled with {args.hp_trials} trials")
         
         file_path = os.path.join(rules_dir, f'{rule_name}.json')
         rules = []

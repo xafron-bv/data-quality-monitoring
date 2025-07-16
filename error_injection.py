@@ -285,6 +285,84 @@ def apply_error_rule(data_string: Union[str, Any], rule: Dict[str, Any]) -> Unio
     elif op == "reverse":
         return data_string[::-1]
     
+    elif op == "digit_replacement":
+        # Replace random digits with other digits
+        if not data_string:
+            return data_string
+        
+        pattern = params.get("digit_pattern", r"[0-9]")
+        replacement_digits = params.get("replacement_digits", ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"])
+        
+        # Find all digit matches
+        matches = list(re.finditer(pattern, data_string))
+        if not matches:
+            return data_string
+        
+        # Replace a random digit
+        match = random.choice(matches)
+        original_digit = match.group()
+        # Choose a different digit
+        available_digits = [d for d in replacement_digits if d != original_digit]
+        if not available_digits:
+            return data_string
+        
+        new_digit = random.choice(available_digits)
+        return data_string[:match.start()] + new_digit + data_string[match.end():]
+    
+    elif op == "digit_removal":
+        # Remove a random digit
+        if not data_string:
+            return data_string
+        
+        position = params.get("position", "random")
+        digits = [i for i, char in enumerate(data_string) if char.isdigit()]
+        
+        if not digits:
+            return data_string
+        
+        if position == "random":
+            remove_pos = random.choice(digits)
+        else:
+            remove_pos = position
+        
+        return data_string[:remove_pos] + data_string[remove_pos + 1:]
+    
+    elif op == "digit_duplication":
+        # Duplicate a random digit
+        if not data_string:
+            return data_string
+        
+        position = params.get("position", "random")
+        digits = [i for i, char in enumerate(data_string) if char.isdigit()]
+        
+        if not digits:
+            return data_string
+        
+        if position == "random":
+            dup_pos = random.choice(digits)
+        else:
+            dup_pos = position
+        
+        char_to_dup = data_string[dup_pos]
+        return data_string[:dup_pos] + char_to_dup + data_string[dup_pos:]
+    
+    elif op == "character_substitution":
+        # Replace characters with visually similar ones
+        if not data_string:
+            return data_string
+        
+        substitutions = params.get("substitutions", {
+            "0": "O", "1": "l", "5": "S", "6": "G", "8": "B"
+        })
+        
+        result = data_string
+        for original, replacement in substitutions.items():
+            if original in result:
+                result = result.replace(original, replacement, 1)  # Replace only first occurrence
+                break
+        
+        return result
+    
     return data_string
 
 

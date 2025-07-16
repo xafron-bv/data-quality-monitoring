@@ -17,59 +17,61 @@
       "description": "Replace common Dutch words with misspellings",
       "probability": 0.2,
       "params": {
-        "find": "kwaliteit",
-        "replace": "kwalitiet"
-      }
-    },
-    {
-      "operation": "string_replace",
-      "description": "Replace common Dutch words with misspellings",
-      "probability": 0.2,
-      "params": {
-        "find": "mouwen",
-        "replace": "mouwn"
-      }
-    },
-    {
-      "operation": "string_replace",
-      "description": "Replace common Dutch words with misspellings",
-      "probability": 0.2,
-      "params": {
-        "find": "lengte",
-        "replace": "lengte"
-      }
-    },
-    {
-      "operation": "string_replace",
-      "description": "Replace common Dutch words with misspellings",
-      "probability": 0.2,
-      "params": {
         "find": "artikel",
         "replace": "artikle"
       }
     },
     {
+      "operation": "random_noise",
+      "description": "Add random punctuation in middle of text",
+      "probability": 0.3,
+      "params": {
+        "type": "chars",
+        "chars": "!@#$%^&*()[]{}",
+        "length": 1
+      }
+    },
+    {
       "operation": "string_replace",
-      "description": "Replace periods with commas",
+      "description": "Replace spaces with underscores",
       "probability": 0.1,
+      "params": {
+        "find": " ",
+        "replace": "_"
+      }
+    },
+    {
+      "operation": "append",
+      "description": "Add HTML-like tags",
+      "probability": 0.2,
+      "params": {
+        "text": "</div>"
+      }
+    },
+    {
+      "operation": "prepend",
+      "description": "Add HTML-like tags",
+      "probability": 0.2,
+      "params": {
+        "text": "<div>"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace periods with semicolons",
+      "probability": 0.15,
       "params": {
         "find": ".",
-        "replace": ","
+        "replace": ";"
       }
     },
     {
-      "operation": "string_replace",
-      "description": "Replace measurements format",
+      "operation": "truncate",
+      "description": "Truncate description to half length",
       "probability": 0.1,
       "params": {
-        "find": "CM",
-        "replace": "cm"
+        "length": 50
       }
-    },
-    {
-      "operation": "random_noise",
-      "description": "Add random character noise",
-      "probability": 0.05
     }
   ]
 }
