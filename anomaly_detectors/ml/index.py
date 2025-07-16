@@ -1,66 +1,3 @@
-"""
-RECALL-FOCUSED Anomaly Detection using Sentence Transformers and Triplet Loss
-
-📊 ACTUAL PERFORMANCE RESULTS FROM 5-TRIAL HYPERPARAMETER SEARCH:
-
-EXCELLENT PERFORMANCE (1.0 recall):
-- article_structure_name_2: 1.0 recall → multi-qa-MiniLM-L6-cos-v1 (margin: 0.3, epochs: 4) ✅
-- colour_code: 1.0 recall → all-mpnet-base-v2 (margin: 2.0, epochs: 2) ✅
-- colour_name: 1.0 recall → multi-qa-MiniLM-L6-cos-v1 (margin: 0.3, epochs: 4) ✅
-
-GOOD PERFORMANCE (0.8+ recall):
-- material: 0.882 recall → multi-qa-MiniLM-L6-cos-v1 (margin: 1.0, epochs: 3) 🔥
-
-MODERATE PERFORMANCE (0.4-0.5 recall):
-- EAN: 0.5 recall → multi-qa-MiniLM-L6-cos-v1 (margin: 0.3, epochs: 3) ⚡
-- long_description_NL: 0.5 recall → multi-qa-MiniLM-L6-cos-v1 (margin: 1.0, epochs: 3) ⚡
-- customs_tariff_number: 0.5 recall → multi-qa-MiniLM-L6-cos-v1 (margin: 1.2, epochs: 2) ⚡
-- size_name: 0.4 recall → paraphrase-MiniLM-L6-v2 (margin: 0.3, epochs: 8) ⚡
-
-POOR PERFORMANCE (0.0 recall):
-- article_number: 0.0 recall → all-mpnet-base-v2 (margin: 1.0, epochs: 5) ❌
-- description_short_1: 0.0 recall → distilbert-base-nli-stsb-mean-tokens (margin: 2.0, epochs: 5) ❌
-- product_name_EN: 0.0 recall → distilbert-base-nli-stsb-mean-tokens (margin: 0.8, epochs: 6) ❌
-
-📁 ORGANIZED OUTPUT STRUCTURE:
-../results/
-├── summary/                    (HP search results, summaries)
-│   ├── hp_search_results_*.json
-│   └── hp_search_summary.json
-├── checkpoints/                (temporary training checkpoints)
-└── results_[column]/           (trained models for each column)
-    ├── model files
-    ├── config files
-    └── evaluation results
-
-Key Insights from ACTUAL Hyperparameter Search:
-1. DIFFERENT MODELS WORK BETTER FOR DIFFERENT COLUMNS:
-   - multi-qa-MiniLM-L6-cos-v1: BEST overall - excellent for structured data (article_structure_name_2, colour_name, material, EAN, long_description_NL, customs_tariff_number)
-   - all-mpnet-base-v2: Good for color codes and article numbers
-   - paraphrase-MiniLM-L6-v2: Best for size names
-   - distilbert-base-nli-stsb-mean-tokens: Works for product names and descriptions but with poor recall
-
-2. RECALL-FOCUSED CONFIGURATION INSIGHTS:
-   - Small margins (0.3-1.0) work best for most columns
-   - COSINE distance metric is most effective for text similarity
-   - Lower epochs (2-4) often sufficient for good performance
-   - Batch sizes 16-64 work well depending on column complexity
-
-3. PERFORMANCE PATTERNS:
-   - Structured data (article_structure_name_2, colour_name): Perfect recall (1.0)
-   - Material data: Very good recall (0.882)
-   - Identifier data (EAN, customs_tariff_number): Moderate recall (0.5)
-   - Descriptive text (product_name_EN, description_short_1): Poor recall (0.0)
-
-4. FLIPPED TRIPLET LOGIC:
-   - Anchor: Clean text (e.g., "red")
-   - Positive: Other clean text from same semantic group (e.g., "blue")
-   - Negative: Corrupted text (e.g., "re d") - should be far from anchor
-
-This prioritizes catching anomalies over precision - better to flag clean data
-as anomalous than to miss actual anomalies.
-"""
-
 import pandas as pd
 import numpy as np
 import argparse
@@ -70,7 +7,6 @@ import random
 import os
 import sys
 import torch
-from datasets import Dataset
 from sentence_transformers import SentenceTransformer, InputExample, losses
 from sentence_transformers.evaluation import TripletEvaluator
 from torch.utils.data import DataLoader
@@ -78,7 +14,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans
 import itertools
-from typing import List, Dict, Tuple
+from typing import List, Dict
 
 # Add the parent directory to the path to import the error injection module
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -86,108 +22,10 @@ from error_injection import apply_error_rule, load_error_rules
 
 # --- Functions (Error Injection, Data Prep, Training) remain the same ---
 
-def create_semantic_groups(texts: List[str], column_name: str) -> Dict[str, List[str]]:
-    """
-    Create semantic groups for better negative sampling.
-    """
-    if column_name == 'article_structure_name_2':
-        # Group clothing items by type
-        clothing_groups = {
-            'outerwear': ['Jackets', 'Coats', 'Blazers'],
-            'tops': ['Sweaters', 'Blouses', 'Shirts', 'T-shirts', 'Cardigan'],
-            'bottoms': ['Trousers', 'Pants', 'Jeans', 'Skirts'],
-            'dresses': ['Dresses'],
-            'accessories': ['Bags', 'Scarves', 'Belts']
-        }
-        
-        groups = {}
-        for group_name, items in clothing_groups.items():
-            groups[group_name] = [text for text in texts if any(item.lower() in text.lower() for item in items)]
-        
-        # Add remaining items to 'other' group
-        assigned_texts = set(itertools.chain.from_iterable(groups.values()))
-        remaining = [text for text in texts if text not in assigned_texts]
-        if remaining:
-            groups['other'] = remaining
-            
-    elif column_name == 'colour_name':
-        # Group colors by families
-        color_groups = {
-            'neutral': ['White', 'Black', 'Gray', 'Grey', 'Beige', 'Cream', 'Ivory', 'Off White'],
-            'warm': ['Red', 'Orange', 'Yellow', 'Pink', 'Coral', 'Peach', 'Warm', 'Camel', 'Mustard'],
-            'cool': ['Blue', 'Green', 'Purple', 'Turquoise', 'Teal', 'Navy', 'Cool'],
-            'earth': ['Brown', 'Tan', 'Sand', 'Khaki', 'Olive', 'Rust']
-        }
-        
-        groups = {}
-        for group_name, colors in color_groups.items():
-            groups[group_name] = [text for text in texts if any(color.lower() in text.lower() for color in colors)]
-        
-        # Add remaining colors to 'other' group
-        assigned_texts = set(itertools.chain.from_iterable(groups.values()))
-        remaining = [text for text in texts if text not in assigned_texts]
-        if remaining:
-            groups['other'] = remaining
-            
-    elif column_name == 'season':
-        # For seasons, use TF-IDF clustering since we have limited data
-        if len(texts) > 3:
-            vectorizer = TfidfVectorizer(max_features=100, stop_words='english')
-            X = vectorizer.fit_transform(texts)
-            
-            n_clusters = min(3, len(texts))
-            kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-            cluster_labels = kmeans.fit_predict(X)
-            
-            groups = {}
-            for i in range(n_clusters):
-                groups[f'cluster_{i}'] = [texts[j] for j in range(len(texts)) if cluster_labels[j] == i]
-        else:
-            groups = {'all': texts}
-            
-    elif column_name == 'Care Instructions':
-        # Group by care instruction type
-        care_groups = {
-            'wash_30': [],
-            'wash_40': [],
-            'no_iron': [],
-            'iron_low': [],
-            'no_dry': [],
-            'dry_clean': []
-        }
-        
-        for text in texts:
-            text_lower = text.lower()
-            if '30°c' in text_lower or '30°' in text_lower:
-                care_groups['wash_30'].append(text)
-            elif '40°c' in text_lower or '40°' in text_lower:
-                care_groups['wash_40'].append(text)
-            
-            if 'niet strijken' in text_lower or 'no iron' in text_lower:
-                care_groups['no_iron'].append(text)
-            elif 'lage temperatuur' in text_lower or 'low temp' in text_lower:
-                care_groups['iron_low'].append(text)
-            
-            if 'niet in de droger' in text_lower or 'no dry' in text_lower:
-                care_groups['no_dry'].append(text)
-            elif 'dry clean' in text_lower or 'chemisch' in text_lower:
-                care_groups['dry_clean'].append(text)
-        
-        # Remove empty groups
-        groups = {k: v for k, v in care_groups.items() if v}
-        
-        # If no groups found, use all texts
-        if not groups:
-            groups = {'all': texts}
-    else:
-        # Default: single group
-        groups = {'all': texts}
-    
-    return groups
-
 def create_improved_triplet_dataset(data_series, rules, column_name):
     """
     Create triplets for anomaly detection - corrupted data should be distant from clean data.
+    All clean values are considered similar, anomalies are error-injected values.
     """
     print("Generating improved triplet dataset for anomaly detection...")
     
@@ -203,35 +41,18 @@ def create_improved_triplet_dataset(data_series, rules, column_name):
         print("Warning: Need at least 2 clean texts to create triplets.")
         return []
     
-    # Create semantic groups for better positive sampling
-    groups = create_semantic_groups(clean_texts, column_name)
-    print(f"Created {len(groups)} semantic groups: {list(groups.keys())}")
-    
-    # Create reverse mapping: text -> group
-    text_to_group = {}
-    for group_name, group_texts in groups.items():
-        for text in group_texts:
-            text_to_group[text] = group_name
+    print(f"Working with {len(clean_texts)} clean texts from column '{column_name}'")
     
     triplets = []
     
     for anchor_text in clean_texts:
-        # FLIPPED LOGIC FOR ANOMALY DETECTION:
+        # SIMPLIFIED LOGIC FOR ANOMALY DETECTION:
         # Anchor: Clean text (e.g., "red")
-        # Positive: Other clean text from same semantic group (e.g., "blue" for colors)
-        # Negative: Corrupted version (e.g., "re d") - this should be far from anchor
+        # Positive: Any other clean text (e.g., "blue") - all clean values are similar
+        # Negative: Error-injected anomaly (e.g., "chair", "134fdh") - true anomalies
         
-        anchor_group = text_to_group.get(anchor_text, 'all')
-        
-        # Get positive candidates from same semantic group
-        positive_candidates = []
-        for group_name, group_texts in groups.items():
-            if group_name == anchor_group:
-                positive_candidates.extend([text for text in group_texts if text != anchor_text])
-        
-        # If no candidates from same group, use any other clean text
-        if not positive_candidates:
-            positive_candidates = [text for text in clean_texts if text != anchor_text]
+        # Get positive candidates (any other clean text)
+        positive_candidates = [text for text in clean_texts if text != anchor_text]
         
         if positive_candidates:
             positive_text = random.choice(positive_candidates)
@@ -254,7 +75,7 @@ def create_improved_triplet_dataset(data_series, rules, column_name):
                 triplets.append(triplet)
     
     print(f"Created {len(triplets)} triplets for anomaly detection training.")
-    print(f"Structure: Anchor (clean) -> Positive (clean, similar) -> Negative (corrupted)")
+    print(f"Structure: Anchor (clean) -> Positive (clean) -> Negative (error-injected anomaly)")
     return triplets
 
 def random_hyperparameter_search(df, column, rules, device, num_trials=15):
@@ -486,7 +307,6 @@ def train_with_params(df, column, rules, params):
     except Exception as e:
         print(f"   ❌ Performance evaluation failed: {e}")
         return -1, -1, -1
-
 
 def evaluate_recall_and_precision_performance(model, clean_texts, rules, column_name, num_samples=20):
     """
@@ -850,7 +670,12 @@ def demonstrate_similarity(model, data_series, column_name):
         'article_structure_name_2': 'category.json',
         'colour_name': 'color_name.json',
         'season': 'season.json',
-        'Care Instructions': 'care_instructions.json'
+        'Care Instructions': 'care_instructions.json',
+        'article_number': 'article_number.json',
+        'customs_tariff_number': 'customs_tariff_number.json',
+        'description_short_1': 'description_short_1.json',
+        'material': 'material.json',
+        'product_name_EN': 'product_name_en.json'
     }
     
     rule_file = rule_files.get(column_name, 'category.json')
@@ -884,14 +709,14 @@ def demonstrate_similarity(model, data_series, column_name):
                 # Calculate similarity
                 similarity = cosine_similarity(clean_embedding, corrupted_embedding)[0][0]
                 
-                print(f"  {i+1}. Clean: '{clean_text}' vs Corrupted: '{corrupted_text}'")
+                print(f"  {i+1}. Clean: '{clean_text}' vs Anomaly: '{corrupted_text}'")
                 # Use recall-focused threshold (0.6 instead of 0.8)
                 print(f"     Similarity: {similarity:.4f} {'✅ DETECTED (good recall)' if similarity < 0.6 else '⚠️ MISSED (need lower threshold)'}")
     
     # Show embeddings dimensionality
     print(f"\nEmbedding dimension: {embeddings.shape[1]}")
     print(f"Total samples processed: {len(sample_texts)}")
-    print(f"🎯 RECALL-FOCUSED: Lower thresholds catch more anomalies (better recall, may increase false positives)")
+    print(f"🎯 RECALL-FOCUSED: All clean values should be similar, anomalies should be distant")
 
 def test_recall_precision_performance(model, clean_texts, rules, column_name, threshold=0.6):
     """
@@ -988,7 +813,6 @@ def test_recall_precision_performance(model, clean_texts, rules, column_name, th
     
     return recall, precision, f1_score
 
-
 def test_anomaly_detection(model, clean_texts, rules, column_name, threshold=0.6):
     """
     Test the trained model's ability to detect anomalies with RECALL FOCUS.
@@ -1044,7 +868,6 @@ def test_anomaly_detection(model, clean_texts, rules, column_name, threshold=0.6
     else:
         print("No anomalies could be generated for testing.")
         return 0.0
-
 
 def save_aggregated_hp_results():
     """
@@ -1140,7 +963,6 @@ def save_aggregated_hp_results():
     
     print(f"\n📁 Full summary saved to: {summary_file}")
     return summary
-
 
 def setup_results_directory_structure():
     """
