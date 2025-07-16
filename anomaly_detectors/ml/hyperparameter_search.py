@@ -41,126 +41,32 @@ def get_optimal_parameters(column_name, fallback_model_name, fallback_epochs):
     """
     Get RECALL-OPTIMIZED parameters for each column based on ACTUAL hyperparameter search results.
     Updated with real performance data from 5-trial hyperparameter search.
+    Now loads optimal_params from an external JSON file.
     """
-    # ACTUAL BEST PARAMETERS from hyperparameter search results
-    optimal_params = {
-        # EXCELLENT PERFORMANCE (1.0 recall) - Proven successful configurations
-        'article_structure_name_2': {
-            'model_name': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1',
-            'triplet_margin': 0.3,  # ACTUAL best found
-            'distance_metric': losses.TripletDistanceMetric.COSINE,
-            'batch_size': 64,  # ACTUAL best found
-            'epochs': 4,  # ACTUAL best found
-            'learning_rate': 5e-06  # ACTUAL best found
-        },
-        'colour_code': {
-            'model_name': 'sentence-transformers/all-mpnet-base-v2',
-            'triplet_margin': 2.0,  # ACTUAL best found
-            'distance_metric': losses.TripletDistanceMetric.COSINE,
-            'batch_size': 16,  # ACTUAL best found
-            'epochs': 2,  # ACTUAL best found
-            'learning_rate': 1e-06  # ACTUAL best found
-        },
-        'colour_name': {
-            'model_name': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1',
-            'triplet_margin': 0.3,  # ACTUAL best found (score: 1.0)
-            'distance_metric': losses.TripletDistanceMetric.COSINE,
-            'batch_size': 64,  # ACTUAL best found
-            'epochs': 4,  # ACTUAL best found
-            'learning_rate': 5e-06  # ACTUAL best found
-        },
-        
-        # GOOD PERFORMANCE (0.8+ recall) - Use actual best found
-        'material': {
-            'model_name': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1',
-            'triplet_margin': 1.0,  # ACTUAL best found (score: 0.882)
-            'distance_metric': losses.TripletDistanceMetric.COSINE,
-            'batch_size': 48,  # ACTUAL best found
-            'epochs': 3,  # ACTUAL best found
-            'learning_rate': 5e-06  # ACTUAL best found
-        },
-        
-        # MODERATE PERFORMANCE (0.4-0.5 recall) - Use actual best found
-        'EAN': {
-            'model_name': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1',
-            'triplet_margin': 0.3,  # ACTUAL best found (score: 0.5)
-            'distance_metric': losses.TripletDistanceMetric.COSINE,
-            'batch_size': 16,  # ACTUAL best found
-            'epochs': 3,  # ACTUAL best found
-            'learning_rate': 1e-06  # ACTUAL best found
-        },
-        'long_description_NL': {
-            'model_name': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1',
-            'triplet_margin': 1.0,  # ACTUAL best found (score: 0.5)
-            'distance_metric': losses.TripletDistanceMetric.COSINE,
-            'batch_size': 48,  # ACTUAL best found
-            'epochs': 3,  # ACTUAL best found
-            'learning_rate': 5e-06  # ACTUAL best found
-        },
-        'customs_tariff_number': {
-            'model_name': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1',
-            'triplet_margin': 1.2,  # ACTUAL best found (score: 0.5)
-            'distance_metric': losses.TripletDistanceMetric.COSINE,
-            'batch_size': 48,  # ACTUAL best found
-            'epochs': 2,  # ACTUAL best found
-            'learning_rate': 1e-05  # ACTUAL best found
-        },
-        'size_name': {
-            'model_name': 'sentence-transformers/paraphrase-MiniLM-L6-v2',
-            'triplet_margin': 0.3,  # ACTUAL best found (score: 0.4)
-            'distance_metric': losses.TripletDistanceMetric.MANHATTAN,  # ACTUAL best found
-            'batch_size': 48,  # ACTUAL best found
-            'epochs': 8,  # ACTUAL best found
-            'learning_rate': 2e-05  # ACTUAL best found
-        },
-        
-        # POOR PERFORMANCE (0.0 recall) - Use actual best found, but may need further work
-        'article_number': {
-            'model_name': 'sentence-transformers/all-mpnet-base-v2',
-            'triplet_margin': 1.0,  # ACTUAL best found (score: 0.0)
-            'distance_metric': losses.TripletDistanceMetric.EUCLIDEAN,  # Using lambda function reference
-            'batch_size': 16,  # ACTUAL best found
-            'epochs': 5,  # ACTUAL best found
-            'learning_rate': 5e-06  # ACTUAL best found
-        },
-        'description_short_1': {
-            'model_name': 'sentence-transformers/distilbert-base-nli-stsb-mean-tokens',
-            'triplet_margin': 2.0,  # ACTUAL best found (score: 0.0)
-            'distance_metric': losses.TripletDistanceMetric.MANHATTAN,  # Using lambda function reference
-            'batch_size': 24,  # ACTUAL best found
-            'epochs': 5,  # ACTUAL best found
-            'learning_rate': 1e-05  # ACTUAL best found
-        },
-        'product_name_EN': {
-            'model_name': 'sentence-transformers/distilbert-base-nli-stsb-mean-tokens',
-            'triplet_margin': 0.8,  # ACTUAL best found (score: 0.0)
-            'distance_metric': losses.TripletDistanceMetric.COSINE,
-            'batch_size': 32,  # ACTUAL best found
-            'epochs': 6,  # ACTUAL best found
-            'learning_rate': 1e-06  # ACTUAL best found
-        },
-        
-        # DEFAULT CONFIGURATIONS (not tested yet)
-        'season': {
-            'model_name': 'sentence-transformers/all-MiniLM-L6-v2',
-            'triplet_margin': 0.8,
-            'distance_metric': losses.TripletDistanceMetric.COSINE,
-            'batch_size': 24,
-            'epochs': 4,
-            'learning_rate': 1e-5
-        },
-        'Care Instructions': {
-            'model_name': 'sentence-transformers/all-MiniLM-L6-v2',
-            'triplet_margin': 0.8,
-            'distance_metric': losses.TripletDistanceMetric.COSINE,
-            'batch_size': 24,
-            'epochs': 4,
-            'learning_rate': 1e-5
-        }
-    }
-    
+    # Path to the optimal_params JSON file (relative to this script)
+    params_path = os.path.join(os.path.dirname(__file__), "optimal_params.json")
+    try:
+        with open(params_path, "r") as f:
+            optimal_params = json.load(f)
+    except Exception as e:
+        print(f"Warning: Could not load optimal_params.json: {e}")
+        optimal_params = {}
+
+    # Convert string distance_metric to actual TripletDistanceMetric
+    def parse_distance_metric(metric_str):
+        if metric_str == "COSINE":
+            return losses.TripletDistanceMetric.COSINE
+        elif metric_str == "EUCLIDEAN":
+            return losses.TripletDistanceMetric.EUCLIDEAN
+        elif metric_str == "MANHATTAN":
+            return losses.TripletDistanceMetric.MANHATTAN
+        else:
+            return losses.TripletDistanceMetric.COSINE  # Default fallback
+
     if column_name in optimal_params:
-        return optimal_params[column_name]
+        params = optimal_params[column_name]
+        params["distance_metric"] = parse_distance_metric(params["distance_metric"])
+        return params
     else:
         # Fallback to recall-optimized parameters
         return {
