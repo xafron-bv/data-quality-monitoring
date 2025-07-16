@@ -6,18 +6,20 @@ RECALL-FOCUSED Anomaly Detection using Sentence Transformers and Triplet Loss
 EXCELLENT PERFORMANCE (1.0 recall):
 - article_structure_name_2: 1.0 recall → multi-qa-MiniLM-L6-cos-v1 (margin: 0.3, epochs: 4) ✅
 - colour_code: 1.0 recall → all-mpnet-base-v2 (margin: 2.0, epochs: 2) ✅
+- colour_name: 1.0 recall → multi-qa-MiniLM-L6-cos-v1 (margin: 0.3, epochs: 4) ✅
+
+GOOD PERFORMANCE (0.8+ recall):
+- material: 0.882 recall → multi-qa-MiniLM-L6-cos-v1 (margin: 1.0, epochs: 3) 🔥
 
 MODERATE PERFORMANCE (0.4-0.5 recall):
 - EAN: 0.5 recall → multi-qa-MiniLM-L6-cos-v1 (margin: 0.3, epochs: 3) ⚡
 - long_description_NL: 0.5 recall → multi-qa-MiniLM-L6-cos-v1 (margin: 1.0, epochs: 3) ⚡
+- customs_tariff_number: 0.5 recall → multi-qa-MiniLM-L6-cos-v1 (margin: 1.2, epochs: 2) ⚡
 - size_name: 0.4 recall → paraphrase-MiniLM-L6-v2 (margin: 0.3, epochs: 8) ⚡
 
-POOR PERFORMANCE (0.0-0.125 recall):
-- colour_name: 0.125 recall → all-MiniLM-L6-v2 (margin: 1.5, epochs: 8) ⚠️
-- article_number: 0.0 recall → all-mpnet-base-v2 (margin: 1.0, epochs: 6) ❌
-- customs_tariff_number: 0.0 recall → all-MiniLM-L12-v2 (margin: 1.5, epochs: 8) ❌
+POOR PERFORMANCE (0.0 recall):
+- article_number: 0.0 recall → all-mpnet-base-v2 (margin: 1.0, epochs: 5) ❌
 - description_short_1: 0.0 recall → distilbert-base-nli-stsb-mean-tokens (margin: 2.0, epochs: 5) ❌
-- material: 0.0 recall → all-MiniLM-L12-v2 (margin: 1.2, epochs: 5) ❌
 - product_name_EN: 0.0 recall → distilbert-base-nli-stsb-mean-tokens (margin: 0.8, epochs: 6) ❌
 
 📁 ORGANIZED OUTPUT STRUCTURE:
@@ -33,16 +35,24 @@ POOR PERFORMANCE (0.0-0.125 recall):
 
 Key Insights from ACTUAL Hyperparameter Search:
 1. DIFFERENT MODELS WORK BETTER FOR DIFFERENT COLUMNS:
-   - multi-qa-MiniLM-L6-cos-v1: Excellent for structured data (article_structure_name_2, EAN, long_description_NL)
-   - all-mpnet-base-v2: Works well for color codes and article numbers
+   - multi-qa-MiniLM-L6-cos-v1: BEST overall - excellent for structured data (article_structure_name_2, colour_name, material, EAN, long_description_NL, customs_tariff_number)
+   - all-mpnet-base-v2: Good for color codes and article numbers
    - paraphrase-MiniLM-L6-v2: Best for size names
-   - Various margins work: 0.3 for small features, 2.0 for color codes
+   - distilbert-base-nli-stsb-mean-tokens: Works for product names and descriptions but with poor recall
 
-2. RECALL-FOCUSED CONFIGURATION IS NOT ONE-SIZE-FITS-ALL:
-   - Each column needs specific model and parameter combinations
-   - Generic "all-mpnet-base-v2 for everything" approach was wrong
+2. RECALL-FOCUSED CONFIGURATION INSIGHTS:
+   - Small margins (0.3-1.0) work best for most columns
+   - COSINE distance metric is most effective for text similarity
+   - Lower epochs (2-4) often sufficient for good performance
+   - Batch sizes 16-64 work well depending on column complexity
 
-3. FLIPPED TRIPLET LOGIC:
+3. PERFORMANCE PATTERNS:
+   - Structured data (article_structure_name_2, colour_name): Perfect recall (1.0)
+   - Material data: Very good recall (0.882)
+   - Identifier data (EAN, customs_tariff_number): Moderate recall (0.5)
+   - Descriptive text (product_name_EN, description_short_1): Poor recall (0.0)
+
+4. FLIPPED TRIPLET LOGIC:
    - Anchor: Clean text (e.g., "red")
    - Positive: Other clean text from same semantic group (e.g., "blue")
    - Negative: Corrupted text (e.g., "re d") - should be far from anchor
@@ -504,11 +514,29 @@ def get_optimal_parameters(column_name, fallback_model_name, fallback_epochs):
             'epochs': 2,  # ACTUAL best found
             'learning_rate': 1e-06  # ACTUAL best found
         },
+        'colour_name': {
+            'model_name': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1',
+            'triplet_margin': 0.3,  # ACTUAL best found (score: 1.0)
+            'distance_metric': losses.TripletDistanceMetric.COSINE,
+            'batch_size': 64,  # ACTUAL best found
+            'epochs': 4,  # ACTUAL best found
+            'learning_rate': 5e-06  # ACTUAL best found
+        },
+        
+        # GOOD PERFORMANCE (0.8+ recall) - Use actual best found
+        'material': {
+            'model_name': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1',
+            'triplet_margin': 1.0,  # ACTUAL best found (score: 0.882)
+            'distance_metric': losses.TripletDistanceMetric.COSINE,
+            'batch_size': 48,  # ACTUAL best found
+            'epochs': 3,  # ACTUAL best found
+            'learning_rate': 5e-06  # ACTUAL best found
+        },
         
         # MODERATE PERFORMANCE (0.4-0.5 recall) - Use actual best found
         'EAN': {
             'model_name': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1',
-            'triplet_margin': 0.3,  # ACTUAL best found
+            'triplet_margin': 0.3,  # ACTUAL best found (score: 0.5)
             'distance_metric': losses.TripletDistanceMetric.COSINE,
             'batch_size': 16,  # ACTUAL best found
             'epochs': 3,  # ACTUAL best found
@@ -516,66 +544,50 @@ def get_optimal_parameters(column_name, fallback_model_name, fallback_epochs):
         },
         'long_description_NL': {
             'model_name': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1',
-            'triplet_margin': 1.0,  # ACTUAL best found
+            'triplet_margin': 1.0,  # ACTUAL best found (score: 0.5)
             'distance_metric': losses.TripletDistanceMetric.COSINE,
             'batch_size': 48,  # ACTUAL best found
             'epochs': 3,  # ACTUAL best found
             'learning_rate': 5e-06  # ACTUAL best found
         },
+        'customs_tariff_number': {
+            'model_name': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1',
+            'triplet_margin': 1.2,  # ACTUAL best found (score: 0.5)
+            'distance_metric': losses.TripletDistanceMetric.COSINE,
+            'batch_size': 48,  # ACTUAL best found
+            'epochs': 2,  # ACTUAL best found
+            'learning_rate': 1e-05  # ACTUAL best found
+        },
         'size_name': {
             'model_name': 'sentence-transformers/paraphrase-MiniLM-L6-v2',
-            'triplet_margin': 0.3,  # ACTUAL best found
+            'triplet_margin': 0.3,  # ACTUAL best found (score: 0.4)
             'distance_metric': losses.TripletDistanceMetric.MANHATTAN,  # ACTUAL best found
             'batch_size': 48,  # ACTUAL best found
             'epochs': 8,  # ACTUAL best found
             'learning_rate': 2e-05  # ACTUAL best found
         },
         
-        # POOR PERFORMANCE (0.0-0.125 recall) - Use actual best found, but may need further work
-        'colour_name': {
-            'model_name': 'sentence-transformers/all-MiniLM-L6-v2',
-            'triplet_margin': 1.5,  # ACTUAL best found
-            'distance_metric': losses.TripletDistanceMetric.EUCLIDEAN,  # ACTUAL best found
-            'batch_size': 16,  # ACTUAL best found
-            'epochs': 8,  # ACTUAL best found
-            'learning_rate': 5e-06  # ACTUAL best found
-        },
+        # POOR PERFORMANCE (0.0 recall) - Use actual best found, but may need further work
         'article_number': {
             'model_name': 'sentence-transformers/all-mpnet-base-v2',
-            'triplet_margin': 1.0,  # ACTUAL best found
-            'distance_metric': losses.TripletDistanceMetric.EUCLIDEAN,  # ACTUAL best found
-            'batch_size': 8,  # ACTUAL best found
-            'epochs': 6,  # ACTUAL best found
-            'learning_rate': 5e-06  # ACTUAL best found
-        },
-        'customs_tariff_number': {
-            'model_name': 'sentence-transformers/all-MiniLM-L12-v2',
-            'triplet_margin': 1.5,  # ACTUAL best found
-            'distance_metric': losses.TripletDistanceMetric.EUCLIDEAN,  # ACTUAL best found
+            'triplet_margin': 1.0,  # ACTUAL best found (score: 0.0)
+            'distance_metric': losses.TripletDistanceMetric.EUCLIDEAN,  # Using lambda function reference
             'batch_size': 16,  # ACTUAL best found
-            'epochs': 8,  # ACTUAL best found
-            'learning_rate': 5e-05  # ACTUAL best found
+            'epochs': 5,  # ACTUAL best found
+            'learning_rate': 5e-06  # ACTUAL best found
         },
         'description_short_1': {
             'model_name': 'sentence-transformers/distilbert-base-nli-stsb-mean-tokens',
-            'triplet_margin': 2.0,  # ACTUAL best found
-            'distance_metric': losses.TripletDistanceMetric.MANHATTAN,  # ACTUAL best found
+            'triplet_margin': 2.0,  # ACTUAL best found (score: 0.0)
+            'distance_metric': losses.TripletDistanceMetric.MANHATTAN,  # Using lambda function reference
             'batch_size': 24,  # ACTUAL best found
             'epochs': 5,  # ACTUAL best found
             'learning_rate': 1e-05  # ACTUAL best found
         },
-        'material': {
-            'model_name': 'sentence-transformers/all-MiniLM-L12-v2',
-            'triplet_margin': 1.2,  # ACTUAL best found
-            'distance_metric': losses.TripletDistanceMetric.EUCLIDEAN,  # ACTUAL best found
-            'batch_size': 24,  # ACTUAL best found
-            'epochs': 5,  # ACTUAL best found
-            'learning_rate': 5e-05  # ACTUAL best found
-        },
         'product_name_EN': {
             'model_name': 'sentence-transformers/distilbert-base-nli-stsb-mean-tokens',
-            'triplet_margin': 0.8,  # ACTUAL best found
-            'distance_metric': losses.TripletDistanceMetric.COSINE,  # ACTUAL best found
+            'triplet_margin': 0.8,  # ACTUAL best found (score: 0.0)
+            'distance_metric': losses.TripletDistanceMetric.COSINE,
             'batch_size': 32,  # ACTUAL best found
             'epochs': 6,  # ACTUAL best found
             'learning_rate': 1e-06  # ACTUAL best found
@@ -982,36 +994,38 @@ if __name__ == "__main__":
         print(f"Error loading CSV: {e}"); exit()
         
     rule_to_column_map = {
-        "category": "article_structure_name_2",
+        # "category": "article_structure_name_2",
         "color_name": "colour_name",
-        "ean": "EAN",
+        # "ean": "EAN",
         "article_number": "article_number",
-        "colour_code": "colour_code",
+        # "colour_code": "colour_code",
         "customs_tariff_number": "customs_tariff_number",
         "description_short_1": "description_short_1",
-        "long_description_nl": "long_description_NL",
+        # "long_description_nl": "long_description_NL",
         "material": "material",
         "product_name_en": "product_name_EN",
-        "size": "size_name",  # Fixed: use 'size' rule file for 'size_name' column
+        # "size": "size_name",  # Fixed: use 'size' rule file for 'size_name' column
         # Excluded: season (only 1 unique value), care_instructions (only 2 unique values)
     }
 
     column_configs = {
-        # EXCELLENT PERFORMANCE (1.0 recall) - Keep proven successful configurations
+        # EXCELLENT PERFORMANCE (1.0 recall) - Use ACTUAL best found parameters
         'article_structure_name_2': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 4},  # 1.0 recall
         'colour_code': {'model': 'sentence-transformers/all-mpnet-base-v2', 'epochs': 2},  # 1.0 recall
+        'colour_name': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 4},  # 1.0 recall
         
-        # MODERATE PERFORMANCE (0.4-0.5 recall) - Use actual best found parameters
+        # GOOD PERFORMANCE (0.8+ recall) - Use ACTUAL best found parameters
+        'material': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 3},  # 0.882 recall
+        
+        # MODERATE PERFORMANCE (0.4-0.5 recall) - Use ACTUAL best found parameters
         'EAN': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 3},  # 0.5 recall
         'long_description_NL': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 3},  # 0.5 recall
+        'customs_tariff_number': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 2},  # 0.5 recall
         'size_name': {'model': 'sentence-transformers/paraphrase-MiniLM-L6-v2', 'epochs': 8},  # 0.4 recall
         
-        # POOR PERFORMANCE (0.0-0.125 recall) - Use actual best found, but may need further optimization
-        'colour_name': {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 8},  # 0.125 recall
-        'article_number': {'model': 'sentence-transformers/all-mpnet-base-v2', 'epochs': 6},  # 0.0 recall
-        'customs_tariff_number': {'model': 'sentence-transformers/all-MiniLM-L12-v2', 'epochs': 8},  # 0.0 recall
+        # POOR PERFORMANCE (0.0 recall) - Use ACTUAL best found, but may need further optimization
+        'article_number': {'model': 'sentence-transformers/all-mpnet-base-v2', 'epochs': 5},  # 0.0 recall
         'description_short_1': {'model': 'sentence-transformers/distilbert-base-nli-stsb-mean-tokens', 'epochs': 5},  # 0.0 recall
-        'material': {'model': 'sentence-transformers/all-MiniLM-L12-v2', 'epochs': 5},  # 0.0 recall
         'product_name_EN': {'model': 'sentence-transformers/distilbert-base-nli-stsb-mean-tokens', 'epochs': 6},  # 0.0 recall
         
         # DEFAULT CONFIGURATIONS (not tested yet)
