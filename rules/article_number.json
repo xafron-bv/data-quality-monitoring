@@ -5,29 +5,11 @@
   "error_rules": [
     {
       "operation": "string_replace",
-      "description": "Replace F22 prefix with wrong pattern",
+      "description": "Replace dots with hyphens",
       "probability": 0.2,
-      "params": {
-        "find": "F22.",
-        "replace": "F21."
-      }
-    },
-    {
-      "operation": "string_replace",
-      "description": "Replace F22 prefix with wrong pattern",
-      "probability": 0.2,
-      "params": {
-        "find": "F22.",
-        "replace": "F23."
-      }
-    },
-    {
-      "operation": "string_replace",
-      "description": "Remove dot separator",
-      "probability": 0.15,
       "params": {
         "find": ".",
-        "replace": ""
+        "replace": "-"
       }
     },
     {
@@ -40,26 +22,41 @@
       }
     },
     {
-      "operation": "string_replace",
+      "operation": "character_substitution",
       "description": "Replace zero with O",
       "probability": 0.1,
       "params": {
-        "find": "0",
-        "replace": "O"
-      }
-    },
-    {
-      "operation": "append",
-      "description": "Add extra characters at end",
-      "probability": 0.05,
-      "params": {
-        "text": "X"
+        "substitutions": {
+          "0": "O", "1": "I", "5": "S"
+        }
       }
     },
     {
       "operation": "random_noise",
-      "description": "Add random character noise",
-      "probability": 0.05
+      "description": "Add random characters",
+      "probability": 0.2,
+      "params": {
+        "type": "chars",
+        "chars": "@#$%^&*",
+        "length": 1
+      }
+    },
+    {
+      "operation": "string_replace",
+      "description": "Remove dots entirely",
+      "probability": 0.15,
+      "params": {
+        "find": ".",
+        "replace": ""
+      }
+    },
+    {
+      "operation": "case_change",
+      "description": "Change case of letters",
+      "probability": 0.1,
+      "params": {
+        "type": "lower"
+      }
     }
   ]
 }

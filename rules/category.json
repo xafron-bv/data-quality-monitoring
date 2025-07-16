@@ -3,37 +3,73 @@
     {
       "rule_name": "category_random_noise",
       "description": "Inject random noise characters into category names",
-      "operation": "random_noise"
+      "operation": "random_noise",
+      "params": {
+        "type": "chars",
+        "chars": "!@#$%^&*()[]{}|;:\",./<>?",
+        "length": 1
+      }
     },
     {
-      "rule_name": "empty_category_error",
-      "description": "Replace category with empty string",
-      "operation": "string_replace",
+      "rule_name": "add_html_tags",
+      "description": "Wrap category in HTML tags",
+      "operation": "regex_replace",
       "params": {
-        "find": "Jackets",
-        "replace": ""
-      },
-      "conditions": [{ "type": "contains", "value": "Jackets" }]
+        "pattern": "^(.+)$",
+        "replace": "<b>\\1</b>"
+      }
     },
     {
-      "rule_name": "inject_html_tag",
-      "description": "Insert HTML tags into category name",
-      "operation": "string_replace",
+      "rule_name": "add_special_characters",
+      "description": "Add special characters to end of category",
+      "operation": "append",
       "params": {
-        "find": "Jackets",
-        "replace": "<b>Jackets</b>"
-      },
-      "conditions": [{ "type": "contains", "value": "Jackets" }]
+        "text": "*"
+      }
     },
     {
-      "rule_name": "inject_special_characters",
-      "description": "Add special characters to category name",
+      "rule_name": "replace_with_pipe",
+      "description": "Replace spaces with pipe characters",
       "operation": "string_replace",
       "params": {
-        "find": "Jackets",
-        "replace": "Jackets*"
-      },
-      "conditions": [{ "type": "contains", "value": "Jackets" }]
+        "find": " ",
+        "replace": "|"
+      }
+    },
+    {
+      "rule_name": "add_hashtag",
+      "description": "Prepend hashtag to category",
+      "operation": "prepend",
+      "params": {
+        "text": "#"
+      }
+    },
+    {
+      "rule_name": "replace_with_brackets",
+      "description": "Replace last character with bracket",
+      "operation": "regex_replace",
+      "params": {
+        "pattern": "(.+).$",
+        "replace": "\\1]"
+      }
+    },
+    {
+      "rule_name": "add_comma_separator",
+      "description": "Replace 's' with comma",
+      "operation": "string_replace",
+      "params": {
+        "find": "s",
+        "replace": ","
+      }
+    },
+    {
+      "rule_name": "add_slash_separator",
+      "description": "Replace 't' with slash",
+      "operation": "string_replace",
+      "params": {
+        "find": "t",
+        "replace": "/"
+      }
     }
   ]
 }

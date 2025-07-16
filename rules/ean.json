@@ -4,61 +4,91 @@
   "data_type": "numeric_string",
   "error_rules": [
     {
-      "operation": "digit_replacement",
-      "description": "Replace random digit with wrong digit",
-      "probability": 0.3,
-      "params": {
-        "digit_pattern": "[0-9]",
-        "replacement_digits": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
-      }
-    },
-    {
       "operation": "digit_removal",
-      "description": "Remove random digit to make EAN invalid length",
-      "probability": 0.2,
+      "description": "Remove random digit to make EAN invalid length (12 digits instead of 13)",
+      "probability": 0.25,
       "params": {
         "position": "random"
       }
     },
     {
       "operation": "digit_duplication",
-      "description": "Duplicate a digit to make EAN invalid length",
-      "probability": 0.2,
+      "description": "Duplicate a digit to make EAN invalid length (14 digits instead of 13)",
+      "probability": 0.25,
       "params": {
         "position": "random"
       }
     },
     {
       "operation": "string_replace",
-      "description": "Replace digits with similar looking characters",
-      "probability": 0.1,
+      "description": "Replace valid Netherlands prefix (871) with invalid prefix",
+      "probability": 0.15,
       "params": {
-        "find": "0",
-        "replace": "O"
+        "find": "871",
+        "replace": "999"
       }
     },
     {
       "operation": "string_replace",
-      "description": "Replace digits with similar looking characters",
-      "probability": 0.1,
+      "description": "Replace valid Netherlands prefix (871) with invalid prefix",
+      "probability": 0.15,
       "params": {
-        "find": "1",
-        "replace": "l"
+        "find": "871",
+        "replace": "000"
       }
     },
     {
-      "operation": "string_replace",
-      "description": "Replace digits with similar looking characters",
+      "operation": "character_substitution",
+      "description": "Replace digits with letters to make EAN non-numeric",
+      "probability": 0.2,
+      "params": {
+        "substitutions": {
+          "0": "O", "1": "I", "5": "S", "6": "G", "8": "B", "9": "g"
+        }
+      }
+    },
+    {
+      "operation": "append",
+      "description": "Add non-numeric characters to make EAN invalid",
       "probability": 0.1,
       "params": {
-        "find": "5",
-        "replace": "S"
+        "text": "X"
+      }
+    },
+    {
+      "operation": "prepend",
+      "description": "Add non-numeric characters to make EAN invalid",
+      "probability": 0.1,
+      "params": {
+        "text": "EAN"
       }
     },
     {
       "operation": "random_noise",
-      "description": "Add random character noise",
-      "probability": 0.05
+      "description": "Add random non-numeric characters within EAN",
+      "probability": 0.15,
+      "params": {
+        "type": "chars",
+        "chars": "ABCDEFGHIJKLMNOPQRSTUVWXYZ-./",
+        "length": 1
+      }
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace all digits with zeros (invalid check digit)",
+      "probability": 0.05,
+      "params": {
+        "find": "8719537",
+        "replace": "0000000"
+      }
+    },
+    {
+      "operation": "truncate",
+      "description": "Truncate EAN to invalid length",
+      "probability": 0.1,
+      "params": {
+        "length": 8
+      }
     }
   ]
 }
