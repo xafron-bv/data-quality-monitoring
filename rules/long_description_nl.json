@@ -1,0 +1,80 @@
+{
+  "column_name": "long_description_NL",
+  "description": "Long product descriptions in Dutch",
+  "data_type": "text_description",
+  "error_rules": [
+    {
+      "operation": "string_replace",
+      "description": "Replace common Dutch words with misspellings",
+      "probability": 0.2,
+      "params": {
+        "find": "heeft",
+        "replace": "heft"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace common Dutch words with misspellings",
+      "probability": 0.2,
+      "params": {
+        "find": "kwaliteit",
+        "replace": "kwalitiet"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace common Dutch words with misspellings",
+      "probability": 0.2,
+      "params": {
+        "find": "mouwen",
+        "replace": "mouwn"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace common Dutch words with misspellings",
+      "probability": 0.2,
+      "params": {
+        "find": "lengte",
+        "replace": "lengte"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace common Dutch words with misspellings",
+      "probability": 0.2,
+      "params": {
+        "find": "artikel",
+        "replace": "artikle"
+      }
+    },
+    {
+      "operation": "add_whitespace",
+      "description": "Add extra whitespace",
+      "probability": 0.15
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace periods with commas",
+      "probability": 0.1,
+      "params": {
+        "find": ".",
+        "replace": ","
+      }
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace measurements format",
+      "probability": 0.1,
+      "params": {
+        "find": "CM",
+        "replace": "cm"
+      }
+    },
+    {
+      "operation": "random_noise",
+      "description": "Add random character noise",
+      "probability": 0.05
+    }
+  ]
+}

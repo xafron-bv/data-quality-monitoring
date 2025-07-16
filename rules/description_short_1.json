@@ -1,0 +1,89 @@
+{
+  "column_name": "description_short_1",
+  "description": "Short product descriptions",
+  "data_type": "text_description",
+  "error_rules": [
+    {
+      "operation": "string_replace",
+      "description": "Replace common words with misspellings",
+      "probability": 0.2,
+      "params": {
+        "find": "Sweater",
+        "replace": "Sweter"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace common words with misspellings",
+      "probability": 0.2,
+      "params": {
+        "find": "Blouse",
+        "replace": "Blous"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace common words with misspellings",
+      "probability": 0.2,
+      "params": {
+        "find": "Cardigan",
+        "replace": "Cardigen"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace common words with misspellings",
+      "probability": 0.2,
+      "params": {
+        "find": "Jacket",
+        "replace": "Jaket"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace common words with misspellings",
+      "probability": 0.2,
+      "params": {
+        "find": "Trousers",
+        "replace": "Trouser"
+      }
+    },
+    {
+      "operation": "add_whitespace",
+      "description": "Add extra whitespace",
+      "probability": 0.15
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace hyphen with space",
+      "probability": 0.1,
+      "params": {
+        "find": "-",
+        "replace": " "
+      }
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace quote marks",
+      "probability": 0.1,
+      "params": {
+        "find": "\"",
+        "replace": "'"
+      }
+    },
+    {
+      "operation": "random_noise",
+      "description": "Add random character noise",
+      "probability": 0.05
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace V-neck with V neck",
+      "probability": 0.1,
+      "params": {
+        "find": "V-neck",
+        "replace": "V neck"
+      }
+    }
+  ]
+}

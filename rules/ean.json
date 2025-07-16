@@ -1,0 +1,69 @@
+{
+  "column_name": "EAN",
+  "description": "European Article Number - 13-digit barcode identifier",
+  "data_type": "numeric_string",
+  "error_rules": [
+    {
+      "operation": "digit_replacement",
+      "description": "Replace random digit with wrong digit",
+      "probability": 0.3,
+      "params": {
+        "digit_pattern": "[0-9]",
+        "replacement_digits": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+      }
+    },
+    {
+      "operation": "digit_removal",
+      "description": "Remove random digit to make EAN invalid length",
+      "probability": 0.2,
+      "params": {
+        "position": "random"
+      }
+    },
+    {
+      "operation": "digit_duplication",
+      "description": "Duplicate a digit to make EAN invalid length",
+      "probability": 0.2,
+      "params": {
+        "position": "random"
+      }
+    },
+    {
+      "operation": "add_whitespace",
+      "description": "Add whitespace in EAN number",
+      "probability": 0.15
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace digits with similar looking characters",
+      "probability": 0.1,
+      "params": {
+        "find": "0",
+        "replace": "O"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace digits with similar looking characters",
+      "probability": 0.1,
+      "params": {
+        "find": "1",
+        "replace": "l"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace digits with similar looking characters",
+      "probability": 0.1,
+      "params": {
+        "find": "5",
+        "replace": "S"
+      }
+    },
+    {
+      "operation": "random_noise",
+      "description": "Add random character noise",
+      "probability": 0.05
+    }
+  ]
+}
