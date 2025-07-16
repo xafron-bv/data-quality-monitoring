@@ -1,0 +1,106 @@
+{
+  "article_structure_name_2": {
+    "model_name": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
+    "triplet_margin": 0.3,
+    "distance_metric": "COSINE",
+    "batch_size": 64,
+    "epochs": 4,
+    "learning_rate": 5e-6
+  },
+  "colour_code": {
+    "model_name": "sentence-transformers/all-mpnet-base-v2",
+    "triplet_margin": 2.0,
+    "distance_metric": "COSINE",
+    "batch_size": 16,
+    "epochs": 2,
+    "learning_rate": 1e-6
+  },
+  "colour_name": {
+    "model_name": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
+    "triplet_margin": 0.3,
+    "distance_metric": "COSINE",
+    "batch_size": 64,
+    "epochs": 4,
+    "learning_rate": 5e-6
+  },
+  "material": {
+    "model_name": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
+    "triplet_margin": 1.0,
+    "distance_metric": "COSINE",
+    "batch_size": 48,
+    "epochs": 3,
+    "learning_rate": 5e-6
+  },
+  "EAN": {
+    "model_name": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
+    "triplet_margin": 0.3,
+    "distance_metric": "COSINE",
+    "batch_size": 16,
+    "epochs": 3,
+    "learning_rate": 1e-6
+  },
+  "long_description_NL": {
+    "model_name": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
+    "triplet_margin": 1.0,
+    "distance_metric": "COSINE",
+    "batch_size": 48,
+    "epochs": 3,
+    "learning_rate": 5e-6
+  },
+  "customs_tariff_number": {
+    "model_name": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
+    "triplet_margin": 1.2,
+    "distance_metric": "COSINE",
+    "batch_size": 48,
+    "epochs": 2,
+    "learning_rate": 1e-5
+  },
+  "size_name": {
+    "model_name": "sentence-transformers/paraphrase-MiniLM-L6-v2",
+    "triplet_margin": 0.3,
+    "distance_metric": "MANHATTAN",
+    "batch_size": 48,
+    "epochs": 8,
+    "learning_rate": 2e-5
+  },
+  "article_number": {
+    "model_name": "sentence-transformers/all-mpnet-base-v2",
+    "triplet_margin": 1.0,
+    "distance_metric": "EUCLIDEAN",
+    "batch_size": 16,
+    "epochs": 5,
+    "learning_rate": 5e-6
+  },
+  "description_short_1": {
+    "model_name": "sentence-transformers/distilbert-base-nli-stsb-mean-tokens",
+    "triplet_margin": 2.0,
+    "distance_metric": "MANHATTAN",
+    "batch_size": 24,
+    "epochs": 5,
+    "learning_rate": 1e-5
+  },
+  "product_name_EN": {
+    "model_name": "sentence-transformers/distilbert-base-nli-stsb-mean-tokens",
+    "triplet_margin": 0.8,
+    "distance_metric": "COSINE",
+    "batch_size": 32,
+    "epochs": 6,
+    "learning_rate": 1e-6
+  },
+  "season": {
+    "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+    "triplet_margin": 0.8,
+    "distance_metric": "COSINE",
+    "batch_size": 24,
+    "epochs": 4,
+    "learning_rate": 1e-5
+  },
+  "Care Instructions": {
+    "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+    "triplet_margin": 0.8,
+    "distance_metric": "COSINE",
+    "batch_size": 24,
+    "epochs": 4,
+    "learning_rate": 1e-5
+  }
+}
