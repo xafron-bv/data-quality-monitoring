@@ -1,3 +1,4 @@
+
 import pandas as pd
 import json
 import random
@@ -10,31 +11,6 @@ import sys
 # Add the parent directory to the path to import the error injection module
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from error_injection import apply_error_rule
-
-HYPERPARAMETER_SEARCH_SPACE = {
-    'model_name': [
-        'sentence-transformers/all-MiniLM-L6-v2',
-        'sentence-transformers/all-mpnet-base-v2',
-        'sentence-transformers/distilbert-base-nli-stsb-mean-tokens',
-        'sentence-transformers/all-MiniLM-L12-v2',
-        'sentence-transformers/paraphrase-MiniLM-L6-v2',
-        'sentence-transformers/multi-qa-MiniLM-L6-cos-v1'
-    ],
-    # SMALLER margins for recall optimization (less strict separation)
-    'triplet_margin': [0.3, 0.5, 0.8, 1.0, 1.2, 1.5, 2.0],
-    # Focus on cosine for text similarity
-    'distance_metric': [
-        losses.TripletDistanceMetric.COSINE,
-        losses.TripletDistanceMetric.EUCLIDEAN,
-        losses.TripletDistanceMetric.MANHATTAN
-    ],
-    # Smaller batch sizes for better recall learning
-    'batch_size': [8, 16, 24, 32, 48, 64],
-    # MORE epochs for recall optimization
-    'epochs': [2, 3, 4, 5, 6, 8],
-    # Lower learning rates for stable training
-    'learning_rate': [1e-6, 5e-6, 1e-5, 2e-5, 3e-5, 5e-5]
-}
 
 
 def get_optimal_parameters(column_name, fallback_model_name, fallback_epochs):
@@ -223,52 +199,75 @@ def random_hyperparameter_search(df, column, rules, device, num_trials=15):
     """
     print(f"\n🎯 Starting RECALL-FOCUSED hyperparameter search for '{column}' with {num_trials} trials...")
     print(f"💡 Constraint: Precision must be at least 30% to be considered valid")
-    
+
+    # Load hyperparameter search space from JSON file
+    hp_space_path = os.path.join(os.path.dirname(__file__), "hyperparameter_search_space.json")
+    try:
+        with open(hp_space_path, "r") as f:
+            hp_search_space = json.load(f)
+    except Exception as e:
+        print(f"Warning: Could not load hyperparameter_search_space.json: {e}")
+        return None, None, None, None, []
+
+    # Convert string distance_metric to actual TripletDistanceMetric for the search space
+    def parse_distance_metric(metric_str):
+        if metric_str == "COSINE":
+            return losses.TripletDistanceMetric.COSINE
+        elif metric_str == "EUCLIDEAN":
+            return losses.TripletDistanceMetric.EUCLIDEAN
+        elif metric_str == "MANHATTAN":
+            return losses.TripletDistanceMetric.MANHATTAN
+        else:
+            return losses.TripletDistanceMetric.COSINE
+
     best_recall = -1
     best_precision = -1
     best_f1 = -1
     best_params = None
     results = []
-    
+
     # Track performance trends
     model_scores = {}
     margin_scores = {}
     distance_scores = {}
-    
+
     for trial in range(num_trials):
         print(f"\n--- Trial {trial + 1}/{num_trials} ---")
-        
+
         # Sample random hyperparameters
         params = {}
-        for param_name, values in HYPERPARAMETER_SEARCH_SPACE.items():
-            params[param_name] = random.choice(values)
-        
+        for param_name, values in hp_search_space.items():
+            val = random.choice(values)
+            if param_name == "distance_metric":
+                val = parse_distance_metric(val)
+            params[param_name] = val
+
         print(f"Testing parameters: {params}")
-        
+
         try:
             # Train with current parameters and get RECALL, PRECISION, F1 scores
             recall_score, precision_score, f1_score = train_with_params(df, column, rules, params)
-            
+
             # Only consider results with minimum 30% precision
             if precision_score >= 0.3:
                 results.append((params.copy(), recall_score, precision_score, f1_score))
-                
+
                 # Track performance by parameter
                 model_name = params['model_name'].split('/')[-1]
                 if model_name not in model_scores:
                     model_scores[model_name] = []
                 model_scores[model_name].append((recall_score, precision_score, f1_score))
-                
+
                 margin = params['triplet_margin']
                 if margin not in margin_scores:
                     margin_scores[margin] = []
                 margin_scores[margin].append((recall_score, precision_score, f1_score))
-                
+
                 distance = str(params['distance_metric']).split('.')[-1]
                 if distance not in distance_scores:
                     distance_scores[distance] = []
                 distance_scores[distance].append((recall_score, precision_score, f1_score))
-                
+
                 # Update best based on recall (primary) with precision constraint
                 if recall_score > best_recall:
                     best_recall = recall_score
@@ -281,7 +280,7 @@ def random_hyperparameter_search(df, column, rules, device, num_trials=15):
             else:
                 print(f"   ❌ Rejected: Precision {precision_score:.4f} ({precision_score*100:.1f}%) < 30% threshold")
                 results.append((params.copy(), recall_score, precision_score, f1_score))
-                
+
         except Exception as e:
             print(f"❌ Trial {trial + 1} failed: {e}")
             results.append((params.copy(), -1, -1, -1))

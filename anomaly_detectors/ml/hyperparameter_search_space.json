@@ -1,0 +1,15 @@
+{
+  "model_name": [
+    "sentence-transformers/all-MiniLM-L6-v2",
+    "sentence-transformers/all-mpnet-base-v2",
+    "sentence-transformers/distilbert-base-nli-stsb-mean-tokens",
+    "sentence-transformers/all-MiniLM-L12-v2",
+    "sentence-transformers/paraphrase-MiniLM-L6-v2",
+    "sentence-transformers/multi-qa-MiniLM-L6-cos-v1"
+  ],
+  "triplet_margin": [0.3, 0.5, 0.8, 1.0, 1.2, 1.5, 2.0],
+  "distance_metric": ["COSINE", "EUCLIDEAN", "MANHATTAN"],
+  "batch_size": [8, 16, 24, 32, 48, 64],
+  "epochs": [2, 3, 4, 5, 6, 8],
+  "learning_rate": [1e-6, 5e-6, 1e-5, 2e-5, 3e-5, 5e-5]
+}
