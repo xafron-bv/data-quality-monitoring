@@ -27,6 +27,7 @@ import json
 import re
 import random
 import os
+import sys
 import torch
 from datasets import Dataset
 from sentence_transformers import SentenceTransformer, InputExample, losses
@@ -38,28 +39,11 @@ from sklearn.cluster import KMeans
 import itertools
 from typing import List, Dict, Tuple
 
-# --- Functions (Error Injection, Data Prep, Training) remain the same ---
+# Add the parent directory to the path to import the error injection module
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+from error_injection import apply_error_rule, load_error_rules
 
-def apply_error_rule(value, rule):
-    if 'conditions' in rule and rule['conditions']:
-        should_apply = False
-        for cond in rule['conditions']:
-            if cond['type'] == 'contains' and str(cond['value']) in str(value):
-                should_apply = True; break
-        if not should_apply: return value
-    op, params = rule['operation'], rule.get('params', {})
-    val_str = str(value)
-    if op == 'string_replace': return val_str.replace(str(params['find']), str(params['replace']))
-    if op == 'regex_replace': return re.sub(params['pattern'], params['replace'], val_str, count=params.get('count', 0))
-    if op == 'add_whitespace': return f" {val_str} "
-    if op == 'append': return val_str + params['text']
-    if op == 'prepend': return params['text'] + val_str
-    if op == 'replace_with': return params['text']
-    if op == 'random_noise':
-        if not val_str: return val_str
-        pos = random.randint(0, len(val_str)); char = random.choice('!@#$%^&*()[]{}|;:",./<>?')
-        return val_str[:pos] + char + val_str[pos:]
-    return value
+# --- Functions (Error Injection, Data Prep, Training) remain the same ---
 
 def create_semantic_groups(texts: List[str], column_name: str) -> Dict[str, List[str]]:
     """
@@ -590,8 +574,7 @@ def demonstrate_similarity(model, data_series, column_name):
     
     rules = []
     try:
-        with open(rule_path, 'r') as f:
-            rules = json.load(f).get('error_rules', [])
+        rules = load_error_rules(rule_path)
     except FileNotFoundError:
         print(f"Rule file '{rule_path}' not found. Creating simple corruption examples.")
         rules = [
@@ -706,6 +689,15 @@ if __name__ == "__main__":
     rule_to_column_map = {
         "category": "article_structure_name_2",
         "color_name": "colour_name",
+        "ean": "EAN",
+        "article_number": "article_number",
+        "colour_code": "colour_code",
+        "customs_tariff_number": "customs_tariff_number",
+        "description_short_1": "description_short_1",
+        "long_description_nl": "long_description_NL",
+        "material": "material",
+        "product_name_en": "product_name_EN",
+        "size_name": "size_name",
         # Excluded: season (only 1 unique value), care_instructions (only 2 unique values)
     }
 
@@ -715,7 +707,16 @@ if __name__ == "__main__":
         'colour_name':              {'model': 'sentence-transformers/all-mpnet-base-v2', 'epochs': 1},  # Optimal from search
         'season':                   {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
         'article_structure_name_2': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 2},  # Optimal from search
-        # You can add other column configs here if needed
+        # New columns with default configurations
+        'EAN':                      {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
+        'article_number':           {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
+        'colour_code':              {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
+        'customs_tariff_number':    {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
+        'description_short_1':      {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
+        'long_description_NL':      {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
+        'material':                 {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
+        'product_name_EN':          {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
+        'size_name':                {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
     }
 
     rules_dir = '../../rules'
@@ -741,8 +742,7 @@ if __name__ == "__main__":
         file_path = os.path.join(rules_dir, f'{rule_name}.json')
         rules = []
         try:
-            with open(file_path, 'r') as f:
-                rules = json.load(f).get('error_rules', [])
+            rules = load_error_rules(file_path)
         except FileNotFoundError:
             print(f"Error: Rule file '{file_path}' not found.")
             continue

@@ -1,0 +1,118 @@
+{
+  "column_name": "product_name_EN",
+  "description": "Product names in English",
+  "data_type": "text_name",
+  "error_rules": [
+    {
+      "operation": "string_replace",
+      "rule_name": "misspell_coat",
+      "description": "Common misspelling of coat",
+      "probability": 0.2,
+      "params": {
+        "find": "coat",
+        "replace": "cote"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "rule_name": "misspell_jacket",
+      "description": "Common misspelling of jacket",
+      "probability": 0.2,
+      "params": {
+        "find": "jacket",
+        "replace": "jaket"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "rule_name": "misspell_sweater",
+      "description": "Common misspelling of sweater",
+      "probability": 0.2,
+      "params": {
+        "find": "sweater",
+        "replace": "sweter"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "rule_name": "misspell_dress",
+      "description": "Common misspelling of dress",
+      "probability": 0.2,
+      "params": {
+        "find": "dress",
+        "replace": "dres"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "rule_name": "misspell_shirt",
+      "description": "Common misspelling of shirt",
+      "probability": 0.2,
+      "params": {
+        "find": "shirt",
+        "replace": "shrit"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "rule_name": "misspell_blouse",
+      "description": "Common misspelling of blouse",
+      "probability": 0.2,
+      "params": {
+        "find": "blouse",
+        "replace": "bluse"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "rule_name": "misspell_trouser",
+      "description": "Common misspelling of trouser",
+      "probability": 0.2,
+      "params": {
+        "find": "trouser",
+        "replace": "truser"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "rule_name": "misspell_cardigan",
+      "description": "Common misspelling of cardigan",
+      "probability": 0.2,
+      "params": {
+        "find": "cardigan",
+        "replace": "cardigon"
+      }
+    },
+    {
+      "operation": "case_change",
+      "rule_name": "wrong_case",
+      "description": "Change case incorrectly",
+      "probability": 0.15,
+      "params": {
+        "type": "upper"
+      }
+    },
+    {
+      "operation": "add_whitespace",
+      "rule_name": "add_whitespace",
+      "description": "Add extra whitespace",
+      "probability": 0.15
+    },
+    {
+      "operation": "random_noise",
+      "rule_name": "add_noise",
+      "description": "Add random character noise",
+      "probability": 0.1
+    },
+    {
+      "operation": "string_replace",
+      "rule_name": "duplicate_word",
+      "description": "Duplicate a word",
+      "probability": 0.1,
+      "params": {
+        "find": "long",
+        "replace": "long long"
+      }
+    }
+  ]
+}

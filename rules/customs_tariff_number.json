@@ -1,0 +1,60 @@
+{
+  "column_name": "customs_tariff_number",
+  "description": "Customs tariff classification numbers",
+  "data_type": "numeric_string",
+  "error_rules": [
+    {
+      "operation": "digit_replacement",
+      "description": "Replace random digit with wrong digit",
+      "probability": 0.3,
+      "params": {
+        "digit_pattern": "[0-9]",
+        "replacement_digits": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+      }
+    },
+    {
+      "operation": "digit_removal",
+      "description": "Remove random digit",
+      "probability": 0.2,
+      "params": {
+        "position": "random"
+      }
+    },
+    {
+      "operation": "digit_duplication",
+      "description": "Duplicate a digit",
+      "probability": 0.2,
+      "params": {
+        "position": "random"
+      }
+    },
+    {
+      "operation": "add_whitespace",
+      "description": "Add whitespace in tariff number",
+      "probability": 0.15
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace zero with O",
+      "probability": 0.1,
+      "params": {
+        "find": "0",
+        "replace": "O"
+      }
+    },
+    {
+      "operation": "string_replace",
+      "description": "Replace 1 with l",
+      "probability": 0.1,
+      "params": {
+        "find": "1",
+        "replace": "l"
+      }
+    },
+    {
+      "operation": "random_noise",
+      "description": "Add random character noise",
+      "probability": 0.05
+    }
+  ]
+}

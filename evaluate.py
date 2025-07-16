@@ -14,6 +14,7 @@ import re
 # when validator/reporter modules are loaded dynamically from subdirectories.
 from validators.validation_error import ValidationError
 from evaluator import Evaluator
+from error_injection import apply_error_rule, generate_error_samples, load_error_rules
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -27,107 +28,6 @@ def load_module_class(module_path: str):
     except (ValueError, ImportError, AttributeError) as e:
         print(f"Error: Could not load class from '{module_path}'.\nEnsure the path is correct and the file contains the class.\nDetails: {e}")
         sys.exit(1)
-
-def apply_error_rule(data_string: str, rule: dict):
-    """Applies a single error rule to a string."""
-    if not isinstance(data_string, str):
-        return data_string
-
-    # Check conditions first
-    if "conditions" in rule:
-        for cond in rule["conditions"]:
-            if cond["type"] == "contains" and cond["value"] not in data_string:
-                return data_string # Condition not met, don't apply rule
-
-    op = rule["operation"]
-    params = rule.get("params", {})
-
-    if op == "string_replace":
-        return data_string.replace(params["find"], params["replace"])
-    elif op == "regex_replace":
-        count = params.get("count", 0) # Replace all if count is 0
-        return re.sub(params["pattern"], params["replace"], data_string, count=count)
-    elif op == "prepend":
-        return params["text"] + data_string
-    elif op == "append":
-        return data_string + params["text"]
-    elif op == "add_whitespace":
-        return " " + data_string + " "
-    elif op == "random_noise":
-        noise_type = random.choice(['chars', 'duplicate'])
-        if noise_type == 'chars':
-            noise = ''.join(random.choices(string.ascii_letters + string.digits, k=4))
-            pos = random.randint(0, len(data_string))
-            return data_string[:pos] + noise + data_string[pos:]
-        else: # duplicate
-            parts = data_string.split()
-            if not parts: return data_string
-            return data_string + " " + random.choice(parts)
-    elif op == "regex_extract_validate":
-        extract_pattern = params["extract_pattern"]
-        match = re.search(extract_pattern, data_string)
-        if match and match.lastindex is not None and match.lastindex >= 1:
-            extracted_value = match.group(1)
-            # Evaluate the validation condition
-            try:
-                if eval(params["validation"], {"value": extracted_value}):
-                    return extracted_value
-                else:
-                    # If validation fails, return the original data
-                    return data_string
-            except Exception as e:
-                print(f"Validation expression error: {e}")
-                return data_string
-        else:
-            # If no match or no group(1), return the original data
-            return data_string
-    return data_string
-
-
-def generate_error_samples(df: pd.DataFrame, column: str, rules: list, num_samples: int, max_errors_per_sample: int, output_dir: str):
-    """Generates samples with errors based on the rules JSON and saves them."""
-    samples = []
-    print(f"Generating {num_samples} samples in '{output_dir}' with up to {max_errors_per_sample} errors each...")
-
-    for i in range(num_samples):
-        df_copy = df.copy()
-        injected_errors = []
-        
-        num_to_inject = random.randint(1, max_errors_per_sample)
-        k_sample = min(len(df.index), num_to_inject * 5)
-        error_rows_indices = random.sample(list(df.index), k=k_sample)
-        
-        injected_count = 0
-        for idx in error_rows_indices:
-            if injected_count >= num_to_inject:
-                break
-            
-            rule = random.choice(rules)
-            original_data = df_copy.at[idx, column]
-            
-            new_data = apply_error_rule(original_data, rule)
-
-            if new_data != original_data:
-                df_copy.at[idx, column] = new_data
-                injected_errors.append({
-                    "row_index": idx,
-                    "original_data": original_data,
-                    "injected_data": new_data,
-                    "error_rule": rule['rule_name']
-                })
-                injected_count += 1
-        
-        # Save the generated sample and its error log
-        sample_csv_path = os.path.join(output_dir, f'sample_{i}.csv')
-        injected_errors_path = os.path.join(output_dir, f'sample_{i}_injected_errors.json')
-        
-        df_copy.to_csv(sample_csv_path, index=False)
-        with open(injected_errors_path, 'w') as f:
-            json.dump(injected_errors, f, indent=4)
-
-        samples.append({"data": df_copy, "injected_errors": injected_errors})
-    print("Sample generation complete.")
-    return samples
 
 def evaluate(validator, reporter, samples, column, ignore_errors=None, ignore_false_positives=False):
     """Evaluates the validator and reporter, returning a detailed analysis."""
@@ -535,8 +435,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     # Load validation components if needed
     if run_validation:
         try:
-            with open(rules_path, 'r') as f:
-                rules = json.load(f)['error_rules']
+            rules = load_error_rules(rules_path)
         except (FileNotFoundError, json.JSONDecodeError) as e:
             print(f"Error: Could not read or parse rules file at '{rules_path}'.\nDetails: {e}")
             sys.exit(1)
@@ -582,7 +481,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
             sample_df.name = f"sample_{i}"
             sample_path = os.path.join(args.output_dir, f"sample_{i}.csv")
             sample_df.to_csv(sample_path, index=False)
-            error_samples.append({"sample_df": sample_df, "injected_errors": [], "sample_path": sample_path})
+            error_samples.append({"data": sample_df, "injected_errors": [], "sample_index": i})
     
     evaluation_results = []
     for sample in error_samples:
