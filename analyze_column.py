@@ -92,8 +92,12 @@ def analyze_column_values(csv_file, column_name):
         else:
             print("No whitespace variations found.")
         
+        # Create analysis_results directory if it doesn't exist
+        import os
+        os.makedirs('analysis_results', exist_ok=True)
+        
         # Save results to file
-        output_file = f'{column_name.replace(" ", "_").lower()}_analysis.txt'
+        output_file = f'analysis_results/{column_name.replace(" ", "_").lower()}_analysis.txt'
         with open(output_file, 'w') as f:
             f.write(f"{column_name} Analysis for {csv_file}\n")
             f.write("=" * 50 + "\n\n")
