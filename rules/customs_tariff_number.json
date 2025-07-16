@@ -29,11 +29,6 @@
       }
     },
     {
-      "operation": "add_whitespace",
-      "description": "Add whitespace in tariff number",
-      "probability": 0.15
-    },
-    {
       "operation": "string_replace",
       "description": "Replace zero with O",
       "probability": 0.1,

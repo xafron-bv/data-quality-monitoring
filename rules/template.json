@@ -2,7 +2,7 @@
   Rule Structure Documentation:
   
   - Each rule needs a unique rule_name, descriptive description, and an operation type
-  - Supported operations for error_rules: string_replace, regex_replace, prepend, append, add_whitespace, random_noise
+  - Supported operations for error_rules: string_replace, regex_replace, prepend, append, random_noise
   - Operations can be conditional using the 'conditions' array with type 'contains'
   - For regex_replace, you can limit replacements with the 'count' parameter
 
@@ -22,11 +22,12 @@
         - regex_replace: Pattern-based replacement using regular expressions (use \1 not $1 for captures)
         - prepend: Add text to the beginning
         - append: Add text to the end
-        - add_whitespace: Add spaces around the text (doesn't need find/replace params)
         - random_noise: Inject random characters (doesn't need find/replace params)
 
         IMPORTANT: Rules target the actual values in the specified column, not column headers.
         For conditional rules, use conditions that check the cell value, not the column name.
+        
+        NOTE: add_whitespace operation has been removed as whitespace variations are not considered anomalies.
       */
       "rule_name": "inject_error_placeholder",
       "description": "Example of a simple string replacement error injection rule",

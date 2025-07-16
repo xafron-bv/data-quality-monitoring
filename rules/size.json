@@ -61,11 +61,6 @@
       "params": { "pattern": "\\b(\\d+)\\b", "replace": "$1.5" }
     },
     {
-      "rule_name": "inject_leading_trailing_space_in_size",
-      "description": "Adds unnecessary whitespace to size notation.",
-      "operation": "add_whitespace"
-    },
-    {
       "rule_name": "inject_incorrect_capitalization_in_size",
       "description": "Changes capitalization in standardized size notation.",
       "operation": "string_replace",
