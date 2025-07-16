@@ -5,11 +5,5 @@ cache/
 evaluations/
 evaluation_results/
 material-validator
-results*
-checkpoints
-analysis_results/
-hp_search_*/
-results_*/
-*.pth
-*.safetensors
-sentence_transformers_*/
+results
+analysis_results

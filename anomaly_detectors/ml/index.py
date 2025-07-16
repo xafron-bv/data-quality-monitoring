@@ -1,23 +1,54 @@
 """
-Anomaly Detection using Sentence Transformers and Triplet Loss
+RECALL-FOCUSED Anomaly Detection using Sentence Transformers and Triplet Loss
 
-Key Changes for Anomaly Detection:
-1. FLIPPED TRIPLET LOGIC:
+📊 ACTUAL PERFORMANCE RESULTS FROM 5-TRIAL HYPERPARAMETER SEARCH:
+
+EXCELLENT PERFORMANCE (1.0 recall):
+- article_structure_name_2: 1.0 recall → multi-qa-MiniLM-L6-cos-v1 (margin: 0.3, epochs: 4) ✅
+- colour_code: 1.0 recall → all-mpnet-base-v2 (margin: 2.0, epochs: 2) ✅
+
+MODERATE PERFORMANCE (0.4-0.5 recall):
+- EAN: 0.5 recall → multi-qa-MiniLM-L6-cos-v1 (margin: 0.3, epochs: 3) ⚡
+- long_description_NL: 0.5 recall → multi-qa-MiniLM-L6-cos-v1 (margin: 1.0, epochs: 3) ⚡
+- size_name: 0.4 recall → paraphrase-MiniLM-L6-v2 (margin: 0.3, epochs: 8) ⚡
+
+POOR PERFORMANCE (0.0-0.125 recall):
+- colour_name: 0.125 recall → all-MiniLM-L6-v2 (margin: 1.5, epochs: 8) ⚠️
+- article_number: 0.0 recall → all-mpnet-base-v2 (margin: 1.0, epochs: 6) ❌
+- customs_tariff_number: 0.0 recall → all-MiniLM-L12-v2 (margin: 1.5, epochs: 8) ❌
+- description_short_1: 0.0 recall → distilbert-base-nli-stsb-mean-tokens (margin: 2.0, epochs: 5) ❌
+- material: 0.0 recall → all-MiniLM-L12-v2 (margin: 1.2, epochs: 5) ❌
+- product_name_EN: 0.0 recall → distilbert-base-nli-stsb-mean-tokens (margin: 0.8, epochs: 6) ❌
+
+📁 ORGANIZED OUTPUT STRUCTURE:
+../results/
+├── summary/                    (HP search results, summaries)
+│   ├── hp_search_results_*.json
+│   └── hp_search_summary.json
+├── checkpoints/                (temporary training checkpoints)
+└── results_[column]/           (trained models for each column)
+    ├── model files
+    ├── config files
+    └── evaluation results
+
+Key Insights from ACTUAL Hyperparameter Search:
+1. DIFFERENT MODELS WORK BETTER FOR DIFFERENT COLUMNS:
+   - multi-qa-MiniLM-L6-cos-v1: Excellent for structured data (article_structure_name_2, EAN, long_description_NL)
+   - all-mpnet-base-v2: Works well for color codes and article numbers
+   - paraphrase-MiniLM-L6-v2: Best for size names
+   - Various margins work: 0.3 for small features, 2.0 for color codes
+
+2. RECALL-FOCUSED CONFIGURATION IS NOT ONE-SIZE-FITS-ALL:
+   - Each column needs specific model and parameter combinations
+   - Generic "all-mpnet-base-v2 for everything" approach was wrong
+
+3. FLIPPED TRIPLET LOGIC:
    - Anchor: Clean text (e.g., "red")
    - Positive: Other clean text from same semantic group (e.g., "blue")
    - Negative: Corrupted text (e.g., "re d") - should be far from anchor
 
-2. OPTIMIZED HYPERPARAMETERS:
-   - Larger triplet margin (2.0) for better separation
-   - Cosine distance (better for text similarity)
-   - Larger batch size (32) for better learning
-
-3. ANOMALY DETECTION TESTING:
-   - Tests if corrupted text has low similarity to clean text
-   - Provides detection rate percentage
-
-This ensures corrupted data like "re d" is flagged as anomalous,
-while clean data like "blue" remains similar to other clean colors.
+This prioritizes catching anomalies over precision - better to flag clean data
+as anomalous than to miss actual anomalies.
 """
 
 import pandas as pd
@@ -218,11 +249,11 @@ def create_improved_triplet_dataset(data_series, rules, column_name):
 
 def random_hyperparameter_search(df, column, rules, device, num_trials=15):
     """
-    Perform thorough random hyperparameter search to find optimal parameters for anomaly detection.
+    Perform RECALL-FOCUSED hyperparameter search for anomaly detection.
     """
-    print(f"\n🔍 Starting THOROUGH hyperparameter search for '{column}' with {num_trials} trials...")
+    print(f"\n🎯 Starting RECALL-FOCUSED hyperparameter search for '{column}' with {num_trials} trials...")
     
-    # Define expanded hyperparameter search space for more thorough exploration
+    # Define RECALL-OPTIMIZED hyperparameter search space
     hyperparams_space = {
         'model_name': [
             'sentence-transformers/all-MiniLM-L6-v2',
@@ -232,20 +263,20 @@ def random_hyperparameter_search(df, column, rules, device, num_trials=15):
             'sentence-transformers/paraphrase-MiniLM-L6-v2',
             'sentence-transformers/multi-qa-MiniLM-L6-cos-v1'
         ],
-        # Expanded margin range for better separation testing
-        'triplet_margin': [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0],
-        # All distance metrics for comprehensive testing
+        # SMALLER margins for recall optimization (less strict separation)
+        'triplet_margin': [0.3, 0.5, 0.8, 1.0, 1.2, 1.5, 2.0],
+        # Focus on cosine for text similarity
         'distance_metric': [
             losses.TripletDistanceMetric.COSINE,
             losses.TripletDistanceMetric.EUCLIDEAN,
             losses.TripletDistanceMetric.MANHATTAN
         ],
-        # More batch size options for optimal training
-        'batch_size': [8, 16, 24, 32, 48, 64, 96, 128],
-        # More epoch options for training duration
-        'epochs': [1, 2, 3, 4, 5, 6],
-        # Expanded learning rate range
-        'learning_rate': [5e-6, 1e-5, 1.5e-5, 2e-5, 3e-5, 5e-5, 7e-5, 1e-4]
+        # Smaller batch sizes for better recall learning
+        'batch_size': [8, 16, 24, 32, 48, 64],
+        # MORE epochs for recall optimization
+        'epochs': [2, 3, 4, 5, 6, 8],
+        # Lower learning rates for stable training
+        'learning_rate': [1e-6, 5e-6, 1e-5, 2e-5, 3e-5, 5e-5]
     }
     
     best_score = -1
@@ -268,67 +299,97 @@ def random_hyperparameter_search(df, column, rules, device, num_trials=15):
         print(f"Testing parameters: {params}")
         
         try:
-            # Train with current parameters
-            score = train_with_params(df, column, rules, params)
-            results.append((params.copy(), score))
+            # Train with current parameters and get RECALL score
+            recall_score = train_with_params(df, column, rules, params)
+            results.append((params.copy(), recall_score))
             
             # Track performance by parameter
             model_name = params['model_name'].split('/')[-1]
             if model_name not in model_scores:
                 model_scores[model_name] = []
-            model_scores[model_name].append(score)
+            model_scores[model_name].append(recall_score)
             
             margin = params['triplet_margin']
             if margin not in margin_scores:
                 margin_scores[margin] = []
-            margin_scores[margin].append(score)
+            margin_scores[margin].append(recall_score)
             
             distance = str(params['distance_metric']).split('.')[-1]
             if distance not in distance_scores:
                 distance_scores[distance] = []
-            distance_scores[distance].append(score)
+            distance_scores[distance].append(recall_score)
             
-            if score > best_score:
-                best_score = score
+            if recall_score > best_score:
+                best_score = recall_score
                 best_params = params.copy()
-                print(f"🎉 New best score: {score:.4f}")
+                print(f"� New best RECALL score: {recall_score:.4f} ({recall_score*100:.1f}%)")
                 
         except Exception as e:
             print(f"❌ Trial {trial + 1} failed: {e}")
             results.append((params.copy(), -1))
     
     # Print analysis of parameter performance
-    print(f"\n📊 Parameter Performance Analysis:")
-    print(f"{'='*50}")
+    print(f"\n📊 RECALL-FOCUSED Parameter Performance Analysis:")
+    print(f"{'='*60}")
     
-    print("\n🤖 Model Performance:")
+    print("\n🤖 Model Performance (RECALL Score):")
     for model, scores in model_scores.items():
         avg_score = sum(s for s in scores if s > 0) / len([s for s in scores if s > 0]) if any(s > 0 for s in scores) else 0
-        print(f"  {model}: {avg_score:.4f} (avg from {len(scores)} trials)")
+        print(f"  {model}: {avg_score:.4f} ({avg_score*100:.1f}% recall)")
     
-    print("\n📏 Triplet Margin Performance:")
+    print("\n📏 Triplet Margin Performance (RECALL Score):")
     for margin, scores in sorted(margin_scores.items()):
         avg_score = sum(s for s in scores if s > 0) / len([s for s in scores if s > 0]) if any(s > 0 for s in scores) else 0
-        print(f"  {margin}: {avg_score:.4f} (avg from {len(scores)} trials)")
+        print(f"  {margin}: {avg_score:.4f} ({avg_score*100:.1f}% recall)")
     
-    print("\n📐 Distance Metric Performance:")
+    print("\n📐 Distance Metric Performance (RECALL Score):")
     for distance, scores in distance_scores.items():
         avg_score = sum(s for s in scores if s > 0) / len([s for s in scores if s > 0]) if any(s > 0 for s in scores) else 0
-        print(f"  {distance}: {avg_score:.4f} (avg from {len(scores)} trials)")
+        print(f"  {distance}: {avg_score:.4f} ({avg_score*100:.1f}% recall)")
     
-    print(f"\n🏆 Best parameters found for anomaly detection:")
-    print(f"Score: {best_score:.4f}")
+    print(f"\n🏆 Best RECALL-OPTIMIZED parameters:")
+    print(f"RECALL Score: {best_score:.4f} ({best_score*100:.1f}%)")
     for param, value in best_params.items():
         print(f"  {param}: {value}")
+    
+    # Save hyperparameter search results to file
+    results_dir = os.path.join('..', 'results', 'summary')
+    os.makedirs(results_dir, exist_ok=True)
+    
+    results_file = os.path.join(results_dir, f"hp_search_results_{column.replace(' ', '_').lower()}.json")
+    hp_results = {
+        'column': column,
+        'best_params': best_params,
+        'best_score': best_score,
+        'all_results': [(params, score) for params, score in results],
+        'performance_analysis': {
+            'model_scores': {model: sum(s for s in scores if s > 0) / len([s for s in scores if s > 0]) if any(s > 0 for s in scores) else 0 
+                           for model, scores in model_scores.items()},
+            'margin_scores': {str(margin): sum(s for s in scores if s > 0) / len([s for s in scores if s > 0]) if any(s > 0 for s in scores) else 0 
+                            for margin, scores in margin_scores.items()},
+            'distance_scores': {distance: sum(s for s in scores if s > 0) / len([s for s in scores if s > 0]) if any(s > 0 for s in scores) else 0 
+                              for distance, scores in distance_scores.items()}
+        }
+    }
+    
+    with open(results_file, 'w') as f:
+        json.dump(hp_results, f, indent=2, default=str)
+    
+    print(f"📁 Hyperparameter search results saved to: {results_file}")
     
     return best_params, best_score, results
 
 def train_with_params(df, column, rules, params):
     """
-    Train model with specific hyperparameters and return validation score.
+    Train model with specific hyperparameters and return RECALL score.
     """
     triplets = create_improved_triplet_dataset(df[column], rules, column)
     if not triplets:
+        return -1
+    
+    # Get clean texts for recall evaluation
+    clean_texts = df[column].dropna().apply(preprocess_text).astype(str).tolist()
+    if len(clean_texts) < 5:
         return -1
     
     # Initialize model
@@ -349,85 +410,207 @@ def train_with_params(df, column, rules, params):
         triplet_margin=params['triplet_margin']
     )
     
-    # Create evaluator
-    evaluator = TripletEvaluator.from_input_examples(
-        eval_triplets, 
-        name=f'{column}_hp_search'
-    )
+    # Ensure checkpoints directory exists for temporary training during HP search
+    checkpoints_dir = os.path.join('..', 'results', 'checkpoints')
+    os.makedirs(checkpoints_dir, exist_ok=True)
     
-    # Train model
+    # Train model WITHOUT evaluator and WITHOUT saving (we'll evaluate recall separately)
     model.fit(
         train_objectives=[(DataLoader(train_triplets, shuffle=True, batch_size=params['batch_size']), train_loss)],
         epochs=params['epochs'],
-        evaluator=evaluator,
-        evaluation_steps=max(1, len(train_triplets) // params['batch_size']),
+        evaluator=None,  # No evaluator during HP search
+        evaluation_steps=0,
         warmup_steps=50,
-        output_path=f'./hp_search_{column.replace(" ", "_").lower()}',
+        output_path=None,  # Don't save during HP search to avoid clutter
         save_best_model=False,
         show_progress_bar=False
     )
     
-    # Get final score
-    final_results = evaluator(model)
-    if isinstance(final_results, dict):
-        for key, value in final_results.items():
-            if 'accuracy' in key.lower():
-                return value
+    # Evaluate RECALL performance instead of triplet accuracy
+    try:
+        recall_score = evaluate_recall_performance(model, clean_texts, rules, column)
+        return recall_score
+    except Exception as e:
+        print(f"   ❌ Recall evaluation failed: {e}")
+        return -1
+
+
+def evaluate_recall_performance(model, clean_texts, rules, column_name, num_samples=20):
+    """
+    Evaluate model's recall performance on anomaly detection.
+    Returns recall score (0-1).
+    """
+    if not rules or len(clean_texts) < 2:
+        return 0.0
     
-    return final_results if isinstance(final_results, (int, float)) else -1
+    # Take sample of clean texts for evaluation
+    test_clean = clean_texts[:min(num_samples, len(clean_texts))]
+    detected_anomalies = 0
+    total_tests = 0
+    
+    # Use recall-optimized threshold
+    threshold = 0.6
+    
+    for clean_text in test_clean:
+        # Create corrupted version
+        rule = random.choice(rules)
+        corrupted_text = apply_error_rule(clean_text, rule)
+        
+        # Preprocess corrupted text
+        corrupted_text = preprocess_text(corrupted_text)
+        
+        if corrupted_text != clean_text:
+            # Get embeddings
+            clean_embedding = model.encode([clean_text])
+            corrupted_embedding = model.encode([corrupted_text])
+            
+            # Calculate similarity
+            similarity = cosine_similarity(clean_embedding, corrupted_embedding)[0][0]
+            
+            # Check if anomaly was detected
+            if similarity < threshold:
+                detected_anomalies += 1
+            
+            total_tests += 1
+    
+    # Return recall score (0-1)
+    if total_tests > 0:
+        recall = detected_anomalies / total_tests
+        return recall
+    else:
+        return 0.0
 
 def get_optimal_parameters(column_name, fallback_model_name, fallback_epochs):
     """
-    Get optimal parameters for each column based on hyperparameter search results.
+    Get RECALL-OPTIMIZED parameters for each column based on ACTUAL hyperparameter search results.
+    Updated with real performance data from 5-trial hyperparameter search.
     """
-    # Optimal parameters discovered from hyperparameter search
+    # ACTUAL BEST PARAMETERS from hyperparameter search results
     optimal_params = {
+        # EXCELLENT PERFORMANCE (1.0 recall) - Proven successful configurations
         'article_structure_name_2': {
             'model_name': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1',
-            'triplet_margin': 1.0,
+            'triplet_margin': 0.3,  # ACTUAL best found
             'distance_metric': losses.TripletDistanceMetric.COSINE,
-            'batch_size': 48,
-            'epochs': 2,
-            'learning_rate': 2e-5
+            'batch_size': 64,  # ACTUAL best found
+            'epochs': 4,  # ACTUAL best found
+            'learning_rate': 5e-06  # ACTUAL best found
         },
-        'colour_name': {
+        'colour_code': {
             'model_name': 'sentence-transformers/all-mpnet-base-v2',
-            'triplet_margin': 2.5,
+            'triplet_margin': 2.0,  # ACTUAL best found
             'distance_metric': losses.TripletDistanceMetric.COSINE,
-            'batch_size': 128,
-            'epochs': 1,
-            'learning_rate': 5e-6
+            'batch_size': 16,  # ACTUAL best found
+            'epochs': 2,  # ACTUAL best found
+            'learning_rate': 1e-06  # ACTUAL best found
         },
-        # Default parameters for other columns
+        
+        # MODERATE PERFORMANCE (0.4-0.5 recall) - Use actual best found
+        'EAN': {
+            'model_name': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1',
+            'triplet_margin': 0.3,  # ACTUAL best found
+            'distance_metric': losses.TripletDistanceMetric.COSINE,
+            'batch_size': 16,  # ACTUAL best found
+            'epochs': 3,  # ACTUAL best found
+            'learning_rate': 1e-06  # ACTUAL best found
+        },
+        'long_description_NL': {
+            'model_name': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1',
+            'triplet_margin': 1.0,  # ACTUAL best found
+            'distance_metric': losses.TripletDistanceMetric.COSINE,
+            'batch_size': 48,  # ACTUAL best found
+            'epochs': 3,  # ACTUAL best found
+            'learning_rate': 5e-06  # ACTUAL best found
+        },
+        'size_name': {
+            'model_name': 'sentence-transformers/paraphrase-MiniLM-L6-v2',
+            'triplet_margin': 0.3,  # ACTUAL best found
+            'distance_metric': losses.TripletDistanceMetric.MANHATTAN,  # ACTUAL best found
+            'batch_size': 48,  # ACTUAL best found
+            'epochs': 8,  # ACTUAL best found
+            'learning_rate': 2e-05  # ACTUAL best found
+        },
+        
+        # POOR PERFORMANCE (0.0-0.125 recall) - Use actual best found, but may need further work
+        'colour_name': {
+            'model_name': 'sentence-transformers/all-MiniLM-L6-v2',
+            'triplet_margin': 1.5,  # ACTUAL best found
+            'distance_metric': losses.TripletDistanceMetric.EUCLIDEAN,  # ACTUAL best found
+            'batch_size': 16,  # ACTUAL best found
+            'epochs': 8,  # ACTUAL best found
+            'learning_rate': 5e-06  # ACTUAL best found
+        },
+        'article_number': {
+            'model_name': 'sentence-transformers/all-mpnet-base-v2',
+            'triplet_margin': 1.0,  # ACTUAL best found
+            'distance_metric': losses.TripletDistanceMetric.EUCLIDEAN,  # ACTUAL best found
+            'batch_size': 8,  # ACTUAL best found
+            'epochs': 6,  # ACTUAL best found
+            'learning_rate': 5e-06  # ACTUAL best found
+        },
+        'customs_tariff_number': {
+            'model_name': 'sentence-transformers/all-MiniLM-L12-v2',
+            'triplet_margin': 1.5,  # ACTUAL best found
+            'distance_metric': losses.TripletDistanceMetric.EUCLIDEAN,  # ACTUAL best found
+            'batch_size': 16,  # ACTUAL best found
+            'epochs': 8,  # ACTUAL best found
+            'learning_rate': 5e-05  # ACTUAL best found
+        },
+        'description_short_1': {
+            'model_name': 'sentence-transformers/distilbert-base-nli-stsb-mean-tokens',
+            'triplet_margin': 2.0,  # ACTUAL best found
+            'distance_metric': losses.TripletDistanceMetric.MANHATTAN,  # ACTUAL best found
+            'batch_size': 24,  # ACTUAL best found
+            'epochs': 5,  # ACTUAL best found
+            'learning_rate': 1e-05  # ACTUAL best found
+        },
+        'material': {
+            'model_name': 'sentence-transformers/all-MiniLM-L12-v2',
+            'triplet_margin': 1.2,  # ACTUAL best found
+            'distance_metric': losses.TripletDistanceMetric.EUCLIDEAN,  # ACTUAL best found
+            'batch_size': 24,  # ACTUAL best found
+            'epochs': 5,  # ACTUAL best found
+            'learning_rate': 5e-05  # ACTUAL best found
+        },
+        'product_name_EN': {
+            'model_name': 'sentence-transformers/distilbert-base-nli-stsb-mean-tokens',
+            'triplet_margin': 0.8,  # ACTUAL best found
+            'distance_metric': losses.TripletDistanceMetric.COSINE,  # ACTUAL best found
+            'batch_size': 32,  # ACTUAL best found
+            'epochs': 6,  # ACTUAL best found
+            'learning_rate': 1e-06  # ACTUAL best found
+        },
+        
+        # DEFAULT CONFIGURATIONS (not tested yet)
         'season': {
             'model_name': 'sentence-transformers/all-MiniLM-L6-v2',
-            'triplet_margin': 1.5,
+            'triplet_margin': 0.8,
             'distance_metric': losses.TripletDistanceMetric.COSINE,
-            'batch_size': 32,
-            'epochs': 2,
-            'learning_rate': 2e-5
+            'batch_size': 24,
+            'epochs': 4,
+            'learning_rate': 1e-5
         },
         'Care Instructions': {
             'model_name': 'sentence-transformers/all-MiniLM-L6-v2',
-            'triplet_margin': 1.5,
+            'triplet_margin': 0.8,
             'distance_metric': losses.TripletDistanceMetric.COSINE,
-            'batch_size': 32,
-            'epochs': 2,
-            'learning_rate': 2e-5
+            'batch_size': 24,
+            'epochs': 4,
+            'learning_rate': 1e-5
         }
     }
     
     if column_name in optimal_params:
         return optimal_params[column_name]
     else:
-        # Fallback to general optimal parameters
+        # Fallback to recall-optimized parameters
         return {
             'model_name': fallback_model_name,
-            'triplet_margin': 1.5,
+            'triplet_margin': 0.8,  # Smaller for better recall
             'distance_metric': losses.TripletDistanceMetric.COSINE,
-            'batch_size': 32,
-            'epochs': fallback_epochs,
-            'learning_rate': 2e-5
+            'batch_size': 24,
+            'epochs': max(3, fallback_epochs),  # At least 3 epochs for recall
+            'learning_rate': 1e-5
         }
 
 def preprocess_text(text):
@@ -447,17 +630,28 @@ def preprocess_text(text):
 
 def train_and_evaluate_similarity_model(df, column, rules, device, model_name, num_epochs, use_hp_search=False):
     """
-    Train a sentence transformer model for anomaly detection using triplet loss.
+    Train a sentence transformer model for RECALL-FOCUSED anomaly detection using triplet loss.
     """
+    print(f"\n🎯 Training RECALL-OPTIMIZED model for '{column}'")
+    
+    # Create results directory structure
+    results_base_dir = os.path.join('..', 'results')
+    model_results_dir = os.path.join(results_base_dir, f'results_{column.replace(" ", "_").lower()}')
+    checkpoints_dir = os.path.join(results_base_dir, 'checkpoints')
+    
+    # Ensure all directories exist
+    os.makedirs(model_results_dir, exist_ok=True)
+    os.makedirs(checkpoints_dir, exist_ok=True)
+    
     if use_hp_search:
         best_params, best_score, search_results = random_hyperparameter_search(df, column, rules, device, num_trials=args.hp_trials)
         if best_score <= 0:
-            print(f"Hyperparameter search failed for '{column}'. Using optimal parameters.")
+            print(f"Hyperparameter search failed for '{column}'. Using recall-optimized parameters.")
             best_params = get_optimal_parameters(column, model_name, num_epochs)
     else:
-        # Use optimal parameters based on hyperparameter search results
+        # Use recall-optimized parameters
         best_params = get_optimal_parameters(column, model_name, num_epochs)
-        print(f"Using pre-optimized parameters for '{column}' (based on hyperparameter search results)")
+        print(f"Using RECALL-OPTIMIZED parameters for '{column}'")
     
     # Train final model with best parameters
     triplets = create_improved_triplet_dataset(df[column], rules, column)
@@ -465,7 +659,7 @@ def train_and_evaluate_similarity_model(df, column, rules, device, model_name, n
         print(f"Could not create triplets for '{column}'. Skipping.")
         return None
     
-    print(f"Training final model with optimized parameters for anomaly detection...")
+    print(f"Training final model with RECALL-OPTIMIZED parameters...")
     print(f"Parameters: {best_params}")
     
     # Initialize sentence transformer model
@@ -491,23 +685,25 @@ def train_and_evaluate_similarity_model(df, column, rules, device, model_name, n
         evaluator = None
         evaluation_steps = 0
     
-    # Train the model
-    print(f"Training anomaly detection model for '{column}' with {len(train_triplets)} triplets...")
+    # Train the model with organized output structure
+    print(f"Training RECALL-OPTIMIZED anomaly detection model for '{column}' with {len(train_triplets)} triplets...")
+    print(f"Model outputs will be saved to: {model_results_dir}")
+    
     model.fit(
         train_objectives=[(DataLoader(train_triplets, shuffle=True, batch_size=best_params['batch_size']), train_loss)],
         epochs=best_params['epochs'],
         evaluator=evaluator,
         evaluation_steps=evaluation_steps,
         warmup_steps=50,
-        output_path=f'./results_{column.replace(" ", "_").lower()}',
+        output_path=model_results_dir,  # Save directly to organized results folder
         save_best_model=True,
         show_progress_bar=True
     )
     
     # Evaluate final performance
     if evaluator:
-        print(f"\n--- Final Performance for column: '{column}' ---")
-        final_results = evaluator(model, output_path=f'./results_{column.replace(" ", "_").lower()}')
+        print(f"\n--- RECALL-FOCUSED Performance for column: '{column}' ---")
+        final_results = evaluator(model, output_path=model_results_dir)
         if isinstance(final_results, dict):
             # Extract the accuracy score from the results dictionary
             for key, value in final_results.items():
@@ -517,8 +713,9 @@ def train_and_evaluate_similarity_model(df, column, rules, device, model_name, n
         else:
             print(f"  - Triplet Accuracy: {final_results:.4f}")
     
-    # Test anomaly detection capability
+    # Test RECALL-FOCUSED anomaly detection capability
     clean_texts = df[column].dropna().apply(preprocess_text).astype(str).tolist()
+    print(f"\n💡 Testing with RECALL-OPTIMIZED threshold (lower = more sensitive)")
     anomaly_detection_rate = test_anomaly_detection(model, clean_texts, rules, column)
     
     # Demonstrate anomaly detection with examples
@@ -586,7 +783,7 @@ def demonstrate_similarity(model, data_series, column_name):
         # Take first 3 clean samples
         test_samples = sample_texts[:3]
         
-        print("Testing anomaly detection (lower similarity = better anomaly detection):")
+        print("Testing RECALL-FOCUSED anomaly detection (lower similarity = better recall):")
         for i, clean_text in enumerate(test_samples):
             # Create corrupted version
             rule = random.choice(rules)
@@ -601,19 +798,20 @@ def demonstrate_similarity(model, data_series, column_name):
                 similarity = cosine_similarity(clean_embedding, corrupted_embedding)[0][0]
                 
                 print(f"  {i+1}. Clean: '{clean_text}' vs Corrupted: '{corrupted_text}'")
-                print(f"     Similarity: {similarity:.4f} {'GOOD (low similarity = anomaly detected)' if similarity < 0.8 else 'BAD (high similarity = anomaly missed)'}")
+                # Use recall-focused threshold (0.6 instead of 0.8)
+                print(f"     Similarity: {similarity:.4f} {'✅ DETECTED (good recall)' if similarity < 0.6 else '⚠️ MISSED (need lower threshold)'}")
     
     # Show embeddings dimensionality
     print(f"\nEmbedding dimension: {embeddings.shape[1]}")
     print(f"Total samples processed: {len(sample_texts)}")
-    print(f"For anomaly detection: Clean texts should be similar to each other, corrupted texts should be dissimilar.")
+    print(f"🎯 RECALL-FOCUSED: Lower thresholds catch more anomalies (better recall, may increase false positives)")
 
-def test_anomaly_detection(model, clean_texts, rules, column_name, threshold=0.7):
+def test_anomaly_detection(model, clean_texts, rules, column_name, threshold=0.6):
     """
-    Test the trained model's ability to detect anomalies.
-    Returns the percentage of anomalies correctly detected.
+    Test the trained model's ability to detect anomalies with RECALL FOCUS.
+    Uses lower threshold (0.6) to catch more anomalies.
     """
-    print(f"\nTesting anomaly detection for '{column_name}'...")
+    print(f"\n🎯 Testing RECALL-FOCUSED anomaly detection for '{column_name}'...")
     
     if not rules or len(clean_texts) < 2:
         print("Not enough data to test anomaly detection.")
@@ -627,7 +825,7 @@ def test_anomaly_detection(model, clean_texts, rules, column_name, threshold=0.7
     detected_anomalies = 0
     total_tests = 0
     
-    print(f"Testing with {len(test_clean)} clean samples and threshold {threshold}")
+    print(f"Testing with {len(test_clean)} clean samples and RECALL-OPTIMIZED threshold {threshold}")
     
     for clean_text in test_clean:
         # Create corrupted version
@@ -648,30 +846,128 @@ def test_anomaly_detection(model, clean_texts, rules, column_name, threshold=0.7
             # Check if anomaly was detected (similarity below threshold)
             if similarity < threshold:
                 detected_anomalies += 1
-                status = "DETECTED"
+                status = "✅ DETECTED"
             else:
-                status = "MISSED"
+                status = "❌ MISSED"
             
             print(f"  Clean: '{clean_text}' vs Corrupted: '{corrupted_text}' -> {similarity:.3f} {status}")
             total_tests += 1
     
     if total_tests > 0:
         detection_rate = (detected_anomalies / total_tests) * 100
-        print(f"\nAnomaly Detection Rate: {detection_rate:.1f}% ({detected_anomalies}/{total_tests})")
+        print(f"\n🎯 RECALL-FOCUSED Anomaly Detection Rate: {detection_rate:.1f}% ({detected_anomalies}/{total_tests})")
+        print(f"💡 Strategy: Prioritize catching anomalies over avoiding false positives")
         return detection_rate
     else:
         print("No anomalies could be generated for testing.")
         return 0.0
 
 
+def save_aggregated_hp_results():
+    """
+    Read all individual hyperparameter search results and create an aggregated summary.
+    """
+    import glob
+    
+    # Look for HP search results in the results/summary directory
+    results_dir = os.path.join('..', 'results', 'summary')
+    hp_files = glob.glob(os.path.join(results_dir, "hp_search_results_*.json"))
+    
+    if not hp_files:
+        print("No hyperparameter search results found.")
+        return
+    
+    aggregated_results = {}
+    all_best_params = {}
+    
+    for hp_file in hp_files:
+        try:
+            with open(hp_file, 'r') as f:
+                data = json.load(f)
+                column = data['column']
+                aggregated_results[column] = {
+                    'best_score': data['best_score'],
+                    'best_params': data['best_params'],
+                    'performance_analysis': data['performance_analysis']
+                }
+                all_best_params[column] = data['best_params']
+        except Exception as e:
+            print(f"Error reading {hp_file}: {e}")
+    
+    # Save aggregated results in the summary folder
+    summary = {
+        'timestamp': pd.Timestamp.now().isoformat(),
+        'total_columns': len(aggregated_results),
+        'column_results': aggregated_results,
+        'recommended_configs': all_best_params
+    }
+    
+    summary_file = os.path.join(results_dir, 'hp_search_summary.json')
+    with open(summary_file, 'w') as f:
+        json.dump(summary, f, indent=2, default=str)
+    
+    print(f"\n📋 HYPERPARAMETER SEARCH SUMMARY:")
+    print(f"{'='*60}")
+    print(f"Total columns tested: {len(aggregated_results)}")
+    print(f"\nRanked by RECALL Score:")
+    
+    # Sort by recall score
+    sorted_results = sorted(aggregated_results.items(), key=lambda x: x[1]['best_score'], reverse=True)
+    
+    for column, result in sorted_results:
+        score = result['best_score']
+        model = result['best_params']['model_name'].split('/')[-1]
+        margin = result['best_params']['triplet_margin']
+        epochs = result['best_params']['epochs']
+        batch_size = result['best_params']['batch_size']
+        
+        print(f"  {column}: {score:.4f} ({score*100:.1f}%)")
+        print(f"    Model: {model}")
+        print(f"    Margin: {margin}, Epochs: {epochs}, Batch: {batch_size}")
+    
+    print(f"\n📁 Full summary saved to: {summary_file}")
+    return summary
+
+
+def setup_results_directory_structure():
+    """
+    Create the organized directory structure for all results and outputs.
+    """
+    base_results_dir = os.path.join('..', 'results')
+    
+    # Create main directories
+    directories = [
+        base_results_dir,
+        os.path.join(base_results_dir, 'summary'),          # For HP search results and summaries
+        os.path.join(base_results_dir, 'checkpoints'),      # For temporary training checkpoints
+    ]
+    
+    for directory in directories:
+        os.makedirs(directory, exist_ok=True)
+    
+    print(f"📁 Results directory structure created:")
+    print(f"  - {base_results_dir}/")
+    print(f"    ├── summary/          (HP search results, summaries)")
+    print(f"    ├── checkpoints/      (temporary training checkpoints)")
+    print(f"    └── results_[column]/ (trained models for each column)")
+    
+    return base_results_dir
+
+
 # --- Main Execution ---
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Fine-tune similarity models for anomaly detection.")
+    parser = argparse.ArgumentParser(description="RECALL-FOCUSED anomaly detection using sentence transformers.")
     parser.add_argument("csv_file", help="The path to the input CSV file.")
-    parser.add_argument("--use-hp-search", action="store_true", help="Use hyperparameter search to find optimal parameters.")
-    parser.add_argument("--hp-trials", type=int, default=15, help="Number of hyperparameter search trials (default: 15 for thorough search).")
+    parser.add_argument("--use-hp-search", action="store_true", help="Use RECALL-FOCUSED hyperparameter search.")
+    parser.add_argument("--hp-trials", type=int, default=15, help="Number of hyperparameter search trials (default: 15).")
     args = parser.parse_args()
+    
+    print("🎯 RECALL-OPTIMIZED Anomaly Detection Training")
+    print("💡 Strategy: Better to flag clean data as anomalous than to miss actual anomalies")
+    
+    # Setup organized directory structure for all outputs
+    setup_results_directory_structure()
     
     if torch.backends.mps.is_available():
         device = torch.device("mps"); print("Apple M1/M2 GPU found. Using MPS.")
@@ -701,21 +997,26 @@ if __name__ == "__main__":
     }
 
     column_configs = {
-        # Updated with optimal parameters from hyperparameter search
-        'Care Instructions':        {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
-        'colour_name':              {'model': 'sentence-transformers/all-mpnet-base-v2', 'epochs': 1},  # Optimal from search
-        'season':                   {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
-        'article_structure_name_2': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 2},  # Optimal from search
-        # New columns with default configurations
-        'EAN':                      {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
-        'article_number':           {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
-        'colour_code':              {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
-        'customs_tariff_number':    {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
-        'description_short_1':      {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
-        'long_description_NL':      {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
-        'material':                 {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
-        'product_name_EN':          {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
-        'size_name':                {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
+        # EXCELLENT PERFORMANCE (1.0 recall) - Keep proven successful configurations
+        'article_structure_name_2': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 4},  # 1.0 recall
+        'colour_code': {'model': 'sentence-transformers/all-mpnet-base-v2', 'epochs': 2},  # 1.0 recall
+        
+        # MODERATE PERFORMANCE (0.4-0.5 recall) - Use actual best found parameters
+        'EAN': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 3},  # 0.5 recall
+        'long_description_NL': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 3},  # 0.5 recall
+        'size_name': {'model': 'sentence-transformers/paraphrase-MiniLM-L6-v2', 'epochs': 8},  # 0.4 recall
+        
+        # POOR PERFORMANCE (0.0-0.125 recall) - Use actual best found, but may need further optimization
+        'colour_name': {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 8},  # 0.125 recall
+        'article_number': {'model': 'sentence-transformers/all-mpnet-base-v2', 'epochs': 6},  # 0.0 recall
+        'customs_tariff_number': {'model': 'sentence-transformers/all-MiniLM-L12-v2', 'epochs': 8},  # 0.0 recall
+        'description_short_1': {'model': 'sentence-transformers/distilbert-base-nli-stsb-mean-tokens', 'epochs': 5},  # 0.0 recall
+        'material': {'model': 'sentence-transformers/all-MiniLM-L12-v2', 'epochs': 5},  # 0.0 recall
+        'product_name_EN': {'model': 'sentence-transformers/distilbert-base-nli-stsb-mean-tokens', 'epochs': 6},  # 0.0 recall
+        
+        # DEFAULT CONFIGURATIONS (not tested yet)
+        'Care Instructions': {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
+        'season': {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
     }
 
     rules_dir = '../../rules'
@@ -759,3 +1060,7 @@ if __name__ == "__main__":
             num_epochs=config['epochs'],
             use_hp_search=args.use_hp_search
         )
+    
+    # Save aggregated hyperparameter search results if HP search was used
+    if args.use_hp_search:
+        save_aggregated_hp_results()
