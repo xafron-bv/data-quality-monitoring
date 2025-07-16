@@ -40,11 +40,6 @@
       }
     },
     {
-      "operation": "add_whitespace",
-      "description": "Add whitespace in article number",
-      "probability": 0.1
-    },
-    {
       "operation": "string_replace",
       "description": "Replace zero with O",
       "probability": 0.1,

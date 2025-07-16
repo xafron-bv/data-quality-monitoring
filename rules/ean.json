@@ -29,11 +29,6 @@
       }
     },
     {
-      "operation": "add_whitespace",
-      "description": "Add whitespace in EAN number",
-      "probability": 0.15
-    },
-    {
       "operation": "string_replace",
       "description": "Replace digits with similar looking characters",
       "probability": 0.1,

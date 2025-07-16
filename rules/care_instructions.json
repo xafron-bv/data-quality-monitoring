@@ -64,11 +64,6 @@
       "params": { "find": ".", "replace": ";" }
     },
     {
-      "rule_name": "inject_leading_trailing_space_error",
-      "description": "Adds unnecessary leading and trailing whitespace to care instructions.",
-      "operation": "add_whitespace"
-    },
-    {
       "rule_name": "inject_appended_care_instruction_error",
       "description": "Appends an English care instruction to a non-English instruction set.",
       "operation": "append",

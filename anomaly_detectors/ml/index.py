@@ -578,7 +578,6 @@ def demonstrate_similarity(model, data_series, column_name):
     except FileNotFoundError:
         print(f"Rule file '{rule_path}' not found. Creating simple corruption examples.")
         rules = [
-            {'operation': 'add_whitespace'},
             {'operation': 'random_noise'},
             {'operation': 'string_replace', 'params': {'find': 'e', 'replace': 'E'}}
         ]
@@ -697,7 +696,7 @@ if __name__ == "__main__":
         "long_description_nl": "long_description_NL",
         "material": "material",
         "product_name_en": "product_name_EN",
-        "size_name": "size_name",
+        "size": "size_name",  # Fixed: use 'size' rule file for 'size_name' column
         # Excluded: season (only 1 unique value), care_instructions (only 2 unique values)
     }
 

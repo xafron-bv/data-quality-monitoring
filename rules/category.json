@@ -1,11 +1,6 @@
 {
   "error_rules": [
     {
-      "rule_name": "category_whitespace_error",
-      "description": "Add unnecessary whitespace to category names",
-      "operation": "add_whitespace"
-    },
-    {
       "rule_name": "category_random_noise",
       "description": "Inject random noise characters into category names",
       "operation": "random_noise"

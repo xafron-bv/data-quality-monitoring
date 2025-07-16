@@ -49,11 +49,6 @@
       }
     },
     {
-      "operation": "add_whitespace",
-      "description": "Add extra whitespace",
-      "probability": 0.15
-    },
-    {
       "operation": "string_replace",
       "description": "Replace hyphen with space",
       "probability": 0.1,

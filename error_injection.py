@@ -9,7 +9,6 @@ The module supports various error injection operations including:
 - String replacement
 - Regex replacement  
 - Text prepending/appending
-- Whitespace addition
 - Random noise injection
 - Conditional error application
 
@@ -156,7 +155,6 @@ def apply_error_rule(data_string: Union[str, Any], rule: Dict[str, Any]) -> Unio
         - regex_replace: Replace using regular expressions
         - prepend: Add text to the beginning
         - append: Add text to the end
-        - add_whitespace: Add whitespace around the text
         - random_noise: Add random characters or duplicate words
         - regex_extract_validate: Extract and validate using regex
         - replace_with: Replace entire text with specified value
@@ -212,9 +210,6 @@ def apply_error_rule(data_string: Union[str, Any], rule: Dict[str, Any]) -> Unio
     
     elif op == "append":
         return data_string + params["text"]
-    
-    elif op == "add_whitespace":
-        return " " + data_string + " "
     
     elif op == "replace_with":
         return params["text"]
@@ -445,10 +440,6 @@ if __name__ == "__main__":
             "operation": "string_replace",
             "rule_name": "test_replace",
             "params": {"find": "test", "replace": "tset"}
-        },
-        {
-            "operation": "add_whitespace",
-            "rule_name": "add_spaces"
         },
         {
             "operation": "random_noise",
