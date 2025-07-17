@@ -14,25 +14,12 @@ from error_injection import load_error_rules
 from hyperparameter_search import save_aggregated_hp_results, random_hyperparameter_search, get_optimal_parameters
 from model_training import train_and_evaluate_similarity_model, get_column_configs, setup_results_directory_structure
 
+# Import rule-to-column mapping
+from rule_column_map import get_rule_to_column_map
 
-def get_rule_to_column_map():
-    """
-    Get the mapping from rule files to column names.
-    """
-    return {
-        "category": "article_structure_name_2",
-        "color_name": "colour_name",
-        "ean": "EAN",
-        "article_number": "article_number",
-        "colour_code": "colour_code",
-        "customs_tariff_number": "customs_tariff_number",
-        "description_short_1": "description_short_1",
-        "long_description_nl": "long_description_NL",
-        "material": "material",
-        "product_name_en": "product_name_EN",
-        "size": "size_name",  # Fixed: use 'size' rule file for 'size_name' column
-        # Excluded: season (only 1 unique value), care_instructions (only 2 unique values)
-    }
+# Import anomaly checking functions
+from check_anomalies import load_model_for_rule, check_anomalies
+
 
 
 # --- Main Execution ---
@@ -43,7 +30,30 @@ if __name__ == "__main__":
     parser.add_argument("--use-hp-search", action="store_true", help="Use RECALL-FOCUSED hyperparameter search.")
     parser.add_argument("--hp-trials", type=int, default=15, help="Number of hyperparameter search trials (default: 15).")
     parser.add_argument("--rules", nargs='+', default=None, help="List of rule file names to include in training/hp search (by rule name, space-separated, e.g. 'size material'). If not set, all rules are used.")
+    parser.add_argument("--check-anomalies", metavar="RULE", help="Run anomaly check on the given rule using the trained model.")
+    parser.add_argument("--threshold", type=float, default=0.6, help="Similarity threshold for anomaly detection (default: 0.6)")
+    parser.add_argument("--output", default=None, help="Optional output CSV file for anomaly check results.")
     args = parser.parse_args()
+    
+    if args.check_anomalies:
+        rule_name = args.check_anomalies
+        print(f"Running anomaly check for rule '{rule_name}'...")
+        df = pd.read_csv(args.csv_file)
+        model, column_name = load_model_for_rule(rule_name, results_dir="../results")
+        if column_name not in df.columns:
+            raise ValueError(f"Column '{column_name}' (mapped from rule '{rule_name}') not found in CSV.")
+        values = df[column_name].tolist()
+        results = check_anomalies(model, values, threshold=args.threshold)
+        n_anomalies = sum(r['is_anomaly'] for r in results)
+        print(f"Checked {len(results)} values in column '{column_name}'. Found {n_anomalies} anomalies.")
+        if args.output:
+            out_df = pd.DataFrame(results)
+            out_df.to_csv(args.output, index=False)
+            print(f"Results saved to {args.output}")
+        else:
+            for r in results[:10]:
+                print(r)
+        exit(0)
     
     print("🎯 RECALL-OPTIMIZED Anomaly Detection Training")
     print("💡 Strategy: Better to flag clean data as anomalous than to miss actual anomalies")
