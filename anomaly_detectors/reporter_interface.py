@@ -14,7 +14,7 @@ class MLAnomalyResult:
                 row_index: int, 
                 column_name: str,
                 value: Any,
-                anomaly_score: float,
+                probabiliy: float,
                 feature_contributions: Dict[str, float] = None,
                 nearest_neighbors: List[Tuple[int, float]] = None,
                 cluster_info: Dict[str, Any] = None,
@@ -27,7 +27,7 @@ class MLAnomalyResult:
             row_index: The index of the row where the anomaly was found
             column_name: The name of the column where the anomaly was found
             value: The original data value that was flagged as anomalous
-            anomaly_score: A value between 0 and 1 indicating the anomaly score
+            probabiliy: A value between 0 and 1 indicating the anomaly score
             feature_contributions: Dictionary showing how much each feature contributed to the score
             nearest_neighbors: List of (row_index, distance) tuples to nearest normal data points
             cluster_info: Information about clustering results (if applicable)
@@ -37,7 +37,7 @@ class MLAnomalyResult:
         self.row_index = row_index
         self.column_name = column_name
         self.value = value
-        self.anomaly_score = anomaly_score
+        self.probabiliy = probabiliy
         self.feature_contributions = feature_contributions or {}
         self.nearest_neighbors = nearest_neighbors or []
         self.cluster_info = cluster_info or {}
@@ -50,7 +50,7 @@ class MLAnomalyResult:
             "row_index": self.row_index,
             "column_name": self.column_name,
             "value": self.value,
-            "anomaly_score": self.anomaly_score,
+            "probabiliy": self.probabiliy,
             "feature_contributions": self.feature_contributions,
             "nearest_neighbors": self.nearest_neighbors,
             "cluster_info": self.cluster_info,
@@ -88,7 +88,7 @@ class AnomalyReporterInterface(ABC):
             - 'row_index': The integer index of the row containing the anomaly.
             - 'value': The original anomalous data value.
             - 'display_message': A human-readable string explaining the anomaly.
-            - 'anomaly_score': The confidence level or score of the anomaly detection.
+            - 'probabiliy': The probability level or score of the anomaly detection.
             - 'explanation': Detailed explanation of why this was flagged as anomalous.
             - 'feature_importance': For ML models, which features contributed to the detection.
             - 'is_ml_based': Boolean indicating if this came from an ML model or rule-based system.

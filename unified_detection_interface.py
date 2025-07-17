@@ -95,21 +95,21 @@ class UnifiedDetectionResult:
     def from_ml_anomaly_result(cls, ml_result: MLAnomalyResult) -> 'UnifiedDetectionResult':
         """Create a UnifiedDetectionResult from an MLAnomalyResult."""
         ml_features = {
-            'anomaly_probability': ml_result.anomaly_score,  # Keep old name for backward compatibility
+            'anomaly_probability': ml_result.probabiliy,
             'feature_contributions': ml_result.feature_contributions,
             'nearest_neighbors': ml_result.nearest_neighbors,
             'cluster_info': ml_result.cluster_info,
             'probability_info': ml_result.probability_info
         }
         
-        message = ml_result.explanation or f"ML anomaly detected with probability {ml_result.anomaly_score:.2f}"
+        message = ml_result.explanation or f"ML anomaly detected with probability {ml_result.probabiliy:.2f}"
         
         return cls(
             row_index=ml_result.row_index,
             column_name=ml_result.column_name,
             value=ml_result.value,
             detection_type=DetectionType.ML_ANOMALY,
-            probability=ml_result.anomaly_score,
+            probability=ml_result.probabiliy,
             error_code="ML_ANOMALY",
             message=message,
             details={'explanation': ml_result.explanation},
