@@ -62,8 +62,8 @@ class MLAnomalyReporter(AnomalyReporterInterface):
         explanations = []
         
         # Add base explanation based on score
-        template = self.explanation_templates["high_score"] if result.anomaly_score > 0.85 else self.explanation_templates["default"]
-        explanations.append(template.format(model_name=self.model_name, score=result.anomaly_score))
+        template = self.explanation_templates["high_score"] if result.probabiliy > 0.85 else self.explanation_templates["default"]
+        explanations.append(template.format(model_name=self.model_name, score=result.probabiliy))
         
         # Add statistical explanation if available
         if result.probability_info and "z_score" in result.probability_info:
@@ -113,7 +113,7 @@ class MLAnomalyReporter(AnomalyReporterInterface):
         for result in anomaly_results:
             if isinstance(result, MLAnomalyResult):
                 # Process ML-based result
-                if result.anomaly_score < threshold:
+                if result.probabiliy < threshold:
                     continue  # Skip if below threshold
                 
                 # Generate explanation
@@ -125,7 +125,7 @@ class MLAnomalyReporter(AnomalyReporterInterface):
                     "column_name": result.column_name,
                     "value": result.value,
                     "display_message": explanation,
-                    "anomaly_score": result.anomaly_score,
+                    "probabiliy": result.probabiliy,
                     "is_ml_based": True
                 }
                 
@@ -145,8 +145,8 @@ class MLAnomalyReporter(AnomalyReporterInterface):
                 
             elif isinstance(result, AnomalyError):
                 # Process rule-based result
-                confidence = result.confidence
-                if confidence < threshold:
+                probability = result.probability
+                if probability < threshold:
                     continue  # Skip if below threshold
                 
                 # Build report
@@ -155,7 +155,7 @@ class MLAnomalyReporter(AnomalyReporterInterface):
                     "column_name": result.column_name,
                     "value": result.anomaly_data,
                     "display_message": f"Anomaly detected: {result.anomaly_type}",
-                    "anomaly_score": confidence,
+                    "probabiliy": probability,
                     "explanation": json.dumps(result.details) if result.details else None,
                     "is_ml_based": False
                 }

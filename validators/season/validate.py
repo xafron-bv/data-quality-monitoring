@@ -81,13 +81,13 @@ class Validator(ValidatorInterface):
         # Check if year is reasonable (not too far in the past or future)
         current_year = 2025  # Based on context date
         if year < 1900 or year > current_year + 5:
-            confidence = 0.85
+            probability = 0.85
             if year > current_year + 5:
-                # Higher confidence that future years are errors
-                confidence = 0.95
+                # Higher probability that future years are errors
+                probability = 0.95
             return ValidationError(
                 error_type=self.ErrorCode.INVALID_YEAR,
-                probability=confidence,
+                probability=probability,
                 details={"year": year, "min_year": 1900, "max_year": current_year + 5}
             )
 

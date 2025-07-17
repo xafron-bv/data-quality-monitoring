@@ -14,7 +14,7 @@ class Validator(ValidatorInterface):
     2. Implement ALL validation logic inside the `_validate_entry` method.
        This includes handling missing data (NaN/None), incorrect types, and empty values.
     3. The `_validate_entry` method must return `None` for valid data, or a dictionary
-       containing 'error_type', 'confidence', and optionally 'details'.
+       containing 'error_type', 'probability', and optionally 'details'.
     4. bulk_validate method is implemented in the ValidatorInterface and is responsible for
        applying the `_validate_entry` method to each entry in the DataFrame column. Do NOT rewrite it.
     """

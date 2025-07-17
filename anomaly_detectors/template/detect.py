@@ -106,7 +106,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
                 if 0 < frequency_pct < 0.01:
                     return AnomalyError(
                         anomaly_type=self.ErrorCode.CATEGORICAL_RARE_VALUE,
-                        probability=min(1 - (frequency_pct * 100), 0.95),  # Higher confidence for rarer values
+                        probability=min(1 - (frequency_pct * 100), 0.95),  # Higher probability for rarer values
                         details={
                             'frequency': frequency,
                             'total_count': total,
