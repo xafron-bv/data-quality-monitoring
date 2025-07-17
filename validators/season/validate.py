@@ -44,7 +44,7 @@ class Validator(ValidatorInterface):
         if pd.isna(value) or value == "":
             return ValidationError(
                 error_type=self.ErrorCode.MISSING_VALUE,
-                confidence=1.0,
+                probability=1.0,
                 details={}
             )
 
@@ -52,7 +52,7 @@ class Validator(ValidatorInterface):
         if not isinstance(value, str):
             return ValidationError(
                 error_type=self.ErrorCode.INVALID_TYPE,
-                confidence=1.0,
+                probability=1.0,
                 details={"expected": "string", "received": str(type(value))}
             )
 
@@ -61,7 +61,7 @@ class Validator(ValidatorInterface):
         if len(parts) != 2:
             return ValidationError(
                 error_type=self.ErrorCode.INVALID_FORMAT,
-                confidence=0.95,
+                probability=0.95,
                 details={"value": value, "expected_format": "YYYY Season"}
             )
 
@@ -71,7 +71,7 @@ class Validator(ValidatorInterface):
         if not year_str.isdigit() or len(year_str) != 4:
             return ValidationError(
                 error_type=self.ErrorCode.INVALID_YEAR,
-                confidence=0.9,
+                probability=0.9,
                 details={"year": year_str}
             )
 
@@ -87,7 +87,7 @@ class Validator(ValidatorInterface):
                 confidence = 0.95
             return ValidationError(
                 error_type=self.ErrorCode.INVALID_YEAR,
-                confidence=confidence,
+                probability=confidence,
                 details={"year": year, "min_year": 1900, "max_year": current_year + 5}
             )
 
@@ -96,7 +96,7 @@ class Validator(ValidatorInterface):
         if season_name not in valid_seasons:
             return ValidationError(
                 error_type=self.ErrorCode.INVALID_SEASON_NAME,
-                confidence=0.9,
+                probability=0.9,
                 details={"season": season_name, "valid_seasons": valid_seasons}
             )
 

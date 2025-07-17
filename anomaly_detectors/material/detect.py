@@ -112,7 +112,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
             if self.format_patterns and self.format_patterns[format_pattern] < self.total_records * 0.05:
                 return AnomalyError(
                     anomaly_type=self.ErrorCode.INCONSISTENT_FORMAT,
-                    anomaly_score=0.7,
+                    probability=0.7,
                     details={
                         "format": format_pattern,
                         "common_formats": [f for f, c in self.format_patterns.most_common(3)]
@@ -130,7 +130,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
                 # Uncommon material
                 return AnomalyError(
                     anomaly_type=self.ErrorCode.UNCOMMON_MATERIAL,
-                    anomaly_score=min(0.95, 1.0 - (material_frequency / self.total_records)),
+                    probability=min(0.95, 1.0 - (material_frequency / self.total_records)),
                     details={
                         "material": material,
                         "frequency": material_frequency,
@@ -149,7 +149,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
                     z_score = (percentage - mean_pct) / std_pct if std_pct > 0 else 0
                     return AnomalyError(
                         anomaly_type=self.ErrorCode.UNUSUAL_PERCENTAGE,
-                        anomaly_score=min(0.9, abs(z_score) / 5),  # Cap at 0.9
+                        probability=min(0.9, abs(z_score) / 5),  # Cap at 0.9
                         details={
                             "material": material,
                             "percentage": percentage,
@@ -165,7 +165,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
             if 0 < combination_frequency < self.total_records * 0.05:
                 return AnomalyError(
                     anomaly_type=self.ErrorCode.UNUSUAL_MATERIAL_COMBINATION,
-                    anomaly_score=min(0.9, 1.0 - (combination_frequency / self.total_records)),
+                    probability=min(0.9, 1.0 - (combination_frequency / self.total_records)),
                     details={
                         "materials": sorted(list(material_set)),
                         "frequency": combination_frequency,

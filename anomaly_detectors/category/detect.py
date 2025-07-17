@@ -129,7 +129,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
         if self.total_categories > 10 and 0 < category_frequency < self.total_categories * 0.03:
             return AnomalyError(
                 anomaly_type=self.ErrorCode.RARE_CATEGORY,
-                anomaly_score=min(0.9, 1.0 - (category_frequency / self.total_categories)),
+                probability=min(0.9, 1.0 - (category_frequency / self.total_categories)),
                 details={
                     "category": value,
                     "frequency": category_frequency,
@@ -144,7 +144,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
         if self.total_categories > 10 and 0 < format_frequency < self.total_categories * 0.05:
             return AnomalyError(
                 anomaly_type=self.ErrorCode.UNUSUAL_CATEGORY_FORMAT,
-                anomaly_score=min(0.8, 1.0 - (format_frequency / self.total_categories)),
+                probability=min(0.8, 1.0 - (format_frequency / self.total_categories)),
                 details={
                     "category": value,
                     "format": format_pattern,
@@ -170,7 +170,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
                             # The category is being used in an unusual context
                             return AnomalyError(
                                 anomaly_type=self.ErrorCode.INCONSISTENT_CATEGORY,
-                                anomaly_score=0.75,
+                                probability=0.75,
                                 details={
                                     "category": value,
                                     "related_attribute": related_col,

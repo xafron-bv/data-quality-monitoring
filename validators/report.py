@@ -69,7 +69,7 @@ class Reporter(ReporterInterface):
             # Format the message with specific details from the error
             details = error.details.copy() if error.details else {}  # Create a copy to avoid modifying the original
             details['error_data'] = error.error_data  # Add original data for context
-            details['confidence'] = error.confidence  # Add confidence for potential use in message
+            details['probability'] = error.probability  # Add probability for potential use in message
             
             try:
                 display_message = message_template.format(**details)
@@ -84,6 +84,6 @@ class Reporter(ReporterInterface):
                 "error_data": error.error_data,
                 "display_message": display_message,
                 "column_name": error.column_name,  # Add column name to the report
-                "confidence": error.confidence     # Add confidence to the report
+                "probability": error.probability     # Add probability to the report
             })
         return report

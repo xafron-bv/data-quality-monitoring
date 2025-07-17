@@ -48,7 +48,7 @@ class Validator(ValidatorInterface):
         if pd.isna(value):
             return ValidationError(
                 error_type=self.ErrorCode.MISSING_VALUE,
-                confidence=1.0,
+                probability=1.0,
                 details={}
             )
         
@@ -56,7 +56,7 @@ class Validator(ValidatorInterface):
         if not isinstance(value, str):
             return ValidationError(
                 error_type=self.ErrorCode.INVALID_TYPE,
-                confidence=1.0,
+                probability=1.0,
                 details={"expected": "string", "actual": str(type(value))}
             )
         
@@ -64,7 +64,7 @@ class Validator(ValidatorInterface):
         if value == "":
             return ValidationError(
                 error_type=self.ErrorCode.EMPTY_CATEGORY,
-                confidence=1.0,
+                probability=1.0,
                 details={}
             )
         
@@ -72,7 +72,7 @@ class Validator(ValidatorInterface):
         if value.strip() != value:
             return ValidationError(
                 error_type=self.ErrorCode.WHITESPACE_ERROR,
-                confidence=0.95,
+                probability=0.95,
                 details={"original": value, "stripped": value.strip()}
             )
         
@@ -80,7 +80,7 @@ class Validator(ValidatorInterface):
         if re.search(r'<[^>]+>', value):
             return ValidationError(
                 error_type=self.ErrorCode.HTML_TAGS,
-                confidence=0.98,
+                probability=0.98,
                 details={"category": value}
             )
         
@@ -88,7 +88,7 @@ class Validator(ValidatorInterface):
         if re.search(r'[^\w\s\-]', value):
             return ValidationError(
                 error_type=self.ErrorCode.SPECIAL_CHARACTERS,
-                confidence=0.9,
+                probability=0.9,
                 details={"category": value}
             )
         
@@ -102,7 +102,7 @@ class Validator(ValidatorInterface):
            re.search(r'[A-Za-z]\d[A-Za-z]', value):
             return ValidationError(
                 error_type=self.ErrorCode.RANDOM_NOISE,
-                confidence=0.85,
+                probability=0.85,
                 details={"category": value}
             )
 

@@ -1,7 +1,10 @@
 #!/bin/zsh
 
 # run_evaluations.sh
-# Script to run multiple evaluate.py commands for different column and validator combinations
+# Script to run comprehensive evaluations using all three detection approaches:
+# 1. Validation (business rules)
+# 2. Anomaly Detection (pattern-based)  
+# 3. ML Anomaly Detection (sentence transformers)
 
 # Default parameters
 DATA_FILE="data/esqualo_2022_fall_original.csv"
@@ -38,13 +41,15 @@ for eval in "${EVALUATIONS[@]}"; do
   echo "Column: $column"
   echo "Output directory: $eval_dir"
   
-  # Run the evaluation
+  # Run the evaluation with all three detection methods
   python evaluate.py \
     --validator="$validator" \
     --column="$column" \
     --max-errors=$MAX_ERRORS \
     --num-samples=$NUM_SAMPLES \
     --output-dir="$eval_dir" \
+    --ml-detector \
+    --run="all" \
     $IGNORE_FP \
     "$DATA_FILE"
   
