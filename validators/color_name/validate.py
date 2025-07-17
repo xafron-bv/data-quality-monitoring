@@ -46,7 +46,7 @@ class Validator(ValidatorInterface):
         if pd.isna(value):
             return ValidationError(
                 error_type=self.ErrorCode.MISSING_VALUE,
-                confidence=1.0,
+                probability=1.0,
                 details={}
             )
         
@@ -54,7 +54,7 @@ class Validator(ValidatorInterface):
         if not isinstance(value, str):
             return ValidationError(
                 error_type=self.ErrorCode.INVALID_TYPE,
-                confidence=1.0,
+                probability=1.0,
                 details={"expected": "string", "actual": str(type(value))}
             )
         
@@ -65,7 +65,7 @@ class Validator(ValidatorInterface):
         if value != value.strip() or "  " in value:
             return ValidationError(
                 error_type=self.ErrorCode.EXTRA_SPACE,
-                confidence=0.95,
+                probability=0.95,
                 details={"original": original_value, "suggested": " ".join(value.split())}
             )
         
@@ -76,7 +76,7 @@ class Validator(ValidatorInterface):
             suggested = re.sub(r'([a-z])([A-Z])', r'\1 \2', value)
             return ValidationError(
                 error_type=self.ErrorCode.MERGED_WORDS,
-                confidence=0.85,
+                probability=0.85,
                 details={"original": original_value, "suggested": suggested}
             )
         
@@ -87,7 +87,7 @@ class Validator(ValidatorInterface):
             clean_value = re.sub(r'[0-9]|[^\w\s/]', '', value)
             return ValidationError(
                 error_type=self.ErrorCode.RANDOM_TEXT_NOISE,
-                confidence=0.9,
+                probability=0.9,
                 details={"original": original_value, "suggested": clean_value}
             )
         
@@ -96,7 +96,7 @@ class Validator(ValidatorInterface):
             corrected = value.replace(' - ', '/')
             return ValidationError(
                 error_type=self.ErrorCode.INVALID_FORMAT,
-                confidence=0.8,
+                probability=0.8,
                 details={"original": original_value, "suggested": corrected}
             )
         

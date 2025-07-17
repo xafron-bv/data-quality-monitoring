@@ -69,8 +69,7 @@ class AnomalyReporter(AnomalyReporterInterface):
             # Format the message with specific details from the error
             details = error.details.copy() if error.details else {}  # Create a copy to avoid modifying the original
             details['error_data'] = error.anomaly_data  # Add original data for context
-            details['confidence'] = error.anomaly_score  # For backward compatibility, provide confidence as alias to anomaly_score
-            details['anomaly_score'] = error.anomaly_score  # Add anomaly_score for potential use in message
+            details['probability'] = error.probability  # Add probability for potential use in message
             
             try:
                 display_message = message_template.format(**details)
@@ -85,8 +84,7 @@ class AnomalyReporter(AnomalyReporterInterface):
                 "error_data": error.anomaly_data,
                 "display_message": display_message,
                 "column_name": error.column_name,  # Add column name to the report
-                "confidence": error.anomaly_score,    # For backward compatibility, add as confidence
-                "anomaly_score": error.anomaly_score,  # Add anomaly_score to the report
+                "probability": error.probability,    # Add probability to the report
                 "anomaly": True                    # Flag to indicate this is an anomaly, not a validation error
             })
         return report

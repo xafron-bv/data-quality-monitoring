@@ -7,7 +7,7 @@ class AnomalyError:
     
     This class enforces that all anomaly results include:
     - An anomaly code/type (from a detector-specific Enum)
-    - An anomaly score (float between 0 and 1)
+    - A probability (float between 0 and 1)
     - Optional details as a dictionary
     
     It also supports ML-style outputs including:
@@ -20,7 +20,7 @@ class AnomalyError:
     
     def __init__(self, 
                 anomaly_type: Union[str, Enum], 
-                anomaly_score: float, 
+                probability: float, 
                 details: Optional[Dict[str, Any]] = None, 
                 row_index: Optional[int] = None, 
                 column_name: Optional[str] = None, 
@@ -35,25 +35,25 @@ class AnomalyError:
         
         Args:
             anomaly_type: The anomaly code/type (from detector-specific Enum)
-            anomaly_score: A value between 0 and 1 indicating the anomaly severity
+            probability: A value between 0 and 1 indicating the probability that this is an anomaly
             details: Optional dictionary containing additional anomaly details
             row_index: Optional row index where the anomaly was detected
             column_name: Optional column name where the anomaly was detected
             anomaly_data: Optional original data that caused the anomaly
-            feature_contributions: Dictionary showing how much each feature contributed to the score
+            feature_contributions: Dictionary showing how much each feature contributed to the probability
             nearest_neighbors: List of (row_index, distance) tuples to nearest normal data points
             cluster_info: Information about clustering results (if applicable)
             probability_info: Statistical information about probabilities and distributions
             explanation: Natural language explanation of why this is anomalous
         
         Raises:
-            ValueError: If anomaly_score is not between 0 and 1
+            ValueError: If probability is not between 0 and 1
         """
-        if not 0 <= anomaly_score <= 1:
-            raise ValueError(f"Anomaly score must be between 0 and 1, got {anomaly_score}")
+        if not 0 <= probability <= 1:
+            raise ValueError(f"Probability must be between 0 and 1, got {probability}")
         
         self.anomaly_type = anomaly_type
-        self.anomaly_score = anomaly_score
+        self.probability = probability
         self.details = details or {}
         self.row_index = row_index
         self.column_name = column_name
@@ -73,7 +73,7 @@ class AnomalyError:
         """
         result = {
             "anomaly_code": self.anomaly_type,
-            "anomaly_score": self.anomaly_score,
+            "probability": self.probability,
             "details": self.details,
             "feature_contributions": self.feature_contributions,
             "nearest_neighbors": self.nearest_neighbors,
@@ -107,7 +107,7 @@ class AnomalyError:
         """
         return AnomalyError(
             anomaly_type=self.anomaly_type,
-            anomaly_score=self.anomaly_score,
+            probability=self.probability,
             details=self.details,
             row_index=row_index,
             column_name=column_name,

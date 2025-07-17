@@ -15,6 +15,7 @@ import re
 from validators.validation_error import ValidationError
 from evaluator import Evaluator
 from error_injection import apply_error_rule, generate_error_samples, load_error_rules
+from ml_anomaly_detector_adapter import MLAnomalyDetectorAdapter
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -95,11 +96,20 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
     # Determine if we have validation results or only anomaly detection
     has_validation = any('validation_performed' in result for result in evaluation_results)
     has_anomalies = any('anomaly_results' in result for result in evaluation_results)
+    has_ml_results = any('unified_results' in result for result in evaluation_results)
     
-    if has_validation and has_anomalies:
+    if has_validation and has_anomalies and has_ml_results:
+        summary_lines.append("VALIDATION, ANOMALY DETECTION, AND ML DETECTION SUMMARY")
+    elif has_validation and has_anomalies:
         summary_lines.append("VALIDATION AND ANOMALY DETECTION SUMMARY")
+    elif has_validation and has_ml_results:
+        summary_lines.append("VALIDATION AND ML DETECTION SUMMARY")
+    elif has_anomalies and has_ml_results:
+        summary_lines.append("ANOMALY AND ML DETECTION SUMMARY")
     elif has_validation:
         summary_lines.append("VALIDATION EVALUATION SUMMARY")
+    elif has_ml_results:
+        summary_lines.append("ML DETECTION SUMMARY")
     else:
         summary_lines.append("ANOMALY DETECTION SUMMARY")
     
@@ -111,11 +121,12 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
     total_ignored_errors = 0
     total_ignored_fps = 0
     total_anomalies = 0  # Count total anomalies
+    total_ml_issues = 0  # Count total ML detection issues
     
     for i, result in enumerate(evaluation_results):
         # Handle validation results if present
         if has_validation:
-            true_positives = set(result.get('true_positives', []))
+            true_positives = result.get('true_positives', [])
             false_positives = result.get('false_positives', [])
             false_negatives = result.get('false_negatives', [])
             
@@ -135,6 +146,10 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
         # Handle anomaly results
         anomalies = result.get('anomaly_results', [])
         total_anomalies += len(anomalies)
+        
+        # Handle ML unified results
+        ml_results = result.get('unified_results', [])
+        total_ml_issues += len(ml_results)
         
         sample_id = result.get('sample_id', f"Sample {i}")
         summary_lines.append(f"\nSample: {sample_id}")
@@ -156,6 +171,10 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
         # Always show anomaly count
         if has_anomalies:
             summary_lines.append(f"  - Anomalies Detected: {len(anomalies)}")
+        
+        # Always show ML detection count
+        if has_ml_results:
+            summary_lines.append(f"  - ML Issues Detected: {len(ml_results)}")
     
     # Summary section header
     summary_lines.append("\n" + "=" * 60)
@@ -194,7 +213,7 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
     
     # Add anomaly metrics section if anomaly detection was run
     if has_anomalies:
-        if has_validation:
+        if has_validation or has_ml_results:
             summary_lines.append("\nOVERALL ANOMALY DETECTION METRICS:")
         else:
             summary_lines.append("OVERALL ANOMALY DETECTION METRICS:")
@@ -211,6 +230,26 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
             summary_lines.append("\nANOMALY TYPES DETECTED:")
             for anomaly_type, count in anomaly_types.items():
                 summary_lines.append(f"  - {anomaly_type}: {count}")
+
+    # Add ML metrics section if ML detection was run
+    if has_ml_results:
+        if has_validation or has_anomalies:
+            summary_lines.append("\nOVERALL ML DETECTION METRICS:")
+        else:
+            summary_lines.append("OVERALL ML DETECTION METRICS:")
+        summary_lines.append(f"  - Total ML Issues Detected: {total_ml_issues}")
+        
+        # List ML detection types and counts if we have ML results
+        if total_ml_issues > 0:
+            ml_types = {}
+            for result in evaluation_results:
+                for ml_issue in result.get('unified_results', []):
+                    detection_type = ml_issue.get('detection_type', 'Unknown')
+                    ml_types[detection_type] = ml_types.get(detection_type, 0) + 1
+            
+            summary_lines.append("\nML DETECTION TYPES:")
+            for ml_type, count in ml_types.items():
+                summary_lines.append(f"  - {ml_type}: {count}")
     
     # Add false negatives section if validation was run
     if has_validation:
@@ -237,12 +276,22 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
             else:
                 fp_by_type = {}
                 for fp in all_fp:
-                    code = fp.error_type
-                    fp_by_type.setdefault(code, []).append(fp.error_data)
+                    # Handle dictionaries from new evaluation system
+                    if isinstance(fp, dict):
+                        display_message = fp.get('display_message', 'Unknown Error')
+                        error_data = fp.get('error_data', 'Unknown Data')
+                        # Extract error type from display message or use a generic type
+                        error_type = display_message.split(':')[0] if ':' in display_message else display_message
+                    else:
+                        # Handle old-style error objects
+                        error_type = getattr(fp, 'error_type', 'Unknown Error')
+                        error_data = getattr(fp, 'error_data', 'Unknown Data')
+                    
+                    fp_by_type.setdefault(error_type, []).append(error_data)
 
-                for code, examples in fp_by_type.items():
-                    summary_lines.append(f"\n  - Error Code: '{code}' (Flagged {len(examples)} times)")
-                    for ex in list(set(examples))[:3]:
+                for error_type, examples in fp_by_type.items():
+                    summary_lines.append(f"\n  - Error Type: '{error_type}' (Flagged {len(examples)} times)")
+                    for ex in list(set(str(e) for e in examples))[:3]:
                         summary_lines.append(f"    - Example: '{ex}'")
         
         # Check for potential missing error messages by looking for error formatting issues in reporter output
@@ -282,12 +331,22 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
         else:
             fp_by_type = {}
             for fp in all_fp:
-                code = fp.error_type
-                fp_by_type.setdefault(code, []).append(fp.error_data)
+                # Handle dictionaries from new evaluation system
+                if isinstance(fp, dict):
+                    display_message = fp.get('display_message', 'Unknown Error')
+                    error_data = fp.get('error_data', 'Unknown Data')
+                    # Extract error type from display message or use a generic type
+                    error_type = display_message.split(':')[0] if ':' in display_message else display_message
+                else:
+                    # Handle old-style error objects
+                    error_type = getattr(fp, 'error_type', 'Unknown Error')
+                    error_data = getattr(fp, 'error_data', 'Unknown Data')
+                
+                fp_by_type.setdefault(error_type, []).append(error_data)
 
-            for code, examples in fp_by_type.items():
-                summary_lines.append(f"\n  - Error Code: '{code}' (Flagged {len(examples)} times)")
-                for ex in list(set(examples))[:3]:
+            for error_type, examples in fp_by_type.items():
+                summary_lines.append(f"\n  - Error Type: '{error_type}' (Flagged {len(examples)} times)")
+                for ex in list(set(str(e) for e in examples))[:3]:
                     summary_lines.append(f"    - Example: '{ex}'")
     
     # Check for potential missing error messages by looking for error formatting issues in reporter output
@@ -331,12 +390,27 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
     
     full_results_path = os.path.join(output_dir, 'full_evaluation_results.json')
     with open(full_results_path, 'w') as f:
-        # Convert sets to lists for JSON serialization
-        for result in evaluation_results:
-            # Only convert true_positives to list if it exists (during validation runs)
-            if 'true_positives' in result:
-                result['true_positives'] = list(result['true_positives'])
-        json.dump(evaluation_results, f, indent=4)
+        # Convert sets to lists and handle non-JSON serializable objects
+        def make_serializable(obj):
+            if isinstance(obj, set):
+                return list(obj)
+            elif isinstance(obj, dict):
+                return {k: make_serializable(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [make_serializable(item) for item in obj]
+            elif hasattr(obj, '__dict__'):
+                # Convert object to dict representation
+                return make_serializable(obj.__dict__)
+            else:
+                # For basic types, pandas/numpy types, etc.
+                try:
+                    json.dumps(obj)  # Test if it's JSON serializable
+                    return obj
+                except TypeError:
+                    return str(obj)  # Convert to string if not serializable
+        
+        serializable_results = make_serializable(evaluation_results)
+        json.dump(serializable_results, f, indent=4)
     
     print(f"\nSummary report saved to '{summary_path}'")
     print(f"Full JSON results saved to '{full_results_path}'")
@@ -351,6 +425,7 @@ Example Usage:
   python evaluate.py data/source.csv --column material --output-dir results/material_test
   python evaluate.py data/source.csv --column "Care Instructions" --validator care_instructions
   python evaluate.py data/source.csv --column "colour_name" --anomaly-detector color_name --run anomaly
+  python evaluate.py data/source.csv --column material --ml-detector --run all
 
 This will automatically look for:
 - Rules:      rules/<validator>.json
@@ -358,6 +433,7 @@ This will automatically look for:
 - Reporter:   validators/report:Reporter
 - Anomaly Detector: anomaly_detectors/<detector>/detect.py (expecting class 'AnomalyDetector')
 - Anomaly Reporter: anomaly_detectors/report:AnomalyReporter
+- ML Detector: Sentence transformer models for anomaly detection
 
 If --validator is not specified, it defaults to the value of --column (converted to snake_case if needed).
 If --anomaly-detector is not specified, it defaults to the value of --validator.
@@ -367,7 +443,8 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     parser.add_argument("--column", required=True, help="The target column to validate in the CSV file (e.g., 'material', 'Care Instructions').")
     parser.add_argument("--validator", help="The validator name to use for files and classes (e.g., 'material', 'care_instructions'). Defaults to the column name if not provided.")
     parser.add_argument("--anomaly-detector", help="The anomaly detector name to use (e.g., 'material', 'color_name'). Defaults to the validator name if not provided.")
-    parser.add_argument("--run", choices=["validation", "anomaly", "both"], default="both", help="Specify which analysis to run: validation, anomaly detection, or both.")
+    parser.add_argument("--ml-detector", action="store_true", help="Enable ML-based anomaly detection using sentence transformers.")
+    parser.add_argument("--run", choices=["validation", "anomaly", "ml", "both", "all"], default="both", help="Specify which analysis to run: validation, anomaly detection, ml detection, both (validation+anomaly), or all three.")
     parser.add_argument("--num-samples", type=int, default=32, help="Number of samples to generate for evaluation (default: 32).")
     parser.add_argument("--max-errors", type=int, default=3, help="Maximum number of errors to combine in a single sample (default: 3).")
     parser.add_argument("--output-dir", default="evaluation_results", help="Directory to save all evaluation results and generated samples.")
@@ -392,8 +469,13 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         detector_name = validator_name
     
     # Determine what to run based on the --run argument
-    run_validation = args.run in ["validation", "both"]
-    run_anomaly = args.run in ["anomaly", "both"]
+    run_validation = args.run in ["validation", "both", "all"]
+    run_anomaly = args.run in ["anomaly", "both", "all"]
+    run_ml = args.run in ["ml", "all"] or args.ml_detector
+    
+    # If running "both", try to include all methods but keep it simple
+    if args.run == "both":
+        run_ml = False  # For now, don't auto-include ML with "both" to avoid complexity
     
     rules_path = f"rules/{validator_name}.json"
     validator_module_str = f"validators.{validator_name}.validate:Validator"
@@ -414,6 +496,10 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         print(f"Using anomaly detector: '{detector_name}'")
         print(f"Anomaly Detector: {anomaly_detector_module_str}")
         print(f"Anomaly Reporter: {anomaly_reporter_module_str}")
+    
+    if run_ml:
+        print(f"Using ML-based anomaly detection")
+        print(f"ML Detector: MLAnomalyDetectorAdapter")
         
     print()
     
@@ -431,6 +517,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     validator_reporter = None
     anomaly_detector = None
     anomaly_reporter = None
+    ml_detector = None
 
     # Load validation components if needed
     if run_validation:
@@ -456,9 +543,26 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
             anomaly_reporter = AnomalyReporterClass(detector_name)
         except Exception as e:
             print(f"Error: Could not load anomaly detector modules.\nDetails: {e}")
-            if run_validation:
-                print("Continuing with validation only.")
+            if run_validation or run_ml:
+                print("Continuing without pattern-based anomaly detection.")
                 run_anomaly = False
+            else:
+                sys.exit(1)
+
+    # Load ML detection components if needed
+    if run_ml:
+        try:
+            # Use the validator name as rule name and source data as clean data path
+            ml_detector = MLAnomalyDetectorAdapter(
+                rule_name=validator_name,
+                clean_data_path=args.source_data
+            )
+            print("ML anomaly detector initialized successfully.")
+        except Exception as e:
+            print(f"Error: Could not initialize ML anomaly detector.\nDetails: {e}")
+            if run_validation or run_anomaly:
+                print("Continuing without ML-based anomaly detection.")
+                run_ml = False
             else:
                 sys.exit(1)
     
@@ -467,7 +571,8 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         validator=validator,
         validator_reporter=validator_reporter,
         anomaly_detector=anomaly_detector,
-        anomaly_reporter=anomaly_reporter
+        anomaly_reporter=anomaly_reporter,
+        ml_detector=ml_detector
     )
     
     # Run evaluation
@@ -485,12 +590,16 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     
     evaluation_results = []
     for sample in error_samples:
+        # Use unified approach only when explicitly requested with ML or all methods
+        use_unified = run_ml and (run_validation or run_anomaly)
+        
         result = evaluator.evaluate_sample(
-            sample["sample_df"], 
+            sample["data"], 
             column_name, 
             sample.get("injected_errors", []),
             run_validation=run_validation,
-            run_anomaly_detection=run_anomaly
+            run_anomaly_detection=run_anomaly,
+            use_unified_approach=use_unified
         )
         
         # Add flags to indicate what was run

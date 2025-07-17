@@ -87,7 +87,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
             if std > 0 and abs(value - mean) > 3 * std:  # 3-sigma rule
                 return AnomalyError(
                     anomaly_type=self.ErrorCode.STATISTICAL_OUTLIER,
-                    anomaly_score=min(abs(value - mean) / (4 * std), 0.99),  # Cap at 0.99
+                    probability=min(abs(value - mean) / (4 * std), 0.99),  # Cap at 0.99
                     details={
                         'mean': mean,
                         'std': std,
@@ -106,7 +106,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
                 if 0 < frequency_pct < 0.01:
                     return AnomalyError(
                         anomaly_type=self.ErrorCode.CATEGORICAL_RARE_VALUE,
-                        anomaly_score=min(1 - (frequency_pct * 100), 0.95),  # Higher confidence for rarer values
+                        probability=min(1 - (frequency_pct * 100), 0.95),  # Higher confidence for rarer values
                         details={
                             'frequency': frequency,
                             'total_count': total,

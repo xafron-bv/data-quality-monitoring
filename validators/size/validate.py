@@ -47,7 +47,7 @@ class Validator(ValidatorInterface):
         if pd.isna(value) or value == '':
             return ValidationError(
                 error_type=self.ErrorCode.MISSING_VALUE,
-                confidence=1.0,
+                probability=1.0,
                 details={}
             )
         
@@ -59,7 +59,7 @@ class Validator(ValidatorInterface):
             else:
                 return ValidationError(
                     error_type=self.ErrorCode.INVALID_TYPE,
-                    confidence=1.0,
+                    probability=1.0,
                     details={"expected": "string or numeric", "received": str(type(value))}
                 )
         
@@ -67,7 +67,7 @@ class Validator(ValidatorInterface):
         if value != value.strip():
             return ValidationError(
                 error_type=self.ErrorCode.LEADING_TRAILING_SPACE,
-                confidence=1.0,
+                probability=1.0,
                 details={"original": value, "stripped": value.strip()}
             )
         
@@ -75,7 +75,7 @@ class Validator(ValidatorInterface):
         if re.match(r'^SIZE:\s', value, re.IGNORECASE):
             return ValidationError(
                 error_type=self.ErrorCode.INVALID_PREFIX,
-                confidence=0.95,
+                probability=0.95,
                 details={"prefix": value.split()[0]}
             )
         
@@ -84,7 +84,7 @@ class Validator(ValidatorInterface):
             match = re.search(r'(.*?)(\(.+\))$', value)
             return ValidationError(
                 error_type=self.ErrorCode.APPENDED_SUFFIX,
-                confidence=0.9,
+                probability=0.9,
                 details={"size_part": match.group(1).strip(), "suffix": match.group(2)}
             )
         
@@ -92,7 +92,7 @@ class Validator(ValidatorInterface):
         if re.match(r'^\$\d+\s\d+/\d+$', value):
             return ValidationError(
                 error_type=self.ErrorCode.FRACTIONAL_SIZE,
-                confidence=0.95,
+                probability=0.95,
                 details={"fractional_size": value}
             )
         
@@ -100,7 +100,7 @@ class Validator(ValidatorInterface):
         if re.match(r'^\$\d+\.\d+$', value):
             return ValidationError(
                 error_type=self.ErrorCode.DECIMAL_IN_INTEGER,
-                confidence=0.95,
+                probability=0.95,
                 details={"decimal_size": value}
             )
         
@@ -108,7 +108,7 @@ class Validator(ValidatorInterface):
         if re.match(r'^[XSMLxsml]+-[XSMLxsml]+$', value):
             return ValidationError(
                 error_type=self.ErrorCode.WRONG_DELIMITER,
-                confidence=0.85,
+                probability=0.85,
                 details={"delimiter_value": value}
             )
         
@@ -126,7 +126,7 @@ class Validator(ValidatorInterface):
             # If it doesn't match any of our valid patterns, it might contain random noise
             return ValidationError(
                 error_type=self.ErrorCode.RANDOM_NOISE,
-                confidence=0.8,
+                probability=0.8,
                 details={"invalid_size": value}
             )
         

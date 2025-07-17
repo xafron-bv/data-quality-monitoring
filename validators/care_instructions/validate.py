@@ -44,21 +44,21 @@ class Validator(ValidatorInterface):
         if pd.isna(value) or not str(value).strip():
             return ValidationError(
                 error_type=self.ErrorCode.MISSING_VALUE,
-                confidence=1.0,
+                probability=1.0,
                 details={}
             )
 
         if not isinstance(value, str):
             return ValidationError(
                 error_type=self.ErrorCode.INVALID_TYPE,
-                confidence=1.0,
+                probability=1.0,
                 details={"expected": "string"}
             )
 
         if value.strip() != value:
             return ValidationError(
                 error_type=self.ErrorCode.HAS_LEADING_OR_TRAILING_WHITESPACE,
-                confidence=0.95,
+                probability=0.95,
                 details={}
             )
         
@@ -68,35 +68,35 @@ class Validator(ValidatorInterface):
         if not value.startswith("WASSEN OP MAX"):
             return ValidationError(
                 error_type=self.ErrorCode.CONTAINS_PREPENDED_TEXT,
-                confidence=0.9,
+                probability=0.9,
                 details={}
             )
 
         if ' - ' in value and 'Machine wash cold' in value:
              return ValidationError(
                 error_type=self.ErrorCode.CONTAINS_APPENDED_TEXT,
-                confidence=0.9,
+                probability=0.9,
                 details={}
              )
 
         if '  ' in value:
             return ValidationError(
                 error_type=self.ErrorCode.CONTAINS_MULTIPLE_SPACES,
-                confidence=0.85,
+                probability=0.85,
                 details={}
             )
 
         if '\n' in value or '\r' in value:
             return ValidationError(
                 error_type=self.ErrorCode.CONTAINS_LINE_BREAK,
-                confidence=0.95,
+                probability=0.95,
                 details={}
             )
 
         if re.search(r'<.*?>', value):
             return ValidationError(
                 error_type=self.ErrorCode.CONTAINS_HTML,
-                confidence=0.98,
+                probability=0.98,
                 details={}
             )
 
@@ -104,28 +104,28 @@ class Validator(ValidatorInterface):
         if emoji_pattern.search(value):
             return ValidationError(
                 error_type=self.ErrorCode.CONTAINS_EMOJI,
-                confidence=0.95,
+                probability=0.95,
                 details={}
             )
 
         if 'Ã' in value:
              return ValidationError(
                 error_type=self.ErrorCode.CONTAINS_DISALLOWED_SYMBOLS,
-                confidence=0.9,
+                probability=0.9,
                 details={"symbol": "Ã"}
              )
 
         if ';' in value or ( ' - ' in value and 'NIET' in value):
             return ValidationError(
                 error_type=self.ErrorCode.INVALID_DELIMITER,
-                confidence=0.9,
+                probability=0.9,
                 details={}
             )
         
         if '. .' in value or '..' in value:
             return ValidationError(
                 error_type=self.ErrorCode.MISSING_INSTRUCTION,
-                confidence=0.9,
+                probability=0.9,
                 details={}
             )
 
@@ -133,7 +133,7 @@ class Validator(ValidatorInterface):
         if not re.search(temp_pattern, value):
              return ValidationError(
                 error_type=self.ErrorCode.INVALID_TEMPERATURE_FORMAT,
-                confidence=0.9,
+                probability=0.9,
                 details={"value": value}
              )
 
@@ -144,7 +144,7 @@ class Validator(ValidatorInterface):
             if instruction and "WASSEN OP MAX" not in instruction and instruction != instruction.upper():
                 return ValidationError(
                     error_type=self.ErrorCode.INCORRECT_CAPITALIZATION,
-                    confidence=0.85,
+                    probability=0.85,
                     details={"instruction": instruction}
                 )
 
@@ -161,7 +161,7 @@ class Validator(ValidatorInterface):
                 if not re.fullmatch(r'WASSEN OP MAX \d{2}°C', part):
                     return ValidationError(
                         error_type=self.ErrorCode.UNKNOWN_INSTRUCTION,
-                        confidence=0.8,
+                        probability=0.8,
                         details={"instruction": part}
                     )
 

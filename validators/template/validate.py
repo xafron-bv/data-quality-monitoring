@@ -48,21 +48,21 @@ class Validator(ValidatorInterface):
         # if pd.isna(value):
         #     return ValidationError(
         #         error_type=self.ErrorCode.MISSING_VALUE,
-        #         confidence=1.0,  # 100% confident it's missing
+        #         probability=1.0,  # 100% confident it's missing
         #         details={}
         #     )
         #
         # if not isinstance(value, (int, float)):
         #     return ValidationError(
         #         error_type=self.ErrorCode.INVALID_TYPE,
-        #         confidence=1.0,  # 100% confident it's the wrong type
+        #         probability=1.0,  # 100% confident it's the wrong type
         #         details={"expected": "integer"}
         #     )
         #
         # if not (18 <= value <= 120):
         #     return ValidationError(
         #         error_type=self.ErrorCode.AGE_OUT_OF_RANGE,
-        #         confidence=0.95,  # 95% confident this is an error
+        #         probability=0.95,  # 95% confident this is an error
         #         details={"age": value}
         #     )
         #

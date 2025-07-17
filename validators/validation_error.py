@@ -7,31 +7,31 @@ class ValidationError:
     
     This class enforces that all validation errors include:
     - An error code (from ErrorCode enum)
-    - A confidence level (float between 0 and 1)
+    - A probability level (float between 0 and 1)
     - Optional details as a dictionary
     """
     
-    def __init__(self, error_type: Union[str, Enum], confidence: float, details: Optional[Dict[str, Any]] = None, 
+    def __init__(self, error_type: Union[str, Enum], probability: float, details: Optional[Dict[str, Any]] = None, 
                 row_index: Optional[int] = None, column_name: Optional[str] = None, error_data: Any = None):
         """
         Initialize a ValidationError with required fields.
         
         Args:
             error_type: The error code/type (from ErrorCode enum)
-            confidence: A value between 0 and 1 indicating the confidence level of the error detection
+            probability: A value between 0 and 1 indicating the probability that this is an error
             details: Optional dictionary containing additional error details
             row_index: Optional row index where the error occurred
             column_name: Optional column name where the error occurred
             error_data: Optional original data that caused the error
         
         Raises:
-            ValueError: If confidence is not between 0 and 1
+            ValueError: If probability is not between 0 and 1
         """
-        if not 0 <= confidence <= 1:
-            raise ValueError(f"Confidence must be between 0 and 1, got {confidence}")
+        if not 0 <= probability <= 1:
+            raise ValueError(f"Probability must be between 0 and 1, got {probability}")
         
         self.error_type = error_type
-        self.confidence = confidence
+        self.probability = probability
         self.details = details or {}
         self.row_index = row_index
         self.column_name = column_name
@@ -46,7 +46,7 @@ class ValidationError:
         """
         result = {
             "error_code": self.error_type,
-            "confidence": self.confidence,
+            "probability": self.probability,
             "details": self.details
         }
         
@@ -75,7 +75,7 @@ class ValidationError:
         """
         return ValidationError(
             error_type=self.error_type,
-            confidence=self.confidence,
+            probability=self.probability,
             details=self.details,
             row_index=row_index,
             column_name=column_name,

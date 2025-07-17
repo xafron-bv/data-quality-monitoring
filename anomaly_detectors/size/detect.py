@@ -110,7 +110,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
         if self.total_sizes > 10 and 0 < size_frequency < self.total_sizes * 0.02:  # Less than 2% frequency
             return AnomalyError(
                 anomaly_type=self.ErrorCode.UNUSUAL_SIZE_VALUE,
-                anomaly_score=min(0.85, 1.0 - (size_frequency / self.total_sizes)),
+                probability=min(0.85, 1.0 - (size_frequency / self.total_sizes)),
                 details={
                     "size": value,
                     "frequency": size_frequency,
@@ -125,7 +125,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
         if self.total_sizes > 10 and 0 < format_frequency < self.total_sizes * 0.05:  # Less than 5% frequency
             return AnomalyError(
                 anomaly_type=self.ErrorCode.UNUSUAL_SIZE_FORMAT,
-                anomaly_score=min(0.8, 1.0 - (format_frequency / self.total_sizes)),
+                probability=min(0.8, 1.0 - (format_frequency / self.total_sizes)),
                 details={
                     "size": value,
                     "format": format_pattern,
@@ -149,7 +149,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
                         if numeric_value < min_size - (max_size - min_size) * 0.2 or numeric_value > max_size + (max_size - min_size) * 0.2:
                             return AnomalyError(
                                 anomaly_type=self.ErrorCode.SIZE_OUTLIER,
-                                anomaly_score=0.85,
+                                probability=0.85,
                                 details={
                                     "size": value,
                                     "numeric_value": numeric_value,
@@ -173,7 +173,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
                     if numeric_value < lower_bound or numeric_value > upper_bound:
                         return AnomalyError(
                             anomaly_type=self.ErrorCode.UNEXPECTED_NUMERIC_PATTERN,
-                            anomaly_score=0.75,
+                            probability=0.75,
                             details={
                                 "size": value,
                                 "numeric_value": numeric_value,

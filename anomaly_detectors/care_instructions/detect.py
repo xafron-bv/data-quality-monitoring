@@ -154,7 +154,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
                 # This is unusually short or long
                 return AnomalyError(
                     anomaly_type=self.ErrorCode.UNUSUAL_LENGTH,
-                    anomaly_score=min(0.8, abs(length - (q1 + q3)/2) / ((q3 - q1) * 2)),
+                    probability=min(0.8, abs(length - (q1 + q3)/2) / ((q3 - q1) * 2)),
                     details={
                         "length": length,
                         "typical_range": f"{q1} to {q3} characters"
@@ -169,7 +169,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
         if instructions and self.total_instructions > 10 and 0 < set_frequency < self.total_instructions * 0.05:
             return AnomalyError(
                 anomaly_type=self.ErrorCode.UNUSUAL_INSTRUCTION_SET,
-                anomaly_score=min(0.9, 1.0 - (set_frequency / self.total_instructions)),
+                probability=min(0.9, 1.0 - (set_frequency / self.total_instructions)),
                 details={
                     "instructions": list(instructions),
                     "frequency": set_frequency,
@@ -184,7 +184,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
         if structure_pattern and self.total_instructions > 10 and 0 < structure_frequency < self.total_instructions * 0.05:
             return AnomalyError(
                 anomaly_type=self.ErrorCode.UNUSUAL_STRUCTURE,
-                anomaly_score=min(0.85, 1.0 - (structure_frequency / self.total_instructions)),
+                probability=min(0.85, 1.0 - (structure_frequency / self.total_instructions)),
                 details={
                     "structure": structure_pattern,
                     "frequency": structure_frequency,
@@ -199,7 +199,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
         if self.total_instructions > 10 and 0 < delimiter_frequency < self.total_instructions * 0.05:
             return AnomalyError(
                 anomaly_type=self.ErrorCode.UNCOMMON_PATTERN,
-                anomaly_score=min(0.75, 1.0 - (delimiter_frequency / self.total_instructions)),
+                probability=min(0.75, 1.0 - (delimiter_frequency / self.total_instructions)),
                 details={
                     "pattern": delimiter_pattern,
                     "frequency": delimiter_frequency,

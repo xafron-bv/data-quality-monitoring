@@ -117,7 +117,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
         if 0 < color_frequency < self.total_colors * 0.03:  # Less than 3% frequency
             return AnomalyError(
                 anomaly_type=self.ErrorCode.RARE_COLOR,
-                anomaly_score=min(0.9, 1.0 - (color_frequency / self.total_colors)),
+                probability=min(0.9, 1.0 - (color_frequency / self.total_colors)),
                 details={
                     "color": norm_color,
                     "frequency": color_frequency,
@@ -133,7 +133,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
             if cap_frequency < self.total_colors * 0.1 and cap_pattern != common_cap:
                 return AnomalyError(
                     anomaly_type=self.ErrorCode.UNUSUAL_CAPITALIZATION,
-                    anomaly_score=min(0.7, 1.0 - (cap_frequency / self.total_colors)),
+                    probability=min(0.7, 1.0 - (cap_frequency / self.total_colors)),
                     details={
                         "capitalization": cap_pattern,
                         "common_pattern": common_cap,
@@ -150,7 +150,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
             if chars_frequency < self.total_colors * 0.05 and char_set != common_chars:
                 return AnomalyError(
                     anomaly_type=self.ErrorCode.UNUSUAL_CHARACTER_SET,
-                    anomaly_score=min(0.85, 1.0 - (chars_frequency / self.total_colors)),
+                    probability=min(0.85, 1.0 - (chars_frequency / self.total_colors)),
                     details={
                         "character_set": char_set,
                         "common_set": common_chars,
