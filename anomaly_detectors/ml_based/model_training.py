@@ -448,7 +448,7 @@ def setup_results_directory_structure():
     """
     Create the organized directory structure for all results and outputs.
     """
-    base_results_dir = os.path.join('..', 'results')
+    base_results_dir = 'results'
     
     # Create main directories
     directories = [
