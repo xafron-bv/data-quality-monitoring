@@ -9,13 +9,15 @@ from validators.validation_error import ValidationError
 from validators.validator_interface import ValidatorInterface
 from validators.reporter_interface import ReporterInterface
 from anomaly_detectors.anomaly_detector_interface import AnomalyDetectorInterface
+from anomaly_detectors.reporter_interface import AnomalyReporterInterface
 from unified_detection_interface import (
     UnifiedDetectionResult, 
     CombinedDetector, 
     UnifiedReporter,
     DetectionType
 )
-from ml_anomaly_detector_adapter import MLAnomalyDetectorAdapter
+from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
+from anomaly_detectors.ml_based.ml_anomaly_reporter import MLAnomalyReporter
 
 
 class Evaluator:
@@ -29,8 +31,9 @@ class Evaluator:
                  validator: Optional[ValidatorInterface] = None,
                  validator_reporter: Optional[ReporterInterface] = None,
                  anomaly_detector: Optional[AnomalyDetectorInterface] = None,
-                 anomaly_reporter: Optional[ReporterInterface] = None,
-                 ml_detector: Optional[MLAnomalyDetectorAdapter] = None):
+                 anomaly_reporter: Optional[AnomalyReporterInterface] = None,
+                 ml_detector: Optional[MLAnomalyDetector] = None,
+                 ml_reporter: Optional[MLAnomalyReporter] = None):
         """
         Initialize the Evaluator with validators, anomaly detectors, and ML detectors.
         
@@ -40,12 +43,14 @@ class Evaluator:
             anomaly_detector: Optional anomaly detector to check for anomalies
             anomaly_reporter: Optional reporter to format anomaly detection results
             ml_detector: Optional ML-based anomaly detector
+            ml_reporter: Optional reporter to format ML-based anomaly detection results
         """
         self.validator = validator
         self.validator_reporter = validator_reporter
         self.anomaly_detector = anomaly_detector
         self.anomaly_reporter = anomaly_reporter
         self.ml_detector = ml_detector
+        self.ml_reporter = ml_reporter
         
         # Create unified components
         self.combined_detector = CombinedDetector(
@@ -58,11 +63,11 @@ class Evaluator:
         # Log which components are active
         components = []
         if validator:
-            components.append("Validator")
+            components.append("Validator" + (" + Reporter" if validator_reporter else ""))
         if anomaly_detector:
-            components.append("Anomaly Detector")
+            components.append("Anomaly Detector" + (" + Reporter" if anomaly_reporter else ""))
         if ml_detector:
-            components.append("ML Detector")
+            components.append("ML Detector" + (" + Reporter" if ml_reporter else ""))
         
         if components:
             print(f"Evaluator initialized with: {', '.join(components)}")
@@ -259,25 +264,23 @@ class Evaluator:
             try:
                 ml_anomalies = self.ml_detector.bulk_detect(df, column_name)
                 
-                # Convert ML results to a consistent format
-                ml_reports = []
-                for ml_result in ml_anomalies:
-                    ml_report = {
-                        "row_index": ml_result.row_index,
-                        "column_name": ml_result.column_name,
-                        "value": ml_result.value,
-                        "probability": ml_result.probabiliy,
-                        "error_code": "ML_ANOMALY",
-                        "display_message": ml_result.explanation or f"ML anomaly detected with probability {ml_result.probabiliy:.2f}",
-                        "ml_features": {
-                            'anomaly_probability': ml_result.probabiliy,
-                            'feature_contributions': ml_result.feature_contributions,
-                            'nearest_neighbors': ml_result.nearest_neighbors,
-                            'cluster_info': ml_result.cluster_info,
-                            'probability_info': ml_result.probability_info
+                # Use ML reporter if available, otherwise format manually
+                if self.ml_reporter:
+                    ml_reports = self.ml_reporter.generate_report(ml_anomalies, df)
+                else:
+                    # Fallback to manual formatting for backward compatibility
+                    ml_reports = []
+                    for ml_result in ml_anomalies:
+                        ml_report = {
+                            "row_index": ml_result.row_index,
+                            "column_name": ml_result.column_name,
+                            "value": ml_result.value,
+                            "probability": ml_result.probability,
+                            "error_code": ml_result.error_code,
+                            "display_message": f"ML anomaly detected with probability {ml_result.probability:.2f}",
+                            "ml_features": ml_result.metadata
                         }
-                    }
-                    ml_reports.append(ml_report)
+                        ml_reports.append(ml_report)
                 
                 ml_results["ml_results"] = ml_reports
                 ml_results["total_ml_issues"] = len(ml_reports)

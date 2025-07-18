@@ -1,6 +1,6 @@
-def get_rule_to_column_map():
+def get_field_to_column_map():
     """
-    Get the mapping from rule files to column names.
+    Get the mapping from field names to column names.
     """
     return {
         "category": "article_structure_name_2",

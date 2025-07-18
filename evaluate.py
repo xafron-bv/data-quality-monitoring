@@ -15,7 +15,7 @@ import re
 from validators.validation_error import ValidationError
 from evaluator import Evaluator
 from error_injection import apply_error_rule, generate_error_samples, load_error_rules
-from ml_anomaly_detector_adapter import MLAnomalyDetectorAdapter
+from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -428,7 +428,7 @@ Example Usage:
   python evaluate.py data/source.csv --column material --ml-detector --run all
 
 This will automatically look for:
-- Rules:      rules/<validator>.json
+- Error Injection Rules: error_injection_rules/<validator>.json
 - Validator:  validators/<validator>/validate.py (expecting class 'Validator')
 - Reporter:   validators/report:Reporter
 - Anomaly Detector: anomaly_detectors/<detector>/detect.py (expecting class 'AnomalyDetector')
@@ -477,11 +477,11 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     if args.run == "both":
         run_ml = False  # For now, don't auto-include ML with "both" to avoid complexity
     
-    rules_path = f"rules/{validator_name}.json"
+    rules_path = f"error_injection_rules/{validator_name}.json"
     validator_module_str = f"validators.{validator_name}.validate:Validator"
     validator_reporter_module_str = f"validators.report:Reporter"
-    anomaly_detector_module_str = f"anomaly_detectors.{detector_name}.detect:AnomalyDetector"
-    anomaly_reporter_module_str = f"anomaly_detectors.report:AnomalyReporter"
+    anomaly_detector_module_str = f"anomaly_detectors.rule_based.{detector_name}.detect:AnomalyDetector"
+    anomaly_reporter_module_str = f"anomaly_detectors.rule_based.report:AnomalyReporter"
     
     print(f"--- Evaluation Setup ---")
     print(f"Target column: '{column_name}'")
@@ -499,7 +499,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     
     if run_ml:
         print(f"Using ML-based anomaly detection")
-        print(f"ML Detector: MLAnomalyDetectorAdapter")
+        print(f"ML Detector: MLAnomalyDetector")
         
     print()
     
@@ -552,10 +552,8 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     # Load ML detection components if needed
     if run_ml:
         try:
-            # Use the validator name as rule name and source data as clean data path
-            ml_detector = MLAnomalyDetectorAdapter(
-                rule_name=validator_name,
-                clean_data_path=args.source_data
+            ml_detector = MLAnomalyDetector(
+                field_name=validator_name,
             )
             print("ML anomaly detector initialized successfully.")
         except Exception as e:
