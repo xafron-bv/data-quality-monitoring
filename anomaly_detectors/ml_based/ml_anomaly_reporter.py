@@ -1,165 +1,144 @@
-import pandas as pd
-import json
-import os
-from typing import List, Dict, Any, Union
-import numpy as np
-from collections import defaultdict
+"""
+ML-based anomaly reporter implementation following the standard pattern.
+"""
 
-from anomaly_detectors.reporter_interface import AnomalyReporterInterface, MLAnomalyResult
+import json
+import pandas as pd
+from typing import List, Dict, Any, Optional
+
+from anomaly_detectors.reporter_interface import AnomalyReporterInterface
 from anomaly_detectors.anomaly_error import AnomalyError
+
 
 class MLAnomalyReporter(AnomalyReporterInterface):
     """
-    Implements the AnomalyReporterInterface for ML-based anomaly detection results.
-    This reporter translates complex ML model outputs into human-readable messages.
+    Implements the AnomalyReporterInterface to translate ML-based anomaly detection
+    results into human-readable messages.
     """
 
-    def __init__(self, model_name: str, include_technical_details: bool = False):
+    def __init__(self, include_technical_details: bool = False):
         """
         Initialize the ML anomaly reporter.
         
         Args:
-            model_name: The name of the ML model or pipeline used for detection
-            include_technical_details: Whether to include detailed technical information in reports
+            include_technical_details (bool): Whether to include technical details
+                                            like similarity scores in the reports.
         """
-        self.model_name = model_name
         self.include_technical_details = include_technical_details
-        
-        # Load explanation templates
-        templates_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "anomaly_detectors", "ml_explanation_templates.json"
-        )
-        
+        self.error_messages = self._load_error_messages()
+
+    def _load_error_messages(self) -> Dict[str, str]:
+        """Load error message templates for ML-based anomalies."""
         try:
-            with open(templates_path, 'r') as f:
-                self.explanation_templates = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            # Default templates if file not found or invalid
-            self.explanation_templates = {
-                "default": "This value was detected as anomalous by the {model_name} model with a score of {score:.2f}.",
-                "high_score": "This value is highly anomalous according to the {model_name} model (score: {score:.2f}).",
-                "outlier": "This value is a statistical outlier, {z_score:.2f} standard deviations from the mean.",
-                "cluster": "This value doesn't match the typical patterns for this category.",
-                "feature_contribution": "The unusual aspects of this value are: {top_features}."
+            # Try to load from JSON file
+            with open('anomaly_detectors/ml_based/ml_explanation_templates.json', 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            # Use default templates if file doesn't exist
+            return {
+                "SIMILARITY_ANOMALY": "Value '{value}' appears unusual based on ML similarity analysis (probability: {probability:.3f})",
+                "OUTLIER_DETECTED": "Value '{value}' detected as outlier by ML model (probability: {probability:.3f})",
+                "PATTERN_DEVIATION": "Value '{value}' deviates from learned patterns (probability: {probability:.3f})",
+                "UNKNOWN_PATTERN": "Value '{value}' doesn't match any known patterns (probability: {probability:.3f})"
             }
 
-    def _format_ml_explanation(self, result: MLAnomalyResult) -> str:
+    def generate_report(self, anomaly_errors: List[AnomalyError], data: pd.DataFrame) -> List[Dict[str, Any]]:
         """
-        Create a human-readable explanation from ML model results.
+        Generate human-readable reports from ML-based anomaly errors.
         
         Args:
-            result: The ML anomaly result object
+            anomaly_errors (List[AnomalyError]): List of anomaly errors to report
+            data (pd.DataFrame): The original data being analyzed
             
         Returns:
-            A string containing the explanation
-        """
-        # If the model already provided an explanation, use it
-        if result.explanation:
-            return result.explanation
-            
-        # Otherwise build an explanation based on available data
-        explanations = []
-        
-        # Add base explanation based on score
-        template = self.explanation_templates["high_score"] if result.probabiliy > 0.85 else self.explanation_templates["default"]
-        explanations.append(template.format(model_name=self.model_name, score=result.probabiliy))
-        
-        # Add statistical explanation if available
-        if result.probability_info and "z_score" in result.probability_info:
-            z_score = abs(result.probability_info["z_score"])
-            if z_score > 2:
-                stat_template = self.explanation_templates["outlier"]
-                explanations.append(stat_template.format(z_score=z_score))
-        
-        # Add feature contribution explanation if available
-        if result.feature_contributions:
-            # Get top 3 contributing features
-            top_features = sorted(
-                result.feature_contributions.items(), 
-                key=lambda x: abs(x[1]), 
-                reverse=True
-            )[:3]
-            
-            if top_features:
-                feature_list = ", ".join([f"{feat} ({score:.2f})" for feat, score in top_features])
-                feature_template = self.explanation_templates["feature_contribution"]
-                explanations.append(feature_template.format(top_features=feature_list))
-        
-        # Add cluster information if available
-        if result.cluster_info and "cluster_name" in result.cluster_info:
-            cluster_template = self.explanation_templates["cluster"]
-            explanations.append(cluster_template)
-            
-        return " ".join(explanations)
-
-    def generate_report(self, 
-                      anomaly_results: Union[List[AnomalyError], List[MLAnomalyResult]], 
-                      original_df: pd.DataFrame,
-                      threshold: float = 0.7) -> List[Dict[str, Any]]:
-        """
-        Generate human-readable reports from anomaly detection results.
-        
-        Args:
-            anomaly_results: List of anomaly detection results (ML or rule-based)
-            original_df: Original DataFrame for context
-            threshold: Threshold for reporting anomalies
-            
-        Returns:
-            List of report dictionaries
+            List[Dict[str, Any]]: List of report dictionaries with human-readable messages
         """
         reports = []
         
-        for result in anomaly_results:
-            if isinstance(result, MLAnomalyResult):
-                # Process ML-based result
-                if result.probabiliy < threshold:
-                    continue  # Skip if below threshold
-                
-                # Generate explanation
-                explanation = self._format_ml_explanation(result)
-                
-                # Build report
-                report = {
-                    "row_index": result.row_index,
-                    "column_name": result.column_name,
-                    "value": result.value,
-                    "display_message": explanation,
-                    "probabiliy": result.probabiliy,
-                    "is_ml_based": True
-                }
-                
-                # Add technical details if requested
-                if self.include_technical_details:
-                    report["technical_details"] = {
-                        "feature_contributions": result.feature_contributions,
-                        "probability_info": result.probability_info,
-                        "cluster_info": result.cluster_info,
-                        "nearest_neighbors": [
-                            {"row_index": idx, "distance": dist} 
-                            for idx, dist in result.nearest_neighbors[:5]
-                        ] if result.nearest_neighbors else []
-                    }
-                
-                reports.append(report)
-                
-            elif isinstance(result, AnomalyError):
-                # Process rule-based result
-                probability = result.probability
-                if probability < threshold:
-                    continue  # Skip if below threshold
-                
-                # Build report
-                report = {
-                    "row_index": result.row_index,
-                    "column_name": result.column_name,
-                    "value": result.anomaly_data,
-                    "display_message": f"Anomaly detected: {result.anomaly_type}",
-                    "probabiliy": probability,
-                    "explanation": json.dumps(result.details) if result.details else None,
-                    "is_ml_based": False
-                }
-                
-                reports.append(report)
+        for error in anomaly_errors:
+            report = self._create_report_for_error(error, data)
+            reports.append(report)
         
         return reports
+
+    def _create_report_for_error(self, error: AnomalyError, data: pd.DataFrame) -> Dict[str, Any]:
+        """
+        Create a report dictionary for a single anomaly error.
+        
+        Args:
+            error (AnomalyError): The anomaly error to report
+            data (pd.DataFrame): The original data being analyzed
+            
+        Returns:
+            Dict[str, Any]: Report dictionary with display message and metadata
+        """
+        # Get the error message template
+        template = self.error_messages.get(error.error_code, 
+                                         "Value '{value}' flagged as anomaly (probability: {probability:.3f})")
+        
+        # Format the message with error details
+        display_message = template.format(
+            value=error.value,
+            probability=error.probability,
+            **error.metadata
+        )
+        
+        # Create the base report
+        report = {
+            'row_index': error.row_index,
+            'column_name': error.column_name,
+            'value': error.value,
+            'error_code': error.error_code,
+            'probability': error.probability,
+            'display_message': display_message,
+            'is_ml_based': True
+        }
+        
+        # Add technical details if requested
+        if self.include_technical_details:
+            technical_details = {
+                'similarity_score': error.metadata.get('similarity_score', 'N/A'),
+                'nearest_neighbors': error.metadata.get('nearest_neighbors', []),
+                'model_type': error.metadata.get('model_type', 'Unknown'),
+                'threshold': error.metadata.get('threshold', 'N/A')
+            }
+            report['technical_details'] = technical_details
+        
+        return report
+
+    def get_summary_statistics(self, anomaly_errors: List[AnomalyError]) -> Dict[str, Any]:
+        """
+        Generate summary statistics for ML-based anomaly errors.
+        
+        Args:
+            anomaly_errors (List[AnomalyError]): List of anomaly errors
+            
+        Returns:
+            Dict[str, Any]: Summary statistics
+        """
+        if not anomaly_errors:
+            return {
+                'total_anomalies': 0,
+                'avg_probability': 0.0,
+                'error_code_distribution': {},
+                'columns_affected': []
+            }
+        
+        # Calculate statistics
+        total_anomalies = len(anomaly_errors)
+        avg_probability = sum(error.probability for error in anomaly_errors) / total_anomalies
+        
+        # Error code distribution
+        error_code_counts = {}
+        for error in anomaly_errors:
+            error_code_counts[error.error_code] = error_code_counts.get(error.error_code, 0) + 1
+        
+        # Columns affected
+        columns_affected = list(set(error.column_name for error in anomaly_errors))
+        
+        return {
+            'total_anomalies': total_anomalies,
+            'avg_probability': avg_probability,
+            'error_code_distribution': error_code_counts,
+            'columns_affected': columns_affected
+        }

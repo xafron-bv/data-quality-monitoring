@@ -26,8 +26,8 @@ class AnomalyReporter(AnomalyReporterInterface):
             sys.exit(1)
             
         error_messages_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "anomaly_detectors", detector_name, "error_messages.json"
+            os.path.dirname(os.path.abspath(__file__)),
+            detector_name, "error_messages.json"
         )
         try:
             with open(error_messages_path, 'r') as f:

@@ -14,11 +14,11 @@ from error_injection import load_error_rules
 from hyperparameter_search import save_aggregated_hp_results, random_hyperparameter_search, get_optimal_parameters
 from model_training import train_and_evaluate_similarity_model, get_column_configs, setup_results_directory_structure
 
-# Import rule-to-column mapping
-from rule_column_map import get_rule_to_column_map
+# Import field-to-column mapping
+from field_column_map import get_field_to_column_map
 
 # Import anomaly checking functions
-from check_anomalies import load_model_for_rule, check_anomalies
+from check_anomalies import load_model_for_field, check_anomalies
 
 
 
@@ -29,19 +29,19 @@ if __name__ == "__main__":
     parser.add_argument("csv_file", help="The path to the input CSV file.")
     parser.add_argument("--use-hp-search", action="store_true", help="Use RECALL-FOCUSED hyperparameter search.")
     parser.add_argument("--hp-trials", type=int, default=15, help="Number of hyperparameter search trials (default: 15).")
-    parser.add_argument("--rules", nargs='+', default=None, help="List of rule file names to include in training/hp search (by rule name, space-separated, e.g. 'size material'). If not set, all rules are used.")
-    parser.add_argument("--check-anomalies", metavar="RULE", help="Run anomaly check on the given rule using the trained model.")
+    parser.add_argument("--rules", nargs='+', default=None, help="List of field names to include in training/hp search (by field name, space-separated, e.g. 'size material'). If not set, all fields are used.")
+    parser.add_argument("--check-anomalies", metavar="FIELD", help="Run anomaly check on the given field using the trained model.")
     parser.add_argument("--threshold", type=float, default=0.6, help="Similarity threshold for anomaly detection (default: 0.6)")
     parser.add_argument("--output", default=None, help="Optional output CSV file for anomaly check results.")
     args = parser.parse_args()
     
     if args.check_anomalies:
-        rule_name = args.check_anomalies
-        print(f"Running anomaly check for rule '{rule_name}'...")
+        field_name = args.check_anomalies
+        print(f"Running anomaly check for field '{field_name}'...")
         df = pd.read_csv(args.csv_file)
-        model, column_name = load_model_for_rule(rule_name, results_dir="../results")
+        model, column_name = load_model_for_field(field_name, results_dir="../results")
         if column_name not in df.columns:
-            raise ValueError(f"Column '{column_name}' (mapped from rule '{rule_name}') not found in CSV.")
+            raise ValueError(f"Column '{column_name}' (mapped from field '{field_name}') not found in CSV.")
         values = df[column_name].tolist()
         results = check_anomalies(model, values, threshold=args.threshold)
         n_anomalies = sum(r['is_anomaly'] for r in results)
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error loading CSV: {e}"); exit()
         
-    rule_to_column_map = get_rule_to_column_map()
+    field_to_column_map = get_field_to_column_map()
     column_configs = get_column_configs()
 
     rules_dir = '../../rules'
@@ -83,11 +83,11 @@ if __name__ == "__main__":
     torch.manual_seed(42)
     np.random.seed(42)
     
-    selected_rules = set(args.rules) if args.rules else None
+    selected_fields = set(args.rules) if args.rules else None
 
-    for rule_name, column_name in rule_to_column_map.items():
-        # If --columns is set, skip rule_names not in the list
-        if selected_rules and rule_name not in selected_rules:
+    for field_name, column_name in field_to_column_map.items():
+        # If --rules is set, skip field_names not in the list
+        if selected_fields and field_name not in selected_fields:
             continue
         if column_name not in df.columns:
             print(f"Warning: Column '{column_name}' not found in the CSV. Skipping.")
@@ -96,17 +96,17 @@ if __name__ == "__main__":
         config = column_configs.get(column_name, {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2})
 
         print(f"\n{'='*20} Starting Process for Column: {column_name} {'='*20}")
-        print(f"Using rule file: '{rule_name}.json', Model: {config['model']}, Epochs: {config['epochs']}")
+        print(f"Using field file: '{field_name}.json', Model: {config['model']}, Epochs: {config['epochs']}")
 
         if args.use_hp_search:
             print(f"Hyperparameter search enabled with {args.hp_trials} trials")
 
-        file_path = os.path.join(rules_dir, f'{rule_name}.json')
+        file_path = os.path.join(rules_dir, f'{field_name}.json')
         rules = []
         try:
             rules = load_error_rules(file_path)
         except FileNotFoundError:
-            print(f"Error: Rule file '{file_path}' not found.")
+            print(f"Error: Field file '{file_path}' not found.")
             continue
 
         if not rules:

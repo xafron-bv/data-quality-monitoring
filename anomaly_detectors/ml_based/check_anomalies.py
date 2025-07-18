@@ -4,70 +4,33 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from model_training import preprocess_text
 
-# Import rule-to-column mapping
-from rule_column_map import get_rule_to_column_map
+# Import field-to-column mapping
+from field_column_map import get_field_to_column_map
 
-def load_model_for_rule(rule_name, results_dir='../results'):
+def load_model_for_field(field_name, results_dir='../results'):
     """
-    Given a rule name, load the corresponding model and return the model and the mapped column name.
+    Given a field name, load the corresponding model and return the model and the mapped column name.
     """
-    rule_to_column = get_rule_to_column_map()
-    if rule_name not in rule_to_column:
-        raise ValueError(f"Rule '{rule_name}' not found in rule-to-column map.")
-    column_name = rule_to_column[rule_name]
+    field_to_column = get_field_to_column_map()
+    if field_name not in field_to_column:
+        raise ValueError(f"Field '{field_name}' not found in field-to-column map.")
+    column_name = field_to_column[field_name]
     model_dir = os.path.join(results_dir, f'results_{column_name.replace(" ", "_").lower()}')
     if not os.path.isdir(model_dir):
-        raise FileNotFoundError(f"Model directory not found for rule '{rule_name}' (column '{column_name}'): {model_dir}")
+        raise FileNotFoundError(f"Model directory not found for field '{field_name}' (column '{column_name}'): {model_dir}")
     return SentenceTransformer(model_dir), column_name
 
 
-def get_reference_clean_values(df, column_name, max_samples=100):
-    """
-    Get reference clean values from the provided dataframe (should be the original clean training data).
-    """
-    clean_texts = df[column_name].dropna().apply(preprocess_text).astype(str).unique()
-    return clean_texts[:max_samples]
 
-
-def get_reference_clean_values_from_file(clean_csv_path, column_name, max_samples=100):
-    """
-    Load reference clean values from the original training dataset file.
-    """
-    import pandas as pd
-    clean_df = pd.read_csv(clean_csv_path)
-    return get_reference_clean_values(clean_df, column_name, max_samples)
-
-
-def check_anomalies_with_references(model, values, clean_values, threshold=0.6):
-    """
-    Check anomalies by comparing against clean reference values.
-    This approach requires clean reference data.
-    """
-    results = []
-    # Ensure all clean values are strings
-    clean_embs = model.encode([str(v) for v in clean_values])
-    for value in values:
-        value_prep = preprocess_text(value)
-        value_str = str(value_prep) if value_prep is not None else ""
-        value_emb = model.encode([value_str])
-        sims = cosine_similarity(value_emb, clean_embs)[0]
-        max_sim = float(np.max(sims))
-        is_anom = max_sim < threshold
-        results.append({
-            'value': value,
-            'is_anomaly': is_anom,
-            'probability_of_correctness': max_sim
-        })
-    return results
 
 
 def check_anomalies(model, values, threshold=0.6):
     """
-    Check anomalies using the model's learned representation without requiring clean references.
+    Check anomalies using the model's learned representation.
     
     This approach uses the fact that the model was trained with triplet loss to distinguish
-    between clean and anomalous texts. We compute embeddings and use statistical measures
-    to identify outliers.
+    between normal and anomalous texts. We compute embeddings and use statistical measures
+    to identify outliers based on centroid distance.
     """
     results = []
     

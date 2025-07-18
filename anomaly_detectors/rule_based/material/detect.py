@@ -25,6 +25,7 @@ class AnomalyDetector(AnomalyDetectorInterface):
     
     def __init__(self):
         """Initialize the anomaly detector with state variables."""
+        self.field_name = "material"  # The type of field this detector validates
         self.material_counts = Counter()
         self.percentage_distribution = defaultdict(list)
         self.common_material_combinations = defaultdict(int)
