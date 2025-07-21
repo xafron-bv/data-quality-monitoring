@@ -1,4 +1,5 @@
 import numpy as np
+from os import path
 import os
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -7,7 +8,7 @@ from model_training import preprocess_text
 # Import field-to-column mapping
 from field_column_map import get_field_to_column_map
 
-def load_model_for_field(field_name, results_dir='../results'):
+def load_model_for_field(field_name, results_dir=path.join('..', 'results')):
     """
     Given a field name, load the corresponding model and return the model and the mapped column name.
     """
@@ -15,7 +16,7 @@ def load_model_for_field(field_name, results_dir='../results'):
     if field_name not in field_to_column:
         raise ValueError(f"Field '{field_name}' not found in field-to-column map.")
     column_name = field_to_column[field_name]
-    model_dir = os.path.join(results_dir, f'results_{column_name.replace(" ", "_").lower()}')
+    model_dir = os.path.join(results_dir, f'results_{field_name.replace(" ", "_").lower()}')
     if not os.path.isdir(model_dir):
         raise FileNotFoundError(f"Model directory not found for field '{field_name}' (column '{column_name}'): {model_dir}")
     return SentenceTransformer(model_dir), column_name

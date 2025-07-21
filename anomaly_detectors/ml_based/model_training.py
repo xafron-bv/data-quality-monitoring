@@ -2,6 +2,7 @@ import pandas as pd
 import re
 import random
 import os
+from os import path
 from sentence_transformers import SentenceTransformer, InputExample, losses
 from sentence_transformers.evaluation import TripletEvaluator
 from torch.utils.data import DataLoader
@@ -237,7 +238,7 @@ def demonstrate_similarity(model, data_series, column_name):
     print("\n--- Anomaly Detection Test ---")
     
     # Load rules to create corrupted examples
-    rules_dir = '../../rules'
+    rules_dir = path.join('..', '..', 'error_injection_rules')
     rule_files = {
         'article_structure_name_2': 'category.json',
         'colour_name': 'color_name.json',

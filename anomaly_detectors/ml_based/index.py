@@ -5,6 +5,7 @@ import random
 import os
 import sys
 import torch
+from os import path
 
 # Add the parent directory to the path to import the error injection module
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -39,7 +40,7 @@ if __name__ == "__main__":
         field_name = args.check_anomalies
         print(f"Running anomaly check for field '{field_name}'...")
         df = pd.read_csv(args.csv_file)
-        model, column_name = load_model_for_field(field_name, results_dir="../results")
+        model, column_name = load_model_for_field(field_name, results_dir=path.join('..', 'results'))
         if column_name not in df.columns:
             raise ValueError(f"Column '{column_name}' (mapped from field '{field_name}') not found in CSV.")
         values = df[column_name].tolist()
@@ -76,7 +77,7 @@ if __name__ == "__main__":
     field_to_column_map = get_field_to_column_map()
     column_configs = get_column_configs()
 
-    rules_dir = '../../error_injection_rules'
+    rules_dir = os.path.join('..', '..', 'error_injection_rules')
     
     # Set random seeds for reproducibility
     random.seed(42)
