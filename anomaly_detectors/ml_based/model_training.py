@@ -14,32 +14,33 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from error_injection import apply_error_rule, load_error_rules
 
 
-def get_column_configs():
+def get_field_configs():
     """
-    Get column-specific configurations for model training.
+    Get field-specific configurations for model training.
+    Maps field names to their optimal model configurations.
     """
     return {
         # EXCELLENT PERFORMANCE (1.0 recall) - Use ACTUAL best found parameters
-        'article_structure_name_2': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 4},  # 1.0 recall
+        'category': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 4},  # 1.0 recall
         'colour_code': {'model': 'sentence-transformers/all-mpnet-base-v2', 'epochs': 2},  # 1.0 recall
-        'colour_name': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 4},  # 1.0 recall
+        'color_name': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 4},  # 1.0 recall
         
         # GOOD PERFORMANCE (0.8+ recall) - Use ACTUAL best found parameters
         'material': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 3},  # 0.882 recall
         
         # MODERATE PERFORMANCE (0.4-0.5 recall) - Use ACTUAL best found parameters
-        'EAN': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 3},  # 0.5 recall
-        'long_description_NL': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 3},  # 0.5 recall
+        'ean': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 3},  # 0.5 recall
+        'long_description_nl': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 3},  # 0.5 recall
         'customs_tariff_number': {'model': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'epochs': 2},  # 0.5 recall
-        'size_name': {'model': 'sentence-transformers/paraphrase-MiniLM-L6-v2', 'epochs': 8},  # 0.4 recall
+        'size': {'model': 'sentence-transformers/paraphrase-MiniLM-L6-v2', 'epochs': 8},  # 0.4 recall
         
         # POOR PERFORMANCE (0.0 recall) - Use ACTUAL best found, but may need further optimization
         'article_number': {'model': 'sentence-transformers/all-mpnet-base-v2', 'epochs': 5},  # 0.0 recall
         'description_short_1': {'model': 'sentence-transformers/distilbert-base-nli-stsb-mean-tokens', 'epochs': 5},  # 0.0 recall
-        'product_name_EN': {'model': 'sentence-transformers/distilbert-base-nli-stsb-mean-tokens', 'epochs': 6},  # 0.0 recall
+        'product_name_en': {'model': 'sentence-transformers/distilbert-base-nli-stsb-mean-tokens', 'epochs': 6},  # 0.0 recall
         
         # DEFAULT CONFIGURATIONS (not tested yet)
-        'Care Instructions': {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
+        'care_instructions': {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
         'season': {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2},
     }
 
@@ -60,10 +61,14 @@ def preprocess_text(text):
     return text
 
 
-def create_improved_triplet_dataset(data_series, rules, column_name):
+def create_improved_triplet_dataset(data_series, rules, field_name):
     """
     Create triplets for anomaly detection - corrupted data should be distant from clean data.
     All clean values are considered similar, anomalies are error-injected values.
+    Args:
+        data_series: Pandas series containing the data values
+        rules: Error injection rules for the field
+        field_name: The field name (used for logging)
     """
     print("Generating improved triplet dataset for anomaly detection...")
     
@@ -79,7 +84,7 @@ def create_improved_triplet_dataset(data_series, rules, column_name):
         print("Warning: Need at least 2 clean texts to create triplets.")
         return []
     
-    print(f"Working with {len(clean_texts)} clean texts from column '{column_name}'")
+    print(f"Working with {len(clean_texts)} clean texts from field '{field_name}'")
     
     triplets = []
     
@@ -117,15 +122,22 @@ def create_improved_triplet_dataset(data_series, rules, column_name):
     return triplets
 
 
-def train_and_evaluate_similarity_model(df, column, rules, device, best_params):
+def train_and_evaluate_similarity_model(df, field_name, column_name, rules, device, best_params):
     """
     Train a sentence transformer model for RECALL-OPTIMIZED anomaly detection using triplet loss.
+    Args:
+        df: DataFrame containing the data
+        field_name: The field name (used for model storage and rule loading)
+        column_name: The column name in the CSV (used only for data access)
+        rules: Error injection rules for the field
+        device: Training device
+        best_params: Hyperparameters for training
     """
-    print(f"\n🎯 Training RECALL-OPTIMIZED model for '{column}'")
+    print(f"\n🎯 Training RECALL-OPTIMIZED model for field '{field_name}' (column '{column_name}')")
     
-    # Create results directory structure
+    # Create results directory structure using field_name
     results_base_dir = os.path.join('..', 'results')
-    model_results_dir = os.path.join(results_base_dir, f'results_{column.replace(" ", "_").lower()}')
+    model_results_dir = os.path.join(results_base_dir, f'results_{field_name.replace(" ", "_").lower()}')
     checkpoints_dir = os.path.join(results_base_dir, 'checkpoints')
     
     # Ensure all directories exist
@@ -133,9 +145,9 @@ def train_and_evaluate_similarity_model(df, column, rules, device, best_params):
     os.makedirs(checkpoints_dir, exist_ok=True)
     
     # Train final model with best parameters
-    triplets = create_improved_triplet_dataset(df[column], rules, column)
+    triplets = create_improved_triplet_dataset(df[column_name], rules, field_name)
     if not triplets:
-        print(f"Could not create triplets for '{column}'. Skipping.")
+        print(f"Could not create triplets for field '{field_name}' (column '{column_name}'). Skipping.")
         return None
     
     print(f"Training final model with RECALL-OPTIMIZED parameters...")
@@ -158,14 +170,14 @@ def train_and_evaluate_similarity_model(df, column, rules, device, best_params):
     
     # Create evaluation dataset
     if eval_triplets:
-        evaluator = TripletEvaluator.from_input_examples(eval_triplets, name=f'{column}_final_evaluation')
+        evaluator = TripletEvaluator.from_input_examples(eval_triplets, name=f'{field_name}_final_evaluation')
         evaluation_steps = max(1, len(train_triplets) // best_params['batch_size'])
     else:
         evaluator = None
         evaluation_steps = 0
     
     # Train the model with organized output structure
-    print(f"Training RECALL-OPTIMIZED anomaly detection model for '{column}' with {len(train_triplets)} triplets...")
+    print(f"Training RECALL-OPTIMIZED anomaly detection model for field '{field_name}' with {len(train_triplets)} triplets...")
     print(f"Model outputs will be saved to: {model_results_dir}")
     
     model.fit(
@@ -181,7 +193,7 @@ def train_and_evaluate_similarity_model(df, column, rules, device, best_params):
     
     # Evaluate final performance
     if evaluator:
-        print(f"\n--- RECALL-FOCUSED Performance for column: '{column}' ---")
+        print(f"\n--- RECALL-FOCUSED Performance for field '{field_name}' ---")
         final_results = evaluator(model, output_path=model_results_dir)
         if isinstance(final_results, dict):
             # Extract the accuracy score from the results dictionary
@@ -193,21 +205,25 @@ def train_and_evaluate_similarity_model(df, column, rules, device, best_params):
             print(f"  - Triplet Accuracy: {final_results:.4f}")
     
     # Test RECALL and PRECISION performance
-    clean_texts = df[column].dropna().apply(preprocess_text).astype(str).tolist()
+    clean_texts = df[column_name].dropna().apply(preprocess_text).astype(str).tolist()
     print(f"\n💡 Testing final model performance with RECALL-OPTIMIZED threshold")
-    recall_rate, precision_rate, f1_rate = test_recall_precision_performance(model, clean_texts, rules, column)
+    recall_rate, precision_rate, f1_rate = test_recall_precision_performance(model, clean_texts, rules, field_name)
     
     # Demonstrate anomaly detection with examples
-    demonstrate_similarity(model, df[column], column)
+    demonstrate_similarity(model, df[column_name], field_name)
     
     return model
 
 
-def demonstrate_similarity(model, data_series, column_name):
+def demonstrate_similarity(model, data_series, field_name):
     """
     Demonstrate how the model calculates similarity between texts for anomaly detection
+    Args:
+        model: Trained sentence transformer model
+        data_series: Pandas series containing the data values
+        field_name: The field name (used for logging)
     """
-    print(f"\n--- Anomaly Detection Demonstration for '{column_name}' ---")
+    print(f"\n--- Anomaly Detection Demonstration for field '{field_name}' ---")
     
     # Get some sample texts and preprocess them
     sample_texts = data_series.dropna().apply(preprocess_text).astype(str).unique()[:10]
@@ -240,18 +256,18 @@ def demonstrate_similarity(model, data_series, column_name):
     # Load rules to create corrupted examples
     rules_dir = path.join('..', '..', 'error_injection_rules')
     rule_files = {
-        'article_structure_name_2': 'category.json',
-        'colour_name': 'color_name.json',
+        'category': 'category.json',
+        'color_name': 'color_name.json',
         'season': 'season.json',
-        'Care Instructions': 'care_instructions.json',
+        'care_instructions': 'care_instructions.json',
         'article_number': 'article_number.json',
         'customs_tariff_number': 'customs_tariff_number.json',
         'description_short_1': 'description_short_1.json',
         'material': 'material.json',
-        'product_name_EN': 'product_name_en.json'
+        'product_name_en': 'product_name_en.json'
     }
     
-    rule_file = rule_files.get(column_name, 'category.json')
+    rule_file = rule_files.get(field_name, 'category.json')
     rule_path = os.path.join(rules_dir, rule_file)
     
     rules = []
@@ -292,12 +308,18 @@ def demonstrate_similarity(model, data_series, column_name):
     print(f"🎯 RECALL-FOCUSED: All clean values should be similar, anomalies should be distant")
 
 
-def test_recall_precision_performance(model, clean_texts, rules, column_name, threshold=0.6):
+def test_recall_precision_performance(model, clean_texts, rules, field_name, threshold=0.6):
     """
     Test the trained model's recall and precision performance on anomaly detection.
+    Args:
+        model: Trained sentence transformer model
+        clean_texts: List of clean text samples
+        rules: Error injection rules for the field
+        field_name: The field name (used for logging)
+        threshold: Anomaly detection threshold
     Returns (recall_rate, precision_rate, f1_rate).
     """
-    print(f"\n🎯 Testing RECALL and PRECISION performance for '{column_name}'...")
+    print(f"\n🎯 Testing RECALL and PRECISION performance for field '{field_name}'...")
     
     if not rules or len(clean_texts) < 2:
         print("Not enough data to test performance.")
@@ -388,12 +410,18 @@ def test_recall_precision_performance(model, clean_texts, rules, column_name, th
     return recall, precision, f1_score
 
 
-def test_anomaly_detection(model, clean_texts, rules, column_name, threshold=0.6):
+def test_anomaly_detection(model, clean_texts, rules, field_name, threshold=0.6):
     """
     Test the trained model's ability to detect anomalies with RECALL FOCUS.
+    Args:
+        model: Trained sentence transformer model
+        clean_texts: List of clean text samples
+        rules: Error injection rules for the field
+        field_name: The field name (used for logging)
+        threshold: Anomaly detection threshold (default 0.6 for recall focus)
     Uses lower threshold (0.6) to catch more anomalies.
     """
-    print(f"\n🎯 Testing RECALL-FOCUSED anomaly detection for '{column_name}'...")
+    print(f"\n🎯 Testing RECALL-FOCUSED anomaly detection for field '{field_name}'...")
     
     if not rules or len(clean_texts) < 2:
         print("Not enough data to test anomaly detection.")

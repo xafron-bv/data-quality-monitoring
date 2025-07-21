@@ -13,7 +13,7 @@ from error_injection import load_error_rules
 
 # Import separated modules
 from hyperparameter_search import save_aggregated_hp_results, random_hyperparameter_search, get_optimal_parameters
-from model_training import train_and_evaluate_similarity_model, get_column_configs, setup_results_directory_structure
+from model_training import train_and_evaluate_similarity_model, get_field_configs, setup_results_directory_structure
 
 # Import field-to-column mapping
 from field_column_map import get_field_to_column_map
@@ -75,7 +75,7 @@ if __name__ == "__main__":
         print(f"Error loading CSV: {e}"); exit()
         
     field_to_column_map = get_field_to_column_map()
-    column_configs = get_column_configs()
+    field_configs = get_field_configs()
 
     rules_dir = os.path.join('..', '..', 'error_injection_rules')
     
@@ -94,9 +94,9 @@ if __name__ == "__main__":
             print(f"Warning: Column '{column_name}' not found in the CSV. Skipping.")
             continue
 
-        config = column_configs.get(column_name, {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2})
+        config = field_configs.get(field_name, {'model': 'sentence-transformers/all-MiniLM-L6-v2', 'epochs': 2})
 
-        print(f"\n{'='*20} Starting Process for Column: {column_name} {'='*20}")
+        print(f"\n{'='*20} Starting Process for Field: {field_name} (Column: {column_name}) {'='*20}")
         print(f"Using field file: '{field_name}.json', Model: {config['model']}, Epochs: {config['epochs']}")
 
         if args.use_hp_search:
@@ -117,18 +117,19 @@ if __name__ == "__main__":
         # Determine best parameters based on whether HP search is enabled
         if args.use_hp_search:
             best_params, best_recall, best_precision, best_f1, search_results = random_hyperparameter_search(
-                df, column_name, rules, device, num_trials=args.hp_trials
+                df, field_name, column_name, rules, device, num_trials=args.hp_trials
             )
             if best_recall <= 0:
-                print(f"Hyperparameter search failed for '{column_name}'. Using recall-optimized parameters.")
-                best_params = get_optimal_parameters(column_name, config['model'], config['epochs'])
+                print(f"Hyperparameter search failed for field '{field_name}'. Using recall-optimized parameters.")
+                best_params = get_optimal_parameters(field_name, config['model'], config['epochs'])
         else:
             # Use recall-optimized parameters
-            best_params = get_optimal_parameters(column_name, config['model'], config['epochs'])
-            print(f"Using RECALL-OPTIMIZED parameters for '{column_name}'")
+            best_params = get_optimal_parameters(field_name, config['model'], config['epochs'])
+            print(f"Using RECALL-OPTIMIZED parameters for field '{field_name}'")
 
         train_and_evaluate_similarity_model(
             df,
+            field_name,
             column_name,
             rules,
             device=device,

@@ -13,11 +13,15 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from error_injection import apply_error_rule
 
 
-def get_optimal_parameters(column_name, fallback_model_name, fallback_epochs):
+def get_optimal_parameters(field_name, fallback_model_name, fallback_epochs):
     """
-    Get RECALL-OPTIMIZED parameters for each column based on ACTUAL hyperparameter search results.
+    Get RECALL-OPTIMIZED parameters for each field based on ACTUAL hyperparameter search results.
     Updated with real performance data from 5-trial hyperparameter search.
-    Now loads optimal_params from an external JSON file.
+    Now loads optimal_params from an external JSON file using field names.
+    Args:
+        field_name: The field name (not column name)
+        fallback_model_name: Default model if no optimal params found
+        fallback_epochs: Default epochs if no optimal params found
     """
     # Path to the optimal_params JSON file (relative to this script)
     params_path = os.path.join(os.path.dirname(__file__), "optimal_params.json")
@@ -39,8 +43,8 @@ def get_optimal_parameters(column_name, fallback_model_name, fallback_epochs):
         else:
             return losses.TripletDistanceMetric.COSINE  # Default fallback
 
-    if column_name in optimal_params:
-        params = optimal_params[column_name]
+    if field_name in optimal_params:
+        params = optimal_params[field_name]
         params["distance_metric"] = parse_distance_metric(params["distance_metric"])
         return params
     else:
@@ -55,18 +59,24 @@ def get_optimal_parameters(column_name, fallback_model_name, fallback_epochs):
         }
 
 
-def train_with_params(df, column, rules, params):
+def train_with_params(df, field_name, column_name, rules, params):
     """
     Train model with specific hyperparameters and return RECALL and PRECISION scores.
+    Args:
+        df: DataFrame containing the data
+        field_name: The field name (used for model identification)
+        column_name: The column name in the CSV (used only for data access)
+        rules: Error injection rules for the field
+        params: Hyperparameters for training
     """
     from model_training import create_improved_triplet_dataset, preprocess_text
     
-    triplets = create_improved_triplet_dataset(df[column], rules, column)
+    triplets = create_improved_triplet_dataset(df[column_name], rules, field_name)
     if not triplets:
         return -1, -1, -1
     
     # Get clean texts for evaluation
-    clean_texts = df[column].dropna().apply(preprocess_text).astype(str).tolist()
+    clean_texts = df[column_name].dropna().apply(preprocess_text).astype(str).tolist()
     if len(clean_texts) < 5:
         return -1, -1, -1
     
@@ -106,19 +116,26 @@ def train_with_params(df, column, rules, params):
     
     # Evaluate RECALL and PRECISION performance
     try:
-        recall_score, precision_score, f1_score = evaluate_recall_and_precision_performance(model, clean_texts, rules, column)
+        recall_score, precision_score, f1_score = evaluate_recall_and_precision_performance(model, clean_texts, rules, field_name)
         return recall_score, precision_score, f1_score
     except Exception as e:
         print(f"   ❌ Performance evaluation failed: {e}")
         return -1, -1, -1
 
 
-def evaluate_recall_and_precision_performance(model, clean_texts, rules, column_name, num_samples=20):
+def evaluate_recall_and_precision_performance(model, clean_texts, rules, field_name, num_samples=20):
     """
     Evaluate model's recall and precision performance on anomaly detection.
+    Args:
+        model: Trained sentence transformer model
+        clean_texts: List of clean text samples
+        rules: Error injection rules for the field
+        field_name: The field name (used for logging)
+        num_samples: Number of samples to use for evaluation
     Returns (recall_score, precision_score, f1_score).
     """
     import re
+    from model_training import preprocess_text
     
     if not rules or len(clean_texts) < 4:
         return 0.0, 0.0, 0.0
@@ -193,11 +210,18 @@ def evaluate_recall_and_precision_performance(model, clean_texts, rules, column_
     return recall, precision, f1_score
 
 
-def random_hyperparameter_search(df, column, rules, device, num_trials=15):
+def random_hyperparameter_search(df, field_name, column_name, rules, device, num_trials=15):
     """
     Perform RECALL-FOCUSED hyperparameter search with PRECISION constraint (min 30%).
+    Args:
+        df: DataFrame containing the data
+        field_name: The field name (used for saving results and logging)
+        column_name: The column name in the CSV (used only for data access)
+        rules: Error injection rules for the field
+        device: Training device
+        num_trials: Number of hyperparameter trials
     """
-    print(f"\n🎯 Starting RECALL-FOCUSED hyperparameter search for '{column}' with {num_trials} trials...")
+    print(f"\n🎯 Starting RECALL-FOCUSED hyperparameter search for field '{field_name}' with {num_trials} trials...")
     print(f"💡 Constraint: Precision must be at least 30% to be considered valid")
 
     # Load hyperparameter search space from JSON file
@@ -246,7 +270,7 @@ def random_hyperparameter_search(df, column, rules, device, num_trials=15):
 
         try:
             # Train with current parameters and get RECALL, PRECISION, F1 scores
-            recall_score, precision_score, f1_score = train_with_params(df, column, rules, params)
+            recall_score, precision_score, f1_score = train_with_params(df, field_name, column_name, rules, params)
 
             # Only consider results with minimum 30% precision
             if precision_score >= 0.3:
@@ -331,9 +355,10 @@ def random_hyperparameter_search(df, column, rules, device, num_trials=15):
     results_dir = os.path.join('..', 'results', 'summary')
     os.makedirs(results_dir, exist_ok=True)
     
-    results_file = os.path.join(results_dir, f"hp_search_results_{column.replace(' ', '_').lower()}.json")
+    results_file = os.path.join(results_dir, f"hp_search_results_{field_name.replace(' ', '_').lower()}.json")
     hp_results = {
-        'column': column,
+        'field_name': field_name,
+        'column_name': column_name,  # Store both for reference
         'best_params': best_params,
         'best_recall': best_recall,
         'best_precision': best_precision,
@@ -387,12 +412,28 @@ def save_aggregated_hp_results():
         try:
             with open(hp_file, 'r') as f:
                 data = json.load(f)
-                column = data['column']
+                
+                # Handle both old and new format
+                if 'field_name' in data:
+                    # New format with field names
+                    field_name = data['field_name']
+                    column_name = data.get('column_name', field_name)  # fallback to field_name if not present
+                    key = field_name  # Use field name as the key
+                elif 'column' in data:
+                    # Old format with column names
+                    column_name = data['column']
+                    field_name = column_name  # fallback when converting from old format
+                    key = column_name  # Use column name for backward compatibility
+                else:
+                    print(f"Invalid format in {hp_file}: missing field_name or column key")
+                    continue
                 
                 # Handle both old and new format
                 if 'best_recall' in data:
                     # New format with recall, precision, f1
-                    aggregated_results[column] = {
+                    aggregated_results[key] = {
+                        'field_name': field_name,
+                        'column_name': column_name,
                         'best_recall': data['best_recall'],
                         'best_precision': data['best_precision'],
                         'best_f1': data['best_f1'],
@@ -401,7 +442,9 @@ def save_aggregated_hp_results():
                     }
                 else:
                     # Old format with just best_score
-                    aggregated_results[column] = {
+                    aggregated_results[key] = {
+                        'field_name': field_name,
+                        'column_name': column_name,
                         'best_recall': data.get('best_score', 0),
                         'best_precision': 0,  # Unknown in old format
                         'best_f1': 0,  # Unknown in old format
@@ -409,15 +452,15 @@ def save_aggregated_hp_results():
                         'performance_analysis': data['performance_analysis']
                     }
                 
-                all_best_params[column] = data['best_params']
+                all_best_params[key] = data['best_params']
         except Exception as e:
             print(f"Error reading {hp_file}: {e}")
     
     # Save aggregated results in the summary folder
     summary = {
         'timestamp': pd.Timestamp.now().isoformat(),
-        'total_columns': len(aggregated_results),
-        'column_results': aggregated_results,
+        'total_fields': len(aggregated_results),
+        'field_results': aggregated_results,
         'recommended_configs': all_best_params
     }
     

@@ -1,5 +1,5 @@
 {
-  "article_structure_name_2": {
+  "category": {
     "model_name": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
     "triplet_margin": 0.3,
     "distance_metric": "COSINE",
@@ -15,7 +15,7 @@
     "epochs": 2,
     "learning_rate": 1e-6
   },
-  "colour_name": {
+  "color_name": {
     "model_name": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
     "triplet_margin": 0.3,
     "distance_metric": "COSINE",
@@ -31,7 +31,7 @@
     "epochs": 3,
     "learning_rate": 5e-6
   },
-  "EAN": {
+  "ean": {
     "model_name": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
     "triplet_margin": 0.3,
     "distance_metric": "COSINE",
@@ -39,7 +39,7 @@
     "epochs": 3,
     "learning_rate": 1e-6
   },
-  "long_description_NL": {
+  "long_description_nl": {
     "model_name": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
     "triplet_margin": 1.0,
     "distance_metric": "COSINE",
@@ -55,7 +55,7 @@
     "epochs": 2,
     "learning_rate": 1e-5
   },
-  "size_name": {
+  "size": {
     "model_name": "sentence-transformers/paraphrase-MiniLM-L6-v2",
     "triplet_margin": 0.3,
     "distance_metric": "MANHATTAN",
@@ -79,7 +79,7 @@
     "epochs": 5,
     "learning_rate": 1e-5
   },
-  "product_name_EN": {
+  "product_name_en": {
     "model_name": "sentence-transformers/distilbert-base-nli-stsb-mean-tokens",
     "triplet_margin": 0.8,
     "distance_metric": "COSINE",
@@ -95,7 +95,7 @@
     "epochs": 4,
     "learning_rate": 1e-5
   },
-  "Care Instructions": {
+  "care_instructions": {
     "model_name": "sentence-transformers/all-MiniLM-L6-v2",
     "triplet_margin": 0.8,
     "distance_metric": "COSINE",

@@ -51,8 +51,8 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
         """
         self.field_name = field_name
         if results_dir is None:
-            # Default to the results directory relative to this module
-            results_dir = os.path.join(os.path.dirname(__file__), 'results')
+            # Default to the results directory in the parent anomaly_detectors folder
+            results_dir = os.path.join(os.path.dirname(__file__), '..', 'results')
         self.results_dir = results_dir
         self.threshold = threshold
         self.model = None
@@ -151,15 +151,18 @@ class MLAnomalyDetectorFactory:
     """
     
     def __init__(self, 
-                 results_dir: str = 'results',
+                 results_dir: str = None,
                  threshold: float = 0.6):
         """
         Initialize the factory.
         
         Args:
-            results_dir: Directory containing trained models
+            results_dir: Directory containing trained models (defaults to anomaly_detectors/results)
             threshold: Default threshold for anomaly detection
         """
+        if results_dir is None:
+            # Default to the results directory in the parent anomaly_detectors folder
+            results_dir = os.path.join(os.path.dirname(__file__), '..', 'results')
         self.results_dir = results_dir
         self.threshold = threshold
         self._detectors = {}
@@ -211,19 +214,22 @@ class MLAnomalyDetectorFactory:
 
 # Convenience functions for creating ML detectors
 def create_ml_detector_for_field(field_name: str, 
-                               results_dir: str = 'results',
+                               results_dir: str = None,
                                threshold: float = 0.6) -> MLAnomalyDetector:
     """
     Convenience function to create an ML detector for a specific field.
     
     Args:
         field_name: The field name to create detector for
-        results_dir: Directory containing trained models
+        results_dir: Directory containing trained models (defaults to anomaly_detectors/results)
         threshold: Anomaly detection threshold
         
     Returns:
         MLAnomalyDetector instance
     """
+    if results_dir is None:
+        # Default to the results directory in the parent anomaly_detectors folder
+        results_dir = os.path.join(os.path.dirname(__file__), '..', 'results')
     return MLAnomalyDetector(
         field_name=field_name,
         results_dir=results_dir,
@@ -232,19 +238,22 @@ def create_ml_detector_for_field(field_name: str,
 
 
 def create_ml_detector_for_column(column_name: str,
-                                 results_dir: str = 'results',
+                                 results_dir: str = None,
                                  threshold: float = 0.6) -> Optional[MLAnomalyDetector]:
     """
     Convenience function to create an ML detector for a specific column.
     
     Args:
         column_name: The column to detect anomalies in
-        results_dir: Directory containing trained models
+        results_dir: Directory containing trained models (defaults to anomaly_detectors/results)
         threshold: Anomaly detection threshold
         
     Returns:
         MLAnomalyDetector instance or None if no field found for column
     """
+    if results_dir is None:
+        # Default to the results directory in the parent anomaly_detectors folder
+        results_dir = os.path.join(os.path.dirname(__file__), '..', 'results')
     try:
         field_map = get_field_to_column_map()
         
