@@ -76,7 +76,7 @@ if __name__ == "__main__":
     field_to_column_map = get_field_to_column_map()
     column_configs = get_column_configs()
 
-    rules_dir = '../../rules'
+    rules_dir = '../../error_injection_rules'
     
     # Set random seeds for reproducibility
     random.seed(42)
