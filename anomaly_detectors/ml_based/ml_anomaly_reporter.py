@@ -4,7 +4,7 @@ ML-based anomaly reporter implementation following the standard pattern.
 
 import json
 import pandas as pd
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 
 from anomaly_detectors.reporter_interface import AnomalyReporterInterface
 from anomaly_detectors.anomaly_error import AnomalyError
