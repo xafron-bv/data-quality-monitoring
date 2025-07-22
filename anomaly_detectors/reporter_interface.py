@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import pandas as pd
-from typing import List, Dict, Any, Optional, Union, Tuple
+from typing import List, Dict, Any, Union, Tuple
 
 from anomaly_detectors.anomaly_error import AnomalyError
 
