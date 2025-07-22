@@ -311,43 +311,10 @@ class Evaluator:
         Returns:
             A dictionary containing comprehensive evaluation results including individual and combined approaches
         """
-        # Always run individual approaches first to get separate results
-        individual_results = self.evaluate_column(
-            sample_df, 
-            column_name, 
-            run_validation=run_validation,
-            run_anomaly_detection=run_anomaly_detection
-        )
         
-        # Run ML detection individually if available
-        ml_individual_results = {}
-        if self.ml_detector:
-            ml_individual_results = self._evaluate_ml_individual(sample_df, column_name)
-        
-        # Combine all individual results
-        comprehensive_results = {
-            "column_name": column_name,
-            "row_count": len(sample_df),
-            "sample_id": getattr(sample_df, "name", None),
-            
-            # Individual approach results
-            "validation_results": individual_results.get("validation_results", []),
-            "anomaly_results": individual_results.get("anomaly_results", []),
-            "ml_results": ml_individual_results.get("ml_results", []),
-            
-            # Individual approach counts
-            "total_validation_errors": individual_results.get("total_validation_errors", 0),
-            "total_anomalies": individual_results.get("total_anomalies", 0),
-            "total_ml_issues": ml_individual_results.get("total_ml_issues", 0),
-            
-            # Approach availability flags
-            "validation_available": run_validation and self.validator is not None,
-            "anomaly_detection_available": run_anomaly_detection and self.anomaly_detector is not None,
-            "ml_detection_available": self.ml_detector is not None,
-        }
-        
-        # If unified approach is requested, also run unified detection
+        # If using unified approach, run unified detection to avoid duplication
         if use_unified_approach:
+            # Run unified approach only
             detection_types = []
             if run_validation and self.validator:
                 detection_types.append(DetectionType.VALIDATION)
@@ -362,15 +329,71 @@ class Evaluator:
                 detection_types=detection_types
             )
             
-            # Add unified results to comprehensive results
-            comprehensive_results.update({
+            # Convert unified results to individual format for compatibility
+            comprehensive_results = {
+                "column_name": column_name,
+                "row_count": len(sample_df),
+                "sample_id": getattr(sample_df, "name", None),
+                
+                # Convert unified results to individual format
+                "validation_results": [r for r in unified_results.get("unified_results", []) if r.get("detection_type") == "validation"],
+                "anomaly_results": [r for r in unified_results.get("unified_results", []) if r.get("detection_type") == "anomaly"],
+                "ml_results": [r for r in unified_results.get("unified_results", []) if r.get("detection_type") == "ml_anomaly"],
+                
+                # Count individual approach results
+                "total_validation_errors": len([r for r in unified_results.get("unified_results", []) if r.get("detection_type") == "validation"]),
+                "total_anomalies": len([r for r in unified_results.get("unified_results", []) if r.get("detection_type") == "anomaly"]),
+                "total_ml_issues": len([r for r in unified_results.get("unified_results", []) if r.get("detection_type") == "ml_anomaly"]),
+                
+                # Approach availability flags
+                "validation_available": run_validation and self.validator is not None,
+                "anomaly_detection_available": run_anomaly_detection and self.anomaly_detector is not None,
+                "ml_detection_available": self.ml_detector is not None,
+                
+                # Unified approach results
                 "unified_approach_used": True,
                 "unified_results": unified_results.get("unified_results", []),
                 "unified_total_issues": unified_results.get("total_issues", 0),
                 "unified_issues_by_type": unified_results.get("issues_by_type", {}),
-            })
+            }
         else:
-            comprehensive_results["unified_approach_used"] = False
+            # Run individual approaches separately (original behavior)
+            individual_results = self.evaluate_column(
+                sample_df, 
+                column_name, 
+                run_validation=run_validation,
+                run_anomaly_detection=run_anomaly_detection
+            )
+            
+            # Run ML detection individually if available
+            ml_individual_results = {}
+            if self.ml_detector:
+                ml_individual_results = self._evaluate_ml_individual(sample_df, column_name)
+            
+            # Combine all individual results
+            comprehensive_results = {
+                "column_name": column_name,
+                "row_count": len(sample_df),
+                "sample_id": getattr(sample_df, "name", None),
+                
+                # Individual approach results
+                "validation_results": individual_results.get("validation_results", []),
+                "anomaly_results": individual_results.get("anomaly_results", []),
+                "ml_results": ml_individual_results.get("ml_results", []),
+                
+                # Individual approach counts
+                "total_validation_errors": individual_results.get("total_validation_errors", 0),
+                "total_anomalies": individual_results.get("total_anomalies", 0),
+                "total_ml_issues": ml_individual_results.get("total_ml_issues", 0),
+                
+                # Approach availability flags
+                "validation_available": run_validation and self.validator is not None,
+                "anomaly_detection_available": run_anomaly_detection and self.anomaly_detector is not None,
+                "ml_detection_available": self.ml_detector is not None,
+                
+                # Unified approach not used
+                "unified_approach_used": False
+            }
         
         # Calculate performance metrics if injected errors are provided
         if injected_errors and run_validation and self.validator:

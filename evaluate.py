@@ -16,6 +16,7 @@ from validators.validation_error import ValidationError
 from evaluator import Evaluator
 from error_injection import apply_error_rule, generate_error_samples, load_error_rules
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
+import debug_config
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -126,9 +127,10 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
     for i, result in enumerate(evaluation_results):
         # Handle validation results if present
         if has_validation:
-            true_positives = result.get('true_positives', [])
-            false_positives = result.get('false_positives', [])
-            false_negatives = result.get('false_negatives', [])
+            # Map new field names to old expected names for compatibility
+            true_positives = result.get('true_positive_details', result.get('true_positives', []))
+            false_positives = result.get('false_positive_details', result.get('false_positives', []))
+            false_negatives = result.get('false_negative_details', result.get('false_negatives', []))
             
             all_tp.extend(true_positives)
             all_fp.extend(false_positives)
@@ -260,8 +262,20 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
         else:
             fn_by_type = {}
             for fn in all_fn:
-                rule = fn['error_rule']
-                fn_by_type.setdefault(rule, []).append(fn['injected_data'])
+                # Handle new structure where fn is a dict with 'injected_error' field
+                if isinstance(fn, dict) and 'injected_error' in fn:
+                    rule = fn['injected_error'].get('error_rule', 'unknown_rule')
+                    injected_data = fn.get('error_data', 'unknown_data')
+                elif isinstance(fn, dict):
+                    # Fallback for direct structure
+                    rule = fn.get('error_rule', 'unknown_rule')
+                    injected_data = fn.get('injected_data', fn.get('error_data', 'unknown_data'))
+                else:
+                    # Handle other formats
+                    rule = 'unknown_rule'
+                    injected_data = str(fn)
+                    
+                fn_by_type.setdefault(rule, []).append(injected_data)
             
             for rule, examples in fn_by_type.items():
                 summary_lines.append(f"\n  - Rule: '{rule}' (Missed {len(examples)} times)")
@@ -315,8 +329,20 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
     else:
         fn_by_type = {}
         for fn in all_fn:
-            rule = fn['error_rule']
-            fn_by_type.setdefault(rule, []).append(fn['injected_data'])
+            # Handle new structure where fn is a dict with 'injected_error' field
+            if isinstance(fn, dict) and 'injected_error' in fn:
+                rule = fn['injected_error'].get('error_rule', 'unknown_rule')
+                injected_data = fn.get('error_data', 'unknown_data')
+            elif isinstance(fn, dict):
+                # Fallback for direct structure
+                rule = fn.get('error_rule', 'unknown_rule')
+                injected_data = fn.get('injected_data', fn.get('error_data', 'unknown_data'))
+            else:
+                # Handle other formats
+                rule = 'unknown_rule'
+                injected_data = str(fn)
+                
+            fn_by_type.setdefault(rule, []).append(injected_data)
         
         for rule, examples in fn_by_type.items():
             summary_lines.append(f"\n  - Rule: '{rule}' (Missed {len(examples)} times)")
@@ -450,7 +476,15 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     parser.add_argument("--output-dir", default="evaluation_results", help="Directory to save all evaluation results and generated samples.")
     parser.add_argument("--ignore-errors", nargs='+', default=[], help="A list of error rule names to ignore during evaluation (e.g., inject_unicode_error).")
     parser.add_argument("--ignore-fp", action="store_true", help="If set, false positives will be ignored in the evaluation.")
+    parser.add_argument("--debug", action="store_true", help="Enable debug logging for batch processing and detection operations.")
     args = parser.parse_args()
+
+    # Set debug logging based on command-line argument
+    if args.debug:
+        debug_config.enable_debug()
+        print("Debug logging enabled")
+    else:
+        debug_config.disable_debug()
 
     # --- Derive paths and class names ---
     column_name = args.column
@@ -586,25 +620,79 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
             sample_df.to_csv(sample_path, index=False)
             error_samples.append({"data": sample_df, "injected_errors": [], "sample_index": i})
     
+    # Run detection methods once on the full dataset
+    print(f"Running detection methods on dataset with {len(df)} rows...")
+    
+    # Use unified approach when running multiple detection methods to avoid duplication
+    use_unified = (run_ml and (run_validation or run_anomaly)) or (run_validation and run_anomaly and run_ml)
+    
+    # Run detection once on the original dataset
+    dataset_results = evaluator.evaluate_sample(
+        df, 
+        column_name, 
+        injected_errors=[],  # No injected errors for the base dataset
+        run_validation=run_validation,
+        run_anomaly_detection=run_anomaly,
+        use_unified_approach=use_unified
+    )
+    
+    print(f"Detection complete. Found:")
+    if run_validation:
+        print(f"  - Validation errors: {dataset_results.get('total_validation_errors', 0)}")
+    if run_anomaly:
+        print(f"  - Anomalies: {dataset_results.get('total_anomalies', 0)}")
+    if run_ml:
+        print(f"  - ML issues: {dataset_results.get('total_ml_issues', 0)}")
+    
+    # Now evaluate performance against each sample's injected errors
     evaluation_results = []
     for sample in error_samples:
-        # Use unified approach only when explicitly requested with ML or all methods
-        use_unified = run_ml and (run_validation or run_anomaly)
+        # Calculate performance metrics by comparing detection results with sample's injected errors
+        sample_result = {
+            "column_name": column_name,
+            "row_count": len(df),
+            "sample_id": sample.get("sample_index", f"sample_{len(evaluation_results)}"),
+            "sample_path": f"sample_{sample.get('sample_index', len(evaluation_results))}.csv",
+            
+            # Copy detection results from the single dataset run
+            "validation_results": dataset_results.get("validation_results", []),
+            "anomaly_results": dataset_results.get("anomaly_results", []),
+            "ml_results": dataset_results.get("ml_results", []),
+            "total_validation_errors": dataset_results.get("total_validation_errors", 0),
+            "total_anomalies": dataset_results.get("total_anomalies", 0),
+            "total_ml_issues": dataset_results.get("total_ml_issues", 0),
+            
+            # Approach availability flags
+            "validation_available": dataset_results.get("validation_available", False),
+            "anomaly_detection_available": dataset_results.get("anomaly_detection_available", False),
+            "ml_detection_available": dataset_results.get("ml_detection_available", False),
+            "unified_approach_used": dataset_results.get("unified_approach_used", False),
+        }
         
-        result = evaluator.evaluate_sample(
-            sample["data"], 
-            column_name, 
-            sample.get("injected_errors", []),
-            run_validation=run_validation,
-            run_anomaly_detection=run_anomaly,
-            use_unified_approach=use_unified
-        )
+        # If we have unified results, copy them too
+        if "unified_results" in dataset_results:
+            sample_result.update({
+                "unified_results": dataset_results["unified_results"],
+                "unified_total_issues": dataset_results.get("unified_total_issues", 0),
+                "unified_issues_by_type": dataset_results.get("unified_issues_by_type", {}),
+            })
+        
+        # Calculate performance metrics for this sample's injected errors
+        if sample.get("injected_errors") and run_validation:
+            validation_results_for_metrics = sample_result["validation_results"]
+            metrics = evaluator._calculate_metrics(
+                sample["data"],  # Use the sample DataFrame with injected errors
+                column_name, 
+                validation_results_for_metrics, 
+                sample["injected_errors"]
+            )
+            sample_result.update(metrics)
         
         # Add flags to indicate what was run
         if not run_validation:
-            result["validation_performed"] = False
-        
-        evaluation_results.append(result)
+            sample_result["validation_performed"] = False
+            
+        evaluation_results.append(sample_result)
     
     # Report results
     generate_summary_report(evaluation_results, args.output_dir, args.ignore_fp)

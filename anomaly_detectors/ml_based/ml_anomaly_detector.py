@@ -24,6 +24,7 @@ try:
     )
     from model_training import preprocess_text
     from field_column_map import get_field_to_column_map
+    from gpu_utils import get_optimal_device, print_device_info
     ML_AVAILABLE = True
 except ImportError as e:
     print(f"Warning: ML modules not available: {e}")
@@ -37,10 +38,14 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
     using centroid-based distance calculations.
     """
     
+    # Class-level cache to share models across instances with same parameters
+    _model_cache = {}
+    
     def __init__(self, 
                  field_name: str,
                  results_dir: str = None,
-                 threshold: float = 0.6):
+                 threshold: float = 0.6,
+                 use_gpu: bool = True):
         """
         Initialize the ML anomaly detector.
         
@@ -48,6 +53,7 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
             field_name: The type of field to validate
             results_dir: Directory containing trained models (defaults to ml_based/results)
             threshold: Similarity threshold for anomaly detection (lower = more sensitive)
+            use_gpu: Whether to use GPU acceleration if available
         """
         self.field_name = field_name
         if results_dir is None:
@@ -55,6 +61,7 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
             results_dir = os.path.join(os.path.dirname(__file__), '..', 'results')
         self.results_dir = results_dir
         self.threshold = threshold
+        self.use_gpu = use_gpu
         self.model = None
         self.column_name = None
         self.is_initialized = False
@@ -62,9 +69,13 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
         if not ML_AVAILABLE:
             raise ImportError("ML dependencies not available. Please check your installation.")
     
+    def _get_cache_key(self):
+        """Generate a cache key for this detector configuration."""
+        return (self.field_name, self.results_dir, self.use_gpu)
+    
     def learn_patterns(self, df: pd.DataFrame, column_name: str) -> None:
         """
-        Learn patterns by loading the trained model.
+        Learn patterns by loading the trained model (with caching).
         
         Args:
             df: DataFrame containing the data (not used, patterns are pre-learned)
@@ -72,22 +83,35 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
         """
         if self.is_initialized:
             return
+        
+        # Check class-level cache first
+        cache_key = self._get_cache_key()
+        if cache_key in MLAnomalyDetector._model_cache:
+            self.model, self.column_name = MLAnomalyDetector._model_cache[cache_key]
+            print(f"Using cached model for field '{self.field_name}' on column '{self.column_name}'")
+        else:
+            try:
+                # Load the model for the specified field with GPU support
+                self.model, self.column_name = load_model_for_field(self.field_name, self.results_dir, self.use_gpu)
+                
+                # Cache the loaded model
+                MLAnomalyDetector._model_cache[cache_key] = (self.model, self.column_name)
+                print(f"ML Detector initialized for field '{self.field_name}' on column '{self.column_name}'")
             
-        try:
-            # Load the model for the specified field
-            self.model, self.column_name = load_model_for_field(self.field_name, self.results_dir)
-            
-            # Verify column name matches
-            if column_name != self.column_name:
-                print(f"Warning: Column mismatch - expected '{self.column_name}', got '{column_name}'")
-                # Update column name to match the requested one
-                self.column_name = column_name
-            
-            self.is_initialized = True
-            print(f"ML Detector initialized for field '{self.field_name}' on column '{self.column_name}'")
-            
-        except Exception as e:
-            raise RuntimeError(f"Failed to initialize ML detector: {e}")
+            except Exception as e:
+                print(f"Error loading ML model for field '{self.field_name}': {e}")
+                self.model = None
+                self.column_name = None
+                self.is_initialized = False
+                return
+        
+        # Verify column name matches
+        if column_name != self.column_name:
+            print(f"Warning: Column mismatch - expected '{self.column_name}', got '{column_name}'")
+            # Update column name to match the requested one
+            self.column_name = column_name
+        
+        self.is_initialized = True
     
     def _detect_anomaly(self, value: Any, context: Dict[str, Any] = None) -> Optional[AnomalyError]:
         """
@@ -154,7 +178,8 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
         return {
             'field_name': self.field_name,
             'results_dir': self.results_dir,
-            'threshold': self.threshold
+            'threshold': self.threshold,
+            'use_gpu': self.use_gpu
         }
 
 

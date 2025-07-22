@@ -12,6 +12,7 @@ MAX_ERRORS=5
 NUM_SAMPLES=100
 OUTPUT_DIR="evaluation_results"
 IGNORE_FP="--ignore-fp"
+DEBUG_FLAG=""  # Set to "--debug" to enable debug logging
 
 # Define the column and validator pairs
 # Format: "validator_name:column_name"
@@ -51,6 +52,7 @@ for eval in "${EVALUATIONS[@]}"; do
     --ml-detector \
     --run="all" \
     $IGNORE_FP \
+    $DEBUG_FLAG \
     "$DATA_FILE"
   
   echo "Evaluation complete for $validator:$column"
