@@ -21,6 +21,9 @@ from field_column_map import get_field_to_column_map
 # Import anomaly checking functions
 from check_anomalies import load_model_for_field, check_anomalies
 
+# Import GPU utilities
+from gpu_utils import get_optimal_device, print_device_info
+
 
 
 # --- Main Execution ---
@@ -62,12 +65,9 @@ if __name__ == "__main__":
     # Setup organized directory structure for all outputs
     setup_results_directory_structure()
     
-    if torch.backends.mps.is_available():
-        device = torch.device("mps"); print("Apple M1/M2 GPU found. Using MPS.")
-    elif torch.cuda.is_available():
-        device = torch.device("cuda"); print("NVIDIA GPU found. Using CUDA.")
-    else:
-        device = torch.device("cpu"); print("No GPU found. Using CPU.")
+    # Determine optimal device using shared utility
+    device = get_optimal_device(use_gpu=True)
+    print_device_info(device, "ML training")
 
     try:
         df = pd.read_csv(args.csv_file)
