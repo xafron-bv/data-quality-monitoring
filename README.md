@@ -120,10 +120,10 @@ The evaluation system tests all three detection approaches:
 
 ### Basic Evaluation Commands
 
-#### Evaluate Single Column with All Methods
+#### Evaluate Single Field with All Methods
 ```bash
 python evaluate.py data/esqualo_2022_fall.csv \
-  --column="material" \
+  --field="material" \
   --validator="material" \
   --ml-detector \
   --run="all" \
@@ -133,7 +133,7 @@ python evaluate.py data/esqualo_2022_fall.csv \
 #### Evaluate with Validation + ML Detection Only
 ```bash
 python evaluate.py data/esqualo_2022_fall.csv \
-  --column="colour_name" \
+  --field="color_name" \
   --validator="color_name" \
   --ml-detector \
   --run="validation" \
@@ -143,7 +143,7 @@ python evaluate.py data/esqualo_2022_fall.csv \
 #### Evaluate ML Detection Only
 ```bash
 python evaluate.py data/esqualo_2022_fall.csv \
-  --column="article_structure_name_2" \
+  --field="category" \
   --validator="category" \
   --ml-detector \
   --run="ml" \
@@ -169,8 +169,8 @@ python evaluate.py data/esqualo_2022_fall.csv \
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `--column` | Target column name in CSV | Required |
-| `--validator` | Validator name (defaults to column) | Column name |
+| `--field` | Target field name (mapped to CSV column) | Required |
+| `--validator` | Validator name (defaults to field) | Field name |
 | `--anomaly-detector` | Anomaly detector name | Validator name |
 | `--ml-detector` | Enable ML-based detection | False |
 | `--run` | What to run: validation/anomaly/ml/both/all | both |
@@ -184,7 +184,7 @@ python evaluate.py data/esqualo_2022_fall.csv \
 #### Console Output
 ```
 --- Evaluation Setup ---
-Target column: 'material'
+Target field: 'material'
 Using validator: 'material'
 Using anomaly detector: 'material'
 Using ML-based anomaly detection

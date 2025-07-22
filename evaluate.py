@@ -154,29 +154,32 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
         total_ml_issues += len(ml_results)
         
         sample_id = result.get('sample_id', f"Sample {i}")
-        summary_lines.append(f"\nSample: {sample_id}")
         
-        # Add validation metrics if present
-        if has_validation:
-            summary_lines.append(f"  - Precision: {precision:.2f}")
-            summary_lines.append(f"  - Recall: {recall:.2f}")
-            summary_lines.append(f"  - F1 Score: {f1_score:.2f}")
-            summary_lines.append(f"  - True Positives: {len(true_positives)}")
-            summary_lines.append(f"  - False Positives: {len(false_positives)}")
-            summary_lines.append(f"  - False Negatives: {len(false_negatives)}")
+        # Show the sample only if debug mode is enabled
+        if debug_config.is_debug_enabled():
+            summary_lines.append(f"\nSample: {sample_id}")
+        
+            # Add validation metrics if present
+            if has_validation:
+                summary_lines.append(f"  - Precision: {precision:.2f}")
+                summary_lines.append(f"  - Recall: {recall:.2f}")
+                summary_lines.append(f"  - F1 Score: {f1_score:.2f}")
+                summary_lines.append(f"  - True Positives: {len(true_positives)}")
+                summary_lines.append(f"  - False Positives: {len(false_positives)}")
+                summary_lines.append(f"  - False Negatives: {len(false_negatives)}")
+                
+                if ignored_errors > 0:
+                    summary_lines.append(f"  - Ignored Errors: {ignored_errors}")
+                if ignored_fps > 0:
+                    summary_lines.append(f"  - Ignored False Positives: {ignored_fps}")
             
-            if ignored_errors > 0:
-                summary_lines.append(f"  - Ignored Errors: {ignored_errors}")
-            if ignored_fps > 0:
-                summary_lines.append(f"  - Ignored False Positives: {ignored_fps}")
-        
-        # Always show anomaly count
-        if has_anomalies:
-            summary_lines.append(f"  - Anomalies Detected: {len(anomalies)}")
-        
-        # Always show ML detection count
-        if has_ml_results:
-            summary_lines.append(f"  - ML Issues Detected: {len(ml_results)}")
+            # Always show anomaly count
+            if has_anomalies:
+                summary_lines.append(f"  - Anomalies Detected: {len(anomalies)}")
+            
+            # Always show ML detection count
+            if has_ml_results:
+                summary_lines.append(f"  - ML Issues Detected: {len(ml_results)}")
     
     # Summary section header
     summary_lines.append("\n" + "=" * 60)
@@ -448,10 +451,10 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Example Usage:
-  python evaluate.py data/source.csv --column material --output-dir results/material_test
-  python evaluate.py data/source.csv --column "Care Instructions" --validator care_instructions
-  python evaluate.py data/source.csv --column "colour_name" --anomaly-detector color_name --run anomaly
-  python evaluate.py data/source.csv --column material --ml-detector --run all
+  python evaluate.py data/source.csv --field material --output-dir results/material_test
+  python evaluate.py data/source.csv --field care_instructions --validator care_instructions
+  python evaluate.py data/source.csv --field colour_name --anomaly-detector color_name --run anomaly
+  python evaluate.py data/source.csv --field material --ml-detector --run all
 
 This will automatically look for:
 - Error Injection Rules: error_injection_rules/<validator>.json
@@ -461,13 +464,12 @@ This will automatically look for:
 - Anomaly Reporter: anomaly_detectors/report:AnomalyReporter
 - ML Detector: Sentence transformer models for anomaly detection
 
-If --validator is not specified, it defaults to the value of --column (converted to snake_case if needed).
 If --anomaly-detector is not specified, it defaults to the value of --validator.
 """
     )
     parser.add_argument("source_data", help="Path to the source CSV data file.")
-    parser.add_argument("--column", required=True, help="The target column to validate in the CSV file (e.g., 'material', 'Care Instructions').")
-    parser.add_argument("--validator", help="The validator name to use for files and classes (e.g., 'material', 'care_instructions'). Defaults to the column name if not provided.")
+    parser.add_argument("--field", required=True, help="The target field to validate in the CSV file (e.g., 'material', 'care_instructions').")
+    parser.add_argument("--validator", help="The validator name to use for files and classes (e.g., 'material', 'care_instructions'). Defaults to the field name if not provided.")
     parser.add_argument("--anomaly-detector", help="The anomaly detector name to use (e.g., 'material', 'color_name'). Defaults to the validator name if not provided.")
     parser.add_argument("--ml-detector", action="store_true", help="Enable ML-based anomaly detection using sentence transformers.")
     parser.add_argument("--run", choices=["validation", "anomaly", "ml", "both", "all"], default="both", help="Specify which analysis to run: validation, anomaly detection, ml detection, both (validation+anomaly), or all three.")
@@ -487,14 +489,13 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         debug_config.disable_debug()
 
     # --- Derive paths and class names ---
-    column_name = args.column
-    
-    # If validator name is not provided, default to column name (converted to snake_case)
+    field_name = args.field
+
     if args.validator:
         validator_name = args.validator
     else:
-        # Convert column name to snake_case if needed (e.g., "Care Instructions" -> "care_instructions")
-        validator_name = column_name.lower().replace(' ', '_')
+        # Convert field name to snake_case if needed (e.g., "Care Instructions" -> "care_instructions")
+        validator_name = field_name
     
     # If anomaly detector name is not provided, default to validator name
     if args.anomaly_detector:
@@ -518,8 +519,8 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     anomaly_reporter_module_str = f"anomaly_detectors.rule_based.report:AnomalyReporter"
     
     print(f"--- Evaluation Setup ---")
-    print(f"Target column: '{column_name}'")
-    
+    print(f"Target field: '{field_name}'")
+
     if run_validation:
         print(f"Using validator: '{validator_name}'")
         print(f"Rules: {rules_path}")
@@ -609,7 +610,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     
     # Run evaluation
     if run_validation:
-        error_samples = generate_error_samples(df, column_name, rules, args.num_samples, args.max_errors, args.output_dir)
+        error_samples = generate_error_samples(df, field_name, rules, args.num_samples, args.max_errors, args.output_dir)
     else:
         # If only running anomaly detection, still need sample dataframes
         error_samples = []
@@ -629,7 +630,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     # Run detection once on the original dataset
     dataset_results = evaluator.evaluate_sample(
         df, 
-        column_name, 
+        field_name, 
         injected_errors=[],  # No injected errors for the base dataset
         run_validation=run_validation,
         run_anomaly_detection=run_anomaly,
@@ -649,7 +650,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     for sample in error_samples:
         # Calculate performance metrics by comparing detection results with sample's injected errors
         sample_result = {
-            "column_name": column_name,
+            "field_name": field_name,
             "row_count": len(df),
             "sample_id": sample.get("sample_index", f"sample_{len(evaluation_results)}"),
             "sample_path": f"sample_{sample.get('sample_index', len(evaluation_results))}.csv",
@@ -682,7 +683,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
             validation_results_for_metrics = sample_result["validation_results"]
             metrics = evaluator._calculate_metrics(
                 sample["data"],  # Use the sample DataFrame with injected errors
-                column_name, 
+                field_name, 
                 validation_results_for_metrics, 
                 sample["injected_errors"]
             )

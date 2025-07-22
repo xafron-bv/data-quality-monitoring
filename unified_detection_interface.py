@@ -14,6 +14,7 @@ import json
 from validators.validation_error import ValidationError
 from anomaly_detectors.anomaly_error import AnomalyError
 from anomaly_detectors.reporter_interface import MLAnomalyResult
+from field_column_map import get_field_to_column_map
 
 
 class DetectionType(str, Enum):
@@ -31,7 +32,7 @@ class UnifiedDetectionResult:
     
     def __init__(self,
                  row_index: int,
-                 column_name: str,
+                 field_name: str,
                  value: Any,
                  detection_type: DetectionType,
                  probability: float,
@@ -44,7 +45,7 @@ class UnifiedDetectionResult:
         
         Args:
             row_index: The index of the row where the issue was detected
-            column_name: The name of the column where the issue was detected
+            field_name: The name of the field where the issue was detected
             value: The original data value that was flagged
             detection_type: The type of detection that found this issue
             probability: A value between 0 and 1 indicating probability that this is an issue
@@ -54,7 +55,7 @@ class UnifiedDetectionResult:
             ml_features: Optional ML-specific features (embeddings, probabilities, etc.)
         """
         self.row_index = row_index
-        self.column_name = column_name
+        self.field_name = field_name
         self.value = value
         self.detection_type = detection_type
         self.probability = probability
@@ -68,7 +69,7 @@ class UnifiedDetectionResult:
         """Create a UnifiedDetectionResult from a ValidationError."""
         return cls(
             row_index=validation_error.row_index,
-            column_name=validation_error.column_name,
+            field_name=validation_error.column_name,  # Note: ValidationError uses column_name, we'll convert to field_name in the calling code
             value=validation_error.error_data,
             detection_type=DetectionType.VALIDATION,
             probability=validation_error.probability,
@@ -82,7 +83,7 @@ class UnifiedDetectionResult:
         """Create a UnifiedDetectionResult from an AnomalyError."""
         return cls(
             row_index=anomaly_error.row_index,
-            column_name=anomaly_error.column_name,
+            field_name=anomaly_error.column_name,  # Note: AnomalyError uses column_name, we'll convert to field_name in the calling code
             value=anomaly_error.anomaly_data,
             detection_type=DetectionType.ANOMALY,
             probability=anomaly_error.probability,
@@ -106,7 +107,7 @@ class UnifiedDetectionResult:
         
         return cls(
             row_index=ml_result.row_index,
-            column_name=ml_result.column_name,
+            field_name=ml_result.column_name,  # MLAnomalyResult uses column_name, not field_name
             value=ml_result.value,
             detection_type=DetectionType.ML_ANOMALY,
             probability=ml_result.probabiliy,
@@ -120,7 +121,7 @@ class UnifiedDetectionResult:
         """Convert the result to a dictionary format."""
         return {
             'row_index': self.row_index,
-            'column_name': self.column_name,
+            'field_name': self.field_name,
             'value': self.value,
             'detection_type': self.detection_type.value,
             'probability': self.probability,
@@ -161,7 +162,7 @@ class UnifiedDetectorInterface(ABC):
         self.ml_detector = ml_detector
     
     @abstractmethod
-    def detect_issues(self, df: pd.DataFrame, column_name: str, 
+    def detect_issues(self, df: pd.DataFrame, field_name: str, 
                      enable_validation: bool = True,
                      enable_anomaly_detection: bool = True,
                      enable_ml_detection: bool = True,
@@ -169,11 +170,11 @@ class UnifiedDetectorInterface(ABC):
                      anomaly_threshold: float = 0.7,
                      ml_threshold: float = 0.7) -> List[UnifiedDetectionResult]:
         """
-        Detect all types of issues in the specified column using enabled detection methods.
+        Detect all types of issues in the specified field using enabled detection methods.
         
         Args:
             df: The dataframe to analyze
-            column_name: The column to analyze
+            field_name: The field to analyze (will be mapped to column name for CSV access)
             enable_validation: Whether to run validation
             enable_anomaly_detection: Whether to run pattern-based anomaly detection
             enable_ml_detection: Whether to run ML-based anomaly detection
@@ -192,7 +193,7 @@ class CombinedDetector(UnifiedDetectorInterface):
     A concrete implementation that combines validation, anomaly detection, and ML detection.
     """
     
-    def detect_issues(self, df: pd.DataFrame, column_name: str,
+    def detect_issues(self, df: pd.DataFrame, field_name: str,
                      enable_validation: bool = True,
                      enable_anomaly_detection: bool = True,
                      enable_ml_detection: bool = True,
@@ -201,8 +202,19 @@ class CombinedDetector(UnifiedDetectorInterface):
                      ml_threshold: float = 0.7) -> List[UnifiedDetectionResult]:
         """
         Detect issues using all available detection methods.
+        
+        Args:
+            field_name: The field name to analyze (mapped to CSV column name)
         """
         all_results = []
+        
+        # Get the column name for CSV data access
+        field_to_column_map = get_field_to_column_map()
+        column_name = field_to_column_map.get(field_name, field_name)
+        
+        # Validate that the column exists in the dataframe
+        if column_name not in df.columns:
+            raise ValueError(f"Column '{column_name}' (mapped from field '{field_name}') not found in dataframe. Available columns: {list(df.columns)}")
         
         # Run validation if enabled and available
         if enable_validation and self.validator:
@@ -210,6 +222,7 @@ class CombinedDetector(UnifiedDetectorInterface):
             for error in validation_errors:
                 if error.probability >= validation_threshold:
                     result = UnifiedDetectionResult.from_validation_error(error)
+                    result.field_name = field_name  # Ensure we track the field name, not column name
                     all_results.append(result)
         
         # Run pattern-based anomaly detection if enabled and available
@@ -218,20 +231,25 @@ class CombinedDetector(UnifiedDetectorInterface):
             for error in anomaly_errors:
                 if error.probability >= anomaly_threshold:
                     result = UnifiedDetectionResult.from_anomaly_error(error)
+                    result.field_name = field_name  # Ensure we track the field name, not column name
                     all_results.append(result)
         
         # Run ML-based detection if enabled and available
         if enable_ml_detection and self.ml_detector:
             # This will need to be implemented based on your ML detector interface
-            ml_results = self._run_ml_detection(df, column_name, ml_threshold)
+            ml_results = self._run_ml_detection(df, field_name, column_name, ml_threshold)
             all_results.extend(ml_results)
         
         return all_results
     
-    def _run_ml_detection(self, df: pd.DataFrame, column_name: str, 
+    def _run_ml_detection(self, df: pd.DataFrame, field_name: str, column_name: str, 
                          threshold: float) -> List[UnifiedDetectionResult]:
         """
         Run ML-based detection using the configured ML detector.
+        
+        Args:
+            field_name: The field name being analyzed
+            column_name: The CSV column name to read data from
         """
         ml_results = []
         
@@ -242,6 +260,7 @@ class CombinedDetector(UnifiedDetectorInterface):
                 for ml_result in ml_anomalies:
                     # Convert MLAnomalyResult to UnifiedDetectionResult
                     unified_result = UnifiedDetectionResult.from_ml_anomaly_result(ml_result)
+                    unified_result.field_name = field_name  # Ensure we track the field name, not column name
                     if unified_result.probability >= threshold:
                         ml_results.append(unified_result)
             except Exception as e:
@@ -282,7 +301,7 @@ class UnifiedReporter:
         for result in detection_results:
             report = {
                 'row_index': result.row_index,
-                'column_name': result.column_name,
+                'field_name': result.field_name,
                 'value': result.value,
                 'detection_type': result.detection_type.value,
                 'probability': result.probability,

@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """
-Script to analyze unique values in any column of a CSV file
+Script to analyze unique values in any field of a CSV file
 """
 
 import pandas as pd
 import sys
 import argparse
 from collections import Counter
+from field_column_map import get_field_to_column_map
 
-def analyze_column_values(csv_file, column_name):
+def analyze_field_values(csv_file, field_name):
     """
-    Analyze unique values in the specified column
+    Analyze unique values in the specified field
     """
     try:
         # Load the CSV file
@@ -18,17 +19,21 @@ def analyze_column_values(csv_file, column_name):
         print(f"✅ Successfully loaded CSV: {csv_file}")
         print(f"Total rows: {len(df)}")
         
+        # Get the column name for the field
+        field_to_column_map = get_field_to_column_map()
+        column_name = field_to_column_map.get(field_name, field_name)
+        
         # Check if the column exists
         if column_name not in df.columns:
-            print(f"❌ Column '{column_name}' not found in the CSV file.")
+            print(f"❌ Column '{column_name}' (mapped from field '{field_name}') not found in the CSV file.")
             print(f"Available columns: {list(df.columns)}")
-            return
+            return None
         
         # Get the specified column
         column_series = df[column_name]
         
         # Basic statistics
-        print(f"\n📊 Basic Statistics for '{column_name}' column:")
+        print(f"\n📊 Basic Statistics for '{field_name}' field (column: '{column_name}'):")
         print(f"  - Total entries: {len(column_series)}")
         print(f"  - Non-null entries: {column_series.notna().sum()}")
         print(f"  - Null entries: {column_series.isna().sum()}")
@@ -38,7 +43,7 @@ def analyze_column_values(csv_file, column_name):
         unique_values = column_series.dropna().unique()
         unique_values_sorted = sorted(unique_values)
         
-        print(f"\n🔍 All Unique Values in '{column_name}' ({len(unique_values_sorted)} total):")
+        print(f"\n🔍 All Unique Values in '{field_name}' field ({len(unique_values_sorted)} total):")
         print("=" * 50)
         
         for i, value in enumerate(unique_values_sorted, 1):
@@ -97,14 +102,14 @@ def analyze_column_values(csv_file, column_name):
         os.makedirs('analysis_results', exist_ok=True)
         
         # Save results to file
-        output_file = f'analysis_results/{column_name.replace(" ", "_").lower()}_analysis.txt'
+        output_file = f'analysis_results/{field_name.replace(" ", "_").lower()}_analysis.txt'
         with open(output_file, 'w') as f:
-            f.write(f"{column_name} Analysis for {csv_file}\n")
+            f.write(f"{field_name} Analysis for {csv_file}\n")
             f.write("=" * 50 + "\n\n")
             
             f.write(f"Total unique values: {len(unique_values_sorted)}\n\n")
             
-            f.write(f"All Unique Values in '{column_name}':\n")
+            f.write(f"All Unique Values in '{field_name}':\n")
             f.write("-" * 30 + "\n")
             for i, value in enumerate(unique_values_sorted, 1):
                 f.write(f"{i:2d}. {value}\n")
@@ -124,22 +129,23 @@ def analyze_column_values(csv_file, column_name):
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python analyze_colours.py <csv_file> [column_name]")
+        print("Usage: python analyze_column.py <csv_file> [field_name]")
         print("  csv_file: Path to the CSV file to analyze")
-        print("  column_name: Name of the column to analyze (default: 'colour_name')")
-        print("Example: python analyze_colours.py data/esqualo_2022_fall_original.csv")
-        print("Example: python analyze_colours.py data/esqualo_2022_fall_original.csv article_structure_name_2")
+        print("  field_name: Name of the field to analyze (default: 'color_name')")
+        print("Example: python analyze_column.py data/esqualo_2022_fall_original.csv")
+        print("Example: python analyze_column.py data/esqualo_2022_fall_original.csv category")
+        print("Example: python analyze_column.py data/esqualo_2022_fall_original.csv material")
         sys.exit(1)
     
     csv_file = sys.argv[1]
-    column_name = sys.argv[2] if len(sys.argv) > 2 else 'colour_name'
+    field_name = sys.argv[2] if len(sys.argv) > 2 else 'color_name'
     
-    print(f"🔍 Analyzing column '{column_name}' in file: {csv_file}")
+    print(f"🔍 Analyzing field '{field_name}' in file: {csv_file}")
     
-    unique_values = analyze_column_values(csv_file, column_name)
+    unique_values = analyze_field_values(csv_file, field_name)
     
     if unique_values is not None:
-        print(f"\n✅ Analysis complete! Found {len(unique_values)} unique values in '{column_name}' column.")
+        print(f"\n✅ Analysis complete! Found {len(unique_values)} unique values in '{field_name}' field.")
 
 if __name__ == "__main__":
     main()
