@@ -14,13 +14,13 @@ OUTPUT_DIR="evaluation_results"
 IGNORE_FP="--ignore-fp"
 DEBUG_FLAG=""  # Set to "--debug" to enable debug logging
 
-# Define the column and validator pairs
-# Format: "validator_name:column_name"
+# Define the field and column pairs
+# Format: "validator_name:field_name"
 EVALUATIONS=(
-  "category:article_structure_name_2"
+  "category:category"
   "season:season"
-  "color_name:colour_name"
-  "care_instructions:Care Instructions"
+  "color_name:color_name"
+  "care_instructions:care_instructions"
 )
 
 # Create the output directory if it doesn't exist
@@ -28,24 +28,24 @@ mkdir -p "$OUTPUT_DIR"
 
 # Process each evaluation
 for eval in "${EVALUATIONS[@]}"; do
-  # Split the string into validator and column
+  # Split the string into validator and field
   validator=$(echo $eval | cut -d':' -f1)
-  column=$(echo $eval | cut -d':' -f2)
+  field=$(echo $eval | cut -d':' -f2)
   
   # Create a directory for this specific evaluation
-  eval_dir="${OUTPUT_DIR}/${validator}_${column// /_}"
+  eval_dir="${OUTPUT_DIR}/${validator}_${field// /_}"
   mkdir -p "$eval_dir"
   
   echo "----------------------------------------"
   echo "Running evaluation for:"
   echo "Validator: $validator"
-  echo "Column: $column"
+  echo "Field: $field"
   echo "Output directory: $eval_dir"
   
   # Run the evaluation with all three detection methods
   python evaluate.py \
     --validator="$validator" \
-    --column="$column" \
+    --field="$field" \
     --max-errors=$MAX_ERRORS \
     --num-samples=$NUM_SAMPLES \
     --output-dir="$eval_dir" \
@@ -55,7 +55,7 @@ for eval in "${EVALUATIONS[@]}"; do
     $DEBUG_FLAG \
     "$DATA_FILE"
   
-  echo "Evaluation complete for $validator:$column"
+  echo "Evaluation complete for $validator:$field"
   echo "----------------------------------------"
   echo ""
 done

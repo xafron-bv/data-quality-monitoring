@@ -10,7 +10,12 @@ The module supports various error injection operations including:
 - Regex replacement  
 - Text prepending/appending
 - Random noise injection
-- Conditional error application
+- C    for i in range(num_samples):
+        # Generate errors for this sample
+        num_to_inject = random.randint(1, max_errors_per_sample)
+        df_with_errors, injected_errors = injector.inject_errors(
+            df, column_name, max_errors=num_to_inject
+        )onal error application
 
 Usage:
     from error_injection import apply_error_rule, generate_error_samples, ErrorInjector
@@ -19,11 +24,11 @@ Usage:
     corrupted_text = apply_error_rule("original text", rule_dict)
     
     # Generate multiple error samples
-    samples = generate_error_samples(df, "column_name", rules, num_samples=10)
+    samples = generate_error_samples(df, "field_name", rules, num_samples=10)
     
     # Use the ErrorInjector class for more control
     injector = ErrorInjector(rules)
-    corrupted_data = injector.inject_errors(df, "column_name", max_errors=3)
+    corrupted_data = injector.inject_errors(df, "field_name", max_errors=3)
 """
 
 import pandas as pd
@@ -34,6 +39,7 @@ import json
 import string
 import re
 from typing import List, Dict, Any, Union, Optional, Tuple
+from field_column_map import get_field_to_column_map
 
 
 class ErrorInjector:
@@ -63,26 +69,34 @@ class ErrorInjector:
     
     def inject_errors(self, 
                      df: pd.DataFrame, 
-                     column: str, 
+                     field_name: str, 
                      max_errors: int = 3,
                      error_probability: float = 0.1) -> Tuple[pd.DataFrame, List[Dict[str, Any]]]:
         """
-        Inject errors into a dataframe column.
+        Inject errors into a dataframe field.
         
         Args:
             df: The dataframe to inject errors into
-            column: The column name to inject errors into
+            field_name: The field name to inject errors into (will be mapped to column name for CSV access)
             max_errors: Maximum number of errors to inject
             error_probability: Probability of injecting an error in each row
             
         Returns:
             Tuple of (modified_dataframe, list_of_injected_errors)
         """
+        # Get the column name for CSV data access
+        field_to_column_map = get_field_to_column_map()
+        column_name = field_to_column_map.get(field_name, field_name)
+        
+        # Validate that the column exists in the dataframe
+        if column_name not in df.columns:
+            raise ValueError(f"Column '{column_name}' (mapped from field '{field_name}') not found in dataframe. Available columns: {list(df.columns)}")
+        
         df_copy = df.copy()
         injected_errors = []
         
         # Get eligible rows (non-null values)
-        eligible_rows = df_copy[df_copy[column].notna()].index.tolist()
+        eligible_rows = df_copy[df_copy[column_name].notna()].index.tolist()
         
         if not eligible_rows:
             return df_copy, injected_errors
@@ -101,12 +115,12 @@ class ErrorInjector:
             
             for idx in error_rows:
                 rule = random.choice(self.rules)
-                original_data = df_copy.at[idx, column]
+                original_data = df_copy.at[idx, column_name]
                 
                 new_data = apply_error_rule(original_data, rule)
                 
                 if new_data != original_data:
-                    df_copy.at[idx, column] = new_data
+                    df_copy.at[idx, column_name] = new_data
                     injected_errors.append({
                         "row_index": idx,
                         "original_data": original_data,
@@ -367,7 +381,7 @@ def apply_error_rule(data_string: Union[str, Any], rule: Dict[str, Any]) -> Unio
 
 
 def generate_error_samples(df: pd.DataFrame, 
-                         column: str, 
+                         field_name: str, 
                          rules: List[Dict[str, Any]], 
                          num_samples: int,
                          max_errors_per_sample: int = 3,
@@ -377,7 +391,7 @@ def generate_error_samples(df: pd.DataFrame,
     
     Args:
         df: Source dataframe
-        column: Column name to inject errors into
+        field_name: Field name to inject errors into (will be mapped to column name for CSV access)
         rules: List of error rules
         num_samples: Number of samples to generate
         max_errors_per_sample: Maximum number of errors per sample
@@ -388,6 +402,14 @@ def generate_error_samples(df: pd.DataFrame,
     """
     if not rules:
         raise ValueError("No error rules provided")
+    
+    # Get the column name for CSV data access
+    field_to_column_map = get_field_to_column_map()
+    column_name = field_to_column_map.get(field_name, field_name)
+    
+    # Validate that the column exists in the dataframe
+    if column_name not in df.columns:
+        raise ValueError(f"Column '{column_name}' (mapped from field '{field_name}') not found in dataframe. Available columns: {list(df.columns)}")
     
     samples = []
     injector = ErrorInjector(rules)
@@ -402,7 +424,7 @@ def generate_error_samples(df: pd.DataFrame,
         # Generate errors for this sample
         num_to_inject = random.randint(1, max_errors_per_sample)
         df_with_errors, injected_errors = injector.inject_errors(
-            df, column, max_errors=num_to_inject
+            df, field_name, max_errors=num_to_inject
         )
         
         # Save the sample if output directory is specified

@@ -14,5 +14,11 @@ def get_field_to_column_map():
         "material": "material",
         "product_name_en": "product_name_EN",
         "size": "size_name",  # Fixed: use 'size' rule file for 'size_name' column
-        # Excluded: season (only 1 unique value), care_instructions (only 2 unique values)
+        "care_instructions": "Care Instructions",  # Added: maps to the actual column name with capitals and space
+        "season": "season",  # Re-added: might be useful for analysis even with limited values
+        "manufactured_in": "Manufactured in",  # Added: maps to column with space
+        "supplier": "supplier",  # Added: supplier information
+        "brand": "brand",  # Added: brand information
+        "collection": "collection",  # Added: collection information
+        # Note: Some fields were previously excluded due to limited unique values but can be useful for specific analyses
     }
