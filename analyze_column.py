@@ -5,8 +5,6 @@ Script to analyze unique values in any field of a CSV file
 
 import pandas as pd
 import sys
-import argparse
-from collections import Counter
 from field_column_map import get_field_to_column_map
 
 def analyze_field_values(csv_file, field_name):

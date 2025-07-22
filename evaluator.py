@@ -1,17 +1,11 @@
 import pandas as pd
-import numpy as np
-import json
-import os
-import sys
-from typing import List, Dict, Any, Union, Optional, Tuple
+from typing import List, Dict, Any, Optional
 
-from validators.validation_error import ValidationError
 from validators.validator_interface import ValidatorInterface
 from validators.reporter_interface import ReporterInterface
 from anomaly_detectors.anomaly_detector_interface import AnomalyDetectorInterface
 from anomaly_detectors.reporter_interface import AnomalyReporterInterface
 from unified_detection_interface import (
-    UnifiedDetectionResult, 
     CombinedDetector, 
     UnifiedReporter,
     DetectionType
@@ -79,7 +73,7 @@ class Evaluator:
                         df: pd.DataFrame, 
                         field_name: str,
                         detection_types: Optional[List[DetectionType]] = None,
-                        threshold: float = 0.7) -> Dict[str, Any]:
+                        threshold: float = 0.9) -> Dict[str, Any]:
         """
         Evaluates a field using the unified detection interface that combines all approaches.
         
