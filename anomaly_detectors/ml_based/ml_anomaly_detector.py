@@ -143,6 +143,19 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
         except Exception as e:
             print(f"Error in ML anomaly detection: {e}")
             return None
+    
+    def get_detector_args(self) -> Dict[str, Any]:
+        """
+        Return arguments needed to recreate this detector instance in a worker process.
+        
+        Returns:
+            Dictionary of arguments that can be passed to the constructor
+        """
+        return {
+            'field_name': self.field_name,
+            'results_dir': self.results_dir,
+            'threshold': self.threshold
+        }
 
 
 class MLAnomalyDetectorFactory:
