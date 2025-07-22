@@ -7,9 +7,8 @@ and ML-based detection approaches into a single, consistent framework.
 
 from abc import ABC, abstractmethod
 import pandas as pd
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Optional
 from enum import Enum
-import json
 
 from validators.validation_error import ValidationError
 from anomaly_detectors.anomaly_error import AnomalyError

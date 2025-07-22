@@ -1,20 +1,15 @@
 import pandas as pd
-import numpy as np
-import random
 import os
 import json
 import sys
 import argparse
-import string
 import importlib
-import re
 
 # Add the script's directory to the Python path.
 # This ensures that top-level modules like 'interfaces.py' are found
 # when validator/reporter modules are loaded dynamically from subdirectories.
-from validators.validation_error import ValidationError
 from evaluator import Evaluator
-from error_injection import apply_error_rule, generate_error_samples, load_error_rules
+from error_injection import generate_error_samples, load_error_rules
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
 import debug_config
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
