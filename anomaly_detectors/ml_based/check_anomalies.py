@@ -82,7 +82,7 @@ def check_anomalies(model, values, threshold=0.6, batch_size=None):
     if batch_size is None:
         # Use GPU utility to determine optimal batch size
         device_str = str(model.device) if hasattr(model, 'device') else 'cpu'
-        batch_size = get_optimal_batch_size(device_str, default_gpu=512, default_cpu=32)
+        batch_size = get_optimal_batch_size(device_str)
         batch_size = min(batch_size, len(processed_values))
     
     # Encode all values at once for efficiency with specified batch size
