@@ -6,6 +6,8 @@ import concurrent.futures
 
 from anomaly_detectors.anomaly_error import AnomalyError
 from anomaly_detectors.ml_based.gpu_utils import get_optimal_batch_size
+from anomaly_detectors.ml_based.check_anomalies import check_anomalies
+        
 from debug_config import debug_print
 
 
@@ -41,8 +43,6 @@ def _process_ml_batch_gpu(batch_df, column_name, detector_instance):
     
     # Process all values at once using GPU acceleration
     try:
-        from anomaly_detectors.ml_based.check_anomalies import check_anomalies
-        
         # Load patterns if not already done
         if not detector_instance.is_initialized:
             detector_instance.learn_patterns(batch_df, column_name)
