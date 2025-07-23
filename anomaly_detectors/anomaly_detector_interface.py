@@ -135,7 +135,7 @@ class AnomalyDetectorInterface(ABC):
         """
         return {}
 
-    def bulk_detect(self, df: pd.DataFrame, column_name: str, batch_size: int = None, max_workers: int = 7) -> List[AnomalyError]:
+    def bulk_detect(self, df: pd.DataFrame, column_name: str, batch_size: Optional[int], max_workers: int) -> List[AnomalyError]:
         """
         Detects anomalies in a column and returns a list of AnomalyError objects.
         This method is a non-editable engine that runs the `_detect_anomaly` logic in parallel batches.

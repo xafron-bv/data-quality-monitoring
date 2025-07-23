@@ -348,6 +348,9 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     parser.add_argument("--anomaly-threshold", type=float, default=0.7, help="Minimum confidence threshold for anomaly detection (default: 0.7).")
     parser.add_argument("--ml-threshold", type=float, default=0.7, help="Minimum confidence threshold for ML detection (default: 0.7).")
     parser.add_argument("--error-probability", type=float, default=0.1, help="Probability of injecting errors in each row (default: 0.1).")
+    parser.add_argument("--batch-size", type=int, help="Batch size for processing (default: auto-determined based on system).")
+    parser.add_argument("--max-workers", type=int, default=7, help="Maximum number of parallel workers (default: 7).")
+    parser.add_argument("--high-confidence-threshold", type=float, default=0.8, help="Threshold for high confidence detection results (default: 0.8).")
     
     args = parser.parse_args()
 
@@ -459,6 +462,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         try:
             ml_detector = MLAnomalyDetector(
                 field_name=validator_name,
+                threshold=args.ml_threshold,
             )
             print("ML anomaly detector initialized successfully.")
         except Exception as e:
@@ -471,6 +475,9 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     
     # Create evaluator with appropriate components
     evaluator = Evaluator(
+        high_confidence_threshold=args.high_confidence_threshold,
+        batch_size=args.batch_size,
+        max_workers=args.max_workers,
         validator=validator,
         validator_reporter=validator_reporter,
         anomaly_detector=anomaly_detector,
@@ -481,8 +488,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     # Run evaluation
     if run_validation:
         error_samples = generate_error_samples(
-            df, field_name, rules, args.num_samples, args.max_errors, args.output_dir,
-            error_probability=args.error_probability
+            df, field_name, rules, args.num_samples, args.max_errors, args.error_probability, args.output_dir
         )
     else:
         # If only running anomaly detection, still need sample dataframes

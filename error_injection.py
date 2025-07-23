@@ -65,20 +65,20 @@ class ErrorInjector:
     
     def inject_errors(self, 
                      df: pd.DataFrame, 
-                     field_name: str, 
-                     max_errors: int = 3,
-                     error_probability: float = 0.1) -> Tuple[pd.DataFrame, List[Dict[str, Any]]]:
+                     field_name: str,
+                     max_errors: int,
+                     error_probability: float) -> Tuple[pd.DataFrame, List[Dict[str, Any]]]:
         """
-        Inject errors into a dataframe field.
+        Inject errors into the dataframe based on the rules.
         
         Args:
-            df: The dataframe to inject errors into
-            field_name: The field name to inject errors into (will be mapped to column name for CSV access)
+            df: Source dataframe
+            field_name: Field name to inject errors into (will be mapped to column name for CSV access)
             max_errors: Maximum number of errors to inject
-            error_probability: Probability of injecting an error in each row
+            error_probability: Probability of injecting errors in each row
             
         Returns:
-            Tuple of (modified_dataframe, list_of_injected_errors)
+            Tuple of (modified dataframe, list of injected errors)
         """
         # Get the column name using centralized field mapping
         column_name = self.field_mapper.validate_column_exists(df, field_name)
@@ -375,10 +375,10 @@ def generate_error_samples(df: pd.DataFrame,
                          field_name: str, 
                          rules: List[Dict[str, Any]], 
                          num_samples: int,
-                         max_errors_per_sample: int = 3,
+                         max_errors_per_sample: int,
+                         error_probability: float,
                          output_dir: Optional[str] = None,
-                         field_mapper: Optional[FieldMapper] = None,
-                         error_probability: float = 0.1) -> List[Dict[str, Any]]:
+                         field_mapper: Optional[FieldMapper] = None) -> List[Dict[str, Any]]:
     """
     Generate multiple samples with errors injected based on the rules.
     
