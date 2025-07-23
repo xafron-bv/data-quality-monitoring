@@ -388,8 +388,8 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     rules_path = f"error_injection_rules/{validator_name}.json"
     validator_module_str = f"validators.{validator_name}.validate:Validator"
     validator_reporter_module_str = f"validators.report:Reporter"
-    anomaly_detector_module_str = f"anomaly_detectors.rule_based.{detector_name}.detect:AnomalyDetector"
-    anomaly_reporter_module_str = f"anomaly_detectors.rule_based.report:AnomalyReporter"
+    anomaly_detector_module_str = f"anomaly_detectors.pattern_based.{detector_name}.detect:AnomalyDetector"
+    anomaly_reporter_module_str = f"anomaly_detectors.pattern_based.report:AnomalyReporter"
     
     print(f"--- Evaluation Setup ---")
     print(f"Target field: '{field_name}'")
