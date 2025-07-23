@@ -496,7 +496,7 @@ Results for material column with different thresholds:
 
 - **Attention visualization**: Show which parts of text drive decisions
 - **Nearest neighbor explanations**: Compare to similar normal examples
-- **Rule-based explanations**: Map ML decisions to human-readable rules
+- **Pattern-based explanations**: Map ML decisions to human-readable rules
 - **Confidence intervals**: Provide uncertainty estimates
 
 ### 5. Scalability Improvements

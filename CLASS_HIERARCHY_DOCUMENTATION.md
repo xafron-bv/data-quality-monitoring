@@ -75,7 +75,7 @@ class AnomalyDetectorInterface(ABC):
 - Pattern learning capability
 
 **Implementations**:
-- Rule-based detectors (anomaly_detectors/rule_based/*/detect.py)
+- Pattern-based detectors (anomaly_detectors/pattern_based/*/detect.py)
 - `MLAnomalyDetector` (anomaly_detectors/ml_based/ml_anomaly_detector.py)
 
 #### UnifiedDetectorInterface (unified_detection_interface.py)
@@ -159,10 +159,10 @@ class AnomalyError:
                 explanation: Optional[str] = None):
 ```
 
-**Purpose**: Represents anomaly detection results (both rule-based and ML-based)
+**Purpose**: Represents anomaly detection results (both pattern-based and ML-based)
 **Confidence**: Variable (0.0-1.0)
 **Key Features**:
-- Supports both rule-based and ML metadata
+- Supports both pattern-based and ML metadata
 - Feature contributions for explainability
 - Nearest neighbors for context
 - Natural language explanations
@@ -333,7 +333,7 @@ f1_score = 2 * precision * recall / (precision + recall) if precision + recall >
 - **Confidence**: Medium (0.5-0.9)
 - **Purpose**: Statistical outliers, unusual patterns
 - **Examples**: Unusual text lengths, character patterns
-- **Performance**: Medium, rule-based logic
+- **Performance**: Medium, pattern-based logic
 
 ### 3. ML-Based Anomaly Detection
 - **Interface**: `AnomalyDetectorInterface` + `MLAnomalyDetector`

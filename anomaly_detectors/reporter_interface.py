@@ -64,7 +64,7 @@ class AnomalyReporterInterface(ABC):
 
     This interface ensures that every reporter can take a structured list of
     anomaly detection results and generate human-readable messages. It supports
-    both rule-based anomaly errors and ML-based anomaly results.
+    both pattern-based anomaly errors and ML-based anomaly results.
     """
 
     @abstractmethod
