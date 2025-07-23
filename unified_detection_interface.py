@@ -1,300 +1,130 @@
-"""
-Unified Detection Interface for Data Quality Monitoring
-
-This module provides a unified interface that combines validation, anomaly detection,
-and ML-based detection approaches into a single, consistent framework.
-"""
+"""Unified detection interface for data quality monitoring."""
 
 from abc import ABC, abstractmethod
 import pandas as pd
 from typing import List, Dict, Any, Optional
 from enum import Enum
+from dataclasses import dataclass
 
 from validators.validation_error import ValidationError
 from anomaly_detectors.anomaly_error import AnomalyError
 from anomaly_detectors.reporter_interface import MLAnomalyResult
-from field_column_map import get_field_to_column_map
+from common_interfaces import (
+    DetectionResult, DetectionType, FieldMapper, 
+    convert_validation_error_to_detection_result,
+    convert_anomaly_error_to_detection_result
+)
+from exceptions import DataError
 
 
-class DetectionType(str, Enum):
-    """Enumeration for different types of detection approaches."""
-    VALIDATION = "validation"      # Rule-based validation (high confidence)
-    ANOMALY = "anomaly"           # Pattern-based anomaly detection (medium confidence)
-    ML_ANOMALY = "ml_anomaly"     # ML-based anomaly detection (variable confidence)
-
-
-class UnifiedDetectionResult:
-    """
-    A unified result class that can represent any type of detection result.
-    This provides a consistent interface across all detection approaches.
-    """
-    
-    def __init__(self,
-                 row_index: int,
-                 field_name: str,
-                 value: Any,
-                 detection_type: DetectionType,
-                 probability: float,
-                 error_code: str,
-                 message: str,
-                 details: Dict[str, Any] = None,
-                 ml_features: Dict[str, Any] = None):
-        """
-        Initialize a unified detection result.
-        
-        Args:
-            row_index: The index of the row where the issue was detected
-            field_name: The name of the field where the issue was detected
-            value: The original data value that was flagged
-            detection_type: The type of detection that found this issue
-            probability: A value between 0 and 1 indicating probability that this is an issue
-            error_code: A string code identifying the type of error/anomaly
-            message: A human-readable message explaining the issue
-            details: Optional dictionary containing additional details
-            ml_features: Optional ML-specific features (embeddings, probabilities, etc.)
-        """
-        self.row_index = row_index
-        self.field_name = field_name
-        self.value = value
-        self.detection_type = detection_type
-        self.probability = probability
-        self.error_code = error_code
-        self.message = message
-        self.details = details or {}
-        self.ml_features = ml_features or {}
-    
-    @classmethod
-    def from_validation_error(cls, validation_error: ValidationError) -> 'UnifiedDetectionResult':
-        """Create a UnifiedDetectionResult from a ValidationError."""
-        return cls(
-            row_index=validation_error.row_index,
-            field_name=validation_error.column_name,  # Note: ValidationError uses column_name, we'll convert to field_name in the calling code
-            value=validation_error.error_data,
-            detection_type=DetectionType.VALIDATION,
-            probability=validation_error.probability,
-            error_code=str(validation_error.error_type),
-            message=f"Validation error: {validation_error.error_type}",
-            details=validation_error.details
-        )
-    
-    @classmethod
-    def from_anomaly_error(cls, anomaly_error: AnomalyError) -> 'UnifiedDetectionResult':
-        """Create a UnifiedDetectionResult from an AnomalyError."""
-        return cls(
-            row_index=anomaly_error.row_index,
-            field_name=anomaly_error.column_name,  # Note: AnomalyError uses column_name, we'll convert to field_name in the calling code
-            value=anomaly_error.anomaly_data,
-            detection_type=DetectionType.ANOMALY,
-            probability=anomaly_error.probability,
-            error_code=str(anomaly_error.anomaly_type),
-            message=f"Anomaly detected: {anomaly_error.anomaly_type}",
-            details=anomaly_error.details
-        )
-    
-    @classmethod
-    def from_ml_anomaly_result(cls, ml_result: MLAnomalyResult) -> 'UnifiedDetectionResult':
-        """Create a UnifiedDetectionResult from an MLAnomalyResult."""
-        ml_features = {
-            'anomaly_probability': ml_result.probabiliy,
-            'feature_contributions': ml_result.feature_contributions,
-            'nearest_neighbors': ml_result.nearest_neighbors,
-            'cluster_info': ml_result.cluster_info,
-            'probability_info': ml_result.probability_info
-        }
-        
-        message = ml_result.explanation or f"ML anomaly detected with probability {ml_result.probabiliy:.2f}"
-        
-        return cls(
-            row_index=ml_result.row_index,
-            field_name=ml_result.column_name,  # MLAnomalyResult uses column_name, not field_name
-            value=ml_result.value,
-            detection_type=DetectionType.ML_ANOMALY,
-            probability=ml_result.probabiliy,
-            error_code="ML_ANOMALY",
-            message=message,
-            details={'explanation': ml_result.explanation},
-            ml_features=ml_features
-        )
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert the result to a dictionary format."""
-        return {
-            'row_index': self.row_index,
-            'field_name': self.field_name,
-            'value': self.value,
-            'detection_type': self.detection_type.value,
-            'probability': self.probability,
-            'error_code': self.error_code,
-            'message': self.message,
-            'details': self.details,
-            'ml_features': self.ml_features
-        }
-    
-    def is_high_probability(self, threshold: float = 0.8) -> bool:
-        """Check if this is a high-probability detection."""
-        return self.probability >= threshold
-    
-    def is_validation_error(self) -> bool:
-        """Check if this is a validation error (highest confidence)."""
-        return self.detection_type == DetectionType.VALIDATION
+@dataclass
+class DetectionConfig:
+    """Configuration for detection operations."""
+    enable_validation: bool = True
+    enable_anomaly_detection: bool = True
+    enable_ml_detection: bool = True
+    validation_threshold: float = 0.0
+    anomaly_threshold: float = 0.7
+    ml_threshold: float = 0.7
 
 
 class UnifiedDetectorInterface(ABC):
-    """
-    Abstract base class for unified detectors that can combine multiple detection approaches.
-    """
+    """Abstract base class for unified detectors."""
     
     def __init__(self, 
+                 field_mapper: FieldMapper,
                  validator: Optional[Any] = None,
                  anomaly_detector: Optional[Any] = None,
                  ml_detector: Optional[Any] = None):
-        """
-        Initialize the unified detector with multiple detection components.
-        
-        Args:
-            validator: Optional validator implementing ValidatorInterface
-            anomaly_detector: Optional anomaly detector implementing AnomalyDetectorInterface
-            ml_detector: Optional ML-based detector
-        """
+        self.field_mapper = field_mapper
         self.validator = validator
         self.anomaly_detector = anomaly_detector
         self.ml_detector = ml_detector
     
     @abstractmethod
     def detect_issues(self, df: pd.DataFrame, field_name: str, 
-                     enable_validation: bool = True,
-                     enable_anomaly_detection: bool = True,
-                     enable_ml_detection: bool = True,
-                     validation_threshold: float = 0.0,
-                     anomaly_threshold: float = 0.7,
-                     ml_threshold: float = 0.7) -> List[UnifiedDetectionResult]:
-        """
-        Detect all types of issues in the specified field using enabled detection methods.
-        
-        Args:
-            df: The dataframe to analyze
-            field_name: The field to analyze (will be mapped to column name for CSV access)
-            enable_validation: Whether to run validation
-            enable_anomaly_detection: Whether to run pattern-based anomaly detection
-            enable_ml_detection: Whether to run ML-based anomaly detection
-            validation_threshold: Minimum probability threshold for validation results
-            anomaly_threshold: Minimum probability threshold for anomaly detection results
-            ml_threshold: Minimum probability threshold for ML detection results
-            
-        Returns:
-            List of UnifiedDetectionResult objects representing all detected issues
-        """
+                     config: DetectionConfig) -> List[DetectionResult]:
         pass
 
 
 class CombinedDetector(UnifiedDetectorInterface):
-    """
-    A concrete implementation that combines validation, anomaly detection, and ML detection.
-    """
+    """Combines validation, anomaly detection, and ML detection."""
     
     def detect_issues(self, df: pd.DataFrame, field_name: str,
-                     enable_validation: bool = True,
-                     enable_anomaly_detection: bool = True,
-                     enable_ml_detection: bool = True,
-                     validation_threshold: float = 0.0,
-                     anomaly_threshold: float = 0.7,
-                     ml_threshold: float = 0.7) -> List[UnifiedDetectionResult]:
-        """
-        Detect issues using all available detection methods.
-        
-        Args:
-            field_name: The field name to analyze (mapped to CSV column name)
-        """
+                     config: DetectionConfig) -> List[DetectionResult]:
         all_results = []
         
-        # Get the column name for CSV data access
-        field_to_column_map = get_field_to_column_map()
-        column_name = field_to_column_map.get(field_name, field_name)
+        try:
+            column_name = self.field_mapper.validate_column_exists(df, field_name)
+        except ValueError as e:
+            raise DataError(str(e)) from e
         
-        # Validate that the column exists in the dataframe
-        if column_name not in df.columns:
-            raise ValueError(f"Column '{column_name}' (mapped from field '{field_name}') not found in dataframe. Available columns: {list(df.columns)}")
-        
-        # Run validation if enabled and available
-        if enable_validation and self.validator:
+        # Run validation if enabled
+        if config.enable_validation and self.validator:
             validation_errors = self.validator.bulk_validate(df, column_name)
             for error in validation_errors:
-                if error.probability >= validation_threshold:
-                    result = UnifiedDetectionResult.from_validation_error(error)
-                    result.field_name = field_name  # Ensure we track the field name, not column name
+                if error.probability >= config.validation_threshold:
+                    result = convert_validation_error_to_detection_result(error, field_name)
                     all_results.append(result)
         
-        # Run pattern-based anomaly detection if enabled and available
-        if enable_anomaly_detection and self.anomaly_detector:
+        # Run anomaly detection if enabled
+        if config.enable_anomaly_detection and self.anomaly_detector:
             anomaly_errors = self.anomaly_detector.bulk_detect(df, column_name)
             for error in anomaly_errors:
-                if error.probability >= anomaly_threshold:
-                    result = UnifiedDetectionResult.from_anomaly_error(error)
-                    result.field_name = field_name  # Ensure we track the field name, not column name
+                if error.probability >= config.anomaly_threshold:
+                    result = convert_anomaly_error_to_detection_result(error, field_name)
                     all_results.append(result)
         
-        # Run ML-based detection if enabled and available
-        if enable_ml_detection and self.ml_detector:
-            # This will need to be implemented based on your ML detector interface
-            ml_results = self._run_ml_detection(df, field_name, column_name, ml_threshold)
+        # Run ML detection if enabled
+        if config.enable_ml_detection and self.ml_detector:
+            ml_results = self._run_ml_detection(df, field_name, column_name, config.ml_threshold)
             all_results.extend(ml_results)
         
         return all_results
     
     def _run_ml_detection(self, df: pd.DataFrame, field_name: str, column_name: str, 
-                         threshold: float) -> List[UnifiedDetectionResult]:
-        """
-        Run ML-based detection using the configured ML detector.
-        
-        Args:
-            field_name: The field name being analyzed
-            column_name: The CSV column name to read data from
-        """
+                         threshold: float) -> List[DetectionResult]:
         ml_results = []
         
         if hasattr(self.ml_detector, 'bulk_detect'):
-            # Use the ML detector's bulk_detect method
             try:
                 ml_anomalies = self.ml_detector.bulk_detect(df, column_name)
-                for ml_result in ml_anomalies:
-                    # Convert MLAnomalyResult to UnifiedDetectionResult
-                    unified_result = UnifiedDetectionResult.from_ml_anomaly_result(ml_result)
-                    unified_result.field_name = field_name  # Ensure we track the field name, not column name
-                    if unified_result.probability >= threshold:
-                        ml_results.append(unified_result)
+                for ml_anomaly in ml_anomalies:
+                    if ml_anomaly.probability >= threshold:
+                        details = {}
+                        if hasattr(ml_anomaly, 'explanation') and ml_anomaly.explanation:
+                            details['explanation'] = ml_anomaly.explanation
+                        
+                        result = DetectionResult(
+                            row_index=ml_anomaly.row_index,
+                            field_name=field_name,
+                            value=ml_anomaly.anomaly_data,
+                            detection_type=DetectionType.ML_ANOMALY,
+                            confidence=ml_anomaly.probability,
+                            error_code="ML_ANOMALY",
+                            message=details.get('explanation', f"ML anomaly detected with confidence {ml_anomaly.probability:.3f}"),
+                            details=details
+                        )
+                        ml_results.append(result)
             except Exception as e:
-                print(f"Warning: ML detection failed: {e}")
+                from exceptions import ModelError
+                raise ModelError(
+                    f"ML detection failed for field '{field_name}'",
+                    details={'field_name': field_name, 'original_error': str(e)}
+                ) from e
         
         return ml_results
 
 
 class UnifiedReporter:
-    """
-    A reporter that can generate reports from unified detection results.
-    """
+    """Reporter for unified detection results."""
     
     def __init__(self, include_technical_details: bool = False):
-        """
-        Initialize the unified reporter.
-        
-        Args:
-            include_technical_details: Whether to include technical details in reports
-        """
         self.include_technical_details = include_technical_details
     
     def generate_report(self, 
-                       detection_results: List[UnifiedDetectionResult],
+                       detection_results: List[DetectionResult],
                        original_df: pd.DataFrame) -> List[Dict[str, Any]]:
-        """
-        Generate a comprehensive report from unified detection results.
-        
-        Args:
-            detection_results: List of UnifiedDetectionResult objects
-            original_df: Original DataFrame for context
-            
-        Returns:
-            List of report dictionaries
-        """
         reports = []
         
         for result in detection_results:
@@ -303,65 +133,15 @@ class UnifiedReporter:
                 'field_name': result.field_name,
                 'value': result.value,
                 'detection_type': result.detection_type.value,
-                'probability': result.probability,
+                'confidence': result.confidence,
                 'error_code': result.error_code,
                 'display_message': result.message,
-                'is_high_probability': result.is_high_probability(),
-                'is_validation_error': result.is_validation_error()
+                'is_high_confidence': result.is_high_confidence()
             }
             
-            # Add technical details if requested
             if self.include_technical_details:
                 report['details'] = result.details
-                if result.ml_features:
-                    report['ml_features'] = result.ml_features
             
             reports.append(report)
         
         return reports
-    
-    def generate_summary(self, detection_results: List[UnifiedDetectionResult]) -> Dict[str, Any]:
-        """
-        Generate a summary of detection results by type and probability.
-        
-        Args:
-            detection_results: List of UnifiedDetectionResult objects
-            
-        Returns:
-            Dictionary containing summary statistics
-        """
-        summary = {
-            'total_issues': len(detection_results),
-            'by_type': {},
-            'by_probability': {
-                'high_probability': 0,
-                'medium_probability': 0,
-                'low_probability': 0
-            },
-            'validation_errors': 0,
-            'anomalies': 0,
-            'ml_anomalies': 0
-        }
-        
-        for result in detection_results:
-            # Count by type
-            detection_type = result.detection_type.value
-            summary['by_type'][detection_type] = summary['by_type'].get(detection_type, 0) + 1
-            
-            # Count by probability
-            if result.probability >= 0.8:
-                summary['by_probability']['high_probability'] += 1
-            elif result.probability >= 0.5:
-                summary['by_probability']['medium_probability'] += 1
-            else:
-                summary['by_probability']['low_probability'] += 1
-            
-            # Count by detection type
-            if result.detection_type == DetectionType.VALIDATION:
-                summary['validation_errors'] += 1
-            elif result.detection_type == DetectionType.ANOMALY:
-                summary['anomalies'] += 1
-            elif result.detection_type == DetectionType.ML_ANOMALY:
-                summary['ml_anomalies'] += 1
-        
-        return summary

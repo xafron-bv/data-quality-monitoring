@@ -12,6 +12,7 @@ from evaluator import Evaluator
 from error_injection import generate_error_samples, load_error_rules
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
 import debug_config
+from exceptions import DataQualityError, ConfigurationError, FileOperationError, ModelError
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -23,8 +24,14 @@ def load_module_class(module_path: str):
         module = importlib.import_module(module_name)
         return getattr(module, class_name)
     except (ValueError, ImportError, AttributeError) as e:
-        print(f"Error: Could not load class from '{module_path}'.\nEnsure the path is correct and the file contains the class.\nDetails: {e}")
-        sys.exit(1)
+        raise ConfigurationError(
+            f"Could not load class from '{module_path}'",
+            details={
+                'module_path': module_path,
+                'original_error': str(e),
+                'suggestion': 'Ensure the path is correct and the file contains the class'
+            }
+        ) from e
 
 def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
     """Generates a summary report of the evaluation results."""
@@ -335,6 +342,13 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     parser.add_argument("--ignore-errors", nargs='+', default=[], help="A list of error rule names to ignore during evaluation (e.g., inject_unicode_error).")
     parser.add_argument("--ignore-fp", action="store_true", help="If set, false positives will be ignored in the evaluation.")
     parser.add_argument("--debug", action="store_true", help="Enable debug logging for batch processing and detection operations.")
+    
+    # Detection configuration options
+    parser.add_argument("--validation-threshold", type=float, default=0.0, help="Minimum confidence threshold for validation results (default: 0.0).")
+    parser.add_argument("--anomaly-threshold", type=float, default=0.7, help="Minimum confidence threshold for anomaly detection (default: 0.7).")
+    parser.add_argument("--ml-threshold", type=float, default=0.7, help="Minimum confidence threshold for ML detection (default: 0.7).")
+    parser.add_argument("--error-probability", type=float, default=0.1, help="Probability of injecting errors in each row (default: 0.1).")
+    
     args = parser.parse_args()
 
     # Set debug logging based on command-line argument
@@ -402,7 +416,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         df = pd.read_csv(args.source_data)
     except FileNotFoundError:
         print(f"Error: Source data file not found at '{args.source_data}'")
-        sys.exit(1)
+        raise FileOperationError(f"Source data file not found at '{args.source_data}'")
 
     validator = None
     validator_reporter = None
@@ -416,7 +430,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
             rules = load_error_rules(rules_path)
         except (FileNotFoundError, json.JSONDecodeError) as e:
             print(f"Error: Could not read or parse rules file at '{rules_path}'.\nDetails: {e}")
-            sys.exit(1)
+            raise FileOperationError(f"Could not read or parse rules file at '{rules_path}'.\nDetails: {e}")
 
         ValidatorClass = load_module_class(validator_module_str)
         ReporterClass = load_module_class(validator_reporter_module_str)
@@ -438,7 +452,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
                 print("Continuing without pattern-based anomaly detection.")
                 run_anomaly = False
             else:
-                sys.exit(1)
+                raise ConfigurationError(f"Could not load anomaly detector modules.\nDetails: {e}")
 
     # Load ML detection components if needed
     if run_ml:
@@ -453,7 +467,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
                 print("Continuing without ML-based anomaly detection.")
                 run_ml = False
             else:
-                sys.exit(1)
+                raise ConfigurationError(f"Could not initialize ML anomaly detector.\nDetails: {e}")
     
     # Create evaluator with appropriate components
     evaluator = Evaluator(
@@ -466,7 +480,10 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     
     # Run evaluation
     if run_validation:
-        error_samples = generate_error_samples(df, field_name, rules, args.num_samples, args.max_errors, args.output_dir)
+        error_samples = generate_error_samples(
+            df, field_name, rules, args.num_samples, args.max_errors, args.output_dir,
+            error_probability=args.error_probability
+        )
     else:
         # If only running anomaly detection, still need sample dataframes
         error_samples = []
@@ -490,7 +507,10 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         injected_errors=[],  # No injected errors for the base dataset
         run_validation=run_validation,
         run_anomaly_detection=run_anomaly,
-        use_unified_approach=use_unified
+        use_unified_approach=use_unified,
+        validation_threshold=args.validation_threshold,
+        anomaly_threshold=args.anomaly_threshold,
+        ml_threshold=args.ml_threshold
     )
     
     print(f"Detection complete. Found:")

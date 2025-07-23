@@ -8,10 +8,11 @@ from anomaly_detectors.reporter_interface import AnomalyReporterInterface
 from unified_detection_interface import (
     CombinedDetector, 
     UnifiedReporter,
-    DetectionType
+    DetectionType,
+    DetectionConfig
 )
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
-from field_column_map import get_field_to_column_map
+from common_interfaces import FieldMapper
 from anomaly_detectors.ml_based.ml_anomaly_reporter import MLAnomalyReporter
 
 
@@ -28,7 +29,8 @@ class Evaluator:
                  anomaly_detector: Optional[AnomalyDetectorInterface] = None,
                  anomaly_reporter: Optional[AnomalyReporterInterface] = None,
                  ml_detector: Optional[MLAnomalyDetector] = None,
-                 ml_reporter: Optional[MLAnomalyReporter] = None):
+                 ml_reporter: Optional[MLAnomalyReporter] = None,
+                 field_mapper: Optional[FieldMapper] = None):
         """
         Initialize the Evaluator with validators, anomaly detectors, and ML detectors.
         
@@ -39,6 +41,7 @@ class Evaluator:
             anomaly_reporter: Optional reporter to format anomaly detection results
             ml_detector: Optional ML-based anomaly detector
             ml_reporter: Optional reporter to format ML-based anomaly detection results
+            field_mapper: Optional field mapper service (uses default if not provided)
         """
         self.validator = validator
         self.validator_reporter = validator_reporter
@@ -46,9 +49,11 @@ class Evaluator:
         self.anomaly_reporter = anomaly_reporter
         self.ml_detector = ml_detector
         self.ml_reporter = ml_reporter
+        self.field_mapper = field_mapper or FieldMapper.from_default_mapping()
         
-        # Create unified components
+        # Create unified components with field mapper
         self.combined_detector = CombinedDetector(
+            field_mapper=self.field_mapper,
             validator=validator,
             anomaly_detector=anomaly_detector,
             ml_detector=ml_detector
@@ -73,7 +78,9 @@ class Evaluator:
                         df: pd.DataFrame, 
                         field_name: str,
                         detection_types: Optional[List[DetectionType]] = None,
-                        threshold: float = 0.9) -> Dict[str, Any]:
+                        validation_threshold: Optional[float] = None,
+                        anomaly_threshold: Optional[float] = None,
+                        ml_threshold: Optional[float] = None) -> Dict[str, Any]:
         """
         Evaluates a field using the unified detection interface that combines all approaches.
         
@@ -81,31 +88,28 @@ class Evaluator:
             df: The dataframe to evaluate
             field_name: The name of the field to evaluate
             detection_types: Optional list of detection types to run (defaults to all available)
-            threshold: Threshold for anomaly detection scoring
+            validation_threshold: Threshold for validation results (uses default if not provided)
+            anomaly_threshold: Threshold for anomaly detection (uses default if not provided)
+            ml_threshold: Threshold for ML detection (uses default if not provided)
             
         Returns:
             A dictionary containing unified detection results
         """
-        # Run unified detection
-        enable_validation = detection_types is None or DetectionType.VALIDATION in detection_types
-        enable_anomaly = detection_types is None or DetectionType.ANOMALY in detection_types  
-        enable_ml = detection_types is None or DetectionType.ML_ANOMALY in detection_types
-        
-        unified_results = self.combined_detector.detect_issues(
-            df, 
-            field_name,
-            enable_validation=enable_validation,
-            enable_anomaly_detection=enable_anomaly,
-            enable_ml_detection=enable_ml,
-            anomaly_threshold=threshold,
-            ml_threshold=threshold
+        # Use CLI thresholds or defaults
+        config = DetectionConfig(
+            enable_validation=detection_types is None or DetectionType.VALIDATION in detection_types,
+            enable_anomaly_detection=detection_types is None or DetectionType.ANOMALY in detection_types,
+            enable_ml_detection=detection_types is None or DetectionType.ML_ANOMALY in detection_types,
+            validation_threshold=validation_threshold or 0.0,
+            anomaly_threshold=anomaly_threshold or 0.7,
+            ml_threshold=ml_threshold or 0.7
         )
+        
+        # Run unified detection
+        unified_results = self.combined_detector.detect_issues(df, field_name, config)
         
         # Generate unified reports
-        unified_reports = self.unified_reporter.generate_report(
-            unified_results, 
-            df
-        )
+        unified_reports = self.unified_reporter.generate_report(unified_results, df)
         
         # Organize results by detection type
         results = {
@@ -128,8 +132,8 @@ class Evaluator:
     def evaluate_field(self, 
                        df: pd.DataFrame, 
                        field_name: str,
-                       run_validation: bool = True,
-                       run_anomaly_detection: bool = True) -> Dict[str, Any]:
+                       run_validation: bool,
+                       run_anomaly_detection: bool) -> Dict[str, Any]:
         """
         Evaluates a field in the dataframe using the configured validator and anomaly detector.
         
@@ -142,13 +146,8 @@ class Evaluator:
         Returns:
             A dictionary containing validation results and anomaly detection results
         """
-        # Get the column name for CSV data access
-        field_to_column_map = get_field_to_column_map()
-        column_name = field_to_column_map.get(field_name, field_name)
-        
-        # Validate that the column exists in the dataframe
-        if column_name not in df.columns:
-            raise ValueError(f"Column '{column_name}' (mapped from field '{field_name}') not found in dataframe. Available columns: {list(df.columns)}")
+        # Get the column name using centralized field mapping
+        column_name = self.field_mapper.validate_column_exists(df, field_name)
         
         results = {
             "field_name": field_name,
@@ -187,9 +186,8 @@ class Evaluator:
         Returns:
             A dictionary containing ML detection results
         """
-        # Get the column name for CSV data access
-        field_to_column_map = get_field_to_column_map()
-        column_name = field_to_column_map.get(field_name, field_name)
+        # Get the column name using centralized field mapping
+        column_name = self.field_mapper.validate_column_exists(df, field_name)
         
         ml_results = {
             "ml_results": [],
@@ -229,20 +227,26 @@ class Evaluator:
     def evaluate_sample(self, 
                         sample_df: pd.DataFrame, 
                         field_name: str,
-                        injected_errors: List[Dict[str, Any]] = None,
-                        run_validation: bool = True,
-                        run_anomaly_detection: bool = True,
-                        use_unified_approach: bool = False) -> Dict[str, Any]:
+                        injected_errors: List[Dict[str, Any]],
+                        run_validation: bool,
+                        run_anomaly_detection: bool,
+                        use_unified_approach: bool,
+                        validation_threshold: Optional[float] = None,
+                        anomaly_threshold: Optional[float] = None,
+                        ml_threshold: Optional[float] = None) -> Dict[str, Any]:
         """
         Evaluates a sample including validation, anomaly detection, ML detection, and measuring performance.
         
         Args:
             sample_df: The sample dataframe to evaluate
             field_name: The name of the field to evaluate
-            injected_errors: Optional list of injected errors for measuring validator performance
+            injected_errors: List of injected errors for measuring validator performance
             run_validation: Whether to run validation
             run_anomaly_detection: Whether to run anomaly detection
             use_unified_approach: Whether to also use the unified detection approach
+            validation_threshold: Threshold for validation results
+            anomaly_threshold: Threshold for anomaly detection
+            ml_threshold: Threshold for ML detection
             
         Returns:
             A dictionary containing comprehensive evaluation results including individual and combined approaches
@@ -262,7 +266,10 @@ class Evaluator:
             unified_results = self.evaluate_unified(
                 sample_df, 
                 field_name, 
-                detection_types=detection_types
+                detection_types=detection_types,
+                validation_threshold=validation_threshold,
+                anomaly_threshold=anomaly_threshold,
+                ml_threshold=ml_threshold
             )
             
             # Convert unified results to individual format for compatibility
@@ -358,21 +365,9 @@ class Evaluator:
             validation_results: Results from validation
             injected_errors: List of injected errors for comparison
         """
-        # Get the column name for CSV data access
-        field_to_column_map = get_field_to_column_map()
-        column_name = field_to_column_map.get(field_name, field_name)
-        """
-        Calculates performance metrics by comparing detected errors with injected errors.
+        # Get the column name using centralized field mapping
+        column_name = self.field_mapper.validate_column_exists(df, field_name)
         
-        Args:
-            df: The dataframe that was validated
-            column_name: The name of the column that was validated
-            validation_results: The results from validation
-            injected_errors: The list of injected errors
-            
-        Returns:
-            A dictionary containing performance metrics
-        """
         # Extract row indices from validation results
         detected_row_indices = set()
         for result in validation_results:

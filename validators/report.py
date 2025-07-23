@@ -4,6 +4,7 @@ import os
 from typing import List, Dict, Any
 from validators.reporter_interface import ReporterInterface
 from validators.validation_error import ValidationError
+from exceptions import ConfigurationError, FileOperationError
 
 class Reporter(ReporterInterface):
     """
@@ -17,30 +18,35 @@ class Reporter(ReporterInterface):
         
         Args:
             validator_name (str): The name of the validator to load error messages for.
-                                 This is mandatory and must be provided.
         """
-        # Load error messages from the JSON file
-        if validator_name is None or validator_name.strip() == "":
-            print("Error: validator_name is required for Reporter initialization")
-            import sys
-            sys.exit(1)
-            
+        self.validator_name = validator_name
+        try:
+            self.error_messages = self._load_error_messages(validator_name)
+        except FileNotFoundError:
+            raise FileOperationError(
+                f"Error messages file not found for validator '{validator_name}'",
+                details={'validator_name': validator_name}
+            )
+        except json.JSONDecodeError as e:
+            raise FileOperationError(
+                f"Invalid JSON in error messages file for validator '{validator_name}'",
+                details={'validator_name': validator_name, 'json_error': str(e)}
+            ) from e
+
+    def _load_error_messages(self, validator_name):
+        """Load error messages from the JSON file."""
         error_messages_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             "validators", validator_name, "error_messages.json"
         )
+        
         try:
             with open(error_messages_path, 'r') as f:
-                self.ERROR_MESSAGES = json.load(f)
+                return json.load(f)
         except FileNotFoundError:
-            print(f"Error: Could not find error messages file at {error_messages_path}")
-            print(f"Please ensure that validator '{validator_name}' exists and has an error_messages.json file.")
-            import sys
-            sys.exit(1)
-        except json.JSONDecodeError:
-            print(f"Error: The error messages file at {error_messages_path} contains invalid JSON.")
-            import sys
-            sys.exit(1)
+            raise
+        except json.JSONDecodeError as e:
+            raise
 
     def generate_report(self, validation_errors: List[ValidationError], original_df: pd.DataFrame) -> List[Dict[str, Any]]:
         """
@@ -59,10 +65,10 @@ class Reporter(ReporterInterface):
             
             # First try to get the template for the specific error code
             # If not found, try to use DEFAULT, and if that's not available, use a generic message
-            if error_code in self.ERROR_MESSAGES:
-                message_template = self.ERROR_MESSAGES[error_code]
-            elif "DEFAULT" in self.ERROR_MESSAGES:
-                message_template = self.ERROR_MESSAGES["DEFAULT"]
+            if error_code in self.error_messages:
+                message_template = self.error_messages[error_code]
+            elif "DEFAULT" in self.error_messages:
+                message_template = self.error_messages["DEFAULT"]
             else:
                 message_template = "Unknown error with data: {error_data}"
             
