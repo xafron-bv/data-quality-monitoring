@@ -5,27 +5,27 @@ Script to analyze unique values in any field of a CSV file
 
 import pandas as pd
 import sys
-from field_column_map import get_field_to_column_map
+from common_interfaces import FieldMapper
+from exceptions import FileOperationError, DataError, ConfigurationError
 
-def analyze_field_values(csv_file, field_name):
+def analyze_field_values(csv_file, field_name, field_mapper=None):
     """
     Analyze unique values in the specified field
     """
+    if field_mapper is None:
+        field_mapper = FieldMapper.from_default_mapping()
+    
     try:
         # Load the CSV file
         df = pd.read_csv(csv_file)
         print(f"✅ Successfully loaded CSV: {csv_file}")
         print(f"Total rows: {len(df)}")
         
-        # Get the column name for the field
-        field_to_column_map = get_field_to_column_map()
-        column_name = field_to_column_map.get(field_name, field_name)
-        
-        # Check if the column exists
-        if column_name not in df.columns:
-            print(f"❌ Column '{column_name}' (mapped from field '{field_name}') not found in the CSV file.")
-            print(f"Available columns: {list(df.columns)}")
-            return None
+        # Get the column name for the field using centralized mapping
+        try:
+            column_name = field_mapper.validate_column_exists(df, field_name)
+        except ValueError as e:
+            raise DataError(str(e)) from e
         
         # Get the specified column
         column_series = df[column_name]
@@ -121,9 +121,16 @@ def analyze_field_values(csv_file, field_name):
         
         return unique_values_sorted
         
+    except FileNotFoundError:
+        raise FileOperationError(
+            f"CSV file not found: {csv_file}",
+            details={
+                'file_path': csv_file,
+                'suggestion': 'Check that the CSV file path is correct'
+            }
+        )
     except Exception as e:
-        print(f"❌ Error analyzing CSV: {e}")
-        return None
+        raise DataError(f"Error analyzing CSV: {e}") from e
 
 def main():
     if len(sys.argv) < 2:
@@ -133,17 +140,30 @@ def main():
         print("Example: python analyze_column.py data/esqualo_2022_fall_original.csv")
         print("Example: python analyze_column.py data/esqualo_2022_fall_original.csv category")
         print("Example: python analyze_column.py data/esqualo_2022_fall_original.csv material")
-        sys.exit(1)
+        raise ConfigurationError(
+            "Missing required arguments",
+            details={
+                'provided_args': sys.argv,
+                'required': 'csv_file',
+                'optional': 'field_name'
+            }
+        )
     
     csv_file = sys.argv[1]
     field_name = sys.argv[2] if len(sys.argv) > 2 else 'color_name'
     
     print(f"🔍 Analyzing field '{field_name}' in file: {csv_file}")
     
-    unique_values = analyze_field_values(csv_file, field_name)
-    
-    if unique_values is not None:
-        print(f"\n✅ Analysis complete! Found {len(unique_values)} unique values in '{field_name}' field.")
+    try:
+        unique_values = analyze_field_values(csv_file, field_name)
+        if unique_values is not None:
+            print(f"\n✅ Analysis complete! Found {len(unique_values)} unique values in '{field_name}' field.")
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        if hasattr(e, 'details'):
+            for key, value in e.details.items():
+                print(f"  {key}: {value}")
+        sys.exit(1)  # Keep this one sys.exit for CLI script behavior
 
 if __name__ == "__main__":
     main()

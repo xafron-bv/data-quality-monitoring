@@ -14,8 +14,8 @@ OUTPUT_DIR="evaluation_results"
 IGNORE_FP="--ignore-fp"
 DEBUG_FLAG=""  # Set to "--debug" to enable debug logging
 
-# Dynamically fetch all fields from the field-to-column mapping
-for field in $(python -c "from field_column_map import get_field_to_column_map; print(' '.join(get_field_to_column_map().keys()))"); do
+# Dynamically fetch all fields from the centralized field mapper
+for field in $(python -c "from common_interfaces import FieldMapper; fm = FieldMapper.from_default_mapping(); print(' '.join(fm.get_available_fields()))"); do
   # Create a directory for this specific evaluation
   eval_dir="${OUTPUT_DIR}/${field// /_}"
   mkdir -p "$eval_dir"

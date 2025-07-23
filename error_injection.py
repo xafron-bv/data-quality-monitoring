@@ -10,12 +10,7 @@ The module supports various error injection operations including:
 - Regex replacement  
 - Text prepending/appending
 - Random noise injection
-- C    for i in range(num_samples):
-        # Generate errors for this sample
-        num_to_inject = random.randint(1, max_errors_per_sample)
-        df_with_errors, injected_errors = injector.inject_errors(
-            df, column_name, max_errors=num_to_inject
-        )onal error application
+- Conditional error application
 
 Usage:
     from error_injection import apply_error_rule, generate_error_samples, ErrorInjector
@@ -38,7 +33,7 @@ import json
 import string
 import re
 from typing import List, Dict, Any, Union, Optional, Tuple
-from field_column_map import get_field_to_column_map
+from common_interfaces import FieldMapper
 
 
 class ErrorInjector:
@@ -50,14 +45,16 @@ class ErrorInjector:
     data quality monitoring system.
     """
     
-    def __init__(self, rules: List[Dict[str, Any]]):
+    def __init__(self, rules: List[Dict[str, Any]], field_mapper: Optional[FieldMapper] = None):
         """
         Initialize the ErrorInjector with a list of error rules.
         
         Args:
             rules: List of error rule dictionaries
+            field_mapper: Optional field mapper service (uses default if not provided)
         """
         self.rules = rules
+        self.field_mapper = field_mapper or FieldMapper.from_default_mapping()
         self._validate_rules()
     
     def _validate_rules(self):
@@ -83,13 +80,8 @@ class ErrorInjector:
         Returns:
             Tuple of (modified_dataframe, list_of_injected_errors)
         """
-        # Get the column name for CSV data access
-        field_to_column_map = get_field_to_column_map()
-        column_name = field_to_column_map.get(field_name, field_name)
-        
-        # Validate that the column exists in the dataframe
-        if column_name not in df.columns:
-            raise ValueError(f"Column '{column_name}' (mapped from field '{field_name}') not found in dataframe. Available columns: {list(df.columns)}")
+        # Get the column name using centralized field mapping
+        column_name = self.field_mapper.validate_column_exists(df, field_name)
         
         df_copy = df.copy()
         injected_errors = []
@@ -384,7 +376,9 @@ def generate_error_samples(df: pd.DataFrame,
                          rules: List[Dict[str, Any]], 
                          num_samples: int,
                          max_errors_per_sample: int = 3,
-                         output_dir: Optional[str] = None) -> List[Dict[str, Any]]:
+                         output_dir: Optional[str] = None,
+                         field_mapper: Optional[FieldMapper] = None,
+                         error_probability: float = 0.1) -> List[Dict[str, Any]]:
     """
     Generate multiple samples with errors injected based on the rules.
     
@@ -395,6 +389,8 @@ def generate_error_samples(df: pd.DataFrame,
         num_samples: Number of samples to generate
         max_errors_per_sample: Maximum number of errors per sample
         output_dir: Optional directory to save samples (if None, samples are not saved)
+        field_mapper: Optional field mapper service (uses default if not provided)
+        error_probability: Probability of injecting errors in each row
         
     Returns:
         List of sample dictionaries containing 'data' and 'injected_errors'
@@ -402,16 +398,14 @@ def generate_error_samples(df: pd.DataFrame,
     if not rules:
         raise ValueError("No error rules provided")
     
-    # Get the column name for CSV data access
-    field_to_column_map = get_field_to_column_map()
-    column_name = field_to_column_map.get(field_name, field_name)
+    if field_mapper is None:
+        field_mapper = FieldMapper.from_default_mapping()
     
     # Validate that the column exists in the dataframe
-    if column_name not in df.columns:
-        raise ValueError(f"Column '{column_name}' (mapped from field '{field_name}') not found in dataframe. Available columns: {list(df.columns)}")
+    column_name = field_mapper.validate_column_exists(df, field_name)
     
     samples = []
-    injector = ErrorInjector(rules)
+    injector = ErrorInjector(rules, field_mapper)
     
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
@@ -423,7 +417,7 @@ def generate_error_samples(df: pd.DataFrame,
         # Generate errors for this sample
         num_to_inject = random.randint(1, max_errors_per_sample)
         df_with_errors, injected_errors = injector.inject_errors(
-            df, field_name, max_errors=num_to_inject
+            df, field_name, max_errors=num_to_inject, error_probability=error_probability
         )
         
         # Save the sample if output directory is specified
@@ -456,32 +450,53 @@ def load_error_rules(rules_file_path: str) -> List[Dict[str, Any]]:
         List of error rule dictionaries
         
     Raises:
-        FileNotFoundError: If the rules file doesn't exist
-        json.JSONDecodeError: If the file is not valid JSON
+        FileOperationError: If the rules file cannot be loaded or parsed
+        ConfigurationError: If the rules file format is invalid
     """
+    from exceptions import FileOperationError, ConfigurationError
+    
     try:
         with open(rules_file_path, 'r', encoding='utf-8') as f:
             rules_data = json.load(f)
-        
-        # Extract rules from the standard format
-        if isinstance(rules_data, dict) and "error_rules" in rules_data:
-            rules = rules_data["error_rules"]
-        elif isinstance(rules_data, list):
-            rules = rules_data
-        else:
-            raise ValueError("Rules file must contain 'error_rules' key or be a list of rules")
-        
-        # Add rule names if not present
-        for i, rule in enumerate(rules):
-            if "rule_name" not in rule:
-                rule["rule_name"] = f"{rule.get('operation', 'unknown')}_{i}"
-        
-        return rules
-    
     except FileNotFoundError:
-        raise FileNotFoundError(f"Rules file not found: {rules_file_path}")
+        raise FileOperationError(
+            f"Rules file not found: {rules_file_path}",
+            details={
+                'file_path': rules_file_path,
+                'suggestion': 'Ensure the error injection rules file exists at the specified path'
+            }
+        )
     except json.JSONDecodeError as e:
-        raise json.JSONDecodeError(f"Invalid JSON in rules file: {rules_file_path}", e.doc, e.pos)
+        raise FileOperationError(
+            f"Invalid JSON in rules file: {rules_file_path}",
+            details={
+                'file_path': rules_file_path,
+                'json_error': str(e),
+                'suggestion': 'Check the JSON syntax in the rules file'
+            }
+        ) from e
+    
+    # Extract rules from the standard format
+    if isinstance(rules_data, dict) and "error_rules" in rules_data:
+        rules = rules_data["error_rules"]
+    elif isinstance(rules_data, list):
+        rules = rules_data
+    else:
+        raise ConfigurationError(
+            "Rules file must contain 'error_rules' key or be a list of rules",
+            details={
+                'file_path': rules_file_path,
+                'found_type': type(rules_data).__name__,
+                'found_keys': list(rules_data.keys()) if isinstance(rules_data, dict) else None
+            }
+        )
+    
+    # Add rule names if not present
+    for i, rule in enumerate(rules):
+        if "rule_name" not in rule:
+            rule["rule_name"] = f"{rule.get('operation', 'unknown')}_{i}"
+    
+    return rules
 
 
 def create_corrupted_variants(texts: List[str], 
