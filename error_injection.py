@@ -510,26 +510,6 @@ def create_corrupted_variants(texts: List[str],
     return corrupted_variants
 
 
-# Utility functions for backward compatibility
-def apply_error_rules_bulk(df: pd.DataFrame, 
-                          column: str, 
-                          rules: List[Dict[str, Any]],
-                          max_errors: int = 3) -> Tuple[pd.DataFrame, List[Dict[str, Any]]]:
-    """
-    Apply error rules to a dataframe column (backward compatibility function).
-    
-    Args:
-        df: The dataframe to modify
-        column: Column name to inject errors into
-        rules: List of error rules
-        max_errors: Maximum number of errors to inject
-        
-    Returns:
-        Tuple of (modified_dataframe, injected_errors_list)
-    """
-    injector = ErrorInjector(rules)
-    return injector.inject_errors(df, column, max_errors=max_errors)
-
 
 # Example usage and testing
 if __name__ == "__main__":
