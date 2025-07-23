@@ -55,7 +55,8 @@ if __name__ == "__main__":
             out_df.to_csv(args.output, index=False)
             print(f"Results saved to {args.output}")
         else:
-            for r in results[:10]:
+            for r in results:
+              if r['is_anomaly']:
                 print(r)
         exit(0)
     

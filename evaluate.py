@@ -26,64 +26,6 @@ def load_module_class(module_path: str):
         print(f"Error: Could not load class from '{module_path}'.\nEnsure the path is correct and the file contains the class.\nDetails: {e}")
         sys.exit(1)
 
-def evaluate(validator, reporter, samples, column, ignore_errors=None, ignore_false_positives=False):
-    """Evaluates the validator and reporter, returning a detailed analysis."""
-    if ignore_errors is None:
-        ignore_errors = []
-        
-    results = []
-    for i, sample in enumerate(samples):
-        df_with_errors = sample['data']
-        injected_errors_info = sample['injected_errors']
-        
-        # Filter out errors that we've been asked to ignore
-        injected_errors_to_consider = [
-            e for e in injected_errors_info if e['error_rule'] not in ignore_errors
-        ]
-        
-        # Run validator and reporter
-        detected_by_validator = validator.bulk_validate(df_with_errors, column)
-        reported_by_reporter = reporter.generate_report(detected_by_validator, df_with_errors)
-        
-        # Create a mapping of row_index to display_message from the reporter
-        report_messages = {report['row_index']: report for report in reported_by_reporter}
-        
-        # Enhance validator results with reporter messages
-        for error in detected_by_validator:
-            row_idx = error.row_index
-            if row_idx in report_messages:
-                # We can't directly set attributes on ValidationError objects, so we'll
-                # store the display message separately if needed later
-                report_messages[row_idx]['validator_error'] = error
-
-        detected_indices = {e.row_index for e in detected_by_validator}
-        injected_indices = {e['row_index'] for e in injected_errors_to_consider}
-        
-        # --- Analysis ---
-        true_positives = detected_indices.intersection(injected_indices)
-        false_negatives = injected_indices - detected_indices # Injected but not detected
-        
-        # Only calculate false positives if we're not ignoring them
-        if ignore_false_positives:
-            false_positives = set()  # Empty set if we're ignoring false positives
-            fp_details = []  # Empty list for false positive details
-            ignored_fp_count = len(detected_indices - injected_indices)  # Count of ignored FPs
-        else:
-            false_positives = detected_indices - injected_indices
-            fp_details = [e for e in detected_by_validator if e.row_index in false_positives]
-            ignored_fp_count = 0
-
-        results.append({
-            "sample_index": i,
-            "true_positives": true_positives,
-            "false_negatives": [e for e in injected_errors_to_consider if e['row_index'] in false_negatives],
-            "false_positives": fp_details,
-            "ignored_error_count": len(injected_errors_info) - len(injected_errors_to_consider),
-            "ignored_fp_count": ignored_fp_count
-        })
-        
-    return results
-
 def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
     """Generates a summary report of the evaluation results."""
     summary_lines = []
@@ -320,90 +262,9 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
             for code in sorted(error_formatting_issues):
                 summary_lines.append(f"  - {code}")
 
-    # --- False Negatives (Missed Errors) ---
-    summary_lines.append(f"\n--- False Negatives (Missed Errors): {len(all_fn)} Total ---")
-    if not all_fn:
-        summary_lines.append("Excellent! No errors were missed.")
-    else:
-        fn_by_type = {}
-        for fn in all_fn:
-            # Handle new structure where fn is a dict with 'injected_error' field
-            if isinstance(fn, dict) and 'injected_error' in fn:
-                rule = fn['injected_error'].get('error_rule', 'unknown_rule')
-                injected_data = fn.get('error_data', 'unknown_data')
-            elif isinstance(fn, dict):
-                # Fallback for direct structure
-                rule = fn.get('error_rule', 'unknown_rule')
-                injected_data = fn.get('injected_data', fn.get('error_data', 'unknown_data'))
-            else:
-                # Handle other formats
-                rule = 'unknown_rule'
-                injected_data = str(fn)
-                
-            fn_by_type.setdefault(rule, []).append(injected_data)
-        
-        for rule, examples in fn_by_type.items():
-            summary_lines.append(f"\n  - Rule: '{rule}' (Missed {len(examples)} times)")
-            for ex in list(set(examples))[:3]:
-                summary_lines.append(f"    - Example: '{ex}'")
-
-    # --- False Positives (Incorrectly Flagged) ---
-    if not ignore_fp:
-        summary_lines.append(f"\n--- False Positives (Incorrectly Flagged): {len(all_fp)} Total ---")
-        if not all_fp:
-            summary_lines.append("Excellent! No valid data was incorrectly flagged as an error.")
-        else:
-            fp_by_type = {}
-            for fp in all_fp:
-                # Handle dictionaries from new evaluation system
-                if isinstance(fp, dict):
-                    display_message = fp.get('display_message', 'Unknown Error')
-                    error_data = fp.get('error_data', 'Unknown Data')
-                    # Extract error type from display message or use a generic type
-                    error_type = display_message.split(':')[0] if ':' in display_message else display_message
-                else:
-                    # Handle old-style error objects
-                    error_type = getattr(fp, 'error_type', 'Unknown Error')
-                    error_data = getattr(fp, 'error_data', 'Unknown Data')
-                
-                fp_by_type.setdefault(error_type, []).append(error_data)
-
-            for error_type, examples in fp_by_type.items():
-                summary_lines.append(f"\n  - Error Type: '{error_type}' (Flagged {len(examples)} times)")
-                for ex in list(set(str(e) for e in examples))[:3]:
-                    summary_lines.append(f"    - Example: '{ex}'")
-    
-    # Check for potential missing error messages by looking for error formatting issues in reporter output
-    error_formatting_issues = set()
-    for res in evaluation_results:
-        # Look through reported errors for formatting issues
-        for fp in res.get('false_positives', []):
-            if 'display_message' in fp and fp['display_message'].startswith('Error formatting message:'):
-                if 'error_code' in fp:
-                    error_formatting_issues.add(fp['error_code'])
-    
-    if error_formatting_issues:
-        summary_lines.append("\n[WARNING] The following error codes had formatting issues in their messages:")
-        for code in sorted(error_formatting_issues):
-            summary_lines.append(f"  - {code}")
-            
     summary_lines.append("\n" + "="*80)
 
-    # Remove duplicated false negatives and false positives messages that happen due to the updated code
-    # (this is a temporary fix until a more robust reporting system is implemented)
-    text = "\n".join(summary_lines)
-    lines = text.split("\n")
-    unique_lines = []
-    last_line = None
-    
-    for line in lines:
-        if line != last_line:  # Skip duplicate consecutive lines
-            unique_lines.append(line)
-        last_line = line
-    
-    # Join back together
-    summary_text = "\n".join(unique_lines)
-    summary_text += "\n" + "="*80
+    summary_text = "\n".join(summary_lines)
     
     print(summary_text)
 

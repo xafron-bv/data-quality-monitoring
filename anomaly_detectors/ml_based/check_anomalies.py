@@ -3,10 +3,14 @@ from os import path
 import os
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-from model_training import preprocess_text
-from gpu_utils import get_optimal_device, print_device_info, get_optimal_batch_size
+from .model_training import preprocess_text
+from .gpu_utils import get_optimal_device, print_device_info, get_optimal_batch_size
 
 # Import field-to-column mapping
+import sys
+import os
+# Add parent directories to path so we can import field_column_map
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from field_column_map import get_field_to_column_map
 
 # Global model cache to avoid reloading models
