@@ -20,12 +20,12 @@ from exceptions import DataError
 @dataclass
 class DetectionConfig:
     """Configuration for detection operations."""
+    validation_threshold: float
+    anomaly_threshold: float
+    ml_threshold: float
     enable_validation: bool = True
     enable_anomaly_detection: bool = True
     enable_ml_detection: bool = True
-    validation_threshold: float = 0.0
-    anomaly_threshold: float = 0.7
-    ml_threshold: float = 0.7
 
 
 class UnifiedDetectorInterface(ABC):
@@ -33,10 +33,14 @@ class UnifiedDetectorInterface(ABC):
     
     def __init__(self, 
                  field_mapper: FieldMapper,
+                 batch_size: Optional[int],
+                 max_workers: int,
                  validator: Optional[Any] = None,
                  anomaly_detector: Optional[Any] = None,
                  ml_detector: Optional[Any] = None):
         self.field_mapper = field_mapper
+        self.batch_size = batch_size
+        self.max_workers = max_workers
         self.validator = validator
         self.anomaly_detector = anomaly_detector
         self.ml_detector = ml_detector
@@ -69,7 +73,7 @@ class CombinedDetector(UnifiedDetectorInterface):
         
         # Run anomaly detection if enabled
         if config.enable_anomaly_detection and self.anomaly_detector:
-            anomaly_errors = self.anomaly_detector.bulk_detect(df, column_name)
+            anomaly_errors = self.anomaly_detector.bulk_detect(df, column_name, self.batch_size, self.max_workers)
             for error in anomaly_errors:
                 if error.probability >= config.anomaly_threshold:
                     result = convert_anomaly_error_to_detection_result(error, field_name)
@@ -88,7 +92,7 @@ class CombinedDetector(UnifiedDetectorInterface):
         
         if hasattr(self.ml_detector, 'bulk_detect'):
             try:
-                ml_anomalies = self.ml_detector.bulk_detect(df, column_name)
+                ml_anomalies = self.ml_detector.bulk_detect(df, column_name, self.batch_size, self.max_workers)
                 for ml_anomaly in ml_anomalies:
                     if ml_anomaly.probability >= threshold:
                         details = {}
@@ -119,8 +123,9 @@ class CombinedDetector(UnifiedDetectorInterface):
 class UnifiedReporter:
     """Reporter for unified detection results."""
     
-    def __init__(self, include_technical_details: bool = False):
+    def __init__(self, high_confidence_threshold: float, include_technical_details: bool = False):
         self.include_technical_details = include_technical_details
+        self.high_confidence_threshold = high_confidence_threshold
     
     def generate_report(self, 
                        detection_results: List[DetectionResult],
@@ -136,7 +141,7 @@ class UnifiedReporter:
                 'confidence': result.confidence,
                 'error_code': result.error_code,
                 'display_message': result.message,
-                'is_high_confidence': result.is_high_confidence()
+                'is_high_confidence': result.is_high_confidence(self.high_confidence_threshold)
             }
             
             if self.include_technical_details:

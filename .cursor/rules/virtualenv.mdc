@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+You're working in a virtenv setup, before running your code in termianl you should set that up @/virtenv 

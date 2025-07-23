@@ -24,6 +24,9 @@ class Evaluator:
     """
     
     def __init__(self, 
+                 high_confidence_threshold: float,
+                 batch_size: Optional[int],
+                 max_workers: int,
                  validator: Optional[ValidatorInterface] = None,
                  validator_reporter: Optional[ReporterInterface] = None,
                  anomaly_detector: Optional[AnomalyDetectorInterface] = None,
@@ -43,22 +46,30 @@ class Evaluator:
             ml_reporter: Optional reporter to format ML-based anomaly detection results
             field_mapper: Optional field mapper service (uses default if not provided)
         """
+        self.batch_size = batch_size
+        self.max_workers = max_workers
+        
         self.validator = validator
         self.validator_reporter = validator_reporter
         self.anomaly_detector = anomaly_detector
         self.anomaly_reporter = anomaly_reporter
         self.ml_detector = ml_detector
         self.ml_reporter = ml_reporter
+        
+        # Use provided field mapper or create default one
         self.field_mapper = field_mapper or FieldMapper.from_default_mapping()
         
-        # Create unified components with field mapper
+        # Create combined detector for unified approach
         self.combined_detector = CombinedDetector(
             field_mapper=self.field_mapper,
+            batch_size=self.batch_size,
+            max_workers=self.max_workers,
             validator=validator,
             anomaly_detector=anomaly_detector,
             ml_detector=ml_detector
         )
-        self.unified_reporter = UnifiedReporter(include_technical_details=True)
+        # Create unified reporter for combined detection approach
+        self.unified_reporter = UnifiedReporter(high_confidence_threshold, include_technical_details=True)
         
         # Log which components are active
         components = []
@@ -78,9 +89,9 @@ class Evaluator:
                         df: pd.DataFrame, 
                         field_name: str,
                         detection_types: Optional[List[DetectionType]] = None,
-                        validation_threshold: Optional[float] = None,
-                        anomaly_threshold: Optional[float] = None,
-                        ml_threshold: Optional[float] = None) -> Dict[str, Any]:
+                        validation_threshold: float = None,
+                        anomaly_threshold: float = None,
+                        ml_threshold: float = None) -> Dict[str, Any]:
         """
         Evaluates a field using the unified detection interface that combines all approaches.
         
@@ -88,21 +99,21 @@ class Evaluator:
             df: The dataframe to evaluate
             field_name: The name of the field to evaluate
             detection_types: Optional list of detection types to run (defaults to all available)
-            validation_threshold: Threshold for validation results (uses default if not provided)
-            anomaly_threshold: Threshold for anomaly detection (uses default if not provided)
-            ml_threshold: Threshold for ML detection (uses default if not provided)
+            validation_threshold: Threshold for validation results (required)
+            anomaly_threshold: Threshold for anomaly detection (required)
+            ml_threshold: Threshold for ML detection (required)
             
         Returns:
             A dictionary containing unified detection results
         """
-        # Use CLI thresholds or defaults
+        # Require explicit threshold values - no hardcoded fallbacks
         config = DetectionConfig(
+            validation_threshold=validation_threshold,
+            anomaly_threshold=anomaly_threshold,
+            ml_threshold=ml_threshold,
             enable_validation=detection_types is None or DetectionType.VALIDATION in detection_types,
             enable_anomaly_detection=detection_types is None or DetectionType.ANOMALY in detection_types,
-            enable_ml_detection=detection_types is None or DetectionType.ML_ANOMALY in detection_types,
-            validation_threshold=validation_threshold or 0.0,
-            anomaly_threshold=anomaly_threshold or 0.7,
-            ml_threshold=ml_threshold or 0.7
+            enable_ml_detection=detection_types is None or DetectionType.ML_ANOMALY in detection_types
         )
         
         # Run unified detection
@@ -168,7 +179,7 @@ class Evaluator:
         
         # Run anomaly detection if requested and detector is available
         if run_anomaly_detection and self.anomaly_detector and self.anomaly_reporter:
-            anomalies = self.anomaly_detector.bulk_detect(df, column_name)
+            anomalies = self.anomaly_detector.bulk_detect(df, column_name, self.batch_size, self.max_workers)
             anomaly_report = self.anomaly_reporter.generate_report(anomalies, df)
             results["anomaly_results"] = anomaly_report
             results["total_anomalies"] = len(anomalies)
@@ -196,7 +207,7 @@ class Evaluator:
         
         if self.ml_detector and hasattr(self.ml_detector, 'bulk_detect'):
             try:
-                ml_anomalies = self.ml_detector.bulk_detect(df, column_name)
+                ml_anomalies = self.ml_detector.bulk_detect(df, column_name, self.batch_size, self.max_workers)
                 
                 # Use ML reporter if available, otherwise format manually
                 if self.ml_reporter:
@@ -231,9 +242,9 @@ class Evaluator:
                         run_validation: bool,
                         run_anomaly_detection: bool,
                         use_unified_approach: bool,
-                        validation_threshold: Optional[float] = None,
-                        anomaly_threshold: Optional[float] = None,
-                        ml_threshold: Optional[float] = None) -> Dict[str, Any]:
+                        validation_threshold: float = None,
+                        anomaly_threshold: float = None,
+                        ml_threshold: float = None) -> Dict[str, Any]:
         """
         Evaluates a sample including validation, anomaly detection, ML detection, and measuring performance.
         

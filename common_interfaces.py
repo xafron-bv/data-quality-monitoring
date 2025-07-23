@@ -25,7 +25,7 @@ class DetectionResult:
     message: str
     details: Dict[str, Any] = field(default_factory=dict)
     
-    def is_high_confidence(self, threshold: float = 0.8) -> bool:
+    def is_high_confidence(self, threshold: float) -> bool:
         return self.confidence >= threshold
 
 

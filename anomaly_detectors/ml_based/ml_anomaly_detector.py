@@ -42,8 +42,8 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
     
     def __init__(self, 
                  field_name: str,
+                 threshold: float,
                  results_dir: str = None,
-                 threshold: float = 0.6,
                  use_gpu: bool = True):
         """
         Initialize the ML anomaly detector.
