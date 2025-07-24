@@ -1,0 +1,28 @@
+📊 COMPREHENSIVE PERFORMANCE COMPARISON
+=======================================================
+
+🎯 METHODOLOGY:
+- Each demo used identical parameters (15% injection intensity, 2 max issues/row)
+- Core fields only: material, color_name, category, size, care_instructions
+- Same source dataset (2704 rows, 36 columns)
+- Different threshold configurations to emphasize different detection methods
+
+📋 DETECTION RESULTS COMPARISON:
+
+METHOD COMPARISON TABLE:
+================================================================================
+Method                         Total    Validation  Pattern   ML     Affected Rows 
+--------------------------------------------------------------------------------
+Demo 1: Validation + Pattern-based 272      164         90        18     242 (8.9%)
+Demo 2: Validation + ML-based  254      164         77        13     227 (8.4%)
+Demo 3: All Methods Combined   258      156         89        13     229 (8.5%)
+
+PERFORMANCE INSIGHTS:
+==================================================
+• Validation + Pattern-based: 272 total issues detected
+• Validation + ML-based: 254 total issues detected
+• All methods combined: 258 total issues detected
+
+• Pattern-based contribution: 90 issues
+• ML-based contribution: ~13 issues
+• Combined approach effectiveness: 94.9% of best single method
