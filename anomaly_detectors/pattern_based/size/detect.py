@@ -107,14 +107,30 @@ class AnomalyDetector(AnomalyDetectorInterface):
             
         # Check if this is an unusual size value
         size_frequency = self.size_frequencies.get(value, 0)
-        if self.total_sizes > 10 and 0 < size_frequency < self.total_sizes * 0.02:  # Less than 2% frequency
+        
+        # Unknown size (never seen before) - HIGHLY ANOMALOUS
+        if size_frequency == 0:
             return AnomalyError(
                 anomaly_type=self.ErrorCode.UNUSUAL_SIZE_VALUE,
-                probability=min(0.85, 1.0 - (size_frequency / self.total_sizes)),
+                probability=0.95,
+                details={
+                    "size": value,
+                    "frequency": 0,
+                    "total_sizes": self.total_sizes,
+                    "reason": "Completely unknown size"
+                }
+            )
+        
+        # Unusual size (seen but very uncommon) - lower threshold for better sensitivity
+        if self.total_sizes > 10 and size_frequency < self.total_sizes * 0.06:  # Increased from 0.02 to 0.06
+            return AnomalyError(
+                anomaly_type=self.ErrorCode.UNUSUAL_SIZE_VALUE,
+                probability=min(0.85, 1.0 - (size_frequency / (self.total_sizes * 0.06))),
                 details={
                     "size": value,
                     "frequency": size_frequency,
-                    "total_sizes": self.total_sizes
+                    "total_sizes": self.total_sizes,
+                    "reason": "Unusual size"
                 }
             )
         
@@ -122,14 +138,29 @@ class AnomalyDetector(AnomalyDetectorInterface):
         format_pattern = self._get_size_format(value)
         format_frequency = self.size_formats.get(format_pattern, 0)
         
-        if self.total_sizes > 10 and 0 < format_frequency < self.total_sizes * 0.05:  # Less than 5% frequency
+        # Unknown format (never seen before) - ANOMALOUS
+        if format_frequency == 0:
             return AnomalyError(
                 anomaly_type=self.ErrorCode.UNUSUAL_SIZE_FORMAT,
-                probability=min(0.8, 1.0 - (format_frequency / self.total_sizes)),
+                probability=0.85,
                 details={
                     "size": value,
                     "format": format_pattern,
-                    "common_formats": [f for f, _ in self.size_formats.most_common(3)]
+                    "common_formats": [f for f, _ in self.size_formats.most_common(3)],
+                    "reason": "Completely unknown format"
+                }
+            )
+        
+        # Unusual format (seen but very uncommon)
+        if self.total_sizes > 10 and format_frequency < self.total_sizes * 0.08:  # Increased from 0.05 to 0.08
+            return AnomalyError(
+                anomaly_type=self.ErrorCode.UNUSUAL_SIZE_FORMAT,
+                probability=min(0.8, 1.0 - (format_frequency / (self.total_sizes * 0.08))),
+                details={
+                    "size": value,
+                    "format": format_pattern,
+                    "common_formats": [f for f, _ in self.size_formats.most_common(3)],
+                    "reason": "Unusual format"
                 }
             )
         

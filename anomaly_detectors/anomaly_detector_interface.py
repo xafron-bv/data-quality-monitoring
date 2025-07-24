@@ -153,8 +153,11 @@ class AnomalyDetectorInterface(ABC):
         """
         anomalies = []
 
-        # First learn patterns from the data (if the detector implements this)
-        self.learn_patterns(df, column_name)
+        # NOTE: Pattern learning should NOT happen during detection!
+        # Pattern-based detectors should either:
+        # 1. Use fixed rules that don't require learning, OR
+        # 2. Be pre-trained separately before detection
+        # Only ML-based detectors require separate training via their training pipeline
 
         # Calculate optimal batch size if not provided
         if batch_size is None:

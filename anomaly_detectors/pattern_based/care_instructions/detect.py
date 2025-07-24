@@ -166,14 +166,29 @@ class AnomalyDetector(AnomalyDetectorInterface):
         instruction_set = frozenset(instructions)
         set_frequency = self.instruction_sets.get(instruction_set, 0)
         
-        if instructions and self.total_instructions > 10 and 0 < set_frequency < self.total_instructions * 0.05:
+        # Unknown instruction set (never seen before) - HIGHLY ANOMALOUS
+        if instructions and set_frequency == 0:
             return AnomalyError(
                 anomaly_type=self.ErrorCode.UNUSUAL_INSTRUCTION_SET,
-                probability=min(0.9, 1.0 - (set_frequency / self.total_instructions)),
+                probability=0.95,
+                details={
+                    "instructions": list(instructions),
+                    "frequency": 0,
+                    "total_instructions": self.total_instructions,
+                    "reason": "Completely unknown instruction set"
+                }
+            )
+        
+        # Unusual instruction set (seen but very uncommon)
+        if instructions and self.total_instructions > 10 and set_frequency < self.total_instructions * 0.10:  # Increased from 0.05 to 0.10
+            return AnomalyError(
+                anomaly_type=self.ErrorCode.UNUSUAL_INSTRUCTION_SET,
+                probability=min(0.9, 1.0 - (set_frequency / (self.total_instructions * 0.10))),
                 details={
                     "instructions": list(instructions),
                     "frequency": set_frequency,
-                    "total_instructions": self.total_instructions
+                    "total_instructions": self.total_instructions,
+                    "reason": "Unusual instruction set"
                 }
             )
         
@@ -181,14 +196,29 @@ class AnomalyDetector(AnomalyDetectorInterface):
         structure_pattern = self._extract_structure_pattern(value)
         structure_frequency = self.structure_patterns.get(structure_pattern, 0)
         
-        if structure_pattern and self.total_instructions > 10 and 0 < structure_frequency < self.total_instructions * 0.05:
+        # Unknown structure (never seen before) - ANOMALOUS  
+        if structure_pattern and structure_frequency == 0:
             return AnomalyError(
                 anomaly_type=self.ErrorCode.UNUSUAL_STRUCTURE,
-                probability=min(0.85, 1.0 - (structure_frequency / self.total_instructions)),
+                probability=0.85,
+                details={
+                    "structure": structure_pattern,
+                    "frequency": 0,
+                    "total_instructions": self.total_instructions,
+                    "reason": "Completely unknown structure"
+                }
+            )
+        
+        # Unusual structure (seen but very uncommon)
+        if structure_pattern and self.total_instructions > 10 and structure_frequency < self.total_instructions * 0.10:  # Increased from 0.05 to 0.10
+            return AnomalyError(
+                anomaly_type=self.ErrorCode.UNUSUAL_STRUCTURE,
+                probability=min(0.85, 1.0 - (structure_frequency / (self.total_instructions * 0.10))),
                 details={
                     "structure": structure_pattern,
                     "frequency": structure_frequency,
-                    "common_structures": [s for s, _ in self.structure_patterns.most_common(3)]
+                    "total_instructions": self.total_instructions,
+                    "reason": "Unusual structure"
                 }
             )
         

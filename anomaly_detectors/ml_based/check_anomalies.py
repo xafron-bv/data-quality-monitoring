@@ -3,8 +3,8 @@ from os import path
 import os
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-from .model_training import preprocess_text
-from .gpu_utils import get_optimal_device, print_device_info, get_optimal_batch_size
+from anomaly_detectors.ml_based.model_training import preprocess_text
+from anomaly_detectors.ml_based.gpu_utils import get_optimal_device, print_device_info, get_optimal_batch_size
 
 # Import field-to-column mapping
 import sys

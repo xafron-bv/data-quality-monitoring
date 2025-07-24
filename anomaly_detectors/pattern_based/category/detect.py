@@ -126,14 +126,30 @@ class AnomalyDetector(AnomalyDetectorInterface):
         
         # Check for rare category
         category_frequency = self.category_frequencies.get(norm_category, 0)
-        if self.total_categories > 10 and 0 < category_frequency < self.total_categories * 0.03:
+        
+        # Unknown category (never seen before) - HIGHLY ANOMALOUS
+        if category_frequency == 0:
             return AnomalyError(
                 anomaly_type=self.ErrorCode.RARE_CATEGORY,
-                probability=min(0.9, 1.0 - (category_frequency / self.total_categories)),
+                probability=0.95,
+                details={
+                    "category": value,
+                    "frequency": 0,
+                    "total_categories": self.total_categories,
+                    "reason": "Completely unknown category"
+                }
+            )
+        
+        # Rare category (seen but very uncommon) - lower threshold for better sensitivity
+        if self.total_categories > 10 and category_frequency < self.total_categories * 0.08:  # Increased from 0.03 to 0.08
+            return AnomalyError(
+                anomaly_type=self.ErrorCode.RARE_CATEGORY,
+                probability=min(0.90, 1.0 - (category_frequency / (self.total_categories * 0.08))),
                 details={
                     "category": value,
                     "frequency": category_frequency,
-                    "total_categories": self.total_categories
+                    "total_categories": self.total_categories,
+                    "reason": "Rare category"
                 }
             )
         

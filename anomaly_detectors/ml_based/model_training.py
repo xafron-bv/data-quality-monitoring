@@ -253,8 +253,10 @@ def demonstrate_similarity(model, data_series, field_name):
     # Demonstrate anomaly detection with corrupted examples
     print("\n--- Anomaly Detection Test ---")
     
-    # Load rules to create corrupted examples
-    rules_dir = path.join('..', '..', 'error_injection_rules')
+    # Load both error injection and anomaly injection rules for comprehensive training
+    error_rules_dir = path.join('..', '..', 'error_injection_rules')
+    anomaly_rules_dir = path.join('..', '..', 'anomaly_injection_rules')
+    
     rule_files = {
         'category': 'category.json',
         'color_name': 'color_name.json',
@@ -268,17 +270,57 @@ def demonstrate_similarity(model, data_series, field_name):
     }
     
     rule_file = rule_files.get(field_name, 'category.json')
-    rule_path = os.path.join(rules_dir, rule_file)
     
-    rules = []
+    # Load both types of rules
+    all_rules = []
+    
+    # Load error injection rules (format/validation anomalies)
+    error_rule_path = os.path.join(error_rules_dir, rule_file)
     try:
-        rules = load_error_rules(rule_path)
+        error_rules = load_error_rules(error_rule_path)
+        all_rules.extend(error_rules)
+        print(f"Loaded {len(error_rules)} error injection rules for demonstration")
     except FileNotFoundError:
-        print(f"Rule file '{rule_path}' not found. Creating simple corruption examples.")
-        rules = [
+        print(f"Error injection rules file '{error_rule_path}' not found.")
+    
+    # Load anomaly injection rules (semantic anomalies)
+    anomaly_rule_path = os.path.join(anomaly_rules_dir, rule_file)
+    try:
+        # Import anomaly injection functions
+        import sys
+        sys.path.append(path.join('..', '..'))
+        from anomaly_injection import load_anomaly_rules
+        
+        anomaly_rules = load_anomaly_rules(anomaly_rule_path)
+        # Convert anomaly rules to error rule format for compatibility
+        converted_anomaly_rules = []
+        for rule in anomaly_rules:
+            converted_rule = {
+                'rule_name': rule.get('rule_name', 'unknown'),
+                'description': rule.get('description', ''),
+                'operation': rule.get('operation', 'value_replacement'),
+                'params': rule.get('params', {}),
+                'conditions': rule.get('conditions', []),
+                'is_anomaly_rule': True
+            }
+            converted_anomaly_rules.append(converted_rule)
+        
+        all_rules.extend(converted_anomaly_rules)
+        print(f"Loaded {len(anomaly_rules)} anomaly injection rules for demonstration")
+    except FileNotFoundError:
+        print(f"Anomaly injection rules file '{anomaly_rule_path}' not found.")
+    except Exception as e:
+        print(f"Failed to load anomaly injection rules: {e}")
+    
+    # Fallback to simple rules if none found
+    if not all_rules:
+        print(f"No rules found. Creating simple corruption examples.")
+        all_rules = [
             {'operation': 'random_noise'},
             {'operation': 'string_replace', 'params': {'find': 'e', 'replace': 'E'}}
         ]
+    
+    rules = all_rules
     
     if rules and len(sample_texts) > 0:
         # Take first 3 clean samples

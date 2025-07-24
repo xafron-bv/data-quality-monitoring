@@ -22,11 +22,41 @@ class AnomalyDetector(AnomalyDetectorInterface):
         UNUSUAL_CHARACTER_SET = "UNUSUAL_CHARACTER_SET"
     
     def __init__(self):
-        """Initialize the anomaly detector with state variables."""
-        self.color_counts = Counter()
-        self.capitalization_patterns = Counter()
-        self.character_set_patterns = Counter()
-        self.total_colors = 0
+        """Initialize the anomaly detector with fixed domain knowledge."""
+        # Fixed domain knowledge: known color names (case-insensitive)
+        self.known_colors = {
+            # Basic colors
+            'black', 'white', 'grey', 'gray', 'red', 'blue', 'green', 'yellow', 
+            'orange', 'purple', 'pink', 'brown', 'beige', 'cream', 'navy',
+            # Fashion colors
+            'marine', 'khaki', 'olive', 'burgundy', 'maroon', 'teal', 'turquoise',
+            'coral', 'salmon', 'mint', 'lavender', 'rose', 'gold', 'silver',
+            'bronze', 'copper', 'ivory', 'pearl', 'champagne', 'nude', 'taupe',
+            # Darker shades
+            'charcoal', 'slate', 'graphite', 'ebony', 'jet', 'onyx', 'raven',
+            # Lighter shades  
+            'vanilla', 'snow', 'cotton', 'milk', 'powder', 'chalk', 'ash',
+            # Vibrant colors
+            'crimson', 'scarlet', 'ruby', 'emerald', 'sapphire', 'cobalt',
+            'azure', 'indigo', 'violet', 'magenta', 'fuchsia', 'lime', 'citrus',
+            # Earthy tones
+            'sand', 'clay', 'rust', 'copper', 'bronze', 'mahogany', 'chestnut',
+            'walnut', 'oak', 'maple', 'cedar', 'pine', 'moss', 'sage', 'forest',
+            # Seasonal colors
+            'autumn', 'winter', 'spring', 'summer', 'seasonal'
+        }
+        
+        # Known non-color terms that should be anomalous
+        self.non_color_terms = {
+            # Food terms
+            'mustard', 'ketchup', 'avocado', 'chocolate', 'vanilla', 'caramel',
+            'honey', 'maple', 'lemon', 'grape', 'apple', 'orange', 'berry',
+            # Construction materials  
+            'concrete', 'steel', 'aluminum', 'brass', 'iron', 'chrome',
+            # Inappropriate terms
+            'electronic', 'digital', 'virtual', 'synthetic', 'artificial',
+            'video', 'computer', 'machine', 'robot', 'cyber'
+        }
     
     def _normalize_color(self, color: str) -> str:
         """Normalize a color name for comparison."""
@@ -68,96 +98,62 @@ class AnomalyDetector(AnomalyDetectorInterface):
         
         return result if result else "X"  # X for empty/invalid
         
-    def learn_patterns(self, df: pd.DataFrame, column_name: str) -> None:
-        """
-        Learn normal patterns from color name data.
-        
-        This method analyzes the color column to learn:
-        1. Common color names
-        2. Capitalization patterns
-        3. Character sets used
-        """
-        valid_colors = df[column_name].dropna()
-        self.total_colors = len(valid_colors)
-        
-        for color in valid_colors:
-            if not isinstance(color, str) or not color.strip():
-                continue
-                
-            # Count normalized colors
-            norm_color = self._normalize_color(color)
-            self.color_counts[norm_color] += 1
-            
-            # Analyze capitalization
-            cap_pattern = self._get_capitalization_pattern(color)
-            self.capitalization_patterns[cap_pattern] += 1
-            
-            # Analyze character set
-            char_set = self._get_character_set(color)
-            self.character_set_patterns[char_set] += 1
-    
     def _detect_anomaly(self, value: Any, context: Dict[str, Any] = None) -> Optional[AnomalyError]:
         """
-        Detect anomalies in color names based on learned patterns.
+        Detect anomalies in color names based on fixed domain rules.
         
         This method checks for:
-        1. Rare color names
-        2. Inconsistent capitalization
-        3. Unusual character sets
+        1. Non-color terms (food, construction, electronics, etc.)
+        2. Unknown colors not in fashion database
+        3. Invalid format patterns
         """
         if pd.isna(value) or not isinstance(value, str) or not value.strip():
             return None
         
-        norm_color = self._normalize_color(value)
-        cap_pattern = self._get_capitalization_pattern(value)
-        char_set = self._get_character_set(value)
+        norm_color = self._normalize_color(value).lower()
         
-        # Check for rare colors
-        color_frequency = self.color_counts.get(norm_color, 0)
-        if 0 < color_frequency < self.total_colors * 0.03:  # Less than 3% frequency
+        # Check for non-color terms that should be anomalous
+        for non_color in self.non_color_terms:
+            if non_color in norm_color:
+                return AnomalyError(
+                    anomaly_type=self.ErrorCode.RARE_COLOR,
+                    probability=0.95,
+                    details={
+                        "color": value,
+                        "reason": "Contains non-color term",
+                        "detected_non_color": non_color,
+                        "category": "food/construction/electronics"
+                    }
+                )
+        
+        # Check if color is in known fashion colors
+        if norm_color not in self.known_colors:
+            # Check for partial matches (possible typos)
+            close_matches = [known for known in self.known_colors 
+                           if known.startswith(norm_color[:3]) or norm_color.startswith(known[:3])]
+            
+            probability = 0.80 if close_matches else 0.90
             return AnomalyError(
                 anomaly_type=self.ErrorCode.RARE_COLOR,
-                probability=min(0.9, 1.0 - (color_frequency / self.total_colors)),
+                probability=probability,
                 details={
                     "color": norm_color,
-                    "frequency": color_frequency,
-                    "total_colors": self.total_colors
+                    "reason": "Unknown color not in fashion database",
+                    "possible_matches": close_matches[:3] if close_matches else []
                 }
             )
         
-        # Check for inconsistent capitalization
-        if self.capitalization_patterns:
-            common_cap = self.capitalization_patterns.most_common(1)[0][0]
-            cap_frequency = self.capitalization_patterns.get(cap_pattern, 0)
-            
-            if cap_frequency < self.total_colors * 0.1 and cap_pattern != common_cap:
-                return AnomalyError(
-                    anomaly_type=self.ErrorCode.UNUSUAL_CAPITALIZATION,
-                    probability=min(0.7, 1.0 - (cap_frequency / self.total_colors)),
-                    details={
-                        "capitalization": cap_pattern,
-                        "common_pattern": common_cap,
-                        "frequency": cap_frequency,
-                        "total_colors": self.total_colors
-                    }
-                )
-        
-        # Check for unusual character sets
-        if self.character_set_patterns:
-            common_chars = self.character_set_patterns.most_common(1)[0][0]
-            chars_frequency = self.character_set_patterns.get(char_set, 0)
-            
-            if chars_frequency < self.total_colors * 0.05 and char_set != common_chars:
-                return AnomalyError(
-                    anomaly_type=self.ErrorCode.UNUSUAL_CHARACTER_SET,
-                    probability=min(0.85, 1.0 - (chars_frequency / self.total_colors)),
-                    details={
-                        "character_set": char_set,
-                        "common_set": common_chars,
-                        "frequency": chars_frequency,
-                        "total_colors": self.total_colors
-                    }
-                )
+        # Check for unusual character patterns (too many special characters)
+        if re.search(r'[^\w\s-]', value):  # Allow only letters, numbers, spaces, hyphens
+            return AnomalyError(
+                anomaly_type=self.ErrorCode.UNUSUAL_CHARACTER_SET,
+                probability=0.85,
+                details={
+                    "color": value,
+                    "reason": "Contains unusual special characters",
+                    "invalid_chars": re.findall(r'[^\w\s-]', value)
+                }
+            )
         
         # No anomalies detected
         return None

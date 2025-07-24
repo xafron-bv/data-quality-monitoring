@@ -24,15 +24,38 @@ class AnomalyDetector(AnomalyDetectorInterface):
         INCONSISTENT_FORMAT = "INCONSISTENT_FORMAT"
     
     def __init__(self):
-        """Initialize the anomaly detector with state variables."""
+        """Initialize the anomaly detector with fixed domain knowledge."""
         self.field_name = "material"  # The type of field this detector validates
-        self.material_counts = Counter()
-        self.percentage_distribution = defaultdict(list)
-        self.common_material_combinations = defaultdict(int)
-        self.format_patterns = Counter()
-        self.total_records = 0
         self.material_regex = re.compile(r'(\d+(?:\.\d+)?%)\s+([A-Za-z]+)')
         self.tokenizer_regex = re.compile(r'(\d+(?:\.\d+)?%?|[a-zA-Z]+|[^a-zA-Z0-9\s%])')
+        
+        # Fixed domain knowledge: known textile materials (case-insensitive)
+        self.known_materials = {
+            # Natural fibers
+            'cotton', 'wool', 'silk', 'linen', 'hemp', 'bamboo', 'cashmere', 'mohair', 
+            'alpaca', 'angora', 'vicuna', 'merino', 'jersey',
+            # Synthetic fibers  
+            'polyester', 'nylon', 'acrylic', 'spandex', 'elastane', 'lycra', 'polyurethane',
+            'rayon', 'viscose', 'modal', 'tencel', 'microfiber', 'fleece',
+            # Blended materials
+            'poly', 'acetate', 'triacetate', 'metallic', 'lurex',
+            # Common variations
+            'cottn', 'cotton', 'woolen', 'polyamide', 'polypropylene'
+        }
+        
+        # Known non-textile materials that should be anomalous
+        self.non_textile_materials = {
+            # Construction materials
+            'concrete', 'steel', 'aluminum', 'wood', 'plastic', 'glass', 'brick',
+            'mortar', 'titanium', 'ceramic', 'granite', 'marble', 'diamond', 'carbon',
+            # Food materials  
+            'bread', 'cheese', 'meat', 'fruit', 'vegetable', 'flour', 'sugar',
+            'chocolate', 'butter', 'milk', 'cream', 'honey', 'salt', 'pepper',
+            # Electronics
+            'silicon', 'copper', 'gold', 'silver', 'platinum', 'circuit', 'chip',
+            # Other inappropriate materials
+            'paper', 'cardboard', 'rubber', 'foam', 'gel', 'liquid', 'gas'
+        }
     
     def _extract_material_info(self, text: str) -> List[Dict[str, str]]:
         """Extract percentages and materials from a material composition string."""
@@ -55,124 +78,95 @@ class AnomalyDetector(AnomalyDetectorInterface):
         pattern = re.sub(r'[a-zA-Z]+', 'L', pattern)
         return pattern
     
-    def learn_patterns(self, df: pd.DataFrame, column_name: str) -> None:
-        """
-        Learn normal patterns from material composition data.
-        
-        This method analyzes the material column to learn:
-        1. Common material types
-        2. Typical percentage distributions for each material
-        3. Common material combinations
-        4. Standard format patterns
-        """
-        self.total_records = len(df)
-        valid_data = df[column_name].dropna()
-        
-        # Learn common materials and their percentages
-        for text in valid_data:
-            if not isinstance(text, str):
-                continue
-                
-            # Extract material info
-            materials = self._extract_material_info(text)
-            
-            # Count materials
-            for item in materials:
-                self.material_counts[item["material"]] += 1
-                self.percentage_distribution[item["material"]].append(item["percentage"])
-            
-            # Track material combinations
-            material_set = frozenset(item["material"] for item in materials)
-            if len(material_set) > 1:
-                self.common_material_combinations[material_set] += 1
-            
-            # Analyze format patterns
-            format_pattern = self._get_format_pattern(text)
-            self.format_patterns[format_pattern] += 1
-    
     def _detect_anomaly(self, value: Any, context: Dict[str, Any] = None) -> Optional[AnomalyError]:
         """
-        Detect anomalies in material composition based on learned patterns.
+        Detect anomalies in material composition based on fixed domain rules.
         
         This method checks for:
-        1. Uncommon materials
-        2. Unusual percentage values for common materials
-        3. Uncommon combinations of materials
-        4. Inconsistent format patterns
+        1. Non-textile materials (construction, food, electronics, etc.)
+        2. Invalid material format patterns
+        3. Suspicious percentage compositions
         """
         if pd.isna(value) or not isinstance(value, str) or not value.strip():
             return None
         
         # Extract material info
         materials = self._extract_material_info(value)
-        format_pattern = self._get_format_pattern(value)
         
-        # Skip if no materials extracted (might be incorrect format)
+        # Check if no materials were extracted (invalid format)
         if not materials:
-            # Check if the format is unusual
-            if self.format_patterns and self.format_patterns[format_pattern] < self.total_records * 0.05:
+            # Check for completely non-standard format
+            text_lower = value.lower().strip()
+            if any(non_textile in text_lower for non_textile in self.non_textile_materials):
                 return AnomalyError(
-                    anomaly_type=self.ErrorCode.INCONSISTENT_FORMAT,
-                    probability=0.7,
+                    anomaly_type=self.ErrorCode.UNCOMMON_MATERIAL,
+                    probability=0.95,
                     details={
-                        "format": format_pattern,
-                        "common_formats": [f for f, c in self.format_patterns.most_common(3)]
+                        "material": value,
+                        "reason": "Contains non-textile material",
+                        "detected_non_textile": [mat for mat in self.non_textile_materials if mat in text_lower]
                     }
                 )
             return None
         
-        # Check for uncommon materials
+        # Check each material for domain violations
         for item in materials:
-            material = item["material"]
+            material = item["material"].lower()
             percentage = item["percentage"]
             
-            material_frequency = self.material_counts.get(material, 0)
-            if 0 < material_frequency < self.total_records * 0.05:
-                # Uncommon material
+            # Check for non-textile materials
+            if material in self.non_textile_materials:
                 return AnomalyError(
                     anomaly_type=self.ErrorCode.UNCOMMON_MATERIAL,
-                    probability=min(0.95, 1.0 - (material_frequency / self.total_records)),
+                    probability=0.95,
                     details={
                         "material": material,
-                        "frequency": material_frequency,
-                        "total_records": self.total_records
+                        "reason": "Non-textile material detected",
+                        "category": "construction/food/electronics"
+                    }
+                )
+            
+            # Check for unknown materials (not in known textile set)
+            if material not in self.known_materials:
+                # Check if it's a partial match or typo of known material
+                close_matches = [known for known in self.known_materials 
+                               if known.startswith(material[:3]) or material.startswith(known[:3])]
+                
+                probability = 0.85 if close_matches else 0.95
+                return AnomalyError(
+                    anomaly_type=self.ErrorCode.UNCOMMON_MATERIAL,
+                    probability=probability,
+                    details={
+                        "material": material,
+                        "reason": "Unknown material not in textile database",
+                        "possible_matches": close_matches[:3] if close_matches else []
                     }
                 )
             
             # Check for unusual percentages
-            if material in self.percentage_distribution and len(self.percentage_distribution[material]) > 5:
-                percentages = self.percentage_distribution[material]
-                mean_pct = np.mean(percentages)
-                std_pct = max(1, np.std(percentages))  # Ensure minimum std to avoid false positives
-                
-                if abs(percentage - mean_pct) > 2 * std_pct:
-                    # Unusual percentage
-                    z_score = (percentage - mean_pct) / std_pct if std_pct > 0 else 0
-                    return AnomalyError(
-                        anomaly_type=self.ErrorCode.UNUSUAL_PERCENTAGE,
-                        probability=min(0.9, abs(z_score) / 5),  # Cap at 0.9
-                        details={
-                            "material": material,
-                            "percentage": percentage,
-                            "typical_range": f"{mean_pct-std_pct:.1f}% to {mean_pct+std_pct:.1f}%",
-                            "z_score": z_score
-                        }
-                    )
-        
-        # Check for unusual material combinations
-        material_set = frozenset(item["material"] for item in materials)
-        if len(material_set) > 1:
-            combination_frequency = self.common_material_combinations.get(material_set, 0)
-            if 0 < combination_frequency < self.total_records * 0.05:
+            if percentage <= 0 or percentage > 100:
                 return AnomalyError(
-                    anomaly_type=self.ErrorCode.UNUSUAL_MATERIAL_COMBINATION,
-                    probability=min(0.9, 1.0 - (combination_frequency / self.total_records)),
+                    anomaly_type=self.ErrorCode.UNUSUAL_PERCENTAGE,
+                    probability=0.90,
                     details={
-                        "materials": sorted(list(material_set)),
-                        "frequency": combination_frequency,
-                        "total_records": self.total_records
+                        "material": material,
+                        "percentage": percentage,
+                        "reason": "Invalid percentage value"
                     }
                 )
+        
+        # Check total percentage sum
+        total_percentage = sum(item["percentage"] for item in materials)
+        if abs(total_percentage - 100.0) > 5.0:  # Allow 5% tolerance
+            return AnomalyError(
+                anomaly_type=self.ErrorCode.UNEXPECTED_COMPOSITION,
+                probability=0.80,
+                details={
+                    "total_percentage": total_percentage,
+                    "reason": "Material percentages don't sum to ~100%",
+                    "materials": [f"{item['percentage']}% {item['material']}" for item in materials]
+                }
+            )
         
         # No anomalies detected
         return None

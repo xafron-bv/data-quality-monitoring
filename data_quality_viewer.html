@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Quality Monitoring Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .upload-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e1e5e9;
+        }
+
+        .upload-section h2 {
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-area {
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background-color: #f7fafc;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background-color: #ebf4ff;
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #a0aec0;
+        }
+
+        .upload-text {
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .upload-subtext {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .controls {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e1e5e9;
+            display: none;
+        }
+
+        .controls.show {
+            display: block;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: auto auto auto 1fr;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #718096;
+        }
+
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+
+        .stats {
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+
+        .legend {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .data-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e1e5e9;
+            display: none;
+        }
+
+        .data-container.show {
+            display: block;
+        }
+
+        .table-wrapper {
+            overflow: auto;
+            max-height: 70vh;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        th {
+            background: #f7fafc;
+            color: #2d3748;
+            font-weight: 600;
+            padding: 1rem 0.75rem;
+            text-align: left;
+            border-bottom: 2px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+            position: relative;
+        }
+
+        tr:hover {
+            background-color: #f7fafc;
+        }
+
+        .row-hidden {
+            display: none;
+        }
+
+        .cell-error {
+            background-color: #fed7d7 !important;
+            position: relative;
+        }
+
+        .cell-anomaly {
+            background-color: #fefcbf !important;
+            position: relative;
+        }
+
+        .cell-indicator {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .error-indicator {
+            background-color: #e53e3e;
+        }
+
+        .anomaly-indicator {
+            background-color: #d69e2e;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: #2d3748;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            max-width: 350px;
+            word-wrap: break-word;
+            z-index: 1000;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            display: none;
+            pointer-events: none;
+            line-height: 1.4;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #2d3748;
+        }
+
+        .file-info {
+            background: #ebf4ff;
+            border: 1px solid #bee3f8;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+            color: #2b6cb0;
+        }
+
+        .error-message {
+            background: #fed7d7;
+            border: 1px solid #feb2b2;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+            color: #c53030;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #718096;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .upload-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .legend {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔍 Data Quality Monitoring Viewer</h1>
+        <p>Upload your CSV data and evaluation results to visualize errors and anomalies</p>
+    </div>
+
+    <div class="container">
+        <div class="upload-section">
+            <h2>📁 Upload Files</h2>
+            <div class="upload-grid">
+                <div class="upload-area" onclick="document.getElementById('csvFile').click()">
+                    <div class="upload-icon">📊</div>
+                    <div class="upload-text">Upload CSV Data</div>
+                    <div class="upload-subtext">Click to select or drag and drop your CSV file</div>
+                    <input type="file" id="csvFile" accept=".csv" />
+                </div>
+
+                <div class="upload-area" onclick="document.getElementById('resultsFile').click()">
+                    <div class="upload-icon">📋</div>
+                    <div class="upload-text">Upload Evaluation Results</div>
+                    <div class="upload-subtext">Click to select or drag and drop your JSON results file</div>
+                    <input type="file" id="resultsFile" accept=".json" />
+                </div>
+            </div>
+            
+            <div id="fileInfo" class="file-info" style="display: none;"></div>
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+        </div>
+
+        <div id="controls" class="controls">
+            <div class="controls-grid">
+                <button id="hideCleanBtn" class="btn">Hide Clean Rows</button>
+                <button id="showAllBtn" class="btn btn-secondary">Show All Rows</button>
+                <div id="stats" class="stats"></div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="cell-indicator error-indicator">!</div>
+                        <span>Validation Error</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="cell-indicator anomaly-indicator">⚠</div>
+                        <span>Anomaly</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="dataContainer" class="data-container">
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <div>Processing data...</div>
+            </div>
+            <div class="table-wrapper">
+                <table id="dataTable">
+                    <thead id="tableHead"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="tooltip" class="tooltip"></div>
+
+    <script>
+        class DataQualityViewer {
+            constructor() {
+                this.csvData = null;
+                this.evaluationResults = null;
+                this.cellCoordinates = null;
+                this.currentTable = null;
+                this.issueMap = new Map();
+                
+                this.initializeEventListeners();
+            }
+
+            initializeEventListeners() {
+                // File upload handlers
+                document.getElementById('csvFile').addEventListener('change', (e) => this.handleCsvUpload(e));
+                document.getElementById('resultsFile').addEventListener('change', (e) => this.handleResultsUpload(e));
+
+                // Control buttons
+                document.getElementById('hideCleanBtn').addEventListener('click', () => this.hideCleanRows());
+                document.getElementById('showAllBtn').addEventListener('click', () => this.showAllRows());
+
+                // Drag and drop for upload areas
+                this.setupDragAndDrop();
+            }
+
+            setupDragAndDrop() {
+                const uploadAreas = document.querySelectorAll('.upload-area');
+                
+                uploadAreas.forEach(area => {
+                    area.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        area.classList.add('dragover');
+                    });
+
+                    area.addEventListener('dragleave', () => {
+                        area.classList.remove('dragover');
+                    });
+
+                    area.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        area.classList.remove('dragover');
+                        
+                        const files = e.dataTransfer.files;
+                        if (files.length > 0) {
+                            const file = files[0];
+                            if (area.innerHTML.includes('CSV Data') && file.type === 'text/csv') {
+                                this.processCsvFile(file);
+                            } else if (area.innerHTML.includes('Evaluation Results') && file.type === 'application/json') {
+                                this.processResultsFile(file);
+                            }
+                        }
+                    });
+                });
+            }
+
+            handleCsvUpload(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    this.processCsvFile(file);
+                }
+            }
+
+            handleResultsUpload(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    this.processResultsFile(file);
+                }
+            }
+
+            processCsvFile(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        this.csvData = this.parseCSV(e.target.result);
+                        this.showFileInfo(`CSV file loaded: ${file.name} (${this.csvData.length - 1} rows, ${this.csvData[0].length} columns)`);
+                        this.checkIfReadyToRender();
+                    } catch (error) {
+                        this.showError(`Error parsing CSV file: ${error.message}`);
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            processResultsFile(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        this.evaluationResults = JSON.parse(e.target.result);
+                        this.cellCoordinates = this.evaluationResults.cell_coordinates || null;
+                        
+                        if (this.cellCoordinates) {
+                            const summary = this.cellCoordinates.summary;
+                            this.showFileInfo(`Results loaded: ${summary.total_issues} issues found (${summary.total_errors} errors, ${summary.total_anomalies} anomalies)`);
+                        } else {
+                            this.showFileInfo(`Results file loaded: ${file.name}`);
+                        }
+                        
+                        this.checkIfReadyToRender();
+                    } catch (error) {
+                        this.showError(`Error parsing results file: ${error.message}`);
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            parseCSV(text) {
+                const lines = text.split('\n');
+                const result = [];
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (line) {
+                        const row = this.parseCSVLine(line);
+                        result.push(row);
+                    }
+                }
+                
+                return result;
+            }
+
+            parseCSVLine(line) {
+                const result = [];
+                let current = '';
+                let inQuotes = false;
+                
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        result.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                
+                result.push(current.trim());
+                return result.map(cell => cell.replace(/^"|"$/g, ''));
+            }
+
+            checkIfReadyToRender() {
+                if (this.csvData && this.evaluationResults) {
+                    this.buildIssueMap();
+                    this.renderTable();
+                }
+            }
+
+            buildIssueMap() {
+                this.issueMap.clear();
+                
+                if (!this.cellCoordinates) return;
+
+                console.log('Building issue map from coordinates:', this.cellCoordinates.summary);
+
+                // Process errors
+                this.cellCoordinates.errors.forEach(error => {
+                    const key = `${error.row_index}_${error.column_name}`;
+                    if (!this.issueMap.has(key)) {
+                        this.issueMap.set(key, []);
+                    }
+                    this.issueMap.get(key).push({
+                        type: 'error',
+                        message: error.display_message,
+                        probability: error.probability,
+                        data: error.error_data
+                    });
+                });
+                
+                console.log(`Mapped ${this.cellCoordinates.errors.length} errors to issue map. Map size: ${this.issueMap.size}`);
+
+                // Process anomalies
+                this.cellCoordinates.anomalies.forEach(anomaly => {
+                    const key = `${anomaly.row_index}_${anomaly.column_name}`;
+                    if (!this.issueMap.has(key)) {
+                        this.issueMap.set(key, []);
+                    }
+                    this.issueMap.get(key).push({
+                        type: 'anomaly',
+                        message: anomaly.display_message,
+                        probability: anomaly.probability,
+                        data: anomaly.error_data
+                    });
+                });
+
+                // Process ML issues
+                this.cellCoordinates.ml_issues.forEach(mlIssue => {
+                    const key = `${mlIssue.row_index}_${mlIssue.column_name}`;
+                    if (!this.issueMap.has(key)) {
+                        this.issueMap.set(key, []);
+                    }
+                    this.issueMap.get(key).push({
+                        type: 'anomaly',
+                        message: mlIssue.display_message,
+                        probability: mlIssue.probability,
+                        data: mlIssue.error_data
+                    });
+                });
+            }
+
+            renderTable() {
+                this.showLoading(true);
+                
+                setTimeout(() => {
+                    const headers = this.csvData[0];
+                    const rows = this.csvData.slice(1);
+
+                    // Create table header
+                    const tableHead = document.getElementById('tableHead');
+                    tableHead.innerHTML = '';
+                    const headerRow = document.createElement('tr');
+                    
+                    // Add row number column
+                    const rowNumHeader = document.createElement('th');
+                    rowNumHeader.textContent = '#';
+                    rowNumHeader.style.width = '60px';
+                    headerRow.appendChild(rowNumHeader);
+                    
+                    headers.forEach(header => {
+                        const th = document.createElement('th');
+                        th.textContent = header;
+                        headerRow.appendChild(th);
+                    });
+                    tableHead.appendChild(headerRow);
+
+                    // Create table body
+                    const tableBody = document.getElementById('tableBody');
+                    tableBody.innerHTML = '';
+
+                    rows.forEach((row, tableRowIndex) => {
+                        const tr = document.createElement('tr');
+                        // The actual dataset row index matches the error coordinates
+                        // Table row 0 = dataset row 0, table row 85 = dataset row 85, etc.
+                        const datasetRowIndex = tableRowIndex;
+                        tr.dataset.rowIndex = datasetRowIndex;
+                        
+                        // Add row number cell (display as 1-based for humans)
+                        const rowNumCell = document.createElement('td');
+                        rowNumCell.textContent = datasetRowIndex + 1;
+                        rowNumCell.style.fontWeight = 'bold';
+                        rowNumCell.style.color = '#718096';
+                        tr.appendChild(rowNumCell);
+
+                        // Add data cells
+                        row.forEach((cell, colIndex) => {
+                            const td = document.createElement('td');
+                            const columnName = headers[colIndex];
+                            // Use dataset row index to match error coordinates
+                            const key = `${datasetRowIndex}_${columnName}`;
+                            
+                            // Set cell content
+                            td.textContent = cell || '';
+                            
+                            // Check for issues in this cell
+                            if (this.issueMap.has(key)) {
+                                const issues = this.issueMap.get(key);
+                                const hasError = issues.some(issue => issue.type === 'error');
+                                const hasAnomaly = issues.some(issue => issue.type === 'anomaly');
+                                
+                                if (hasError) {
+                                    td.classList.add('cell-error');
+                                    const indicator = document.createElement('div');
+                                    indicator.className = 'cell-indicator error-indicator';
+                                    indicator.textContent = '!';
+                                    td.appendChild(indicator);
+                                } else if (hasAnomaly) {
+                                    td.classList.add('cell-anomaly');
+                                    const indicator = document.createElement('div');
+                                    indicator.className = 'cell-indicator anomaly-indicator';
+                                    indicator.textContent = '⚠';
+                                    td.appendChild(indicator);
+                                }
+
+                                // Add tooltip functionality
+                                td.addEventListener('mouseenter', (e) => this.showTooltip(e, issues));
+                                td.addEventListener('mouseleave', () => this.hideTooltip());
+                                td.addEventListener('mousemove', (e) => this.updateTooltipPosition(e));
+                            }
+                            
+                            tr.appendChild(td);
+                        });
+                        
+                        tableBody.appendChild(tr);
+                    });
+
+                    this.updateStats();
+                    this.showControls();
+                    this.showDataContainer();
+                    this.showLoading(false);
+                }, 100);
+            }
+
+            showTooltip(event, issues) {
+                const tooltip = document.getElementById('tooltip');
+                const tooltipContent = issues.map(issue => {
+                    const typeLabel = issue.type === 'error' ? '🔴 Validation Error' : '🟡 Anomaly';
+                    const confidenceText = issue.probability ? `Confidence: ${(issue.probability * 100).toFixed(1)}%` : '';
+                    return `<div style="margin-bottom: 8px;"><strong>${typeLabel}</strong><br/>${issue.message || 'No description available'}<br/><small style="color: #a0aec0;">${confidenceText}</small></div>`;
+                }).join('<hr style="margin: 0.5rem 0; border: none; border-top: 1px solid #4a5568;">');
+                
+                tooltip.innerHTML = tooltipContent;
+                tooltip.style.display = 'block';
+                this.updateTooltipPosition(event);
+            }
+
+            updateTooltipPosition(event) {
+                const tooltip = document.getElementById('tooltip');
+                if (tooltip.style.display === 'none') return;
+                
+                const rect = event.target.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+                
+                // Calculate position
+                let left = rect.left + window.scrollX + rect.width / 2 - tooltipRect.width / 2;
+                let top = rect.top + window.scrollY - tooltipRect.height - 10;
+                
+                // Ensure tooltip stays within viewport
+                if (left < 10) left = 10;
+                if (left + tooltipRect.width > window.innerWidth - 10) {
+                    left = window.innerWidth - tooltipRect.width - 10;
+                }
+                if (top < 10) {
+                    top = rect.bottom + window.scrollY + 10; // Show below if no space above
+                }
+                
+                tooltip.style.left = left + 'px';
+                tooltip.style.top = top + 'px';
+            }
+
+            hideTooltip() {
+                document.getElementById('tooltip').style.display = 'none';
+            }
+
+            hideCleanRows() {
+                const rows = document.querySelectorAll('#tableBody tr');
+                let hiddenCount = 0;
+                
+                rows.forEach(row => {
+                    const hasIssues = row.querySelector('.cell-error, .cell-anomaly');
+                    if (!hasIssues) {
+                        row.classList.add('row-hidden');
+                        hiddenCount++;
+                    }
+                });
+
+                this.updateStats(`${hiddenCount} clean rows hidden`);
+            }
+
+            showAllRows() {
+                const rows = document.querySelectorAll('#tableBody tr');
+                rows.forEach(row => {
+                    row.classList.remove('row-hidden');
+                });
+
+                this.updateStats();
+            }
+
+            updateStats(additionalInfo = '') {
+                const totalRows = this.csvData ? this.csvData.length - 1 : 0;
+                let errorCount = 0;
+                let anomalyCount = 0;
+                
+                if (this.cellCoordinates) {
+                    errorCount = this.cellCoordinates.summary.total_errors;
+                    anomalyCount = this.cellCoordinates.summary.total_anomalies + this.cellCoordinates.summary.total_ml_issues;
+                }
+
+                const statsText = `${totalRows} rows | ${errorCount} errors | ${anomalyCount} anomalies` + 
+                                 (additionalInfo ? ` | ${additionalInfo}` : '');
+                
+                document.getElementById('stats').textContent = statsText;
+            }
+
+            showFileInfo(message) {
+                const fileInfo = document.getElementById('fileInfo');
+                fileInfo.textContent = message;
+                fileInfo.style.display = 'block';
+                this.hideError();
+            }
+
+            showError(message) {
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                this.hideFileInfo();
+            }
+
+            hideFileInfo() {
+                document.getElementById('fileInfo').style.display = 'none';
+            }
+
+            hideError() {
+                document.getElementById('errorMessage').style.display = 'none';
+            }
+
+            showControls() {
+                document.getElementById('controls').classList.add('show');
+            }
+
+            showDataContainer() {
+                document.getElementById('dataContainer').classList.add('show');
+            }
+
+            showLoading(show) {
+                document.getElementById('loading').style.display = show ? 'block' : 'none';
+                document.querySelector('.table-wrapper').style.display = show ? 'none' : 'block';
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new DataQualityViewer();
+        });
+    </script>
+</body>
+</html> 

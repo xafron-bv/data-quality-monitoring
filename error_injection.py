@@ -368,6 +368,15 @@ def apply_error_rule(data_string: Union[str, Any], rule: Dict[str, Any]) -> Unio
         
         return result
     
+    elif op == "value_replacement":
+        # Replace entire value with a random value from the replacement list (used by anomaly injection)
+        replacement_values = params.get("replacement_values", [])
+        if replacement_values:
+            return random.choice(replacement_values)
+        else:
+            return data_string
+    
+    # Unknown operation - return original data
     return data_string
 
 
