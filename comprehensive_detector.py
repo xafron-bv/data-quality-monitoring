@@ -178,14 +178,12 @@ class ComprehensiveFieldDetector:
         """Get or create anomaly detector and reporter for a field."""
         if field_name not in self._anomaly_detector_cache:
             try:
-                detector_module_str = f"anomaly_detectors.pattern_based.{field_name}.detect:AnomalyDetector"
-                reporter_module_str = f"anomaly_detectors.pattern_based.report:AnomalyReporter"
+                # Use the new generic pattern-based detector
+                from anomaly_detectors.pattern_based.pattern_based_detector import PatternBasedDetector
+                from anomaly_detectors.pattern_based.report import AnomalyReporter
                 
-                DetectorClass = load_module_class(detector_module_str)
-                ReporterClass = load_module_class(reporter_module_str)
-                
-                detector = DetectorClass()
-                reporter = ReporterClass(field_name)
+                detector = PatternBasedDetector(field_name)
+                reporter = AnomalyReporter(field_name)
                 
                 self._anomaly_detector_cache[field_name] = (detector, reporter)
             except Exception as e:

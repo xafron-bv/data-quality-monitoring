@@ -1,0 +1,46 @@
+{
+  "field_name": "care_instructions",
+  "description": "Pattern-based rules for textile care instructions",
+  "known_values": [],
+  "format_patterns": [
+    {
+      "name": "care_instruction_format",
+      "description": "Standard care instruction format with proper characters",
+      "pattern": "^[A-Za-z0-9\\s\\-.,°/()]+$",
+      "probability": 0.7,
+      "message": "Invalid characters in care instructions"
+    },
+    {
+      "name": "temperature_pattern",
+      "description": "Temperature should be reasonable (not over 100°C)",
+      "pattern": "^(?!.*[1-9][0-9]{2,}°).*$",
+      "probability": 0.9,
+      "message": "Unreasonable temperature in care instructions"
+    },
+    {
+      "name": "care_keywords",
+      "description": "Should contain typical care instruction keywords",
+      "pattern": ".*(WASSEN|WASH|BLEKEN|BLEACH|DROGER|DRY|STRIJKEN|IRON|NIET|NOT|MAX|°C).*",
+      "probability": 0.8,
+      "message": "Does not appear to contain standard care instruction terms"
+    }
+  ],
+  "validation_rules": [
+    {
+      "name": "reasonable_length",
+      "description": "Care instructions should not be too short",
+      "type": "min_length",
+      "min_length": 10,
+      "probability": 0.7,
+      "message": "Care instructions seem too brief"
+    },
+    {
+      "name": "max_length",
+      "description": "Care instructions should not be too long",
+      "type": "max_length",
+      "max_length": 1000,
+      "probability": 0.8,
+      "message": "Care instructions are unusually long"
+    }
+  ]
+}

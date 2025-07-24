@@ -1,6 +1,0 @@
-{
-  "RARE_CATEGORY": "Anomaly detected: The category '{category}' appears in only {frequency} out of {total_categories} records, which is unusually rare.",
-  "UNUSUAL_CATEGORY_FORMAT": "Anomaly detected: The category '{category}' uses an unusual format pattern compared to most category values in the dataset.",
-  "INCONSISTENT_CATEGORY": "Anomaly detected: The category '{category}' is being used in an unusual context. For '{related_attribute}', expected '{expected_value}' but found '{actual_value}'.",
-  "DEFAULT": "Anomaly detected in category value: '{error_data}'."
-}

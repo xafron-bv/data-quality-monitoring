@@ -1,8 +1,0 @@
-{
-  "STATISTICAL_OUTLIER": "Anomaly detected: Value {error_data} is statistically unusual (z-score: {z_score:.2f}). Most values in this column are between {mean-std:.2f} and {mean+std:.2f}.",
-  "PATTERN_DEVIATION": "Anomaly detected: Value {error_data} deviates from the common pattern seen in this column.",
-  "CONTEXTUAL_ANOMALY": "Anomaly detected: Value {error_data} is unusual in the context of other values in this row.",
-  "CATEGORICAL_RARE_VALUE": "Anomaly detected: '{error_data}' appears rarely in the dataset (only {frequency} times out of {total_count} records).",
-  "FORMAT_INCONSISTENCY": "Anomaly detected: The format of '{error_data}' is inconsistent with the typical format in this column.",
-  "DEFAULT": "Anomaly detected in '{error_data}'. This value deviates from normal patterns."
-}

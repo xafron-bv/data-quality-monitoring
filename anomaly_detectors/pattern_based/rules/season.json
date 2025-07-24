@@ -1,0 +1,63 @@
+{
+  "field_name": "season",
+  "description": "Pattern-based rules for fashion seasons",
+  "known_values": [
+    "2022 fall",
+    "2022 spring",
+    "2022 summer",
+    "2022 winter",
+    "2023 fall",
+    "2023 spring",
+    "2023 summer",
+    "2023 winter",
+    "2024 fall",
+    "2024 spring",
+    "2024 summer",
+    "2024 winter",
+    "fall",
+    "spring",
+    "summer",
+    "winter",
+    "autumn",
+    "ss22",
+    "fw22",
+    "ss23",
+    "fw23",
+    "ss24",
+    "fw24",
+    "spring/summer",
+    "fall/winter",
+    "aw22",
+    "ss",
+    "fw",
+    "aw",
+    "all season",
+    "year-round"
+  ],
+  "format_patterns": [
+    {
+      "name": "season_format",
+      "description": "Standard season format",
+      "pattern": "^[a-zA-Z0-9\\s/]+$",
+      "probability": 0.8,
+      "message": "Invalid characters in season"
+    }
+  ],
+  "validation_rules": [
+    {
+      "name": "not_empty",
+      "description": "Season should not be empty",
+      "type": "not_empty",
+      "probability": 0.9,
+      "message": "Season cannot be empty"
+    },
+    {
+      "name": "reasonable_length",
+      "description": "Season should not be too long",
+      "type": "max_length",
+      "max_length": 30,
+      "probability": 0.8,
+      "message": "Season description is unusually long"
+    }
+  ]
+}
