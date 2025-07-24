@@ -1,6 +1,7 @@
 import numpy as np
 from os import path
 import os
+import json
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from anomaly_detectors.ml_based.model_training import preprocess_text
@@ -18,13 +19,19 @@ _model_cache = {}
 
 def load_model_for_field(field_name, results_dir=path.join('..', 'results'), use_gpu=True):
     """
-    Given a field name, load the corresponding model and return the model and the mapped column name.
+    Given a field name, load the corresponding model and return the model, column name, and reference centroid.
     Uses caching to avoid reloading the same model multiple times.
     
     Args:
         field_name: Name of the field to load model for
         results_dir: Directory containing the trained models
         use_gpu: Whether to use GPU acceleration if available
+        
+    Returns:
+        tuple: (model, column_name, reference_centroid)
+        
+    Raises:
+        FileNotFoundError: If reference centroid is not found
     """
     # Create cache key
     cache_key = (field_name, results_dir, use_gpu)
@@ -48,80 +55,84 @@ def load_model_for_field(field_name, results_dir=path.join('..', 'results'), use
     # Load model with GPU support
     model = SentenceTransformer(model_dir, device=device)
     
-    # Cache the result
-    result = (model, column_name)
+    # Load reference centroid (required)
+    centroid_path = os.path.join(model_dir, "reference_centroid.npy")
+    metadata_path = os.path.join(model_dir, "centroid_metadata.json")
+    
+    if not os.path.exists(centroid_path):
+        raise FileNotFoundError(f"Reference centroid not found at {centroid_path}. Please retrain the model to generate centroid.")
+    
+    try:
+        reference_centroid = np.load(centroid_path)
+        print(f"✅ Loaded reference centroid (shape: {reference_centroid.shape})")
+        
+        # Load and display metadata if available
+        if os.path.exists(metadata_path):
+            with open(metadata_path, 'r') as f:
+                metadata = json.load(f)
+            print(f"   📊 Based on {metadata.get('num_samples', 'unknown')} training samples")
+            print(f"   📅 Created: {metadata.get('created_at', 'unknown')}")
+    except Exception as e:
+        raise FileNotFoundError(f"Could not load reference centroid from {centroid_path}: {e}")
+    
+    # Cache the loaded model and centroid
+    result = (model, column_name, reference_centroid)
     _model_cache[cache_key] = result
     
     return result
 
 
-
-
-
-def check_anomalies(model, values, threshold=0.6, batch_size=None):
+def check_anomalies(model, values, threshold=0.6, reference_centroid=None):
     """
-    Check anomalies using the model's learned representation with GPU acceleration.
-    
-    This approach uses the fact that the model was trained with triplet loss to distinguish
-    between normal and anomalous texts. We compute embeddings and use statistical measures
-    to identify outliers based on centroid distance.
+    Check anomalies using pre-computed reference centroid.
+    This is the production-ready approach that works for both single values and batches.
     
     Args:
         model: SentenceTransformer model
-        values: List of values to check
+        values: List of values to check (or single value in a list)
         threshold: Similarity threshold for anomaly detection
-        batch_size: Batch size for encoding (larger for GPU, smaller for CPU)
+        reference_centroid: Pre-computed reference centroid (required)
+        
+    Returns:
+        List of result dictionaries with 'value', 'is_anomaly', 'probability_of_correctness'
     """
+    if reference_centroid is None:
+        raise ValueError("Reference centroid is required. Use load_model_for_field to get the centroid.")
+    
+    if not isinstance(values, list):
+        values = [values]
+    
     results = []
     
-    # Get embeddings for all values
+    # Preprocess values
     processed_values = []
-    
     for value in values:
         value_prep = preprocess_text(value)
         value_str = str(value_prep) if value_prep is not None else ""
         processed_values.append(value_str)
     
     # Determine optimal batch size based on device
-    if batch_size is None:
-        # Use GPU utility to determine optimal batch size
-        device_str = str(model.device) if hasattr(model, 'device') else 'cpu'
-        batch_size = get_optimal_batch_size(device_str)
-        batch_size = min(batch_size, len(processed_values))
+    device_str = str(model.device) if hasattr(model, 'device') else 'cpu'
+    batch_size = min(get_optimal_batch_size(device_str), len(processed_values))
     
-    # Encode all values at once for efficiency with specified batch size
+    # Encode all values
     embeddings = model.encode(processed_values, 
                              batch_size=batch_size,
                              show_progress_bar=False,
                              convert_to_numpy=True)
     
-    # Compute centroid of all embeddings as a baseline "normal" representation
-    centroid = np.mean(embeddings, axis=0)
+    # Compute similarities to reference centroid
+    centroid_sims = cosine_similarity(embeddings, reference_centroid.reshape(1, -1)).flatten()
     
-    # Compute similarities to centroid
-    centroid_sims = cosine_similarity(embeddings, centroid.reshape(1, -1)).flatten()
-    
-    # Also compute pairwise similarities to identify outliers
-    pairwise_sims = cosine_similarity(embeddings)
-    
-    for i, (value, embedding) in enumerate(zip(values, embeddings)):
-        # Similarity to centroid
-        centroid_sim = float(centroid_sims[i])
-        
-        # Average similarity to all other values (excluding self)
-        other_sims = np.concatenate([pairwise_sims[i][:i], pairwise_sims[i][i+1:]])
-        avg_sim_to_others = float(np.mean(other_sims)) if len(other_sims) > 0 else 1.0
-        
-        # Use the minimum of the two similarity measures
-        # This captures both global outliers (far from centroid) and local outliers (dissimilar to neighbors)
-        final_similarity = min(centroid_sim, avg_sim_to_others)
-        
-        is_anom = final_similarity < threshold
+    # Create results
+    for i, value in enumerate(values):
+        similarity = float(centroid_sims[i])
+        is_anomaly = similarity < threshold
         
         results.append({
             'value': value,
-            'is_anomaly': is_anom,
-            'probability_of_correctness': final_similarity
+            'is_anomaly': is_anomaly,
+            'probability_of_correctness': similarity
         })
     
     return results
