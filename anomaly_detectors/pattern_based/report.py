@@ -12,51 +12,81 @@ from exceptions import ConfigurationError, FileOperationError
 
 class AnomalyReporter(AnomalyReporterInterface):
     """
-    Implements the AnomalyReporterInterface to translate structured anomaly
-    detection results into human-readable messages for any anomaly detector.
+    Generic anomaly reporter that works with the unified pattern-based detector.
+    Uses generic error message templates instead of field-specific message files.
     """
 
     def __init__(self, detector_name):
         """
-        Initialize the reporter and load error messages from the JSON file.
+        Initialize the reporter with generic error message templates.
         
         Args:
-            detector_name (str): The name of the detector to load error messages for.
+            detector_name (str): The name of the detector (for context).
         """
         self.detector_name = detector_name
-        try:
-            self.error_messages = self._load_error_messages(detector_name)
-        except FileNotFoundError:
-            raise FileOperationError(
-                f"Error messages file not found for detector '{detector_name}'",
-                details={'detector_name': detector_name}
-            )
-        except json.JSONDecodeError as e:
-            raise FileOperationError(
-                f"Invalid JSON in error messages file for detector '{detector_name}'",
-                details={'detector_name': detector_name, 'json_error': str(e)}
-            ) from e
+        self.error_messages = self._get_generic_error_messages()
 
-    def _load_error_messages(self, detector_name):
-        """Load error messages from the JSON file."""
-        error_messages_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            detector_name, "error_messages.json"
-        )
+    def _get_generic_error_messages(self):
+        """Return generic error message templates for pattern-based detection."""
+        return {
+            "INVALID_VALUE": "Invalid value detected: {details}",
+            "UNKNOWN_VALUE": "Unknown value '{value}' not found in valid {field} values",
+            "INVALID_FORMAT": "Invalid format in {field}: {message}",
+            "SUSPICIOUS_PATTERN": "Suspicious pattern detected in {field}: {details}",
+            "DOMAIN_VIOLATION": "Domain violation in {field}: {details}"
+        }
+
+    def _format_error_message(self, anomaly: AnomalyError) -> str:
+        """
+        Format an error message based on the anomaly type and details.
         
+        Args:
+            anomaly: The AnomalyError object to format
+            
+        Returns:
+            Formatted human-readable error message
+        """
+        error_type = anomaly.anomaly_type
+        details = anomaly.details or {}
+        
+        # Get base template
+        template = self.error_messages.get(error_type, f"Anomaly detected: {error_type}")
+        
+        # Format with available details
         try:
-            with open(error_messages_path, 'r') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            raise FileOperationError(
-                f"Error messages file not found for detector '{detector_name}'",
-                details={'detector_name': detector_name}
-            )
-        except json.JSONDecodeError as e:
-            raise FileOperationError(
-                f"Invalid JSON in error messages file for detector '{detector_name}'",
-                details={'detector_name': detector_name, 'json_error': str(e)}
-            ) from e
+            if error_type == "UNKNOWN_VALUE":
+                field = details.get('field', 'field')
+                value = details.get('value', 'unknown')
+                possible_matches = details.get('possible_matches', [])
+                
+                message = f"Unknown {field} value '{value}'"
+                if possible_matches:
+                    message += f". Did you mean: {', '.join(possible_matches[:3])}?"
+                return message
+                
+            elif error_type == "INVALID_FORMAT":
+                field = details.get('field', 'field')
+                message = details.get('message', 'format issue')
+                return f"Invalid {field} format: {message}"
+                
+            elif error_type == "INVALID_VALUE":
+                field = details.get('field', 'field')
+                message = details.get('message', 'invalid value')
+                return f"Invalid {field}: {message}"
+                
+            elif error_type == "DOMAIN_VIOLATION":
+                field = details.get('field', 'field')
+                reason = details.get('reason', 'domain violation')
+                return f"Domain violation in {field}: {reason}"
+                
+            else:
+                # Generic fallback
+                field = details.get('field', self.detector_name)
+                return template.format(field=field, details=str(details), **details)
+                
+        except (KeyError, ValueError):
+            # Fallback to simple message
+            return f"{error_type}: {str(details)}"
 
     def generate_report(self, anomaly_errors: List[AnomalyError], original_df: pd.DataFrame) -> List[Dict[str, Any]]:
         """
@@ -65,42 +95,20 @@ class AnomalyReporter(AnomalyReporterInterface):
         Args:
             anomaly_errors: List of AnomalyError objects from an anomaly detector
             original_df: Original dataframe that was analyzed
-            
+             
         Returns:
             List of reports with human-readable anomaly messages
         """
         report = []
         for error in anomaly_errors:
-            error_code = error.anomaly_type
-            
-            # First try to get the template for the specific error code
-            # If not found, try to use DEFAULT, and if that's not available, use a generic message
-            if error_code in self.error_messages:
-                message_template = self.error_messages[error_code]
-            elif "DEFAULT" in self.error_messages:
-                message_template = self.error_messages["DEFAULT"]
-            else:
-                message_template = "Anomaly detected with data: {error_data}"
-            
-            # Format the message with specific details from the error
-            details = error.details.copy() if error.details else {}  # Create a copy to avoid modifying the original
-            details['error_data'] = error.anomaly_data  # Add original data for context
-            details['probability'] = error.probability  # Add probability for potential use in message
-            
-            try:
-                display_message = message_template.format(**details)
-            except KeyError as e:
-                # Handle missing format keys gracefully
-                display_message = f"Error formatting message: {message_template} (missing {e})"
-            except Exception as e:
-                display_message = f"Error formatting message: {str(e)}"
+            display_message = self._format_error_message(error)
 
             report.append({
                 "row_index": error.row_index,
                 "error_data": error.anomaly_data,
                 "display_message": display_message,
-                "column_name": error.column_name,  # Add column name to the report
-                "probability": error.probability,    # Add probability to the report
-                "anomaly": True                    # Flag to indicate this is an anomaly, not a validation error
+                "column_name": error.column_name,
+                "probability": error.probability,
+                "detection_type": "pattern_based"  # Indicate this is pattern-based detection
             })
         return report

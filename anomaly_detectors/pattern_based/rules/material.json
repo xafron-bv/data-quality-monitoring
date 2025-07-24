@@ -1,0 +1,39 @@
+{
+  "field_name": "material",
+  "description": "Pattern-based rules for textile material composition",
+  "known_values": [],
+  "format_patterns": [
+    {
+      "name": "material_composition_format",
+      "description": "Standard material composition format",
+      "pattern": "^[A-Za-z0-9\\s\\-:,%/]+$",
+      "probability": 0.8,
+      "message": "Invalid characters in material composition"
+    }
+  ],
+  "validation_rules": [
+    {
+      "name": "not_empty",
+      "description": "Material should not be empty",
+      "type": "not_empty",
+      "probability": 0.9,
+      "message": "Material composition cannot be empty"
+    },
+    {
+      "name": "reasonable_length",
+      "description": "Material should not be too long",
+      "type": "max_length",
+      "max_length": 200,
+      "probability": 0.7,
+      "message": "Material composition is unusually long"
+    },
+    {
+      "name": "minimum_length",
+      "description": "Material should not be too short",
+      "type": "min_length",
+      "min_length": 5,
+      "probability": 0.8,
+      "message": "Material composition seems too brief"
+    }
+  ]
+}
