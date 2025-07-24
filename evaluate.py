@@ -18,6 +18,8 @@ from exceptions import DataQualityError, ConfigurationError, FileOperationError,
 from comprehensive_sample_generator import generate_comprehensive_sample, save_comprehensive_sample
 from comprehensive_detector import ComprehensiveFieldDetector
 from consolidated_reporter import save_consolidated_reports
+from anomaly_detectors.anomaly_injection import load_anomaly_rules
+from anomaly_detectors.anomaly_injection import AnomalyInjector
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -448,7 +450,7 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
     print(summary_text)
 
     # Save reports
-    summary_path = os.path.join(output_dir, 'summary_report.txt')
+    summary_path = os.path.join(os.path.dirname(__file__), output_dir, 'summary_report.txt')
     with open(summary_path, 'w') as f:
         f.write(summary_text)
     
@@ -459,7 +461,7 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
     field_name = evaluation_results[0].get('field_name', 'unknown') if evaluation_results else 'unknown'
     cell_coordinates = generate_cell_coordinate_mapping(evaluation_results, field_name)
     
-    full_results_path = os.path.join(output_dir, 'full_evaluation_results.json')
+    full_results_path = os.path.join(os.path.dirname(__file__), output_dir, 'full_evaluation_results.json')
     with open(full_results_path, 'w') as f:
         # Convert sets to lists and handle non-JSON serializable objects
         def make_serializable(obj):
@@ -495,12 +497,12 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
         json.dump(enhanced_output, f, indent=2)
     
     # Also save just the human-readable summary as a separate file
-    performance_summary_path = os.path.join(output_dir, 'performance_summary.json')
+    performance_summary_path = os.path.join(os.path.dirname(__file__), output_dir, 'performance_summary.json')
     with open(performance_summary_path, 'w') as f:
         json.dump(performance_summary, f, indent=2)
     
     # Save cell coordinates mapping as a separate file for the UI
-    cell_coordinates_path = os.path.join(output_dir, 'cell_coordinates.json')
+    cell_coordinates_path = os.path.join(os.path.dirname(__file__), output_dir, 'cell_coordinates.json')
     with open(cell_coordinates_path, 'w') as f:
         json.dump(cell_coordinates, f, indent=2)
     
@@ -532,7 +534,7 @@ Single-sample mode generates one comprehensive sample with issues across ALL ava
 
 This will automatically look for:
 - Error Injection Rules: error_injection_rules/<validator>.json
-- Anomaly Injection Rules: anomaly_injection_rules/<field>.json
+- Anomaly Injection Rules: anomaly_detectors/anomaly_injection_rules/<field>.json
 - Validator:  validators/<validator>/validate.py (expecting class 'Validator')
 - Reporter:   validators/report:Reporter
 - Anomaly Detector: anomaly_detectors/<detector>/detect.py (expecting class 'AnomalyDetector')
@@ -722,8 +724,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     # Load anomaly injection rules
     anomaly_rules = []
     try:
-        from anomaly_injection import load_anomaly_rules
-        anomaly_rules_path = f"anomaly_injection_rules/{validator_name}.json"
+        anomaly_rules_path = os.path.join(os.path.dirname(__file__), 'anomaly_detectors', 'anomaly_injection_rules', f"{validator_name}.json")
         anomaly_rules = load_anomaly_rules(anomaly_rules_path)
         print(f"Loaded {len(anomaly_rules)} anomaly injection rules")
     except Exception:
@@ -756,11 +757,11 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
             all_injected_items.extend(anomaly_injections)
         
         # Save sample
-        sample_path = os.path.join(args.output_dir, f"sample_{i}.csv")
+        sample_path = os.path.join(os.path.dirname(__file__), args.output_dir, f"sample_{i}.csv")
         sample_df.to_csv(sample_path, index=False)
         
         # Save injection metadata
-        injections_path = os.path.join(args.output_dir, f"sample_{i}_injected_items.json")
+        injections_path = os.path.join(os.path.dirname(__file__), args.output_dir, f"sample_{i}_injected_items.json")
         with open(injections_path, 'w') as f:
             json.dump(all_injected_items, f, indent=2, ensure_ascii=False)
         
