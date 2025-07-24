@@ -18,12 +18,12 @@ from pathlib import Path
 
 from common_interfaces import FieldMapper
 from error_injection import ErrorInjector, load_error_rules
-from anomaly_injection import AnomalyInjector, load_anomaly_rules
+from anomaly_detectors.anomaly_injection import AnomalyInjector, load_anomaly_rules
 from exceptions import FileOperationError, ConfigurationError
 
 
-def get_available_injection_fields(error_rules_dir: str = "error_injection_rules", 
-                                 anomaly_rules_dir: str = "anomaly_injection_rules") -> Dict[str, Dict[str, bool]]:
+def get_available_injection_fields(error_rules_dir: str = os.path.join(os.path.dirname(__file__), 'error_injection_rules'), 
+                                 anomaly_rules_dir: str = os.path.join(os.path.dirname(__file__), 'anomaly_detectors', 'anomaly_injection_rules')) -> Dict[str, Dict[str, bool]]:
     """
     Get fields that have error or anomaly injection rules available.
     
@@ -55,8 +55,8 @@ def generate_comprehensive_sample(df: pd.DataFrame,
                                 injection_intensity: float = 0.2,
                                 max_issues_per_row: int = 2,
                                 field_mapper: Optional[FieldMapper] = None,
-                                error_rules_dir: str = "error_injection_rules",
-                                anomaly_rules_dir: str = "anomaly_injection_rules") -> Tuple[pd.DataFrame, Dict[str, List[Dict[str, Any]]]]:
+                                error_rules_dir: str = os.path.join(os.path.dirname(__file__), 'error_injection_rules'),
+                                anomaly_rules_dir: str = os.path.join(os.path.dirname(__file__), 'anomaly_detectors', 'anomaly_injection_rules')) -> Tuple[pd.DataFrame, Dict[str, List[Dict[str, Any]]]]:
     """
     Generate a comprehensive sample with errors and anomalies across all available fields.
     
@@ -301,11 +301,11 @@ def save_comprehensive_sample(sample_df: pd.DataFrame,
     os.makedirs(output_dir, exist_ok=True)
     
     # Save the corrupted sample data
-    sample_path = os.path.join(output_dir, f"{sample_name}.csv")
+    sample_path = os.path.join(os.path.dirname(__file__), output_dir, f"{sample_name}.csv")
     sample_df.to_csv(sample_path, index=False)
     
     # Save injection metadata
-    metadata_path = os.path.join(output_dir, f"{sample_name}_injection_metadata.json")
+    metadata_path = os.path.join(os.path.dirname(__file__), output_dir, f"{sample_name}_injection_metadata.json")
     with open(metadata_path, 'w', encoding='utf-8') as f:
         json.dump(injection_metadata, f, indent=2, ensure_ascii=False)
     
@@ -331,7 +331,7 @@ def save_comprehensive_sample(sample_df: pd.DataFrame,
         }
     }
     
-    summary_path = os.path.join(output_dir, f"{sample_name}_summary.json")
+    summary_path = os.path.join(os.path.dirname(__file__), output_dir, f"{sample_name}_summary.json")
     with open(summary_path, 'w', encoding='utf-8') as f:
         json.dump(summary, f, indent=2, ensure_ascii=False)
     
