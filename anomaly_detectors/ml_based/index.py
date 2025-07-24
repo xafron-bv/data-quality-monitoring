@@ -43,11 +43,11 @@ if __name__ == "__main__":
         field_name = args.check_anomalies
         print(f"Running anomaly check for field '{field_name}'...")
         df = pd.read_csv(args.csv_file)
-        model, column_name = load_model_for_field(field_name, results_dir=path.join('..', 'results'))
+        model, column_name, reference_centroid = load_model_for_field(field_name, results_dir=path.join('..', 'results'))
         if column_name not in df.columns:
             raise ValueError(f"Column '{column_name}' (mapped from field '{field_name}') not found in CSV.")
         values = df[column_name].tolist()
-        results = check_anomalies(model, values, threshold=args.threshold)
+        results = check_anomalies(model, values, threshold=args.threshold, reference_centroid=reference_centroid)
         n_anomalies = sum(r['is_anomaly'] for r in results)
         print(f"Checked {len(results)} values in column '{column_name}'. Found {n_anomalies} anomalies.")
         if args.output:

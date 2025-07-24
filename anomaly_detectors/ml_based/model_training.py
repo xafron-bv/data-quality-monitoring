@@ -2,6 +2,9 @@ import pandas as pd
 import re
 import random
 import os
+import json
+import numpy as np
+from datetime import datetime
 from os import path
 from sentence_transformers import SentenceTransformer, InputExample, losses
 from sentence_transformers.evaluation import TripletEvaluator
@@ -211,6 +214,51 @@ def train_and_evaluate_similarity_model(df, field_name, column_name, rules, devi
     
     # Demonstrate anomaly detection with examples
     demonstrate_similarity(model, df[column_name], field_name)
+    
+    # 🆕 NEW: Compute and save reference centroid for production inference
+    print(f"\n🔄 Computing reference centroid for production inference...")
+    try:
+        # Get clean training texts for centroid computation
+        clean_training_texts = [text for text in clean_texts if text and len(text.strip()) > 0]
+        if len(clean_training_texts) < 10:
+            print(f"⚠️  Warning: Only {len(clean_training_texts)} clean texts available for centroid computation")
+        
+        # Compute embeddings for clean training data
+        clean_embeddings = model.encode(clean_training_texts, 
+                                       batch_size=32, 
+                                       show_progress_bar=False,
+                                       convert_to_numpy=True)
+        
+        # Compute reference centroid
+        reference_centroid = np.mean(clean_embeddings, axis=0)
+        
+        # Save centroid as numpy array
+        centroid_path = os.path.join(model_results_dir, "reference_centroid.npy")
+        np.save(centroid_path, reference_centroid)
+        
+        # Save centroid metadata
+        centroid_metadata = {
+            "num_samples": len(clean_training_texts),
+            "embedding_dim": reference_centroid.shape[0],
+            "created_at": datetime.now().isoformat(),
+            "field_name": field_name,
+            "column_name": column_name,
+            "model_name": best_params['model_name'],
+            "training_params": best_params
+        }
+        
+        metadata_path = os.path.join(model_results_dir, "centroid_metadata.json")
+        with open(metadata_path, 'w') as f:
+            json.dump(centroid_metadata, f, indent=2, default=str)
+        
+        print(f"✅ Reference centroid saved:")
+        print(f"   📄 Centroid: {os.path.basename(centroid_path)} (shape: {reference_centroid.shape})")
+        print(f"   📄 Metadata: {os.path.basename(metadata_path)}")
+        print(f"   📊 Based on {len(clean_training_texts)} clean training samples")
+        
+    except Exception as e:
+        print(f"⚠️  Warning: Could not compute reference centroid: {e}")
+        print(f"   Model will still work with batch-based inference")
     
     return model
 

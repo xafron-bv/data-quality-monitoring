@@ -260,20 +260,23 @@ class ComprehensiveFieldDetector:
         ml_detector = self._get_ml_detector(field_name)
         if ml_detector:
             try:
-                # Use single-threaded processing to save memory
-                ml_anomalies = ml_detector.bulk_detect(df, column_name, self.batch_size, max_workers=1)
-                # ML detector returns results in a different format, normalize them
+                # Initialize the ML detector
+                ml_detector.learn_patterns(df, column_name)
+                
+                # Process each row individually with the ML detector
                 ml_results_formatted = []
-                for anomaly in ml_anomalies:
-                    if anomaly.probability >= self.ml_threshold:
+                for idx, value in df[column_name].items():
+                    anomaly_error = ml_detector._detect_anomaly(value)
+                    if anomaly_error and anomaly_error.probability >= self.ml_threshold:
                         ml_results_formatted.append({
-                            'row_index': anomaly.row_index,
+                            'row_index': idx,
                             'column_name': column_name,
-                            'error_data': anomaly.anomaly_data,
-                            'display_message': f"ML Anomaly: {getattr(anomaly, 'explanation', 'Semantic similarity anomaly detected')}",
-                            'probability': anomaly.probability,
+                            'error_data': value,
+                            'display_message': f"ML Anomaly: {anomaly_error.explanation}",
+                            'probability': anomaly_error.probability,
                             'detection_type': 'ml_based'
                         })
+                
                 ml_results = ml_results_formatted
                 print(f"         🤖 ML anomalies: {len(ml_results)} anomalies found")
             except Exception as e:

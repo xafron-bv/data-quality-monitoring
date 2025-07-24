@@ -36,8 +36,8 @@ except ImportError as e:
 class MLAnomalyDetector(AnomalyDetectorInterface):
     """
     ML-based anomaly detector that implements the AnomalyDetectorInterface.
-    This detector uses trained sentence transformer models to detect anomalies
-    using centroid-based distance calculations.
+    This detector uses trained sentence transformer models with pre-computed reference centroids 
+    for production-ready single-value anomaly detection.
     """
     
     # Class-level cache to share models across instances with same parameters
@@ -66,6 +66,7 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
         self.use_gpu = use_gpu
         self.model = None
         self.column_name = None
+        self.reference_centroid = None
         self.is_initialized = False
         
         if not ML_AVAILABLE:
@@ -77,7 +78,7 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
     
     def learn_patterns(self, df: pd.DataFrame, column_name: str) -> None:
         """
-        Learn patterns by loading the trained model (with caching).
+        Learn patterns by loading the trained model and reference centroid (with caching).
         
         Args:
             df: DataFrame containing the data (not used, patterns are pre-learned)
@@ -89,21 +90,24 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
         # Check class-level cache first
         cache_key = self._get_cache_key()
         if cache_key in MLAnomalyDetector._model_cache:
-            self.model, self.column_name = MLAnomalyDetector._model_cache[cache_key]
+            self.model, self.column_name, self.reference_centroid = MLAnomalyDetector._model_cache[cache_key]
             print(f"Using cached model for field '{self.field_name}' on column '{self.column_name}'")
         else:
             try:
-                # Load the model for the specified field with GPU support
-                self.model, self.column_name = load_model_for_field(self.field_name, self.results_dir, self.use_gpu)
+                # Load the model and reference centroid for the specified field
+                self.model, self.column_name, self.reference_centroid = load_model_for_field(
+                    self.field_name, self.results_dir, self.use_gpu
+                )
                 
-                # Cache the loaded model
-                MLAnomalyDetector._model_cache[cache_key] = (self.model, self.column_name)
+                # Cache the loaded model and centroid
+                MLAnomalyDetector._model_cache[cache_key] = (self.model, self.column_name, self.reference_centroid)
                 print(f"ML Detector initialized for field '{self.field_name}' on column '{self.column_name}'")
             
             except Exception as e:
                 print(f"Error loading ML model for field '{self.field_name}': {e}")
                 self.model = None
                 self.column_name = None
+                self.reference_centroid = None
                 self.is_initialized = False
                 return
         
@@ -117,7 +121,7 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
     
     def _detect_anomaly(self, value: Any, context: Dict[str, Any] = None) -> Optional[AnomalyError]:
         """
-        Detect anomaly in a single value using the ML model.
+        Detect anomaly in a single value using the pre-computed reference centroid.
         
         Args:
             value: The value to check for anomaly
@@ -126,29 +130,38 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
         Returns:
             AnomalyError if an anomaly is detected, None otherwise
         """
-        if not self.is_initialized:
+        if not self.is_initialized or self.reference_centroid is None:
             return None
             
         try:
-            # Preprocess the value
-            processed_value = preprocess_text(value)
-            if processed_value is None:
-                processed_value = ""
-            
-            # Run anomaly detection on single value using centroid-based approach
-            anomaly_results = check_anomalies(
+            # Use the new centroid-based anomaly detection
+            results = check_anomalies(
                 self.model, 
-                [processed_value], 
-                self.threshold
+                [value], 
+                self.threshold,
+                self.reference_centroid
             )
             
-            if anomaly_results and len(anomaly_results) > 0:
-                result = anomaly_results[0]
+            if results and len(results) > 0:
+                result = results[0]
                 
                 if result['is_anomaly']:
                     # Get similarity score (probability_of_correctness)
                     similarity_score = result.get('probability_of_correctness', 0)
-                    anomaly_probability = 1.0 - similarity_score
+                    
+                    # Fix: Handle negative similarity scores properly
+                    # Map similarity score to a proper probability [0, 1]
+                    # Negative similarities = very anomalous (high probability)
+                    # Positive similarities close to 1 = normal (low probability)
+                    if similarity_score < 0:
+                        # Very anomalous - map negative scores to high probability
+                        anomaly_probability = min(0.99, 0.8 + abs(similarity_score) * 0.19)
+                    else:
+                        # Normal range - map [0, 1] similarity to [1, 0] probability
+                        anomaly_probability = 1.0 - similarity_score
+                    
+                    # Ensure probability is in valid range [0, 1]
+                    anomaly_probability = max(0.0, min(1.0, anomaly_probability))
                     
                     # Create AnomalyError with ML-specific information
                     return AnomalyError(
@@ -161,7 +174,7 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
                             'model_type': 'sentence_transformer'
                         },
                         feature_contributions={'similarity_score': similarity_score},
-                        explanation=f"Low similarity to data centroid (similarity: {similarity_score:.3f})"
+                        explanation=f"Low similarity to reference centroid (similarity: {similarity_score:.3f})"
                     )
             
             return None
