@@ -1,0 +1,106 @@
+{
+  "field_name": "category",
+  "description": "Anomaly injection rules for product categories - injects non-fashion product categories",
+  "anomaly_rules": [
+    {
+      "rule_name": "inject_kitchen_categories",
+      "description": "Replace fashion categories with kitchen/cooking items",
+      "operation": "value_replacement",
+      "probability": 0.3,
+      "params": {
+        "replacement_values": [
+          "Blender",
+          "Microwave Oven",
+          "Kitchen Knife Set",
+          "Coffee Machine",
+          "Toaster",
+          "Mixing Bowl",
+          "Cutting Board",
+          "Food Processor",
+          "Rice Cooker",
+          "Dishwasher"
+        ]
+      }
+    },
+    {
+      "rule_name": "inject_automotive_categories",
+      "description": "Replace with automotive parts and accessories",
+      "operation": "value_replacement",
+      "probability": 0.2,
+      "params": {
+        "replacement_values": [
+          "Car Engine",
+          "Brake Pads",
+          "Steering Wheel",
+          "Windshield Wipers",
+          "Seat Covers",
+          "Car Battery",
+          "Tires",
+          "Headlights",
+          "Air Filter",
+          "Transmission Fluid"
+        ]
+      }
+    },
+    {
+      "rule_name": "inject_office_categories",
+      "description": "Replace with office supplies and equipment",
+      "operation": "value_replacement",
+      "probability": 0.2,
+      "params": {
+        "replacement_values": [
+          "Printer Paper",
+          "Stapler",
+          "Computer Monitor",
+          "Office Chair",
+          "Filing Cabinet",
+          "Desk Lamp",
+          "Paper Shredder",
+          "Whiteboard",
+          "Conference Table",
+          "Copy Machine"
+        ]
+      }
+    },
+    {
+      "rule_name": "inject_medical_categories",
+      "description": "Replace with medical equipment and supplies",
+      "operation": "value_replacement",
+      "probability": 0.15,
+      "params": {
+        "replacement_values": [
+          "Stethoscope",
+          "Blood Pressure Monitor",
+          "Surgical Mask",
+          "X-Ray Machine",
+          "Hospital Bed",
+          "Defibrillator",
+          "Thermometer",
+          "Bandages",
+          "Syringe",
+          "MRI Scanner"
+        ]
+      }
+    },
+    {
+      "rule_name": "inject_abstract_categories",
+      "description": "Replace with abstract or conceptual categories",
+      "operation": "value_replacement",
+      "probability": 0.15,
+      "params": {
+        "replacement_values": [
+          "Happiness",
+          "Quantum Physics",
+          "Democracy",
+          "Time Travel",
+          "Artificial Intelligence",
+          "Philosophy",
+          "Mathematics",
+          "Existential Crisis",
+          "Love",
+          "The Universe"
+        ]
+      }
+    }
+  ]
+}

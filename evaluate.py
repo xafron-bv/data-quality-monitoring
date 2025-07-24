@@ -13,6 +13,12 @@ from error_injection import generate_error_samples, load_error_rules
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
 import debug_config
 from exceptions import DataQualityError, ConfigurationError, FileOperationError, ModelError
+
+# Import comprehensive detection modules
+from comprehensive_sample_generator import generate_comprehensive_sample, save_comprehensive_sample
+from comprehensive_detector import ComprehensiveFieldDetector
+from consolidated_reporter import save_consolidated_reports
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -32,6 +38,172 @@ def load_module_class(module_path: str):
                 'suggestion': 'Ensure the path is correct and the file contains the class'
             }
         ) from e
+
+def generate_human_readable_performance_summary(evaluation_results):
+    """Generate a human-readable performance summary for the evaluation results."""
+    if not evaluation_results:
+        return {"error": "No evaluation results available"}
+    
+    # Calculate overall metrics
+    all_tp = []
+    all_fp = []
+    all_fn = []
+    total_anomalies = 0
+    total_ml_issues = 0
+    total_validation_errors = 0
+    
+    for result in evaluation_results:
+        # Validation metrics
+        true_positives = result.get('true_positive_details', result.get('true_positives', []))
+        false_positives = result.get('false_positive_details', result.get('false_positives', []))
+        false_negatives = result.get('false_negative_details', result.get('false_negatives', []))
+        
+        all_tp.extend(true_positives)
+        all_fp.extend(false_positives)
+        all_fn.extend(false_negatives)
+        
+        # Detection counts
+        total_anomalies += len(result.get('anomaly_results', []))
+        total_ml_issues += len(result.get('unified_results', []))
+        total_validation_errors += len(result.get('validation_results', []))
+    
+    # Calculate performance metrics
+    tp_count = len(all_tp)
+    fp_count = len(all_fp)
+    fn_count = len(all_fn)
+    
+    precision = tp_count / (tp_count + fp_count) if (tp_count + fp_count) > 0 else 0
+    recall = tp_count / (tp_count + fn_count) if (tp_count + fn_count) > 0 else 0
+    f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+    
+    # Determine performance level
+    if f1_score >= 0.9:
+        performance_level = "Excellent"
+    elif f1_score >= 0.7:
+        performance_level = "Good"
+    elif f1_score >= 0.5:
+        performance_level = "Moderate"
+    else:
+        performance_level = "Needs Improvement"
+    
+    # Collect error types detected
+    error_types = set()
+    for result in evaluation_results:
+        for error in result.get('validation_results', []):
+            if 'display_message' in error:
+                error_type = error['display_message'].split(':')[0]
+                error_types.add(error_type)
+        
+        for anomaly in result.get('anomaly_results', []):
+            if 'display_message' in anomaly:
+                error_type = anomaly['display_message'].split(':')[0]
+                error_types.add(f"Anomaly: {error_type}")
+        
+        for ml_issue in result.get('unified_results', []):
+            detection_type = ml_issue.get('detection_type', 'ML Detection')
+            error_types.add(f"ML: {detection_type}")
+    
+    return {
+        "overall_performance": {
+            "performance_level": performance_level,
+            "f1_score": round(f1_score, 3),
+            "precision": round(precision, 3),
+            "recall": round(recall, 3),
+            "interpretation": {
+                "f1_score": f"F1 score of {f1_score:.3f} indicates {performance_level.lower()} detection performance",
+                "precision": f"Precision of {precision:.3f} means {precision*100:.1f}% of flagged items are actual errors",
+                "recall": f"Recall of {recall:.3f} means {recall*100:.1f}% of actual errors were detected"
+            }
+        },
+        "detection_summary": {
+            "total_validation_errors": total_validation_errors,
+            "total_anomalies_detected": total_anomalies,
+            "total_ml_issues_detected": total_ml_issues,
+            "total_samples_evaluated": len(evaluation_results),
+            "error_types_found": list(error_types)[:10]  # Limit to first 10 for readability
+        },
+        "detailed_metrics": {
+            "true_positives": tp_count,
+            "false_positives": fp_count,
+            "false_negatives": fn_count,
+            "accuracy_note": "True positives are correctly identified errors, false positives are incorrectly flagged valid data, false negatives are missed errors"
+        }
+    }
+
+def generate_cell_coordinate_mapping(evaluation_results, field_name):
+    """Generate a mapping of cell coordinates (row, column) for all detected errors and anomalies."""
+    
+    def clean_value(value):
+        """Clean a value to ensure JSON compatibility."""
+        if pd.isna(value):
+            return None
+        if isinstance(value, float) and (value != value):  # Additional NaN check
+            return None
+        return value
+    
+    cell_mapping = {
+        "errors": [],  # Validation errors
+        "anomalies": [],  # Pattern-based anomalies
+        "ml_issues": []  # ML-detected issues
+    }
+    
+    for result in evaluation_results:
+        # Process validation errors
+        for error in result.get('validation_results', []):
+            cell_info = {
+                "row_index": clean_value(error.get('row_index')),
+                "column_name": clean_value(error.get('column_name')),
+                "error_data": clean_value(error.get('error_data')),
+                "display_message": clean_value(error.get('display_message')),
+                "probability": clean_value(error.get('probability', 1.0)),
+                "severity": "error",
+                "type": "validation"
+            }
+            cell_mapping["errors"].append(cell_info)
+        
+        # Process anomaly results
+        for anomaly in result.get('anomaly_results', []):
+            cell_info = {
+                "row_index": clean_value(anomaly.get('row_index')),
+                "column_name": clean_value(anomaly.get('column_name', field_name)),
+                "error_data": clean_value(anomaly.get('error_data')),
+                "display_message": clean_value(anomaly.get('display_message')),
+                "probability": clean_value(anomaly.get('probability', 0.7)),
+                "severity": "anomaly",
+                "type": "pattern_based"
+            }
+            cell_mapping["anomalies"].append(cell_info)
+        
+        # Process ML results
+        for ml_issue in result.get('unified_results', []):
+            cell_info = {
+                "row_index": clean_value(ml_issue.get('row_index')),
+                "column_name": clean_value(ml_issue.get('column_name', field_name)),
+                "error_data": clean_value(ml_issue.get('error_data')),
+                "display_message": clean_value(ml_issue.get('display_message')),
+                "probability": clean_value(ml_issue.get('probability', 0.5)),
+                "severity": "anomaly",
+                "type": "ml_based"
+            }
+            cell_mapping["ml_issues"].append(cell_info)
+    
+    # Sort by row index for easier navigation
+    for category in cell_mapping.values():
+        if isinstance(category, list):
+            category.sort(key=lambda x: x.get('row_index', 0) if x.get('row_index') is not None else 0)
+    
+    # Add summary statistics
+    cell_mapping["summary"] = {
+        "total_errors": len(cell_mapping["errors"]),
+        "total_anomalies": len(cell_mapping["anomalies"]),
+        "total_ml_issues": len(cell_mapping["ml_issues"]),
+        "total_issues": len(cell_mapping["errors"]) + len(cell_mapping["anomalies"]) + len(cell_mapping["ml_issues"]),
+        "affected_rows": len(set(
+            [item.get('row_index') for category in cell_mapping.values() if isinstance(category, list) for item in category if item.get('row_index') is not None]
+        ))
+    }
+    
+    return cell_mapping
 
 def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
     """Generates a summary report of the evaluation results."""
@@ -280,6 +452,13 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
     with open(summary_path, 'w') as f:
         f.write(summary_text)
     
+    # Generate human-readable performance summary
+    performance_summary = generate_human_readable_performance_summary(evaluation_results)
+    
+    # Extract field name from evaluation results for cell coordinate mapping
+    field_name = evaluation_results[0].get('field_name', 'unknown') if evaluation_results else 'unknown'
+    cell_coordinates = generate_cell_coordinate_mapping(evaluation_results, field_name)
+    
     full_results_path = os.path.join(output_dir, 'full_evaluation_results.json')
     with open(full_results_path, 'w') as f:
         # Convert sets to lists and handle non-JSON serializable objects
@@ -294,18 +473,41 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
                 # Convert object to dict representation
                 return make_serializable(obj.__dict__)
             else:
+                # Handle pandas/numpy NaN and null values
+                if pd.isna(obj):
+                    return None
                 # For basic types, pandas/numpy types, etc.
                 try:
                     json.dumps(obj)  # Test if it's JSON serializable
                     return obj
-                except TypeError:
+                except (TypeError, ValueError):
                     return str(obj)  # Convert to string if not serializable
         
         serializable_results = make_serializable(evaluation_results)
-        json.dump(serializable_results, f, indent=4)
+        
+        # Create enhanced output with human-readable summary at the top
+        enhanced_output = {
+            "human_readable_summary": performance_summary,
+            "cell_coordinates": cell_coordinates,
+            "detailed_evaluation_results": serializable_results
+        }
+        
+        json.dump(enhanced_output, f, indent=2)
+    
+    # Also save just the human-readable summary as a separate file
+    performance_summary_path = os.path.join(output_dir, 'performance_summary.json')
+    with open(performance_summary_path, 'w') as f:
+        json.dump(performance_summary, f, indent=2)
+    
+    # Save cell coordinates mapping as a separate file for the UI
+    cell_coordinates_path = os.path.join(output_dir, 'cell_coordinates.json')
+    with open(cell_coordinates_path, 'w') as f:
+        json.dump(cell_coordinates, f, indent=2)
     
     print(f"\nSummary report saved to '{summary_path}'")
     print(f"Full JSON results saved to '{full_results_path}'")
+    print(f"Human-readable performance summary saved to '{performance_summary_path}'")
+    print(f"Cell coordinates mapping saved to '{cell_coordinates_path}'")
 
 
 def main():
@@ -314,13 +516,23 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Example Usage:
+
+Multi-Sample Mode (Statistical Evaluation):
   python evaluate.py data/source.csv --field material --output-dir results/material_test
   python evaluate.py data/source.csv --field care_instructions --validator care_instructions
   python evaluate.py data/source.csv --field colour_name --anomaly-detector color_name --run anomaly
   python evaluate.py data/source.csv --field material --ml-detector --run all
 
+Single-Sample Mode (Comprehensive Analysis):
+  python evaluate.py data/source.csv --evaluation-mode single-sample --injection-intensity 0.2
+  python evaluate.py data/source.csv --evaluation-mode single-sample --injection-intensity 0.1 --max-issues-per-row 1
+
+Multi-sample mode generates multiple samples for statistical evaluation of a single field.
+Single-sample mode generates one comprehensive sample with issues across ALL available fields.
+
 This will automatically look for:
 - Error Injection Rules: error_injection_rules/<validator>.json
+- Anomaly Injection Rules: anomaly_injection_rules/<field>.json
 - Validator:  validators/<validator>/validate.py (expecting class 'Validator')
 - Reporter:   validators/report:Reporter
 - Anomaly Detector: anomaly_detectors/<detector>/detect.py (expecting class 'AnomalyDetector')
@@ -336,8 +548,11 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     parser.add_argument("--anomaly-detector", help="The anomaly detector name to use (e.g., 'material', 'color_name'). Defaults to the validator name if not provided.")
     parser.add_argument("--ml-detector", action="store_true", help="Enable ML-based anomaly detection using sentence transformers.")
     parser.add_argument("--run", choices=["validation", "anomaly", "ml", "both", "all"], default="both", help="Specify which analysis to run: validation, anomaly detection, ml detection, both (validation+anomaly), or all three.")
-    parser.add_argument("--num-samples", type=int, default=32, help="Number of samples to generate for evaluation (default: 32).")
+    parser.add_argument("--evaluation-mode", choices=["single-sample", "multi-sample"], default="multi-sample", help="Evaluation mode: single-sample (comprehensive) or multi-sample (statistical) (default: multi-sample).")
+    parser.add_argument("--num-samples", type=int, default=32, help="Number of samples to generate for multi-sample evaluation (default: 32).")
     parser.add_argument("--max-errors", type=int, default=3, help="Maximum number of errors to combine in a single sample (default: 3).")
+    parser.add_argument("--injection-intensity", type=float, default=0.2, help="Probability of injecting issues in each cell for single-sample mode (0.0-1.0, default: 0.2).")
+    parser.add_argument("--max-issues-per-row", type=int, default=2, help="Maximum number of fields to corrupt per row in single-sample mode (default: 2).")
     parser.add_argument("--output-dir", default="evaluation_results", help="Directory to save all evaluation results and generated samples.")
     parser.add_argument("--ignore-errors", nargs='+', default=[], help="A list of error rule names to ignore during evaluation (e.g., inject_unicode_error).")
     parser.add_argument("--ignore-fp", action="store_true", help="If set, false positives will be ignored in the evaluation.")
@@ -360,7 +575,21 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         print("Debug logging enabled")
     else:
         debug_config.disable_debug()
+    
+    # Validate arguments for single-sample mode
+    if args.evaluation_mode == "single-sample":
+        if not (0.0 <= args.injection_intensity <= 1.0):
+            print("❌ Error: injection-intensity must be between 0.0 and 1.0")
+            sys.exit(1)
+        if args.max_issues_per_row < 1:
+            print("❌ Error: max-issues-per-row must be at least 1")
+            sys.exit(1)
+        
+        # Run comprehensive evaluation
+        run_comprehensive_evaluation(args)
+        return
 
+    # --- Continue with multi-sample evaluation ---
     # --- Derive paths and class names ---
     field_name = args.field
 
@@ -485,20 +714,64 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         ml_detector=ml_detector
     )
     
-    # Run evaluation
-    if run_validation:
-        error_samples = generate_error_samples(
-            df, field_name, rules, args.num_samples, args.max_errors, args.error_probability, args.output_dir
-        )
-    else:
-        # If only running anomaly detection, still need sample dataframes
-        error_samples = []
-        for i in range(args.num_samples):
-            sample_df = df.copy()
-            sample_df.name = f"sample_{i}"
-            sample_path = os.path.join(args.output_dir, f"sample_{i}.csv")
-            sample_df.to_csv(sample_path, index=False)
-            error_samples.append({"data": sample_df, "injected_errors": [], "sample_index": i})
+    # Run evaluation - Generate comprehensive samples with both errors and anomalies
+    print(f"Generating {args.num_samples} samples with errors and anomalies...")
+    
+    all_samples = []
+    
+    # Load anomaly injection rules
+    anomaly_rules = []
+    try:
+        from anomaly_injection import load_anomaly_rules
+        anomaly_rules_path = f"anomaly_injection_rules/{validator_name}.json"
+        anomaly_rules = load_anomaly_rules(anomaly_rules_path)
+        print(f"Loaded {len(anomaly_rules)} anomaly injection rules")
+    except Exception:
+        print(f"No anomaly injection rules available for {validator_name}")
+    
+    # Generate samples with both error injection and anomaly injection
+    for i in range(args.num_samples):
+        sample_df = df.copy()
+        sample_df.name = f"sample_{i}"
+        all_injected_items = []
+        
+        # Apply error injection (validation errors) if available
+        if run_validation and 'rules' in locals():
+            from error_injection import ErrorInjector
+            error_injector = ErrorInjector(rules)
+            sample_df, error_injections = error_injector.inject_errors(
+                sample_df, field_name, max_errors=args.max_errors//2, 
+                error_probability=args.error_probability/2
+            )
+            all_injected_items.extend(error_injections)
+        
+        # Apply anomaly injection (semantic anomalies) if available
+        if anomaly_rules:
+            from anomaly_injection import AnomalyInjector
+            anomaly_injector = AnomalyInjector(anomaly_rules)
+            sample_df, anomaly_injections = anomaly_injector.inject_anomalies(
+                sample_df, field_name, max_anomalies=args.max_errors//2, 
+                anomaly_probability=args.error_probability/2
+            )
+            all_injected_items.extend(anomaly_injections)
+        
+        # Save sample
+        sample_path = os.path.join(args.output_dir, f"sample_{i}.csv")
+        sample_df.to_csv(sample_path, index=False)
+        
+        # Save injection metadata
+        injections_path = os.path.join(args.output_dir, f"sample_{i}_injected_items.json")
+        with open(injections_path, 'w') as f:
+            json.dump(all_injected_items, f, indent=2, ensure_ascii=False)
+        
+        all_samples.append({
+            "data": sample_df, 
+            "injected_errors": all_injected_items,  # Combined errors and anomalies
+            "sample_index": i
+        })
+    
+    error_samples = all_samples
+    print(f"Generated samples with {sum(len(s['injected_errors']) for s in all_samples)} total injected items")
     
     # Run detection methods once on the full dataset
     print(f"Running detection methods on dataset with {len(df)} rows...")
@@ -579,6 +852,104 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     
     # Report results
     generate_summary_report(evaluation_results, args.output_dir, args.ignore_fp)
+
+
+def run_comprehensive_evaluation(args):
+    """
+    Run comprehensive evaluation using single-sample approach across all available fields.
+    
+    This function generates one comprehensive sample with errors and anomalies across
+    all available fields and runs detection methods on each field separately.
+    """
+    print("🔍 Starting Comprehensive Data Quality Evaluation")
+    print("=" * 80)
+    print(f"📊 Dataset: {args.source_data}")
+    print(f"📁 Output: {args.output_dir}")
+    print(f"🎯 Injection intensity: {args.injection_intensity*100:.1f}%")
+    print(f"🔧 Max issues per row: {args.max_issues_per_row}")
+    print()
+    
+    # Load data
+    try:
+        df = pd.read_csv(args.source_data)
+        print(f"✅ Loaded dataset: {len(df)} rows, {len(df.columns)} columns")
+    except FileNotFoundError:
+        raise FileOperationError(f"Source data file not found at '{args.source_data}'")
+    
+    # Create output directory
+    os.makedirs(args.output_dir, exist_ok=True)
+    
+    # Set debug logging
+    if args.debug:
+        debug_config.enable_debug()
+        print("Debug logging enabled")
+    else:
+        debug_config.disable_debug()
+    
+    # Step 1: Generate comprehensive sample
+    print("📋 Step 1: Generating comprehensive sample with errors and anomalies")
+    sample_df, injection_metadata = generate_comprehensive_sample(
+        df=df,
+        injection_intensity=args.injection_intensity,
+        max_issues_per_row=args.max_issues_per_row
+    )
+    
+    # Save the comprehensive sample
+    sample_files = save_comprehensive_sample(
+        sample_df, injection_metadata, args.output_dir, "evaluation_sample"
+    )
+    print(f"   💾 Saved sample to: {os.path.basename(sample_files['sample_csv'])}")
+    
+    # Step 2: Run comprehensive detection
+    print("\n🔍 Step 2: Running comprehensive detection across all fields")
+    detector = ComprehensiveFieldDetector(
+        validation_threshold=args.validation_threshold,
+        anomaly_threshold=args.anomaly_threshold,
+        ml_threshold=args.ml_threshold,
+        batch_size=args.batch_size,
+        max_workers=args.max_workers
+    )
+    
+    field_results, cell_classifications = detector.run_comprehensive_detection(sample_df)
+    
+    # Step 3: Generate consolidated reports  
+    print("\n📊 Step 3: Generating evaluation reports")
+    report_files = save_consolidated_reports(
+        cell_classifications=cell_classifications,
+        field_results=field_results,
+        sample_df=sample_df,
+        output_dir=args.output_dir,
+        injection_metadata=injection_metadata,
+        sample_name="comprehensive_evaluation"
+    )
+    
+    # Print summary
+    print(f"\n✅ Comprehensive evaluation completed successfully!")
+    print(f"\n📋 Results Summary:")
+    print(f"   📊 Dataset: {len(sample_df)} rows, {len(sample_df.columns)} columns")
+    print(f"   🎯 Analyzed fields: {len(field_results)}")
+    print(f"   🔍 Total issues detected: {len(cell_classifications)}")
+    
+    # Break down by detection type
+    by_type = {}
+    for classification in cell_classifications:
+        detection_type = classification.detection_type
+        by_type[detection_type] = by_type.get(detection_type, 0) + 1
+    
+    for detection_type, count in by_type.items():
+        print(f"      {detection_type}: {count}")
+    
+    affected_rows = len(set(c.row_index for c in cell_classifications))
+    print(f"   🎯 Affected rows: {affected_rows} / {len(sample_df)} ({affected_rows/len(sample_df)*100:.1f}%)")
+    
+    print(f"\n📁 Generated Files:")
+    for file_type, file_path in report_files.items():
+        print(f"   {file_type}: {os.path.basename(file_path)}")
+    
+    print(f"\n🌐 Visualization:")
+    print(f"   Open data_quality_viewer.html in your browser")
+    print(f"   Upload: {os.path.basename(sample_files['sample_csv'])}")
+    print(f"   Upload: {os.path.basename(report_files['viewer_report'])}")
 
 
 if __name__ == '__main__':

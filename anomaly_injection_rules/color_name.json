@@ -1,0 +1,108 @@
+{
+  "field_name": "color_name",
+  "description": "Anomaly injection rules for color names - injects semantically unusual but valid color values",
+  "anomaly_rules": [
+    {
+      "rule_name": "inject_food_color_names",
+      "description": "Replace fashion colors with food-related color names",
+      "operation": "value_replacement",
+      "probability": 0.3,
+      "params": {
+        "replacement_values": [
+          "Mustard Yellow",
+          "Ketchup Red",
+          "Avocado Green",
+          "Chocolate Brown",
+          "Butter Cream",
+          "Coffee Bean",
+          "Eggplant Purple",
+          "Salmon Pink",
+          "Olive Oil",
+          "Vanilla White"
+        ]
+      }
+    },
+    {
+      "rule_name": "inject_technical_color_names",
+      "description": "Replace with technical/industrial color names",
+      "operation": "value_replacement",
+      "probability": 0.2,
+      "params": {
+        "replacement_values": [
+          "RAL 3020",
+          "Pantone 186 C",
+          "CMYK 100/0/0/0",
+          "#FF0000",
+          "RGB(255,0,0)",
+          "Engine Oil Black",
+          "Safety Orange",
+          "Warning Yellow",
+          "Medical Blue",
+          "Laboratory White"
+        ]
+      }
+    },
+    {
+      "rule_name": "inject_nature_unusual_colors",
+      "description": "Replace with unusual nature-based colors",
+      "operation": "value_replacement",
+      "probability": 0.2,
+      "params": {
+        "replacement_values": [
+          "Swamp Water Green",
+          "Dead Leaf Brown",
+          "Storm Cloud Gray",
+          "Volcanic Ash",
+          "Mud Puddle",
+          "Rust Stain",
+          "Moldy Green",
+          "Burnt Orange Peel",
+          "Dirty Snow White",
+          "Bruised Purple"
+        ]
+      }
+    },
+    {
+      "rule_name": "inject_emotion_colors",
+      "description": "Replace with emotion-based color names",
+      "operation": "value_replacement",
+      "probability": 0.15,
+      "params": {
+        "replacement_values": [
+          "Anxiety Gray",
+          "Jealousy Green",
+          "Anger Red",
+          "Depression Blue",
+          "Confusion Purple",
+          "Fear Black",
+          "Sadness Blue",
+          "Embarrassment Pink",
+          "Boredom Beige",
+          "Frustration Orange"
+        ]
+      }
+    },
+    {
+      "rule_name": "inject_non_color_words",
+      "description": "Replace colors with non-color words that might appear in fashion",
+      "operation": "value_replacement",
+      "probability": 0.15,
+      "params": {
+        "replacement_values": [
+          "Expensive",
+          "Trendy",
+          "Vintage",
+          "Modern",
+          "Classic",
+          "Elegant",
+          "Casual",
+          "Formal",
+          "Sporty",
+          "Bohemian",
+          "Minimalist",
+          "Luxurious"
+        ]
+      }
+    }
+  ]
+}

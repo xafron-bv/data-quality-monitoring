@@ -78,7 +78,8 @@ if __name__ == "__main__":
     field_to_column_map = get_field_to_column_map()
     field_configs = get_field_configs()
 
-    rules_dir = os.path.join('..', '..', 'error_injection_rules')
+    error_rules_dir = os.path.join('..', '..', 'error_injection_rules')
+    anomaly_rules_dir = os.path.join('..', '..', 'anomaly_injection_rules')
     
     # Set random seeds for reproducibility
     random.seed(42)
@@ -103,17 +104,54 @@ if __name__ == "__main__":
         if args.use_hp_search:
             print(f"Hyperparameter search enabled with {args.hp_trials} trials")
 
-        file_path = os.path.join(rules_dir, f'{field_name}.json')
-        rules = []
+        # Load both error injection rules (format/validation anomalies) and anomaly injection rules (semantic anomalies)
+        all_rules = []
+        
+        # Load error injection rules (format/validation anomalies)
+        error_file_path = os.path.join(error_rules_dir, f'{field_name}.json')
         try:
-            rules = load_error_rules(file_path)
+            error_rules = load_error_rules(error_file_path)
+            all_rules.extend(error_rules)
+            print(f"Loaded {len(error_rules)} error injection rules from {error_file_path}")
         except FileNotFoundError:
-            print(f"Error: Field file '{file_path}' not found.")
-            continue
+            print(f"Warning: Error injection rules file '{error_file_path}' not found.")
+        
+        # Load anomaly injection rules (semantic anomalies)
+        anomaly_file_path = os.path.join(anomaly_rules_dir, f'{field_name}.json')
+        try:
+            # Import anomaly injection functions
+            import sys
+            sys.path.append(os.path.join('..', '..'))
+            from anomaly_injection import load_anomaly_rules
+            
+            anomaly_rules = load_anomaly_rules(anomaly_file_path)
+            # Convert anomaly rules to error rule format for compatibility
+            converted_anomaly_rules = []
+            for rule in anomaly_rules:
+                # Convert anomaly rule to error rule format
+                converted_rule = {
+                    'rule_name': rule.get('rule_name', 'unknown'),
+                    'description': rule.get('description', ''),
+                    'operation': rule.get('operation', 'value_replacement'),
+                    'params': rule.get('params', {}),
+                    'conditions': rule.get('conditions', []),
+                    'is_anomaly_rule': True  # Flag to identify converted rules
+                }
+                converted_anomaly_rules.append(converted_rule)
+            
+            all_rules.extend(converted_anomaly_rules)
+            print(f"Loaded {len(anomaly_rules)} anomaly injection rules from {anomaly_file_path}")
+        except FileNotFoundError:
+            print(f"Warning: Anomaly injection rules file '{anomaly_file_path}' not found.")
+        except Exception as e:
+            print(f"Warning: Failed to load anomaly injection rules: {e}")
 
-        if not rules:
-            print(f"No rules found in '{file_path}'. Skipping.")
+        if not all_rules:
+            print(f"No rules found for field '{field_name}'. Skipping.")
             continue
+        
+        print(f"Total rules for training: {len(all_rules)} (errors + anomalies)")
+        rules = all_rules
 
         # Determine best parameters based on whether HP search is enabled
         if args.use_hp_search:

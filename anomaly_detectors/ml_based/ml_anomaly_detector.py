@@ -17,16 +17,19 @@ from anomaly_detectors.anomaly_error import AnomalyError
 sys.path.append(os.path.dirname(__file__))
 
 try:
-    from check_anomalies import (
+    # Use absolute imports to avoid relative import issues
+    from anomaly_detectors.ml_based.check_anomalies import (
         load_model_for_field,
         check_anomalies
     )
-    from model_training import preprocess_text
+    from anomaly_detectors.ml_based.model_training import preprocess_text
     from field_column_map import get_field_to_column_map
-    from gpu_utils import get_optimal_device, print_device_info
+    from anomaly_detectors.ml_based.gpu_utils import get_optimal_device, print_device_info
     ML_AVAILABLE = True
 except ImportError as e:
-    print(f"Warning: ML modules not available: {e}")
+    # This is an error, not a warning - ML functionality should be available
+    print(f"Error: ML modules failed to import: {e}")
+    print("This indicates a configuration or installation issue, not missing functionality.")
     ML_AVAILABLE = False
 
 

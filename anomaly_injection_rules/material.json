@@ -1,0 +1,106 @@
+{
+  "field_name": "material",
+  "description": "Anomaly injection rules for materials - injects non-textile or unusual material combinations",
+  "anomaly_rules": [
+    {
+      "rule_name": "inject_construction_materials",
+      "description": "Replace textile materials with construction materials",
+      "operation": "value_replacement",
+      "probability": 0.25,
+      "params": {
+        "replacement_values": [
+          "100% Concrete",
+          "95% Steel - 5% Aluminum",
+          "80% Wood - 20% Plastic",
+          "100% Glass Fiber",
+          "60% Brick - 40% Mortar",
+          "100% Carbon Fiber",
+          "90% Titanium - 10% Ceramic",
+          "100% Granite",
+          "85% Marble - 15% Gold",
+          "100% Diamond"
+        ]
+      }
+    },
+    {
+      "rule_name": "inject_food_materials",
+      "description": "Replace with food-based materials",
+      "operation": "value_replacement",
+      "probability": 0.2,
+      "params": {
+        "replacement_values": [
+          "100% Organic Lettuce",
+          "80% Cheese - 20% Bread",
+          "100% Premium Beef",
+          "90% Chocolate - 10% Vanilla",
+          "100% Fresh Salmon",
+          "75% Wheat - 25% Sugar",
+          "100% Pure Honey",
+          "85% Avocado - 15% Lime",
+          "100% Coconut Oil",
+          "90% Quinoa - 10% Kale"
+        ]
+      }
+    },
+    {
+      "rule_name": "inject_electronic_materials",
+      "description": "Replace with electronic/tech materials",
+      "operation": "value_replacement",
+      "probability": 0.2,
+      "params": {
+        "replacement_values": [
+          "100% Silicon Chip",
+          "80% Copper Wire - 20% Plastic Coating",
+          "100% LCD Screen",
+          "90% Lithium Battery - 10% Circuit Board",
+          "100% Optical Fiber",
+          "85% Microprocessor - 15% Heat Sink",
+          "100% Memory Card",
+          "75% Solar Panel - 25% Glass",
+          "100% Bluetooth Module",
+          "95% LED - 5% Resistor"
+        ]
+      }
+    },
+    {
+      "rule_name": "inject_biological_materials",
+      "description": "Replace with biological/organic materials",
+      "operation": "value_replacement",
+      "probability": 0.15,
+      "params": {
+        "replacement_values": [
+          "100% Human Hair",
+          "90% Snake Skin - 10% Scales",
+          "100% Shark Cartilage",
+          "85% Tree Bark - 15% Moss",
+          "100% Mushroom Fiber",
+          "80% Coral - 20% Seaweed",
+          "100% Bacterial Culture",
+          "90% Algae - 10% Plankton",
+          "100% Bird Feathers",
+          "75% Fish Scales - 25% Whale Oil"
+        ]
+      }
+    },
+    {
+      "rule_name": "inject_impossible_compositions",
+      "description": "Create impossible percentage combinations",
+      "operation": "value_replacement",
+      "probability": 0.2,
+      "params": {
+        "replacement_values": [
+          "150% Cotton",
+          "80% Polyester - 40% Nylon",
+          "200% Silk",
+          "90% Cotton - 50% Spandex - 30% Wool",
+          "0% Everything",
+          "-50% Cotton - 150% Polyester",
+          "100.5% Rayon",
+          "99.9999% Cotton - 0.0001% Magic",
+          "∞% Polyester",
+          "NaN% Cotton"
+        ]
+      }
+    }
+  ]
+}

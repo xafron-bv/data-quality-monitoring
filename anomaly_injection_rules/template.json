@@ -1,0 +1,67 @@
+{
+  "field_name": "template_field_name",
+  "description": "Template for anomaly injection rules - these create SEMANTIC anomalies, not format errors",
+  "_documentation": {
+    "purpose": "Anomaly injection creates semantically unusual but technically valid values that should be caught by pattern-based and ML anomaly detectors",
+    "difference_from_error_injection": {
+      "error_injection": "Creates format/validation errors (typos, missing %, wrong syntax)",
+      "anomaly_injection": "Creates semantic anomalies (wrong domain values, unusual combinations)"
+    },
+    "examples": {
+      "error_injection": "Cotton -> Cottn (typo), 100% Cotton -> 100 Cotton (missing %)",
+      "anomaly_injection": "Black -> Mustard Yellow (unusual color), Cotton -> Concrete (wrong domain)"
+    }
+  },
+  "anomaly_rules": [
+    {
+      "rule_name": "example_domain_shift",
+      "description": "Replace values with semantically different but valid values from wrong domain",
+      "operation": "value_replacement",
+      "probability": 0.3,
+      "params": {
+        "replacement_values": [
+          "Example Value 1",
+          "Example Value 2",
+          "Example Value 3"
+        ]
+      },
+      "conditions": [
+        {
+          "type": "contains",
+          "value": "some_text_that_must_be_present"
+        }
+      ]
+    },
+    {
+      "rule_name": "example_statistical_outlier",
+      "description": "Create statistically unusual but valid combinations",
+      "operation": "value_replacement",
+      "probability": 0.2,
+      "params": {
+        "replacement_values": [
+          "Statistically Rare Value 1",
+          "Unusual Combination",
+          "Edge Case Value"
+        ]
+      }
+    },
+    {
+      "rule_name": "example_contextual_anomaly",
+      "description": "Values that are wrong for the specific context",
+      "operation": "value_replacement",
+      "probability": 0.15,
+      "params": {
+        "replacement_values": [
+          "Context-Wrong Value 1",
+          "Inappropriate For Context",
+          "Domain Mismatch"
+        ]
+      }
+    }
+  ],
+  "_supported_operations": {
+    "value_replacement": "Replace entire value with anomalous alternative",
+    "conditional_replacement": "Replace based on conditions (future enhancement)",
+    "cross_field_anomaly": "Create anomalies based on other field values (future enhancement)"
+  }
+}
