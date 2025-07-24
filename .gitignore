@@ -8,4 +8,4 @@ material-validator
 results
 analysis_results
 checkpoints
-demo_results/
+demo_*
