@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Quality Monitoring Viewer</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -17,6 +18,24 @@
         .tooltip { display: none; pointer-events: none; }
         .cell-content { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 400px; }
         .cell-expanded .cell-content { white-space: normal; overflow: visible; text-overflow: clip; max-width: none; }
+        .chart-container::-webkit-scrollbar { width: 6px; height: 6px; }
+        .chart-container::-webkit-scrollbar-track { background: #e2e8f0; }
+        .chart-container::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
+        .chart-container::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        /* Styles for resizable chart containers */
+        .resizable-chart-container {
+            resize: both;
+            overflow: auto;
+            min-width: 320px;
+            min-height: 300px;
+        }
+        .resizable-chart-container::-webkit-resizer {
+            border: 0;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 6' style='background-color:%23f1f5f9; stroke:%2394a3b8; stroke-width:1px'%3e%3cpath d='M-2 8L8 -2M2 8L8 2'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: bottom right;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -57,36 +76,73 @@
              <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-yellow-500"><h3 class="text-sm font-medium text-slate-500">Anomalies</h3><p id="totalAnomalies" class="text-3xl font-semibold mt-1">0</p></div>
         </div>
 
-        <div id="dataContainer" class="bg-white p-6 rounded-lg shadow-sm hidden">
-            <div id="controls" class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-6">
-                    <div class="flex items-center gap-3">
-                        <button type="button" id="toggleCleanRows" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-slate-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2" role="switch" aria-checked="false"><span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span></button>
-                        <label for="toggleCleanRows" class="text-sm font-medium text-slate-700">Hide Clean Rows</label>
+        <div id="resultsContainer" class="hidden">
+            <div class="mb-6 border-b border-slate-200">
+                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                    <button id="dashboardTab" type="button" class="tab-button active-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Dashboard</button>
+                    <button id="tableTab" type="button" class="tab-button inactive-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Data Table</button>
+                </nav>
+            </div>
+
+            <div id="dashboardSection" class="tab-pane bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-xl font-semibold mb-6">Dashboard</h2>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div id="errorsChartContainer" class="resizable-chart-container bg-slate-50 p-4 rounded-lg flex flex-col" style="height: 400px;">
+                        <h3 class="font-medium text-slate-700 mb-2 flex-shrink-0">Top 10 Most Common Errors</h3>
+                        <div class="chart-container overflow-y-auto min-h-0">
+                            <canvas id="errorsChart"></canvas>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <button type="button" id="toggleCleanColumns" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-slate-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2" role="switch" aria-checked="false"><span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span></button>
-                        <label for="toggleCleanColumns" class="text-sm font-medium text-slate-700">Hide Clean Columns</label>
+                    <div id="errorDistributionContainer" class="resizable-chart-container bg-slate-50 p-4 rounded-lg flex flex-col" style="height: 400px;">
+                        <h3 class="font-medium text-slate-700 mb-2 flex-shrink-0">Error Distribution</h3>
+                         <div class="relative min-h-0 flex-grow">
+                            <canvas id="errorDistributionChart"></canvas>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <button type="button" id="toggleErrorsOnly" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-slate-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2" role="switch" aria-checked="false"><span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span></button>
-                        <label for="toggleErrorsOnly" class="text-sm font-medium text-slate-700">Show Errors Only</label>
+                     <div id="anomaliesChartContainer" class="resizable-chart-container bg-slate-50 p-4 rounded-lg flex flex-col" style="height: 400px;">
+                        <h3 class="font-medium text-slate-700 mb-2 flex-shrink-0">Top 10 Most Common Anomalies</h3>
+                        <div class="chart-container overflow-y-auto min-h-0">
+                            <canvas id="anomaliesChart"></canvas>
+                        </div>
                     </div>
-                     <div id="stats" class="text-sm text-slate-600"></div>
-                </div>
-                <div class="flex items-center gap-4 text-sm">
-                    <div class="flex items-center gap-2"><span class="h-4 w-4 bg-red-200 border border-red-400 rounded-sm"></span><span>Validation Error</span></div>
-                    <div class="flex items-center gap-2"><span class="h-4 w-4 bg-yellow-100 border border-yellow-400 rounded-sm"></span><span>Anomaly</span></div>
+                    <div id="anomalyDistributionContainer" class="resizable-chart-container bg-slate-50 p-4 rounded-lg flex flex-col" style="height: 400px;">
+                        <h3 class="font-medium text-slate-700 mb-2 flex-shrink-0">Anomaly Distribution</h3>
+                         <div class="relative min-h-0 flex-grow">
+                            <canvas id="anomalyDistributionChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div id="loading" class="text-center py-16 hidden"><div class="spinner animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500 mx-auto"></div><p class="mt-4 text-slate-600">Processing data...</p></div>
-
-            <div class="table-wrapper overflow-auto max-h-[70vh] border border-slate-200 rounded-lg">
-                <table id="dataTable" class="w-full text-sm text-left text-slate-500">
-                    <thead id="tableHead"></thead>
-                    <tbody id="tableBody" class="bg-white divide-y divide-slate-200"></tbody>
-                </table>
+            <div id="dataContainer" class="tab-pane hidden bg-white p-6 rounded-lg shadow-sm">
+                <div id="controls" class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-6">
+                        <div class="flex items-center gap-3">
+                            <button type="button" id="toggleCleanRows" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-slate-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2" role="switch" aria-checked="false"><span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span></button>
+                            <label for="toggleCleanRows" class="text-sm font-medium text-slate-700">Hide Clean Rows</label>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button type="button" id="toggleCleanColumns" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-slate-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2" role="switch" aria-checked="false"><span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span></button>
+                            <label for="toggleCleanColumns" class="text-sm font-medium text-slate-700">Hide Clean Columns</label>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button type="button" id="toggleErrorsOnly" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-slate-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2" role="switch" aria-checked="false"><span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span></button>
+                            <label for="toggleErrorsOnly" class="text-sm font-medium text-slate-700">Show Errors Only</label>
+                        </div>
+                         <div id="stats" class="text-sm text-slate-600"></div>
+                    </div>
+                    <div class="flex items-center gap-4 text-sm">
+                        <div class="flex items-center gap-2"><span class="h-4 w-4 bg-red-200 border border-red-400 rounded-sm"></span><span>Validation Error</span></div>
+                        <div class="flex items-center gap-2"><span class="h-4 w-4 bg-yellow-100 border border-yellow-400 rounded-sm"></span><span>Anomaly</span></div>
+                    </div>
+                </div>
+                <div id="loading" class="text-center py-16 hidden"><div class="spinner animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500 mx-auto"></div><p class="mt-4 text-slate-600">Processing data...</p></div>
+                <div class="table-wrapper overflow-auto max-h-[70vh] border border-slate-200 rounded-lg">
+                    <table id="dataTable" class="w-full text-sm text-left text-slate-500">
+                        <thead id="tableHead"></thead>
+                        <tbody id="tableBody" class="bg-white divide-y divide-slate-200"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
@@ -103,6 +159,8 @@
                 this.issueMap = new Map();
                 this.columnWithIssues = new Set();
                 this.rowsWithIssues = [];
+                this.charts = {};
+                this.resizeObserver = null;
 
                 // UI state
                 this.filters = {
@@ -112,6 +170,20 @@
                 };
                 
                 this.bindEventListeners();
+                this.initResizeObserver();
+            }
+
+            initResizeObserver() {
+                this.resizeObserver = new ResizeObserver(entries => {
+                    for (const entry of entries) {
+                        const canvas = entry.target.querySelector('canvas');
+                        if (canvas && this.charts[canvas.id]) {
+                            requestAnimationFrame(() => {
+                                 this.charts[canvas.id].resize();
+                            });
+                        }
+                    }
+                });
             }
 
             bindEventListeners() {
@@ -141,8 +213,17 @@
                     document.getElementById('toggleCleanColumns').addEventListener('click', (e) => this.updateFilter('hideCleanColumns', e.currentTarget));
                     document.getElementById('toggleErrorsOnly').addEventListener('click', (e) => this.updateFilter('errorsOnly', e.currentTarget));
                     
+                    // Tab listeners
+                    document.getElementById('dashboardTab').addEventListener('click', () => this.switchTab('dashboard'));
+                    document.getElementById('tableTab').addEventListener('click', () => this.switchTab('table'));
+
                     // Cell expand listener
                     document.getElementById('tableBody').addEventListener('dblclick', (e) => e.target.closest('td')?.classList.toggle('cell-expanded'));
+
+                    // Observe chart containers for resize
+                    document.querySelectorAll('.resizable-chart-container').forEach(container => {
+                        this.resizeObserver.observe(container);
+                    });
                 });
             }
 
@@ -162,7 +243,7 @@
                             this.displayFileInfo(`CSV: ${file.name} (${this.csvRows.length} rows, ${this.csvHeaders.length} columns)`, 'csv');
                         } else if (type === 'json') {
                             const results = JSON.parse(e.target.result);
-                            this.evaluationResults = results; // FIX: Assign the parsed results
+                            this.evaluationResults = results;
                             this.buildIssueMap(results.cell_coordinates);
                             this.displayFileInfo(`Report: ${results.sample_info.name} (${results.cell_coordinates.summary.total_issues} issues found)`, 'json');
                         }
@@ -275,17 +356,36 @@
                 this.updateStats();
             }
 
+            switchTab(tabName) {
+                const tabs = {
+                    dashboard: { btn: 'dashboardTab', pane: 'dashboardSection' },
+                    table: { btn: 'tableTab', pane: 'dataContainer' }
+                };
+
+                Object.values(tabs).forEach(tab => {
+                    document.getElementById(tab.btn).classList.remove('active-tab');
+                    document.getElementById(tab.btn).classList.add('inactive-tab');
+                    document.getElementById(tab.pane).classList.add('hidden');
+                });
+                
+                document.getElementById(tabs[tabName].btn).classList.add('active-tab');
+                document.getElementById(tabs[tabName].btn).classList.remove('inactive-tab');
+                document.getElementById(tabs[tabName].pane).classList.remove('hidden');
+            }
+
             render() {
                 if (!this.csvRows.length || !this.issueMap.size) return;
                 
                 this.showLoading(true);
                 document.getElementById('summarySection').classList.remove('hidden');
-                document.getElementById('dataContainer').classList.remove('hidden');
+                document.getElementById('resultsContainer').classList.remove('hidden');
 
                 setTimeout(() => {
                     this.renderSummary();
+                    this.renderDashboardCharts();
                     this.renderTable();
                     this.applyFilters();
+                    this.switchTab('dashboard'); // Default to dashboard view
                     this.showLoading(false);
                 }, 50);
             }
@@ -296,6 +396,88 @@
                 document.getElementById('totalIssues').textContent = (summary.total_issues || 0).toLocaleString();
                 document.getElementById('totalErrors').textContent = (summary.total_errors || 0).toLocaleString();
                 document.getElementById('totalAnomalies').textContent = ((summary.total_anomalies || 0) + (summary.total_ml_issues || 0)).toLocaleString();
+            }
+
+            renderDashboardCharts() {
+                const coordinates = this.evaluationResults.cell_coordinates;
+                const errorGroups = this.getIssueGroups(coordinates.errors);
+                const anomalyGroups = this.getIssueGroups([
+                    ...(coordinates.anomalies || []),
+                    ...(coordinates.ml_issues || [])
+                ]);
+
+                // Bar Chart: Most Common Errors
+                this.createChart('errorsChart', 'bar', {
+                    labels: errorGroups.map(g => g.message),
+                    datasets: [{ label: 'Count', data: errorGroups.map(g => g.count), backgroundColor: 'rgba(239, 68, 68, 0.6)' }]
+                }, { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { autoSkip: false } } }, plugins: { legend: { display: false } } }, true);
+
+                // Pie Chart: Error Distribution
+                this.createChart('errorDistributionChart', 'pie', {
+                    labels: errorGroups.map(g => g.message),
+                    datasets: [{ data: errorGroups.map(g => g.count), backgroundColor: this.generateColors(errorGroups.length) }]
+                }, { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { generateLabels: chart => chart.data.labels.map((label, i) => ({ text: `${label} (${chart.data.datasets[0].data[i]})`, fillStyle: chart.data.datasets[0].backgroundColor[i] })) } } } });
+                
+                // Bar Chart: Most Common Anomalies
+                this.createChart('anomaliesChart', 'bar', {
+                    labels: anomalyGroups.map(g => g.message),
+                    datasets: [{ label: 'Count', data: anomalyGroups.map(g => g.count), backgroundColor: 'rgba(245, 158, 11, 0.6)' }]
+                }, { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { autoSkip: false } } }, plugins: { legend: { display: false } } }, true);
+                
+                // Pie Chart: Anomaly Distribution
+                this.createChart('anomalyDistributionChart', 'pie', {
+                    labels: anomalyGroups.map(g => g.message),
+                    datasets: [{ data: anomalyGroups.map(g => g.count), backgroundColor: this.generateColors(anomalyGroups.length) }]
+                }, { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { generateLabels: chart => chart.data.labels.map((label, i) => ({ text: `${label} (${chart.data.datasets[0].data[i]})`, fillStyle: chart.data.datasets[0].backgroundColor[i] })) } } } });
+            }
+
+            getIssueGroups(issues) {
+                if (!issues || issues.length === 0) return [];
+                const groups = issues.reduce((acc, issue) => {
+                    const key = issue.error_code || issue.display_message || 'Unspecified';
+                    if (!acc[key]) {
+                        acc[key] = {
+                            code: key,
+                            message: issue.display_message || key,
+                            count: 0
+                        };
+                    }
+                    acc[key].count++;
+                    return acc;
+                }, {});
+
+                const allGroups = Object.values(groups).sort((a, b) => b.count - a.count);
+                
+                return allGroups.slice(0, 10);
+            }
+
+            generateColors(count) {
+                const PRESET_COLORS = [
+                    '#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#3b82f6',
+                    '#ec4899', '#f97316', '#22c55e', '#dc2626', '#a855f7', '#0ea5e9'
+                ];
+                const colors = [];
+                for (let i = 0; i < count; i++) {
+                    colors.push(PRESET_COLORS[i % PRESET_COLORS.length]);
+                }
+                return colors;
+            }
+            
+            createChart(canvasId, type, data, options, isDynamicHeight = false) {
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                if (this.charts[canvasId]) {
+                    this.charts[canvasId].destroy();
+                }
+
+                if (isDynamicHeight) {
+                    const numLabels = data.labels.length;
+                    const minHeight = 150;
+                    const heightPerLabel = 28; 
+                    canvas.style.height = `${Math.max(minHeight, numLabels * heightPerLabel)}px`;
+                }
+
+                this.charts[canvasId] = new Chart(ctx, { type, data, options });
             }
 
             renderTable() {
@@ -350,8 +532,16 @@
                     const issues = JSON.parse(cell.dataset.issues.replace(/&quot;/g, '"'));
                     tooltip.innerHTML = issues.map(issue => {
                         const typeLabel = issue.type === 'error' ? '🔴 Validation Error' : '🟡 Anomaly';
+                        const code = issue.error_code ? `<p class="text-xs text-slate-400 mt-1">Code: ${issue.error_code}</p>` : '';
                         const confidence = issue.probability ? `Confidence: ${(issue.probability * 100).toFixed(0)}%` : '';
-                        return `<div class="mb-2 last:mb-0"><p class="font-semibold">${typeLabel}</p><p class="text-slate-300">${issue.display_message || 'No description'}</p>${confidence ? `<p class="text-xs text-slate-400 mt-1">${confidence}</p>` : ''}</div>`;
+                        const confidenceEl = confidence ? `<p class="text-xs text-slate-400 mt-1">${confidence}</p>`: '';
+
+                        return `<div class="mb-2 last:mb-0">
+                                    <p class="font-semibold">${typeLabel}</p>
+                                    <p class="text-slate-300">${issue.display_message || 'No description'}</p>
+                                    ${code}
+                                    ${confidenceEl}
+                                </div>`;
                     }).join('<hr class="my-2 border-slate-600">');
                     tooltip.style.display = 'block';
                     this.updateTooltipPosition(e);
@@ -399,6 +589,24 @@
                 document.querySelector('.table-wrapper').style.display = isLoading ? 'none' : 'block';
             }
         }
+        
+        // Add CSS for tab styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .active-tab {
+                border-color: #6366f1; /* indigo-500 */
+                color: #4338ca; /* indigo-700 */
+            }
+            .inactive-tab {
+                border-color: transparent;
+                color: #64748b; /* slate-500 */
+            }
+            .inactive-tab:hover {
+                border-color: #cbd5e1; /* slate-300 */
+                color: #334155; /* slate-700 */
+            }
+        `;
+        document.head.appendChild(style);
 
         new DataQualityViewer();
     </script>
