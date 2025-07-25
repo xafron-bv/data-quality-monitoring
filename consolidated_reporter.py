@@ -59,7 +59,8 @@ def create_viewer_compatible_report(cell_classifications: List[CellClassificatio
             "probability": clean_value_for_json(classification.confidence),
             "error_data": clean_value_for_json(classification.detected_value),
             "severity": classification.status.lower(),  # "error" or "anomaly"
-            "type": classification.detection_type
+            "type": classification.detection_type,
+            "error_code": classification.error_code
         }
         
         # Route to appropriate category based on detection type
