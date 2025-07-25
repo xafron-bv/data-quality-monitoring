@@ -109,6 +109,7 @@ class AnomalyReporter(AnomalyReporterInterface):
                 "display_message": display_message,
                 "column_name": error.column_name,
                 "probability": error.probability,
-                "detection_type": "pattern_based"  # Indicate this is pattern-based detection
+                "detection_type": "pattern_based",  # Indicate this is pattern-based detection
+                "anomaly_code": error.anomaly_type
             })
         return report

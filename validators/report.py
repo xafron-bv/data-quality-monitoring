@@ -90,6 +90,7 @@ class Reporter(ReporterInterface):
                 "error_data": error.error_data,
                 "display_message": display_message,
                 "column_name": error.column_name,  # Add column name to the report
-                "probability": error.probability     # Add probability to the report
+                "probability": error.probability,     # Add probability to the report
+                "error_code": error.error_type
             })
         return report

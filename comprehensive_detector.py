@@ -32,6 +32,7 @@ class CellClassification:
     detection_type: Optional[str] = None  # "validation", "pattern_based", "ml_based"
     original_value: Any = None
     detected_value: Any = None
+    error_code: Optional[str] = None
 
 
 @dataclass
@@ -352,7 +353,8 @@ class ComprehensiveFieldDetector:
                             'detection_type': 'validation',
                             'message': detection.get('display_message', 'Validation error'),
                             'confidence': detection.get('probability', 1.0),
-                            'detected_value': detection.get('error_data')
+                            'detected_value': detection.get('error_data'),
+                            'error_code': detection.get('error_code')
                         }
             
             # Add pattern-based anomaly results (medium priority)
@@ -368,7 +370,8 @@ class ComprehensiveFieldDetector:
                             'detection_type': 'pattern_based',
                             'message': detection.get('display_message', 'Pattern-based anomaly'),
                             'confidence': detection.get('probability', 0.7),
-                            'detected_value': detection.get('error_data')
+                            'detected_value': detection.get('error_data'),
+                            'error_code': detection.get('anomaly_code') or detection.get('error_code')
                         }
             
             # Add ML-based anomaly results (lowest priority)
@@ -384,7 +387,8 @@ class ComprehensiveFieldDetector:
                             'detection_type': 'ml_based',
                             'message': detection.get('display_message', 'ML-based anomaly'),
                             'confidence': detection.get('probability', 0.5),
-                            'detected_value': detection.get('error_data')
+                            'detected_value': detection.get('error_data'),
+                            'error_code': detection.get('error_code')
                         }
         
         # Convert detection map to cell classifications
@@ -403,7 +407,8 @@ class ComprehensiveFieldDetector:
                 confidence=detection_info['confidence'],
                 detection_type=detection_info['detection_type'],
                 original_value=original_value,
-                detected_value=detection_info['detected_value']
+                detected_value=detection_info['detected_value'],
+                error_code=detection_info.get('error_code')
             )
             
             cell_classifications.append(classification)
