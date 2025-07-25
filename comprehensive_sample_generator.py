@@ -303,40 +303,7 @@ def save_comprehensive_sample(sample_df: pd.DataFrame,
     # Save the corrupted sample data
     sample_path = os.path.join(os.path.dirname(__file__), output_dir, f"{sample_name}.csv")
     sample_df.to_csv(sample_path, index=False)
-    
-    # Save injection metadata
-    metadata_path = os.path.join(os.path.dirname(__file__), output_dir, f"{sample_name}_injection_metadata.json")
-    with open(metadata_path, 'w', encoding='utf-8') as f:
-        json.dump(injection_metadata, f, indent=2, ensure_ascii=False)
-    
-    # Create summary
-    total_injections = sum(len(injections) for injections in injection_metadata.values())
-    affected_rows = len(set(
-        inj["row_index"] for injections in injection_metadata.values() for inj in injections
-    ))
-    
-    summary = {
-        "sample_name": sample_name,
-        "total_rows": len(sample_df),
-        "total_injections": total_injections,
-        "affected_rows": affected_rows,
-        "affected_fields": list(injection_metadata.keys()),
-        "injection_breakdown": {
-            field: {
-                "total": len(injections),
-                "errors": sum(1 for inj in injections if inj["injection_type"] == "error"),
-                "anomalies": sum(1 for inj in injections if inj["injection_type"] == "anomaly")
-            }
-            for field, injections in injection_metadata.items()
-        }
-    }
-    
-    summary_path = os.path.join(os.path.dirname(__file__), output_dir, f"{sample_name}_summary.json")
-    with open(summary_path, 'w', encoding='utf-8') as f:
-        json.dump(summary, f, indent=2, ensure_ascii=False)
-    
+    # Do not save metadata or summary files anymore
     return {
-        "sample_csv": sample_path,
-        "metadata": metadata_path,
-        "summary": summary_path
+        "sample_csv": sample_path
     } 

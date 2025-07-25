@@ -156,36 +156,23 @@ class DataQualityDemo:
                 injection_metadata=injection_metadata,
                 sample_name="demo_analysis"
             )
-            
+            unified_report_path = report_files["unified_report"]
             elapsed_time = time.time() - start_time
-            
-            # Print summary
             print(f"\n✅ Demo completed successfully in {elapsed_time:.1f}s")
             print(f"\n📋 Demo Results Summary:")
             print(f"   📊 Dataset: {len(sample_df)} rows, {len(sample_df.columns)} columns")
             print(f"   🎯 Analyzed fields: {len(field_results)}")
             print(f"   🔍 Total issues detected: {len(cell_classifications)}")
-            
-            # Break down by detection type
             by_type = {}
             for classification in cell_classifications:
                 detection_type = classification.detection_type
                 by_type[detection_type] = by_type.get(detection_type, 0) + 1
-            
             for detection_type, count in by_type.items():
                 print(f"      {detection_type}: {count}")
-            
             affected_rows = len(set(c.row_index for c in cell_classifications))
             print(f"   🎯 Affected rows: {affected_rows} / {len(sample_df)} ({affected_rows/len(sample_df)*100:.1f}%)")
-            
-            print(f"\n📁 Generated Files:")
-            for file_type, file_path in report_files.items():
-                print(f"   {file_type}: {os.path.basename(file_path)}")
-            
-            print(f"\n🌐 Visualization:")
-            print(f"   Open data_quality_viewer.html in your browser")
-            print(f"   Upload: {os.path.basename(sample_files['sample_csv'])}")
-            print(f"   Upload: {os.path.basename(report_files['viewer_report'])}")
+            print(f"\n📁 Generated Unified Report:")
+            print(f"   {unified_report_path}")
             
             return {
                 "sample_files": sample_files,
@@ -216,14 +203,13 @@ class DataQualityDemo:
             
             print(f"\n🔑 KEY OUTPUT FILES:")
             print(f"   📄 Sample CSV: {os.path.basename(demo_results['sample_files']['sample_csv'])}")
-            print(f"   📋 Viewer Report: {os.path.basename(demo_results['report_files']['viewer_report'])}")
-            print(f"   📊 Detailed Analysis: {os.path.basename(demo_results['report_files']['detailed_analysis'])}")
-            print(f"   📄 Summary: {os.path.basename(demo_results['report_files']['summary'])}")
+            print(f"   📋 Unified Report: {os.path.basename(demo_results['report_files']['unified_report'])}")
             
             print(f"\n🔍 FOR VISUALIZATION:")
             print(f"   1. Open data_quality_viewer.html in your browser")
             print(f"   2. Upload CSV: {os.path.basename(demo_results['sample_files']['sample_csv'])}")
             print(f"   3. Upload JSON: {os.path.basename(demo_results['report_files']['viewer_report'])}")
+            print(f"\n📊 Metrics Report: {os.path.basename(demo_results['report_files']['unified_report'])}")
             
             return demo_results
             
