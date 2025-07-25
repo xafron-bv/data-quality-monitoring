@@ -43,7 +43,8 @@ class DataQualityDemo:
     
     def __init__(self, data_file: str = "data/esqualo_2022_fall.csv", 
                  output_dir: str = "demo_results",
-                 injection_intensity=0.2, max_issues_per_row=2, core_fields_only=False):
+                 injection_intensity=0.2, max_issues_per_row=2, core_fields_only=False,
+                 enable_validation=True, enable_pattern=True, enable_ml=True):
         """
         Initialize the demo with the specified parameters.
         """
@@ -52,6 +53,9 @@ class DataQualityDemo:
         self.injection_intensity = injection_intensity
         self.max_issues_per_row = max_issues_per_row
         self.core_fields_only = core_fields_only
+        self.enable_validation = enable_validation
+        self.enable_pattern = enable_pattern
+        self.enable_ml = enable_ml
         
         # Create output directory
         os.makedirs(output_dir, exist_ok=True)
@@ -134,7 +138,10 @@ class DataQualityDemo:
                 ml_threshold=0.7,          # Default ML threshold
                 batch_size=512,            # Smaller batch size to save memory
                 max_workers=1,             # Single-threaded to prevent memory issues
-                core_fields_only=self.core_fields_only # Pass core_fields_only
+                core_fields_only=self.core_fields_only,
+                enable_validation=self.enable_validation,
+                enable_pattern=self.enable_pattern,
+                enable_ml=self.enable_ml
             )
             
             field_results, cell_classifications = detector.run_comprehensive_detection(sample_df)
@@ -263,6 +270,9 @@ Example usage:
                        help="Minimum confidence threshold for ML detection (default: 0.7)")
     parser.add_argument("--core-fields-only", action="store_true",
                        help="Analyze only core fields (material, color_name, category, size, care_instructions) to save memory")
+    parser.add_argument("--enable-validation", action="store_true", help="Enable validation (rule-based) detection")
+    parser.add_argument("--enable-pattern", action="store_true", help="Enable pattern-based anomaly detection")
+    parser.add_argument("--enable-ml", action="store_true", help="Enable ML-based anomaly detection")
     
     args = parser.parse_args()
     
@@ -281,7 +291,10 @@ Example usage:
         output_dir=args.output_dir,
         injection_intensity=args.injection_intensity,
         max_issues_per_row=args.max_issues_per_row,
-        core_fields_only=args.core_fields_only
+        core_fields_only=args.core_fields_only,
+        enable_validation=args.enable_validation,
+        enable_pattern=args.enable_pattern,
+        enable_ml=args.enable_ml
     )
     
     result = demo.run_complete_demo()

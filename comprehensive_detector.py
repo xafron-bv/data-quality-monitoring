@@ -68,7 +68,10 @@ class ComprehensiveFieldDetector:
                  ml_threshold: float = 0.7,
                  batch_size: int = 1000,
                  max_workers: int = 2,
-                 core_fields_only: bool = False):
+                 core_fields_only: bool = False,
+                 enable_validation: bool = True,
+                 enable_pattern: bool = True,
+                 enable_ml: bool = True):
         """
         Initialize comprehensive field detector.
         
@@ -80,6 +83,9 @@ class ComprehensiveFieldDetector:
             batch_size: Batch size for detection operations
             max_workers: Maximum number of worker threads
             core_fields_only: If True, only analyze core fields to save memory
+            enable_validation: If True, run validation detection
+            enable_pattern: If True, run pattern-based anomaly detection
+            enable_ml: If True, run ML-based anomaly detection
         """
         self.field_mapper = field_mapper
         self.validation_threshold = validation_threshold
@@ -88,6 +94,9 @@ class ComprehensiveFieldDetector:
         self.batch_size = batch_size
         self.max_workers = max_workers
         self.core_fields_only = core_fields_only
+        self.enable_validation = enable_validation
+        self.enable_pattern = enable_pattern
+        self.enable_ml = enable_ml
         
         # Core fields that have good validation/anomaly detection
         self.core_fields = {"material", "color_name", "category", "size", "care_instructions"}
@@ -233,59 +242,62 @@ class ComprehensiveFieldDetector:
         anomaly_results = []
         ml_results = []
         
-        # Run validation if available
-        validator, validator_reporter = self._get_validator_components(field_name)
-        if validator and validator_reporter:
-            try:
-                validation_errors = validator.bulk_validate(df, column_name)
-                validation_report = validator_reporter.generate_report(validation_errors, df)
-                validation_results = [r for r in validation_report if r.get('probability', 1.0) >= self.validation_threshold]
-                print(f"         📝 Validation: {len(validation_results)} errors found")
-            except Exception as e:
-                print(f"         ⚠️  Validation failed: {e}")
+        # Run validation if enabled and available
+        if self.enable_validation:
+            validator, validator_reporter = self._get_validator_components(field_name)
+            if validator and validator_reporter:
+                try:
+                    validation_errors = validator.bulk_validate(df, column_name)
+                    validation_report = validator_reporter.generate_report(validation_errors, df)
+                    validation_results = [r for r in validation_report if r.get('probability', 1.0) >= self.validation_threshold]
+                    print(f"         📝 Validation: {len(validation_results)} errors found")
+                except Exception as e:
+                    print(f"         ⚠️  Validation failed: {e}")
         
-        # Run pattern-based anomaly detection if available
-        anomaly_detector, anomaly_reporter = self._get_anomaly_components(field_name)
-        if anomaly_detector and anomaly_reporter:
-            try:
-                # Pattern detectors should work with fixed rules, no learning during detection
-                anomalies = anomaly_detector.bulk_detect(df, column_name, self.batch_size, max_workers=1)
-                anomaly_report = anomaly_reporter.generate_report(anomalies, df)
-                anomaly_results = [r for r in anomaly_report if r.get('probability', 0.7) >= self.anomaly_threshold]
-                print(f"         🔍 Pattern anomalies: {len(anomaly_results)} anomalies found")
-            except Exception as e:
-                print(f"         ⚠️  Pattern anomaly detection failed: {e}")
+        # Run pattern-based anomaly detection if enabled and available
+        if self.enable_pattern:
+            anomaly_detector, anomaly_reporter = self._get_anomaly_components(field_name)
+            if anomaly_detector and anomaly_reporter:
+                try:
+                    # Pattern detectors should work with fixed rules, no learning during detection
+                    anomalies = anomaly_detector.bulk_detect(df, column_name, self.batch_size, max_workers=1)
+                    anomaly_report = anomaly_reporter.generate_report(anomalies, df)
+                    anomaly_results = [r for r in anomaly_report if r.get('probability', 0.7) >= self.anomaly_threshold]
+                    print(f"         🔍 Pattern anomalies: {len(anomaly_results)} anomalies found")
+                except Exception as e:
+                    print(f"         ⚠️  Pattern anomaly detection failed: {e}")
         
-        # Run ML-based anomaly detection if available
-        ml_detector = self._get_ml_detector(field_name)
-        if ml_detector:
-            try:
-                # Initialize the ML detector
-                ml_detector.learn_patterns(df, column_name)
+        # Run ML-based anomaly detection if enabled and available
+        if self.enable_ml:
+            ml_detector = self._get_ml_detector(field_name)
+            if ml_detector:
+                try:
+                    # Initialize the ML detector
+                    ml_detector.learn_patterns(df, column_name)
+                    
+                    # Process each row individually with the ML detector
+                    ml_results_formatted = []
+                    for idx, value in df[column_name].items():
+                        anomaly_error = ml_detector._detect_anomaly(value)
+                        if anomaly_error and anomaly_error.probability >= self.ml_threshold:
+                            ml_results_formatted.append({
+                                'row_index': idx,
+                                'column_name': column_name,
+                                'error_data': value,
+                                'display_message': f"ML Anomaly: {anomaly_error.explanation}",
+                                'probability': anomaly_error.probability,
+                                'detection_type': 'ml_based'
+                            })
+                    
+                    ml_results = ml_results_formatted
+                    print(f"         🤖 ML anomalies: {len(ml_results)} anomalies found")
+                except Exception as e:
+                    print(f"         ⚠️  ML anomaly detection failed: {e}")
                 
-                # Process each row individually with the ML detector
-                ml_results_formatted = []
-                for idx, value in df[column_name].items():
-                    anomaly_error = ml_detector._detect_anomaly(value)
-                    if anomaly_error and anomaly_error.probability >= self.ml_threshold:
-                        ml_results_formatted.append({
-                            'row_index': idx,
-                            'column_name': column_name,
-                            'error_data': value,
-                            'display_message': f"ML Anomaly: {anomaly_error.explanation}",
-                            'probability': anomaly_error.probability,
-                            'detection_type': 'ml_based'
-                        })
-                
-                ml_results = ml_results_formatted
-                print(f"         🤖 ML anomalies: {len(ml_results)} anomalies found")
-            except Exception as e:
-                print(f"         ⚠️  ML anomaly detection failed: {e}")
-            
-            # Force cleanup of ML detector immediately after use
-            del ml_detector
-            import gc
-            gc.collect()
+                # Force cleanup of ML detector immediately after use
+                del ml_detector
+                import gc
+                gc.collect()
         
         total_issues = len(validation_results) + len(anomaly_results) + len(ml_results)
         detection_summary = {
