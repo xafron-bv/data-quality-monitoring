@@ -59,3 +59,14 @@ python demo.py \
   --core-fields-only \
   --enable-ml
 ```
+
+# 🧪 Demo 5: Validation only
+
+```bash
+python demo.py \
+  --data-file data/esqualo_2022_fall.csv \
+  --output-dir demo_comparison_validation_only \
+  --injection-intensity 0.15 \
+  --max-issues-per-row 2 \
+  --validation-threshold 0.0 \
+```
