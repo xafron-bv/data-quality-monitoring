@@ -534,7 +534,7 @@ Multi-sample mode generates multiple samples for statistical evaluation of a sin
 Single-sample mode generates one comprehensive sample with issues across ALL available fields.
 
 This will automatically look for:
-- Error Injection Rules: error_injection_rules/<validator>.json
+- Error Injection Rules: validators/error_injection_rules/<validator>.json
 - Anomaly Injection Rules: anomaly_detectors/anomaly_injection_rules/<field>.json
 - Validator:  validators/<validator>/validate.py (expecting class 'Validator')
 - Reporter:   validators/report:Reporter
@@ -617,7 +617,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     if args.run == "both":
         run_ml = False  # For now, don't auto-include ML with "both" to avoid complexity
     
-    rules_path = f"error_injection_rules/{validator_name}.json"
+    rules_path = os.path.join('validators', 'error_injection_rules', f'{validator_name}.json')
     validator_module_str = f"validators.{validator_name}.validate:Validator"
     validator_reporter_module_str = f"validators.report:Reporter"
     anomaly_detector_module_str = f"anomaly_detectors.pattern_based.{detector_name}.detect:AnomalyDetector"

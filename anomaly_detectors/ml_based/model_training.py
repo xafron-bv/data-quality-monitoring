@@ -302,7 +302,7 @@ def demonstrate_similarity(model, data_series, field_name):
     print("\n--- Anomaly Detection Test ---")
     
     # Load both error injection and anomaly injection rules for comprehensive training
-    error_rules_dir = path.join('..', 'error_injection_rules')
+    error_rules_dir = path.join('..', 'validators', 'error_injection_rules')
     anomaly_rules_dir = path.join(path.dirname(__file__), '..', 'anomaly_injection_rules')
     
     rule_files = {
