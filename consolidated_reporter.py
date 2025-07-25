@@ -305,7 +305,8 @@ def get_f1_interpretation(f1_score: float) -> str:
         return "Very poor detection performance"
 
 
-def compute_per_field_metrics(cell_classifications, injection_metadata):
+# Map field_name -> column_name using field_results
+def compute_per_field_metrics(cell_classifications, injection_metadata, field_results):
     # For each field, compute metrics for validation, pattern_based, ml_based, and combined
     fields = set([c.field_name for c in cell_classifications])
     result = {}
@@ -318,9 +319,10 @@ def compute_per_field_metrics(cell_classifications, injection_metadata):
         result[field] = {}
         all_detected = set()
         all_injected = set()
+        column_name_mapped = field_results[field].column_name if field in field_results else field
         for det_type, inj_type in methods:
             detected = set((c.row_index, c.column_name) for c in cell_classifications if c.field_name == field and c.detection_type == det_type)
-            injected = set((inj["row_index"], field) for inj in injection_metadata.get(field, []) if inj["injection_type"] == inj_type)
+            injected = set((inj["row_index"], column_name_mapped) for inj in injection_metadata.get(field, []) if inj["injection_type"] == inj_type)
             tp = detected & injected
             fp = detected - injected
             fn = injected - detected
@@ -375,7 +377,7 @@ def save_consolidated_reports(cell_classifications: List[CellClassification],
     with open(viewer_path, 'w', encoding='utf-8') as f:
         json.dump(viewer_report, f, indent=2, ensure_ascii=False)
     # Unified report for metrics
-    per_field_metrics = compute_per_field_metrics(cell_classifications, injection_metadata)
+    per_field_metrics = compute_per_field_metrics(cell_classifications, injection_metadata, field_results)
     report = {
         "sample_name": sample_name,
         "total_rows": len(sample_df),
