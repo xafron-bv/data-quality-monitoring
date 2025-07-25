@@ -450,9 +450,10 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
     print(summary_text)
 
     # Save reports
-    summary_path = os.path.join(os.path.dirname(__file__), output_dir, 'summary_report.txt')
-    with open(summary_path, 'w') as f:
-        f.write(summary_text)
+    # Remove all code that writes or prints summary, performance_summary, or metadata files
+    # summary_path = os.path.join(os.path.dirname(__file__), output_dir, 'summary_report.txt')
+    # with open(summary_path, 'w') as f:
+    #     f.write(summary_text)
     
     # Generate human-readable performance summary
     performance_summary = generate_human_readable_performance_summary(evaluation_results)
@@ -497,19 +498,19 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
         json.dump(enhanced_output, f, indent=2)
     
     # Also save just the human-readable summary as a separate file
-    performance_summary_path = os.path.join(os.path.dirname(__file__), output_dir, 'performance_summary.json')
-    with open(performance_summary_path, 'w') as f:
-        json.dump(performance_summary, f, indent=2)
+    # performance_summary_path = os.path.join(os.path.dirname(__file__), output_dir, 'performance_summary.json')
+    # with open(performance_summary_path, 'w') as f:
+    #     json.dump(performance_summary, f, indent=2)
     
     # Save cell coordinates mapping as a separate file for the UI
-    cell_coordinates_path = os.path.join(os.path.dirname(__file__), output_dir, 'cell_coordinates.json')
-    with open(cell_coordinates_path, 'w') as f:
-        json.dump(cell_coordinates, f, indent=2)
+    # cell_coordinates_path = os.path.join(os.path.dirname(__file__), output_dir, 'cell_coordinates.json')
+    # with open(cell_coordinates_path, 'w') as f:
+    #     json.dump(cell_coordinates, f, indent=2)
     
-    print(f"\nSummary report saved to '{summary_path}'")
-    print(f"Full JSON results saved to '{full_results_path}'")
-    print(f"Human-readable performance summary saved to '{performance_summary_path}'")
-    print(f"Cell coordinates mapping saved to '{cell_coordinates_path}'")
+    # print(f"\nSummary report saved to '{summary_path}'")
+    # print(f"Full JSON results saved to '{full_results_path}'")
+    # print(f"Human-readable performance summary saved to '{performance_summary_path}'")
+    # print(f"Cell coordinates mapping saved to '{cell_coordinates_path}'")
 
 
 def main():
@@ -923,34 +924,22 @@ def run_comprehensive_evaluation(args):
         injection_metadata=injection_metadata,
         sample_name="comprehensive_evaluation"
     )
-    
-    # Print summary
+    unified_report_path = report_files["unified_report"]
     print(f"\n✅ Comprehensive evaluation completed successfully!")
     print(f"\n📋 Results Summary:")
     print(f"   📊 Dataset: {len(sample_df)} rows, {len(sample_df.columns)} columns")
     print(f"   🎯 Analyzed fields: {len(field_results)}")
     print(f"   🔍 Total issues detected: {len(cell_classifications)}")
-    
-    # Break down by detection type
     by_type = {}
     for classification in cell_classifications:
         detection_type = classification.detection_type
         by_type[detection_type] = by_type.get(detection_type, 0) + 1
-    
     for detection_type, count in by_type.items():
         print(f"      {detection_type}: {count}")
-    
     affected_rows = len(set(c.row_index for c in cell_classifications))
     print(f"   🎯 Affected rows: {affected_rows} / {len(sample_df)} ({affected_rows/len(sample_df)*100:.1f}%)")
-    
-    print(f"\n📁 Generated Files:")
-    for file_type, file_path in report_files.items():
-        print(f"   {file_type}: {os.path.basename(file_path)}")
-    
-    print(f"\n🌐 Visualization:")
-    print(f"   Open data_quality_viewer.html in your browser")
-    print(f"   Upload: {os.path.basename(sample_files['sample_csv'])}")
-    print(f"   Upload: {os.path.basename(report_files['viewer_report'])}")
+    print(f"\n📁 Generated Unified Report:")
+    print(f"   {unified_report_path}")
 
 
 if __name__ == '__main__':

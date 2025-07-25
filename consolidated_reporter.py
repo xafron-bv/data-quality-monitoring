@@ -305,6 +305,56 @@ def get_f1_interpretation(f1_score: float) -> str:
         return "Very poor detection performance"
 
 
+def compute_per_field_metrics(cell_classifications, injection_metadata):
+    # For each field, compute metrics for validation, pattern_based, ml_based, and combined
+    fields = set([c.field_name for c in cell_classifications])
+    result = {}
+    methods = [
+        ("validation", "error"),
+        ("pattern_based", "anomaly"),
+        ("ml_based", "anomaly")
+    ]
+    for field in fields:
+        result[field] = {}
+        all_detected = set()
+        all_injected = set()
+        for det_type, inj_type in methods:
+            detected = set((c.row_index, c.column_name) for c in cell_classifications if c.field_name == field and c.detection_type == det_type)
+            injected = set((inj["row_index"], field) for inj in injection_metadata.get(field, []) if inj["injection_type"] == inj_type)
+            tp = detected & injected
+            fp = detected - injected
+            fn = injected - detected
+            precision = len(tp) / len(detected) if detected else 0
+            recall = len(tp) / len(injected) if injected else 0
+            result[field][det_type] = {
+                "precision": round(precision, 3),
+                "recall": round(recall, 3),
+                "true_positives": len(tp),
+                "false_positives": len(fp),
+                "false_negatives": len(fn),
+                "errors_injected": sum(1 for inj in injection_metadata.get(field, []) if inj["injection_type"] == "error") if det_type == "validation" else None,
+                "anomalies_injected": sum(1 for inj in injection_metadata.get(field, []) if inj["injection_type"] == "anomaly") if det_type in ("pattern_based", "ml_based") else None
+            }
+            all_detected |= detected
+            all_injected |= injected
+        # Combined metrics (all methods)
+        tp = all_detected & all_injected
+        fp = all_detected - all_injected
+        fn = all_injected - all_detected
+        precision = len(tp) / len(all_detected) if all_detected else 0
+        recall = len(tp) / len(all_injected) if all_injected else 0
+        result[field]["combined"] = {
+            "precision": round(precision, 3),
+            "recall": round(recall, 3),
+            "true_positives": len(tp),
+            "false_positives": len(fp),
+            "false_negatives": len(fn),
+            "errors_injected": sum(1 for inj in injection_metadata.get(field, []) if inj["injection_type"] == "error"),
+            "anomalies_injected": sum(1 for inj in injection_metadata.get(field, []) if inj["injection_type"] == "anomaly")
+        }
+    return result
+
+
 def save_consolidated_reports(cell_classifications: List[CellClassification],
                             field_results: Dict[str, FieldDetectionResult],
                             sample_df: pd.DataFrame,
@@ -312,75 +362,27 @@ def save_consolidated_reports(cell_classifications: List[CellClassification],
                             injection_metadata: Optional[Dict[str, List[Dict[str, Any]]]] = None,
                             sample_name: str = "comprehensive_analysis") -> Dict[str, str]:
     """
-    Save all consolidated reports to files.
-    
-    Args:
-        cell_classifications: Cell classifications
-        field_results: Field detection results
-        sample_df: Analyzed DataFrame
-        output_dir: Output directory
-        injection_metadata: Optional injection metadata
-        sample_name: Base name for output files
-        
-    Returns:
-        Dict with paths to created files
+    Save both the viewer-compatible report and the unified report file.
     """
     os.makedirs(output_dir, exist_ok=True)
-    
-    # Create viewer-compatible report
+    if injection_metadata is None:
+        injection_metadata = {}
+    # Viewer-compatible report for data_quality_viewer.html
     viewer_report = create_viewer_compatible_report(
-        cell_classifications, field_results, 
-        sample_metadata={"name": sample_name, "total_rows": len(sample_df)}
+        cell_classifications, field_results, sample_metadata={"name": sample_name, "total_rows": len(sample_df)}
     )
-    
-    # Create detailed analysis report
-    detailed_report = create_detailed_analysis_report(
-        cell_classifications, field_results, sample_df, injection_metadata
-    )
-    
-    # Save viewer-compatible report (main file for visualization)
     viewer_path = os.path.join(output_dir, f"{sample_name}_viewer_report.json")
     with open(viewer_path, 'w', encoding='utf-8') as f:
         json.dump(viewer_report, f, indent=2, ensure_ascii=False)
-    
-    # Save detailed analysis report
-    detailed_path = os.path.join(output_dir, f"{sample_name}_detailed_analysis.json")
-    with open(detailed_path, 'w', encoding='utf-8') as f:
-        json.dump(detailed_report, f, indent=2, ensure_ascii=False)
-    
-    # Save cell coordinates specifically (for backward compatibility)
-    cell_coords_path = os.path.join(output_dir, f"{sample_name}_cell_coordinates.json")
-    with open(cell_coords_path, 'w', encoding='utf-8') as f:
-        json.dump(viewer_report["cell_coordinates"], f, indent=2, ensure_ascii=False)
-    
-    # Save summary for quick reference
-    summary = {
+    # Unified report for metrics
+    per_field_metrics = compute_per_field_metrics(cell_classifications, injection_metadata)
+    report = {
         "sample_name": sample_name,
-        "analysis_timestamp": pd.Timestamp.now().isoformat(),
-        "dataset_rows": len(sample_df),
-        "dataset_columns": len(sample_df.columns),
-        "analyzed_fields": len(field_results),
-        "total_issues_detected": len(cell_classifications),
-        "affected_rows": len(set(c.row_index for c in cell_classifications)),
-        "issues_by_type": {
-            "validation_errors": sum(1 for c in cell_classifications if c.detection_type == "validation"),
-            "pattern_anomalies": sum(1 for c in cell_classifications if c.detection_type == "pattern_based"),
-            "ml_anomalies": sum(1 for c in cell_classifications if c.detection_type == "ml_based")
-        },
-        "files_created": {
-            "viewer_report": f"{sample_name}_viewer_report.json",
-            "detailed_analysis": f"{sample_name}_detailed_analysis.json",
-            "cell_coordinates": f"{sample_name}_cell_coordinates.json"
-        }
+        "total_rows": len(sample_df),
+        "total_columns": len(sample_df.columns),
+        "fields": per_field_metrics
     }
-    
-    summary_path = os.path.join(output_dir, f"{sample_name}_summary.json")
-    with open(summary_path, 'w', encoding='utf-8') as f:
-        json.dump(summary, f, indent=2, ensure_ascii=False)
-    
-    return {
-        "viewer_report": viewer_path,
-        "detailed_analysis": detailed_path,
-        "cell_coordinates": cell_coords_path,
-        "summary": summary_path
-    } 
+    unified_path = os.path.join(output_dir, f"{sample_name}_unified_report.json")
+    with open(unified_path, 'w', encoding='utf-8') as f:
+        json.dump(report, f, indent=2, ensure_ascii=False)
+    return {"viewer_report": viewer_path, "unified_report": unified_path} 
