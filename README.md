@@ -2,6 +2,19 @@
 
 A comprehensive data quality monitoring system that combines rule-based validation, pattern-based anomaly detection, and ML-based anomaly detection using a unified interface.
 
+## 📚 Documentation Index
+
+All detailed documentation is now located in the [`docs/`](./docs/) directory:
+
+- [System Class Hierarchy](./docs/CLASS_HIERARCHY_DOCUMENTATION.md)
+- [ML Anomaly Detection Documentation](./docs/ML_Anomaly_Detection_Documentation.md)
+- [ML Anomaly Detection Overview](./docs/ML_Anomaly_Detection_Overview.md)
+- [Demo Commands](./docs/demo_commands.md)
+- Prompts Documentation:
+  - [Rule Creation Guide](./docs/prompts/rule-create.md)
+  - [Validator Creation Guide](./docs/prompts/validator-create.md)
+  - [Validator Edit Guide](./docs/prompts/validator-edit.md)
+
 ## 🏗️ System Architecture
 
 The system provides three complementary approaches to data quality monitoring:
