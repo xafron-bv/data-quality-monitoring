@@ -1,0 +1,58 @@
+🎯 RECALL-OPTIMIZED Anomaly Detection Training
+💡 Strategy: Better to flag clean data as anomalous than to miss actual anomalies
+📁 Results directory structure created:
+  - results/
+    ├── summary/          (HP search results, summaries)
+    ├── checkpoints/      (temporary training checkpoints)
+    └── results_[column]/ (trained models for each column)
+Using Apple M1/M2 GPU (MPS) for ML training
+
+==================== Starting Process for Field: category (Column: article_structure_name_2) ====================
+Using field file: 'category.json', Model: sentence-transformers/multi-qa-MiniLM-L6-cos-v1, Epochs: 4
+Hyperparameter search enabled with 15 trials
+Loaded 10 error injection rules from validators/error_injection_rules/category.json
+Loaded 5 anomaly injection rules from /Users/amin/devel/data-quality-monitoring/anomaly_detectors/ml_based/../anomaly_injection_rules/category.json
+Total rules for training: 15 (errors + anomalies)
+
+🎯 Starting OPTIMIZED hyperparameter search for field 'category' with 15 trials...
+📊 Optimization strategy: precision_focused
+💡 Strategy: Precision-focused (min precision: 0.8)
+
+--- Trial 1/15 ---
+Testing parameters: {'model_name': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'triplet_margin': 0.4, 'distance_metric': <function TripletDistanceMetric.<lambda> at 0x16a8385e0>, 'batch_size': 24, 'epochs': 3, 'learning_rate': 3e-05}
+Generating improved triplet dataset for anomaly detection...
+Working with 2704 clean texts from field 'category'
+Created 2606 triplets for anomaly detection training.
+Structure: Anchor (clean) -> Positive (clean) -> Negative (error-injected anomaly)
+Computing widget examples:   0%|          | 0/1 [00:00<?, ?example/s]huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+                                                                     /Users/amin/devel/data-quality-monitoring/virtenv/lib/python3.11/site-packages/torch/utils/data/dataloader.py:683: UserWarning: 'pin_memory' argument is set as true but not supported on MPS now, then device pinned memory won't be used.
+  warnings.warn(warn_msg)
+/Users/amin/devel/data-quality-monitoring/virtenv/lib/python3.11/site-packages/torch/nn/modules/module.py:1762: FutureWarning: `encoder_attention_mask` is deprecated and will be removed in version 4.55.0 for `BertSdpaSelfAttention.forward`.
+  return forward_call(*args, **kwargs)
+Traceback (most recent call last):
+  File "/Users/amin/devel/data-quality-monitoring/anomaly_detectors/ml_based/index.py", line 158, in <module>
+    best_params, best_recall, best_precision, best_f1, search_results = random_hyperparameter_search(
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/amin/devel/data-quality-monitoring/anomaly_detectors/ml_based/hyperparameter_search.py", line 378, in random_hyperparameter_search
+    recall_score, precision_score, f1_score = train_with_params(df, field_name, column_name, rules, params)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/amin/devel/data-quality-monitoring/anomaly_detectors/ml_based/hyperparameter_search.py", line 197, in train_with_params
+    model.fit(
+  File "/Users/amin/devel/data-quality-monitoring/virtenv/lib/python3.11/site-packages/sentence_transformers/fit_mixin.py", line 408, in fit
+    trainer.train(resume_from_checkpoint=resume_from_checkpoint)
+  File "/Users/amin/devel/data-quality-monitoring/virtenv/lib/python3.11/site-packages/transformers/trainer.py", line 2237, in train
+    return inner_training_loop(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/amin/devel/data-quality-monitoring/virtenv/lib/python3.11/site-packages/transformers/trainer.py", line 2578, in _inner_training_loop
+    tr_loss_step = self.training_step(model, inputs, num_items_in_batch)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/amin/devel/data-quality-monitoring/virtenv/lib/python3.11/site-packages/transformers/trainer.py", line 3837, in training_step
+    if self.accelerator.distributed_type == DistributedType.DEEPSPEED:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/amin/devel/data-quality-monitoring/virtenv/lib/python3.11/site-packages/accelerate/accelerator.py", line 646, in distributed_type
+    @property
+
+KeyboardInterrupt

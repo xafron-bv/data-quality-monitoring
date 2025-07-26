@@ -13,6 +13,97 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from error_injection import apply_error_rule
 
 
+def get_optimization_strategy(field_name):
+    """
+    Determine the optimization strategy based on field performance characteristics.
+    Returns strategy and minimum precision threshold.
+    """
+    # Performance categories based on F1 scores from curve analysis
+    excellent_performers = ["ean", "category", "color_name", "material"]  # F1 > 0.95
+    good_performers = ["size", "article_number"]  # F1 0.85-0.95
+    moderate_performers = ["product_name_en", "description_short_1"]  # F1 0.70-0.85
+    challenging_fields = ["long_description_nl", "customs_tariff_number", "colour_code"]  # F1 < 0.70
+    
+    if field_name in excellent_performers:
+        return "precision_focused"  # Already high recall, focus on precision
+    elif field_name in good_performers:
+        return "balanced"  # Good balance, optimize F1
+    elif field_name in moderate_performers:
+        return "recall_focused"  # Need better recall while maintaining precision
+    elif field_name in challenging_fields:
+        return "aggressive_recall"  # Need much better recall, accept lower precision
+    else:
+        return "balanced"  # Default strategy
+
+
+def get_strategy_based_params(hp_search_space, strategy, parse_distance_metric):
+    """
+    Generate hyperparameters with bias based on optimization strategy.
+    """
+    params = {}
+    
+    # Strategy-based model selection
+    if strategy == "precision_focused":
+        # Prefer models known for high precision
+        preferred_models = ["sentence-transformers/multi-qa-MiniLM-L6-cos-v1", "sentence-transformers/all-mpnet-base-v2"]
+        params['model_name'] = random.choice(preferred_models) if random.random() < 0.7 else random.choice(hp_search_space['model_name'])
+    elif strategy == "aggressive_recall":
+        # Prefer models known for good recall
+        preferred_models = ["sentence-transformers/distilbert-base-nli-stsb-mean-tokens", "sentence-transformers/all-MiniLM-L12-v2"]
+        params['model_name'] = random.choice(preferred_models) if random.random() < 0.7 else random.choice(hp_search_space['model_name'])
+    else:
+        params['model_name'] = random.choice(hp_search_space['model_name'])
+    
+    # Strategy-based triplet margin selection
+    if strategy == "precision_focused":
+        # Lower margins for precision
+        params['triplet_margin'] = random.choice([0.2, 0.3, 0.4, 0.5])
+    elif strategy == "aggressive_recall":
+        # Higher margins for recall
+        params['triplet_margin'] = random.choice([1.0, 1.2, 1.5, 2.0])
+    else:
+        params['triplet_margin'] = random.choice(hp_search_space['triplet_margin'])
+    
+    # Strategy-based distance metric selection
+    if strategy == "precision_focused":
+        # Prefer COSINE for precision
+        params['distance_metric'] = parse_distance_metric("COSINE") if random.random() < 0.8 else parse_distance_metric(random.choice(hp_search_space['distance_metric']))
+    else:
+        params['distance_metric'] = parse_distance_metric(random.choice(hp_search_space['distance_metric']))
+    
+    # Other parameters
+    params['batch_size'] = random.choice(hp_search_space['batch_size'])
+    params['epochs'] = random.choice(hp_search_space['epochs'])
+    params['learning_rate'] = random.choice(hp_search_space['learning_rate'])
+    
+    return params
+
+
+def update_best_params(current_best, current_recall, current_precision, current_f1,
+                      new_params, new_recall, new_precision, new_f1, strategy):
+    """
+    Update best parameters based on optimization strategy.
+    """
+    if strategy == "precision_focused":
+        # Optimize for precision while maintaining good recall
+        if new_precision > current_precision and new_recall >= 0.8:
+            return new_params.copy()
+    elif strategy == "balanced":
+        # Optimize for F1 score
+        if new_f1 > current_f1:
+            return new_params.copy()
+    elif strategy == "recall_focused":
+        # Optimize for recall while maintaining reasonable precision
+        if new_recall > current_recall and new_precision >= 0.4:
+            return new_params.copy()
+    elif strategy == "aggressive_recall":
+        # Optimize for recall with minimal precision constraint
+        if new_recall > current_recall and new_precision >= 0.3:
+            return new_params.copy()
+    
+    return current_best
+
+
 def get_optimal_parameters(field_name, fallback_model_name, fallback_epochs):
     """
     Get RECALL-OPTIMIZED parameters for each field based on ACTUAL hyperparameter search results.
@@ -212,7 +303,7 @@ def evaluate_recall_and_precision_performance(model, clean_texts, rules, field_n
 
 def random_hyperparameter_search(df, field_name, column_name, rules, device, num_trials=15):
     """
-    Perform RECALL-FOCUSED hyperparameter search with PRECISION constraint (min 30%).
+    Perform OPTIMIZED hyperparameter search based on field performance characteristics.
     Args:
         df: DataFrame containing the data
         field_name: The field name (used for saving results and logging)
@@ -221,8 +312,11 @@ def random_hyperparameter_search(df, field_name, column_name, rules, device, num
         device: Training device
         num_trials: Number of hyperparameter trials
     """
-    print(f"\n🎯 Starting RECALL-FOCUSED hyperparameter search for field '{field_name}' with {num_trials} trials...")
-    print(f"💡 Constraint: Precision must be at least 30% to be considered valid")
+    print(f"\n🎯 Starting OPTIMIZED hyperparameter search for field '{field_name}' with {num_trials} trials...")
+    
+    # Determine optimization strategy based on field performance
+    optimization_strategy = get_optimization_strategy(field_name)
+    print(f"📊 Optimization strategy: {optimization_strategy}")
 
     # Load hyperparameter search space from JSON file
     hp_space_path = os.path.join(os.path.dirname(__file__), "hyperparameter_search_space.json")
@@ -244,6 +338,23 @@ def random_hyperparameter_search(df, field_name, column_name, rules, device, num
         else:
             return losses.TripletDistanceMetric.COSINE
 
+    # Set minimum precision threshold based on optimization strategy
+    if optimization_strategy == "precision_focused":
+        min_precision = 0.8
+        print(f"💡 Strategy: Precision-focused (min precision: {min_precision})")
+    elif optimization_strategy == "balanced":
+        min_precision = 0.5
+        print(f"💡 Strategy: Balanced optimization (min precision: {min_precision})")
+    elif optimization_strategy == "recall_focused":
+        min_precision = 0.4
+        print(f"💡 Strategy: Recall-focused (min precision: {min_precision})")
+    elif optimization_strategy == "aggressive_recall":
+        min_precision = 0.3
+        print(f"💡 Strategy: Aggressive recall (min precision: {min_precision})")
+    else:
+        min_precision = 0.5
+        print(f"💡 Strategy: Default balanced (min precision: {min_precision})")
+
     best_recall = -1
     best_precision = -1
     best_f1 = -1
@@ -258,22 +369,16 @@ def random_hyperparameter_search(df, field_name, column_name, rules, device, num
     for trial in range(num_trials):
         print(f"\n--- Trial {trial + 1}/{num_trials} ---")
 
-        # Sample random hyperparameters
-        params = {}
-        for param_name, values in hp_search_space.items():
-            val = random.choice(values)
-            if param_name == "distance_metric":
-                val = parse_distance_metric(val)
-            params[param_name] = val
-
+        # Sample random hyperparameters with strategy-based bias
+        params = get_strategy_based_params(hp_search_space, optimization_strategy, parse_distance_metric)
         print(f"Testing parameters: {params}")
 
         try:
             # Train with current parameters and get RECALL, PRECISION, F1 scores
             recall_score, precision_score, f1_score = train_with_params(df, field_name, column_name, rules, params)
 
-            # Only consider results with minimum 30% precision
-            if precision_score >= 0.3:
+            # Apply strategy-based filtering
+            if precision_score >= min_precision:
                 results.append((params.copy(), recall_score, precision_score, f1_score))
 
                 # Track performance by parameter
@@ -292,12 +397,14 @@ def random_hyperparameter_search(df, field_name, column_name, rules, device, num
                     distance_scores[distance] = []
                 distance_scores[distance].append((recall_score, precision_score, f1_score))
 
-                # Update best based on recall (primary) with precision constraint
-                if recall_score > best_recall:
+                # Update best based on optimization strategy
+                best_params = update_best_params(best_params, best_recall, best_precision, best_f1,
+                                               params, recall_score, precision_score, f1_score,
+                                               optimization_strategy)
+                if best_params:
                     best_recall = recall_score
                     best_precision = precision_score
                     best_f1 = f1_score
-                    best_params = params.copy()
                     print(f"🎯 New best RECALL score: {recall_score:.4f} ({recall_score*100:.1f}%)")
                     print(f"   Precision: {precision_score:.4f} ({precision_score*100:.1f}%)")
                     print(f"   F1 Score: {f1_score:.4f} ({f1_score*100:.1f}%)")

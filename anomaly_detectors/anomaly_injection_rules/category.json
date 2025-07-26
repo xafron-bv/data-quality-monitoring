@@ -1,104 +1,104 @@
 {
   "field_name": "category",
-  "description": "Anomaly injection rules for product categories - injects non-fashion product categories",
+  "description": "Anomaly injection rules for product categories - injects completely wrong domain categories",
   "anomaly_rules": [
     {
-      "rule_name": "inject_kitchen_categories",
-      "description": "Replace fashion categories with kitchen/cooking items",
+      "rule_name": "inject_technical_categories",
+      "description": "Replace fashion categories with technical/engineering items",
       "operation": "value_replacement",
       "probability": 0.3,
       "params": {
         "replacement_values": [
-          "Blender",
-          "Microwave Oven",
-          "Kitchen Knife Set",
-          "Coffee Machine",
-          "Toaster",
-          "Mixing Bowl",
-          "Cutting Board",
-          "Food Processor",
-          "Rice Cooker",
-          "Dishwasher"
+          "Nuclear Reactor",
+          "Quantum Computer",
+          "Space Shuttle",
+          "Submarine Engine",
+          "Satellite Dish",
+          "Robotic Arm",
+          "Laser Cutter",
+          "3D Printer",
+          "Circuit Board",
+          "Microprocessor"
         ]
       }
     },
     {
-      "rule_name": "inject_automotive_categories",
-      "description": "Replace with automotive parts and accessories",
+      "rule_name": "inject_abstract_concepts",
+      "description": "Replace with abstract philosophical concepts",
       "operation": "value_replacement",
       "probability": 0.2,
       "params": {
         "replacement_values": [
-          "Car Engine",
-          "Brake Pads",
-          "Steering Wheel",
-          "Windshield Wipers",
-          "Seat Covers",
-          "Car Battery",
-          "Tires",
-          "Headlights",
-          "Air Filter",
-          "Transmission Fluid"
+          "Existential Dread",
+          "Quantum Entanglement",
+          "Consciousness",
+          "Time Dilation",
+          "Parallel Universe",
+          "Dark Matter",
+          "String Theory",
+          "Black Hole",
+          "Infinity",
+          "Chaos Theory"
         ]
       }
     },
     {
-      "rule_name": "inject_office_categories",
-      "description": "Replace with office supplies and equipment",
+      "rule_name": "inject_nonsense_words",
+      "description": "Replace with completely nonsensical words",
       "operation": "value_replacement",
       "probability": 0.2,
       "params": {
         "replacement_values": [
-          "Printer Paper",
-          "Stapler",
-          "Computer Monitor",
-          "Office Chair",
-          "Filing Cabinet",
-          "Desk Lamp",
-          "Paper Shredder",
-          "Whiteboard",
-          "Conference Table",
-          "Copy Machine"
+          "Xylophonic",
+          "Quizzicality",
+          "Bamboozlement",
+          "Flabbergasted",
+          "Serendipitous",
+          "Pandemonium",
+          "Labyrinthine",
+          "Ephemeral",
+          "Mellifluous",
+          "Sesquipedalian"
         ]
       }
     },
     {
-      "rule_name": "inject_medical_categories",
-      "description": "Replace with medical equipment and supplies",
+      "rule_name": "inject_numbers_and_symbols",
+      "description": "Replace with random numbers and symbols",
       "operation": "value_replacement",
       "probability": 0.15,
       "params": {
         "replacement_values": [
-          "Stethoscope",
-          "Blood Pressure Monitor",
-          "Surgical Mask",
-          "X-Ray Machine",
-          "Hospital Bed",
-          "Defibrillator",
-          "Thermometer",
-          "Bandages",
-          "Syringe",
-          "MRI Scanner"
+          "12345",
+          "!@#$%",
+          "ABCDEF",
+          "999999",
+          "XYZ123",
+          "###",
+          "*****",
+          "00000",
+          "&&&&&",
+          "?????"
         ]
       }
     },
     {
-      "rule_name": "inject_abstract_categories",
-      "description": "Replace with abstract or conceptual categories",
+      "rule_name": "inject_foreign_languages",
+      "description": "Replace with words from different languages",
       "operation": "value_replacement",
       "probability": 0.15,
       "params": {
         "replacement_values": [
-          "Happiness",
-          "Quantum Physics",
-          "Democracy",
-          "Time Travel",
-          "Artificial Intelligence",
-          "Philosophy",
-          "Mathematics",
-          "Existential Crisis",
-          "Love",
-          "The Universe"
+          "Bonjour",
+          "Hola",
+          "Ciao",
+          "Guten Tag",
+          "Konichiwa",
+          "Namaste",
+          "Shalom",
+          "Merhaba",
+          "Ni Hao",
+          "Salaam"
         ]
       }
     }

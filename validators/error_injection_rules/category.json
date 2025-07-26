@@ -7,7 +7,7 @@
       "params": {
         "type": "chars",
         "chars": "!@#$%^&*()[]{}|;:\",./<>?",
-        "length": 1
+        "length": 3
       }
     },
     {
@@ -16,7 +16,7 @@
       "operation": "regex_replace",
       "params": {
         "pattern": "^(.+)$",
-        "replace": "<b>\\1</b>"
+        "replace": "<div class=\"category\">\\1</div>"
       }
     },
     {
@@ -24,7 +24,7 @@
       "description": "Add special characters to end of category",
       "operation": "append",
       "params": {
-        "text": "*"
+        "text": "***!!!###"
       }
     },
     {
@@ -41,7 +41,7 @@
       "description": "Prepend hashtag to category",
       "operation": "prepend",
       "params": {
-        "text": "#"
+        "text": "#CATEGORY_"
       }
     },
     {
@@ -69,6 +69,23 @@
       "params": {
         "find": "t",
         "replace": "/"
+      }
+    },
+    {
+      "rule_name": "add_random_numbers",
+      "description": "Add random numbers to category",
+      "operation": "append",
+      "params": {
+        "text": "123"
+      }
+    },
+    {
+      "rule_name": "add_underscores",
+      "description": "Replace spaces with underscores",
+      "operation": "string_replace",
+      "params": {
+        "find": " ",
+        "replace": "_"
       }
     }
   ]
