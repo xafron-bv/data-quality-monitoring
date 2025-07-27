@@ -38,12 +38,15 @@ def load_brand_config(brand_name: str) -> BrandConfig:
         BrandConfig object
     """
     if brand_name not in _brand_configs:
+        # Get the workspace root directory (parent of brand_config.py)
+        workspace_root = os.path.dirname(os.path.abspath(__file__))
+        
         # Try brand-specific file first
-        config_file = f"brand_configs/{brand_name}.json"
+        config_file = os.path.join(workspace_root, f"brand_configs/{brand_name}.json")
         
         # Fall back to single config file if brand configs directory doesn't exist
         if not os.path.exists(config_file):
-            config_file = "brand_config.json"
+            config_file = os.path.join(workspace_root, "brand_config.json")
             
         if not os.path.exists(config_file):
             raise FileNotFoundError(f"No configuration found for brand '{brand_name}'")
@@ -65,15 +68,20 @@ def get_available_brands() -> List[str]:
     """Get list of available brand configurations."""
     brands = []
     
+    # Get the workspace root directory
+    workspace_root = os.path.dirname(os.path.abspath(__file__))
+    
     # Check brand_configs directory
-    if os.path.exists("brand_configs"):
-        for filename in os.listdir("brand_configs"):
+    brand_configs_dir = os.path.join(workspace_root, "brand_configs")
+    if os.path.exists(brand_configs_dir):
+        for filename in os.listdir(brand_configs_dir):
             if filename.endswith('.json'):
                 brands.append(filename[:-5])  # Remove .json extension
                 
     # Check default config
-    if os.path.exists("brand_config.json"):
-        with open("brand_config.json", 'r') as f:
+    default_config = os.path.join(workspace_root, "brand_config.json")
+    if os.path.exists(default_config):
+        with open(default_config, 'r') as f:
             data = json.load(f)
             brand_name = data.get("brand_name", "default")
             if brand_name not in brands:
