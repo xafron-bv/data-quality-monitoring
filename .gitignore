@@ -8,5 +8,7 @@ material-validator
 results
 analysis_results
 checkpoints
-demo_*
-ml_curves
+demo_*/
+ml_curves/
+detection_*/
+llm_results/

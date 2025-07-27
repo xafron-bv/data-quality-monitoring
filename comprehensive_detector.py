@@ -17,6 +17,7 @@ from common_interfaces import FieldMapper
 from evaluator import Evaluator
 from error_injection import load_error_rules
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
+from anomaly_detectors.llm_based.llm_anomaly_detector import LLMAnomalyDetector
 from exceptions import ConfigurationError, FileOperationError
 
 
@@ -43,6 +44,7 @@ class FieldDetectionResult:
     validation_results: List[Dict[str, Any]]
     anomaly_results: List[Dict[str, Any]]
     ml_results: List[Dict[str, Any]]
+    llm_results: List[Dict[str, Any]]
     total_issues: int
     detection_summary: Dict[str, int]
 
@@ -67,12 +69,14 @@ class ComprehensiveFieldDetector:
                  validation_threshold: float = 0.0,
                  anomaly_threshold: float = 0.7,
                  ml_threshold: float = 0.7,
+                 llm_threshold: float = 0.6,
                  batch_size: int = 1000,
                  max_workers: int = 2,
                  core_fields_only: bool = False,
                  enable_validation: bool = True,
                  enable_pattern: bool = True,
-                 enable_ml: bool = True):
+                 enable_ml: bool = True,
+                 enable_llm: bool = False):
         """
         Initialize comprehensive field detector.
         
@@ -92,12 +96,14 @@ class ComprehensiveFieldDetector:
         self.validation_threshold = validation_threshold
         self.anomaly_threshold = anomaly_threshold
         self.ml_threshold = ml_threshold
+        self.llm_threshold = llm_threshold
         self.batch_size = batch_size
         self.max_workers = max_workers
         self.core_fields_only = core_fields_only
         self.enable_validation = enable_validation
         self.enable_pattern = enable_pattern
         self.enable_ml = enable_ml
+        self.enable_llm = enable_llm
         
         # Core fields that have good validation/anomaly detection
         self.core_fields = {"material", "color_name", "category", "size", "care_instructions"}
@@ -129,7 +135,8 @@ class ComprehensiveFieldDetector:
             capabilities = {
                 "validation": self._has_validation_capability(field_name),
                 "anomaly": self._has_anomaly_capability(field_name),
-                "ml": self._has_ml_capability(field_name)
+                "ml": self._has_ml_capability(field_name),
+                "llm": self._has_llm_capability(field_name)
             }
             
             # Only include fields that have at least one detection method
@@ -160,6 +167,14 @@ class ComprehensiveFieldDetector:
         """Check if ML-based anomaly detection is available for a field."""
         try:
             ml_detector = MLAnomalyDetector(field_name=field_name, threshold=self.ml_threshold)
+            return True
+        except:
+            return False
+    
+    def _has_llm_capability(self, field_name: str) -> bool:
+        """Check if LLM-based anomaly detection is available for a field."""
+        try:
+            llm_detector = LLMAnomalyDetector(field_name=field_name, threshold=self.ml_threshold)
             return True
         except:
             return False
@@ -212,6 +227,16 @@ class ComprehensiveFieldDetector:
             print(f"      ⚠️  Could not load ML detection for {field_name}: {e}")
             return None
     
+    def _get_llm_detector(self, field_name: str) -> Any:
+        """Get or create LLM detector for a field."""
+        # Don't cache LLM detectors to save memory - create fresh each time
+        try:
+            llm_detector = LLMAnomalyDetector(field_name=field_name, threshold=self.llm_threshold)
+            return llm_detector
+        except Exception as e:
+            print(f"      ⚠️  Could not load LLM detection for {field_name}: {e}")
+            return None
+    
     def detect_field_issues(self, df: pd.DataFrame, field_name: str) -> FieldDetectionResult:
         """
         Run all available detection methods on a single field.
@@ -233,6 +258,7 @@ class ComprehensiveFieldDetector:
                 validation_results=[],
                 anomaly_results=[],
                 ml_results=[],
+                llm_results=[],
                 total_issues=0,
                 detection_summary={}
             )
@@ -242,6 +268,7 @@ class ComprehensiveFieldDetector:
         validation_results = []
         anomaly_results = []
         ml_results = []
+        llm_results = []
         
         # Run validation if enabled and available
         if self.enable_validation:
@@ -300,11 +327,46 @@ class ComprehensiveFieldDetector:
                 import gc
                 gc.collect()
         
-        total_issues = len(validation_results) + len(anomaly_results) + len(ml_results)
+        # Run LLM-based anomaly detection if enabled and available
+        if self.enable_llm:
+            llm_detector = self._get_llm_detector(field_name)
+            if llm_detector:
+                try:
+                    # Initialize the LLM detector (loads trained model)
+                    llm_detector.learn_patterns(df, column_name)
+                    
+                    # For bulk detection, we'll call the bulk_detect method
+                    llm_anomalies = llm_detector.bulk_detect(df, column_name, self.batch_size, self.max_workers)
+                    
+                    llm_results_formatted = []
+                    for anomaly_error in llm_anomalies:
+                        if anomaly_error:
+                            # LLM detector already applied the threshold, so any returned anomaly is valid
+                            llm_results_formatted.append({
+                                'row_index': anomaly_error.row_index,
+                                'column_name': column_name,
+                                'error_data': anomaly_error.anomaly_data,
+                                'display_message': f"LLM Anomaly: {anomaly_error.explanation}",
+                                'probability': anomaly_error.probability,
+                                'detection_type': 'llm_based'
+                            })
+                    
+                    llm_results = llm_results_formatted
+                    print(f"         🤖 LLM anomalies: {len(llm_results)} anomalies found")
+                except Exception as e:
+                    print(f"         ⚠️  LLM anomaly detection failed: {e}")
+                
+                # Force cleanup of LLM detector immediately after use
+                del llm_detector
+                import gc
+                gc.collect()
+        
+        total_issues = len(validation_results) + len(anomaly_results) + len(ml_results) + len(llm_results)
         detection_summary = {
             "validation_errors": len(validation_results),
             "pattern_anomalies": len(anomaly_results),
-            "ml_anomalies": len(ml_results)
+            "ml_anomalies": len(ml_results),
+            "llm_anomalies": len(llm_results)
         }
         
         return FieldDetectionResult(
@@ -313,6 +375,7 @@ class ComprehensiveFieldDetector:
             validation_results=validation_results,
             anomaly_results=anomaly_results,
             ml_results=ml_results,
+            llm_results=llm_results,
             total_issues=total_issues,
             detection_summary=detection_summary
         )
@@ -386,6 +449,23 @@ class ComprehensiveFieldDetector:
                             'status': 'ANOMALY',
                             'detection_type': 'ml_based',
                             'message': detection.get('display_message', 'ML-based anomaly'),
+                            'confidence': detection.get('probability', 0.5),
+                            'detected_value': detection.get('error_data'),
+                            'error_code': detection.get('error_code')
+                        }
+            
+            # Add LLM-based anomaly results (lowest priority)
+            for detection in result.llm_results:
+                row_idx = detection.get('row_index')
+                if row_idx is not None:
+                    key = (row_idx, column_name)
+                    if key not in detection_map or detection_map[key]['priority'] > 4:
+                        detection_map[key] = {
+                            'field_name': field_name,
+                            'priority': 4,  # Lowest priority
+                            'status': 'ANOMALY',
+                            'detection_type': 'llm_based',
+                            'message': detection.get('display_message', 'LLM-based anomaly'),
                             'confidence': detection.get('probability', 0.5),
                             'detected_value': detection.get('error_data'),
                             'error_code': detection.get('error_code')
@@ -483,7 +563,7 @@ class ComprehensiveFieldDetector:
             print(f"      ✅ {field_name}: {result.total_issues} issues found, {len(field_classifications)} cells classified")
         
         # Print final summary
-        total_issues = sum(len(result.validation_results) + len(result.anomaly_results) + len(result.ml_results) 
+        total_issues = sum(len(result.validation_results) + len(result.anomaly_results) + len(result.ml_results) + len(result.llm_results) 
                           for result in field_results.values())
         affected_rows = len(set(classification.row_index for classification in all_cell_classifications))
         

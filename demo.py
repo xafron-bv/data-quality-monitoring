@@ -45,7 +45,9 @@ class DataQualityDemo:
     def __init__(self, data_file: str = "data/esqualo_2022_fall.csv", 
                  output_dir: str = "demo_results",
                  injection_intensity=0.2, max_issues_per_row=2, core_fields_only=False,
-                 enable_validation=True, enable_pattern=True, enable_ml=True):
+                 enable_validation=True, enable_pattern=True, enable_ml=True, enable_llm=False,
+                 llm_threshold=0.6, llm_few_shot_examples=False, 
+                 llm_temporal_column=None, llm_context_columns=None):
         """
         Initialize the demo with the specified parameters.
         """
@@ -57,6 +59,11 @@ class DataQualityDemo:
         self.enable_validation = enable_validation
         self.enable_pattern = enable_pattern
         self.enable_ml = enable_ml
+        self.enable_llm = enable_llm
+        self.llm_threshold = llm_threshold
+        self.llm_few_shot_examples = llm_few_shot_examples
+        self.llm_temporal_column = llm_temporal_column
+        self.llm_context_columns = llm_context_columns.split(',') if llm_context_columns else None
         
         # Create output directory
         os.makedirs(output_dir, exist_ok=True)
@@ -69,7 +76,15 @@ class DataQualityDemo:
         print(f"📁 Output directory: {self.output_dir}")
         print(f"🎯 Injection intensity: {injection_intensity * 100:.1f}% of cells")
         print(f"🔧 Max issues per row: {max_issues_per_row}")
-        print(f"🤖 ML detection: ENABLED")
+        print(f"🤖 ML detection: {'ENABLED' if enable_ml else 'DISABLED'}")
+        print(f"🧠 LLM detection: {'ENABLED' if enable_llm else 'DISABLED'}")
+        if enable_llm:
+            print(f"   🎯 LLM threshold: {llm_threshold}")
+            print(f"   📚 Few-shot examples: {'ENABLED' if llm_few_shot_examples else 'DISABLED'}")
+            if llm_temporal_column:
+                print(f"   ⏰ Temporal column: {llm_temporal_column}")
+            if llm_context_columns:
+                print(f"   🏷️  Context columns: {', '.join(llm_context_columns)}")
         print(f"📋 Fields: {'CORE ONLY' if core_fields_only else 'ALL AVAILABLE'} ({'material, color_name, category, size, care_instructions' if core_fields_only else 'all fields with detection capabilities'})")
         print("=" * 80)
     
@@ -136,13 +151,15 @@ class DataQualityDemo:
                 field_mapper=self.field_mapper,
                 validation_threshold=0.0,  # Include all validation results
                 anomaly_threshold=0.7,     # Default anomaly threshold
-                ml_threshold=0.7,          # Default ML threshold
+                ml_threshold=0.7,          # ML threshold
+                llm_threshold=self.llm_threshold,  # LLM threshold
                 batch_size=512,            # Smaller batch size to save memory
                 max_workers=1,             # Single-threaded to prevent memory issues
                 core_fields_only=self.core_fields_only,
                 enable_validation=self.enable_validation,
                 enable_pattern=self.enable_pattern,
-                enable_ml=self.enable_ml
+                enable_ml=self.enable_ml,
+                enable_llm=self.enable_llm
             )
             
             field_results, cell_classifications = detector.run_comprehensive_detection(sample_df)
@@ -273,11 +290,20 @@ Example usage:
                        help="Minimum confidence threshold for anomaly detection (default: 0.7)")
     parser.add_argument("--ml-threshold", type=float, default=0.7,
                        help="Minimum confidence threshold for ML detection (default: 0.7)")
+    parser.add_argument("--llm-threshold", type=float, default=0.6,
+                       help="Minimum confidence threshold for LLM detection (default: 0.6)")
     parser.add_argument("--core-fields-only", action="store_true",
                        help="Analyze only core fields (material, color_name, category, size, care_instructions) to save memory")
     parser.add_argument("--enable-validation", action="store_true", help="Enable validation (rule-based) detection")
     parser.add_argument("--enable-pattern", action="store_true", help="Enable pattern-based anomaly detection")
     parser.add_argument("--enable-ml", action="store_true", help="Enable ML-based anomaly detection")
+    parser.add_argument("--enable-llm", action="store_true", help="Enable LLM-based anomaly detection")
+    parser.add_argument("--llm-few-shot-examples", action="store_true", 
+                       help="Enable few-shot examples for LLM detection")
+    parser.add_argument("--llm-temporal-column", type=str, default=None,
+                       help="Column name containing temporal information for LLM dynamic encoding")
+    parser.add_argument("--llm-context-columns", type=str, default=None,
+                       help="Comma-separated list of context columns for LLM dynamic encoding")
     
     args = parser.parse_args()
     
@@ -299,7 +325,12 @@ Example usage:
         core_fields_only=args.core_fields_only,
         enable_validation=args.enable_validation,
         enable_pattern=args.enable_pattern,
-        enable_ml=args.enable_ml
+        enable_ml=args.enable_ml,
+        enable_llm=args.enable_llm,
+        llm_threshold=args.llm_threshold,
+        llm_few_shot_examples=args.llm_few_shot_examples,
+        llm_temporal_column=args.llm_temporal_column,
+        llm_context_columns=args.llm_context_columns
     )
     
     result = demo.run_complete_demo()
