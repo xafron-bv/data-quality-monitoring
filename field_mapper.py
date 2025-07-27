@@ -54,15 +54,8 @@ class FieldMapper:
         return None
     
     @classmethod
-    def from_default_mapping(cls) -> 'FieldMapper':
-        """Get field mapper from static configuration."""
-        from static_brand_config import get_field_mappings, get_brand_name
-        return cls(get_field_mappings(), get_brand_name())
-    
-    @classmethod
-    def from_brand(cls, brand_name: str = None) -> 'FieldMapper':
-        """Get field mapper from static configuration."""
-        # For now, we only support one brand from the static config
-        # The brand_name parameter is kept for backward compatibility
-        from static_brand_config import get_field_mappings, get_brand_name
-        return cls(get_field_mappings(), get_brand_name())
+    def from_brand(cls, brand_name: str) -> 'FieldMapper':
+        """Get field mapper for a specific brand."""
+        from brand_config import load_brand_config
+        config = load_brand_config(brand_name)
+        return cls(config.field_mappings, brand_name)

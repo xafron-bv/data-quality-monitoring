@@ -41,13 +41,13 @@ from consolidated_reporter import save_consolidated_reports
 from confusion_matrix_analyzer import analyze_confusion_matrices
 from field_mapper import FieldMapper
 from exceptions import DataQualityError, ConfigurationError, FileOperationError
-from static_brand_config import get_field_mappings, get_brand_name, get_data_path, get_enabled_fields
+from brand_config import load_brand_config, get_available_brands
 
 
 class DataQualityDemo:
     """Comprehensive demo of the data quality monitoring system using single-sample approach."""
     
-    def __init__(self, data_file: str, 
+    def __init__(self, data_file: str, brand_name: str,
                  output_dir: str = "demo_results",
                  injection_intensity=0.2, max_issues_per_row=2, core_fields_only=False,
                  enable_validation=True, enable_pattern=True, enable_ml=True, enable_llm=False,
@@ -58,6 +58,7 @@ class DataQualityDemo:
         Initialize the demo with the specified parameters.
         """
         self.data_file = data_file
+        self.brand_name = brand_name
         self.output_dir = output_dir
         self.injection_intensity = injection_intensity
         self.max_issues_per_row = max_issues_per_row
@@ -77,7 +78,7 @@ class DataQualityDemo:
         os.makedirs(output_dir, exist_ok=True)
         
         # Initialize field mapper
-        self.field_mapper = FieldMapper.from_default_mapping()
+        self.field_mapper = FieldMapper.from_brand(brand_name)
         
         print(f"🔍 Data Quality Monitoring System Demo")
         print(f"📊 Target dataset: {self.data_file}")
@@ -325,18 +326,35 @@ Example usage:
     
     args = parser.parse_args()
     
-    # Get brand configuration
-    brand = get_brand_name()
-    print(f"Using brand configuration: {brand}")
+    # Handle brand configuration
+    if not args.brand:
+        available_brands = get_available_brands()
+        if len(available_brands) == 1:
+            args.brand = available_brands[0]
+            print(f"Using default brand: {args.brand}")
+        elif len(available_brands) > 1:
+            print(f"Error: Multiple brands available. Please specify one with --brand")
+            print(f"Available brands: {', '.join(available_brands)}")
+            sys.exit(1)
+        else:
+            print("Error: No brand configurations found.")
+            sys.exit(1)
+    
+    # Load brand configuration
+    try:
+        brand_config = load_brand_config(args.brand)
+        print(f"Using brand configuration: {args.brand}")
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+        sys.exit(1)
     
     # Use brand's data file if --data-file not provided
     if not args.data_file:
-        brand_data_path = get_data_path()
-        if brand_data_path:
-            args.data_file = brand_data_path
+        if brand_config.default_data_path:
+            args.data_file = brand_config.default_data_path
             print(f"Using brand data file: {args.data_file}")
         else:
-            print(f"Error: No data file configured in brand_config.json")
+            print(f"Error: No data file configured for brand '{args.brand}'")
             sys.exit(1)
     
     # Validate arguments
@@ -351,6 +369,7 @@ Example usage:
     # Create and run demo
     demo = DataQualityDemo(
         data_file=args.data_file,
+        brand_name=args.brand,
         output_dir=args.output_dir,
         injection_intensity=args.injection_intensity,
         max_issues_per_row=args.max_issues_per_row,

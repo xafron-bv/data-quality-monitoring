@@ -8,14 +8,14 @@ import os
 import argparse
 from field_mapper import FieldMapper
 from exceptions import FileOperationError, DataError, ConfigurationError
-from static_brand_config import get_field_mappings, get_brand_name
+from brand_config import load_brand_config
 
 def analyze_field_values(csv_file, field_name, field_mapper=None):
     """
     Analyze unique values in the specified field
     """
     if field_mapper is None:
-        field_mapper = FieldMapper.from_default_mapping()
+        raise ValueError("field_mapper must be provided")
     
     try:
         # Load the CSV file
@@ -143,8 +143,12 @@ def main():
     args = parser.parse_args()
     
     # Get brand configuration
-    brand = get_brand_name()
-    print(f"Using brand configuration: {brand}")
+    if args.brand:
+        brand_config = load_brand_config(args.brand)
+        print(f"Using brand configuration: {args.brand}")
+    else:
+        print("Error: Brand name is required")
+        sys.exit(1)
     
     csv_file = args.csv_file
     field_name = args.field_name
@@ -152,7 +156,8 @@ def main():
     print(f"🔍 Analyzing field '{field_name}' in file: {csv_file}")
     
     try:
-        unique_values = analyze_field_values(csv_file, field_name)
+        field_mapper = FieldMapper.from_brand(args.brand)
+        unique_values = analyze_field_values(csv_file, field_name, field_mapper)
         if unique_values is not None:
             print(f"\n✅ Analysis complete! Found {len(unique_values)} unique values in '{field_name}' field.")
     except Exception as e:

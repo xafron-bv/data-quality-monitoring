@@ -21,7 +21,7 @@ from comprehensive_sample_generator import generate_comprehensive_sample, save_c
 # Moved import to avoid circular dependency
 from consolidated_reporter import save_consolidated_reports
 from anomaly_detectors.anomaly_injection import load_anomaly_rules, AnomalyInjector
-from static_brand_config import get_field_mappings, get_brand_name, get_data_path
+from brand_config import load_brand_config, get_available_brands
 
 
 def load_module_class(module_path: str):
@@ -583,9 +583,27 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     else:
         debug_config.disable_debug()
     
-    # Get brand configuration
-    brand = get_brand_name()
-    print(f"Using brand configuration: {brand}")
+    # Handle brand configuration
+    if not args.brand:
+        available_brands = get_available_brands()
+        if len(available_brands) == 1:
+            args.brand = available_brands[0]
+            print(f"Using default brand: {args.brand}")
+        elif len(available_brands) > 1:
+            print(f"Error: Multiple brands available. Please specify one with --brand")
+            print(f"Available brands: {', '.join(available_brands)}")
+            sys.exit(1)
+        else:
+            print("Error: No brand configurations found.")
+            sys.exit(1)
+    
+    # Load brand configuration
+    try:
+        brand_config = load_brand_config(args.brand)
+        print(f"Using brand configuration: {args.brand}")
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+        sys.exit(1)
     
     # Validate arguments for single-sample mode
     if args.evaluation_mode == "single-sample":
@@ -912,7 +930,7 @@ def run_comprehensive_evaluation(args):
     print("\n🔍 Step 2: Running comprehensive detection across all fields")
     
     # Get field mapper for current brand
-    field_mapper = FieldMapper.from_default_mapping()
+    field_mapper = FieldMapper.from_brand(args.brand)
     
     # Import here to avoid circular dependency
     from comprehensive_detector import ComprehensiveFieldDetector

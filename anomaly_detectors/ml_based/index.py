@@ -15,7 +15,7 @@ import torch
 # Add parent directories to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from static_brand_config import get_field_mappings, get_brand_name, get_ml_models_path
+from brand_config import load_brand_config, get_available_brands
 from anomaly_detectors.anomaly_injection import load_anomaly_rules
 
 # Add the parent directory to the path to import the error injection module
@@ -52,9 +52,18 @@ if __name__ == "__main__":
     parser.add_argument("--brand-config", help="Path to brand configuration JSON file (deprecated - uses static config)")
     args = parser.parse_args()
     
-    # Get brand configuration
-    brand = get_brand_name()
-    print(f"Using brand configuration: {brand}")
+    # Handle brand configuration
+    if not args.brand:
+        available_brands = get_available_brands()
+        if len(available_brands) == 1:
+            args.brand = available_brands[0]
+            print(f"Using default brand: {args.brand}")
+        else:
+            print("Error: Brand must be specified with --brand")
+            sys.exit(1)
+    
+    brand_config = load_brand_config(args.brand)
+    print(f"Using brand configuration: {args.brand}")
     
     if args.check_anomalies:
         field_name = args.check_anomalies

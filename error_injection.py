@@ -55,7 +55,9 @@ class ErrorInjector:
             field_mapper: Optional field mapper service (uses default if not provided)
         """
         self.rules = rules
-        self.field_mapper = field_mapper or FieldMapper.from_default_mapping()
+        self.field_mapper = field_mapper
+        if self.field_mapper is None:
+            raise ValueError("field_mapper must be provided")
         self._validate_rules()
     
     def _validate_rules(self):
@@ -409,7 +411,8 @@ def generate_error_samples(df: pd.DataFrame,
         raise ValueError("No error rules provided")
     
     if field_mapper is None:
-        field_mapper = FieldMapper.from_default_mapping()
+        # This function needs a field_mapper to be passed
+        raise ValueError("This function requires a field_mapper parameter")
     
     # Validate that the column exists in the dataframe
     column_name = field_mapper.validate_column_exists(df, field_name)

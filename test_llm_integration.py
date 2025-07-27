@@ -15,7 +15,7 @@ from anomaly_detectors.llm_based.llm_anomaly_detector import (
 )
 from comprehensive_detector import ComprehensiveFieldDetector
 from field_mapper import FieldMapper
-from static_brand_config import get_brand_name, get_field_mappings
+from brand_config import load_brand_config, get_available_brands
 
 # Add the project root to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -104,7 +104,8 @@ def test_comprehensive_detector_integration():
     try:
         # Imports are now at the top level
         
-        field_mapper = FieldMapper.from_default_mapping()
+        # Use the brand that was loaded above
+        field_mapper = FieldMapper.from_brand(brand if 'brand' in locals() else 'esqualo')
         detector = ComprehensiveFieldDetector(
             field_mapper=field_mapper,
             enable_llm=True
@@ -131,9 +132,13 @@ def main():
     
     # Set up a default brand for testing
     try:
-        # Imports are now at the top level
-        brand = get_brand_name()
-        print(f"Using brand '{brand}' for testing")
+        available_brands = get_available_brands()
+        if available_brands:
+            brand = available_brands[0]
+            config = load_brand_config(brand)
+            print(f"Using brand '{brand}' for testing")
+        else:
+            print("⚠️ No brand configurations found.")
     except Exception as e:
         print(f"⚠️ Could not set up brand configuration: {e}")
     

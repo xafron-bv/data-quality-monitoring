@@ -17,7 +17,7 @@ import warnings
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from anomaly_detectors.anomaly_error import AnomalyError
-from static_brand_config import get_field_mappings, get_brand_name
+from brand_config import load_brand_config
 from field_column_map import get_field_to_column_map as get_global_map
 
 from transformers import (
@@ -200,9 +200,10 @@ def print_device_info(device: torch.device, context: str = ""):
     """Print device information."""
     print(f"🖥️  Using device: {device} {context}")
 
-def get_field_to_column_map() -> Dict[str, str]:
-    """Get mapping from field names to column names from static configuration."""
-    return get_field_mappings()
+def get_field_to_column_map(brand_name: str = "esqualo") -> Dict[str, str]:
+    """Get mapping from field names to column names for a brand."""
+    config = load_brand_config(brand_name)
+    return config.field_mappings
 
 def calculate_sequence_probability(model, tokenizer, text: str, device: torch.device) -> float:
     """Calculate the probability of a text sequence using the trained language model."""

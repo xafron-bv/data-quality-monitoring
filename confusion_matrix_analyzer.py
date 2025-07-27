@@ -29,7 +29,9 @@ class ConfusionMatrixAnalyzer:
         Args:
             field_mapper: Optional field mapper for column name resolution
         """
-        self.field_mapper = field_mapper or FieldMapper.from_default_mapping()
+        self.field_mapper = field_mapper
+        if self.field_mapper is None:
+            raise ValueError("field_mapper must be provided")
         
     def calculate_confusion_matrix(self, 
                                  cell_classifications: List[CellClassification],

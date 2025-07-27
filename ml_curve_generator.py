@@ -29,7 +29,7 @@ from anomaly_detectors.llm_based.llm_anomaly_detector import LLMAnomalyDetector
 from error_injection import load_error_rules, apply_error_rule
 from anomaly_detectors.anomaly_injection import load_anomaly_rules
 import random
-from static_brand_config import get_field_mappings, get_brand_name
+from brand_config import load_brand_config, get_available_brands
 
 
 class DetectionCurveGenerator:
@@ -45,7 +45,8 @@ class DetectionCurveGenerator:
         """
         self.data_file = data_file
         self.output_dir = output_dir
-        self.field_mapper = FieldMapper.from_default_mapping()
+        # field_mapper will be set when set_brand is called
+        self.field_mapper = None
         
         # Create output directory
         os.makedirs(output_dir, exist_ok=True)
@@ -555,9 +556,18 @@ Example usage:
     
     args = parser.parse_args()
     
-    # Get brand configuration
-    brand = get_brand_name()
-    print(f"Using brand configuration: {brand}")
+    # Handle brand configuration
+    if not args.brand:
+        available_brands = get_available_brands()
+        if len(available_brands) == 1:
+            args.brand = available_brands[0]
+            print(f"Using default brand: {args.brand}")
+        else:
+            print("Error: Brand must be specified with --brand")
+            sys.exit(1)
+    
+    brand_config = load_brand_config(args.brand)
+    print(f"Using brand configuration: {args.brand}")
     
     # Convert thresholds to list if provided
     thresholds = None
@@ -566,6 +576,7 @@ Example usage:
     
     # Initialize generator
     generator = DetectionCurveGenerator(args.data_file, args.output_dir)
+    generator.field_mapper = FieldMapper.from_brand(args.brand)
     
     # Generate curves
     generator.generate_all_curves(fields=args.fields, detection_type=args.detection_type.upper(), thresholds=thresholds)
