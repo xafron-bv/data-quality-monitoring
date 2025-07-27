@@ -67,13 +67,13 @@ For improved detection accuracy, use the weighted combination approach:
 
 ```bash
 # 1. Run evaluation to generate performance data
-python3 demo.py --brand your_brand --injection-intensity 0.15 --core-fields-only --enable-validation --enable-pattern --enable-ml --enable-llm
+python3 single_sample_multi_field_demo.py --brand your_brand --injection-intensity 0.15 --core-fields-only --enable-validation --enable-pattern --enable-ml --enable-llm
 
 # 2. Generate detection weights from performance results
 python3 generate_detection_weights.py --input-file demo_results/demo_analysis_unified_report.json --output-file detection_weights.json --verbose
 
 # 3. Run detection with weighted combination
-python3 demo.py --brand your_brand --core-fields-only --enable-validation --enable-pattern --enable-ml --enable-llm --use-weighted-combination --weights-file detection_weights.json
+python3 single_sample_multi_field_demo.py --brand your_brand --core-fields-only --enable-validation --enable-pattern --enable-ml --enable-llm --use-weighted-combination --weights-file detection_weights.json
 ```
 
 See [Weighted Combination Documentation](./docs/WEIGHTED_COMBINATION.md) for complete details.
@@ -134,10 +134,10 @@ Specify the brand when running evaluations or demos:
 
 ```bash
 # Run evaluation for a specific brand
-python evaluate.py data/mybrand_data.csv --field material --brand mybrand
+python multi_sample_evaluation.py data/mybrand_data.csv --field material --brand mybrand
 
 # Run demo with brand configuration
-python demo.py --brand mybrand
+python single_sample_multi_field_demo.py --brand mybrand
 
 # Train ML models for a specific brand
 cd anomaly_detectors/ml_based
@@ -230,7 +230,7 @@ The evaluation system tests all three detection approaches:
 
 #### Evaluate Single Field with All Methods
 ```bash
-python evaluate.py data/your_data.csv \
+python multi_sample_evaluation.py data/your_data.csv \
   --brand your_brand \
   --field="material" \
   --validator="material" \
@@ -241,7 +241,7 @@ python evaluate.py data/your_data.csv \
 
 #### Evaluate with Validation + ML Detection Only
 ```bash
-python evaluate.py data/your_data.csv \
+python multi_sample_evaluation.py data/your_data.csv \
   --brand your_brand \
   --field="color_name" \
   --validator="color_name" \
@@ -252,7 +252,7 @@ python evaluate.py data/your_data.csv \
 
 #### Evaluate ML Detection Only
 ```bash
-python evaluate.py data/your_data.csv \
+python multi_sample_evaluation.py data/your_data.csv \
   --brand your_brand \
   --field="category" \
   --validator="category" \
@@ -345,7 +345,8 @@ evaluation_results/
 ```
 data-quality-monitoring/
 ├── README.md                       # This file
-├── evaluate.py                     # Main evaluation script
+├── multi_sample_evaluation.py      # Multi-sample statistical evaluation script
+├── single_sample_multi_field_demo.py # Single-sample demo across multiple fields
 ├── evaluator.py                    # Evaluation orchestration
 ├── unified_detection_interface.py  # Unified detection framework
 ├── error_injection.py             # Error injection for testing
