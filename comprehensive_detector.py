@@ -454,6 +454,9 @@ class ComprehensiveFieldDetector:
         """
         Classify each cell based on detection results using either priority-based or weighted combination.
         
+        This method routes to the appropriate classification approach based on the 
+        use_weighted_combination flag set during initialization.
+        
         Args:
             df: Original DataFrame
             field_results: Detection results for all fields
@@ -462,8 +465,10 @@ class ComprehensiveFieldDetector:
             List of cell classifications (excludes clean cells)
         """
         if self.use_weighted_combination:
+            # Use performance-based weighted combination of detection methods
             return self._weighted_classify_cells(df, field_results)
         else:
+            # Use traditional priority-based hierarchy (validation > pattern > ML > LLM)
             return self._priority_classify_cells(df, field_results)
     
     def _priority_classify_cells(self, df: pd.DataFrame, field_results: Dict[str, FieldDetectionResult]) -> List[CellClassification]:

@@ -5,6 +5,15 @@ Detection Weight Generator
 This tool analyzes performance results from demo outputs and generates
 field-specific weights for anomaly detection methods based on their
 F1 scores, precision, and recall metrics.
+
+The generated weights are used by the weighted combination detection system
+to dynamically prioritize the most effective detection method for each field,
+improving overall detection accuracy compared to the fixed priority approach.
+
+Usage:
+    python3 generate_detection_weights.py -i demo_results/report.json -o weights.json --verbose
+
+Created as part of the weighted combination detection enhancement.
 """
 
 import json
