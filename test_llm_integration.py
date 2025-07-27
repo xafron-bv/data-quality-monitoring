@@ -5,6 +5,17 @@ Test script to verify LLM-based anomaly detector integration.
 
 import sys
 import os
+from datetime import datetime
+from anomaly_detectors.llm_based.llm_anomaly_detector import (
+    LLMAnomalyDetector, 
+    LLMAnomalyDetectorFactory,
+    FewShotExample,
+    DynamicContext,
+    create_llm_detector_for_field
+)
+from comprehensive_detector import ComprehensiveFieldDetector
+from field_mapper import FieldMapper
+from brand_config import load_brand_config, get_available_brands
 
 # Add the project root to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -14,13 +25,7 @@ def test_llm_imports():
     print("🧪 Testing LLM-based detector imports...")
     
     try:
-        from anomaly_detectors.llm_based.llm_anomaly_detector import (
-            LLMAnomalyDetector, 
-            LLMAnomalyDetectorFactory,
-            FewShotExample,
-            DynamicContext,
-            create_llm_detector_for_field
-        )
+        # Imports are now at the top level
         print("✅ LLM detector imports successful")
         return True
     except ImportError as e:
@@ -32,8 +37,6 @@ def test_llm_detector_creation():
     print("\n🧪 Testing LLM detector creation...")
     
     try:
-        from anomaly_detectors.llm_based.llm_anomaly_detector import LLMAnomalyDetector
-        
         # Try to create a detector (this will fail without a trained model, but should not crash)
         detector = LLMAnomalyDetector(
             field_name="material",
@@ -53,7 +56,7 @@ def test_few_shot_examples():
     print("\n🧪 Testing few-shot examples...")
     
     try:
-        from anomaly_detectors.llm_based.llm_anomaly_detector import FewShotExample
+        # Imports are now at the top level
         
         examples = [
             FewShotExample("cotton", "normal", 0.95, "Valid material"),
@@ -73,8 +76,7 @@ def test_dynamic_context():
     print("\n🧪 Testing dynamic context...")
     
     try:
-        from anomaly_detectors.llm_based.llm_anomaly_detector import DynamicContext
-        from datetime import datetime
+        # Imports are now at the top level
         
         context = DynamicContext(
             timestamp=datetime.now(),
@@ -100,10 +102,10 @@ def test_comprehensive_detector_integration():
     print("\n🧪 Testing comprehensive detector integration...")
     
     try:
-        from comprehensive_detector import ComprehensiveFieldDetector
-        from common_interfaces import FieldMapper
+        # Imports are now at the top level
         
-        field_mapper = FieldMapper.from_default_mapping()
+        # Use the brand that was loaded above
+        field_mapper = FieldMapper.from_brand(brand if 'brand' in locals() else 'esqualo')
         detector = ComprehensiveFieldDetector(
             field_mapper=field_mapper,
             enable_llm=True
@@ -130,14 +132,13 @@ def main():
     
     # Set up a default brand for testing
     try:
-        from brand_configs import get_brand_config_manager
-        manager = get_brand_config_manager()
-        brands = manager.list_brands()
-        if brands:
-            manager.set_current_brand(brands[0])
-            print(f"Using brand '{brands[0]}' for testing")
+        available_brands = get_available_brands()
+        if available_brands:
+            brand = available_brands[0]
+            config = load_brand_config(brand)
+            print(f"Using brand '{brand}' for testing")
         else:
-            print("⚠️ No brand configurations found. Some tests may fail.")
+            print("⚠️ No brand configurations found.")
     except Exception as e:
         print(f"⚠️ Could not set up brand configuration: {e}")
     
@@ -171,4 +172,4 @@ def main():
 
 if __name__ == "__main__":
     success = main()
-    sys.exit(0 if success else 1) 
+    sys.exit(0 if success else 1)  # Return proper exit code for test scripts 

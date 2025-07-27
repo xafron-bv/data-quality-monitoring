@@ -1,19 +1,21 @@
-#!/usr/bin/env python3
 """
-Script to analyze unique values in any field of a CSV file
+Utility script to analyze unique values in a specific column of a CSV file.
 """
 
 import pandas as pd
 import sys
-from common_interfaces import FieldMapper
+import os
+import argparse
+from field_mapper import FieldMapper
 from exceptions import FileOperationError, DataError, ConfigurationError
+from brand_config import load_brand_config
 
 def analyze_field_values(csv_file, field_name, field_mapper=None):
     """
     Analyze unique values in the specified field
     """
     if field_mapper is None:
-        field_mapper = FieldMapper.from_default_mapping()
+        raise ValueError("field_mapper must be provided")
     
     try:
         # Load the CSV file
@@ -96,7 +98,6 @@ def analyze_field_values(csv_file, field_name, field_mapper=None):
             print("No whitespace variations found.")
         
         # Create analysis_results directory if it doesn't exist
-        import os
         os.makedirs('analysis_results', exist_ok=True)
         
         # Save results to file
@@ -133,20 +134,20 @@ def analyze_field_values(csv_file, field_name, field_mapper=None):
         raise DataError(f"Error analyzing CSV: {e}") from e
 
 def main():
-    import argparse
     parser = argparse.ArgumentParser(description='Analyze a specific column in a CSV file')
     parser.add_argument('csv_file', help='Path to the CSV file to analyze')
     parser.add_argument('field_name', nargs='?', default='color_name', 
                        help='Name of the field to analyze (default: color_name)')
-    parser.add_argument('--brand', required=True, help='Brand name for field mapping')
+    parser.add_argument('--brand', help='Brand name (deprecated - uses static config)')
     
     args = parser.parse_args()
     
-    # Set up brand configuration
-    from brand_configs import get_brand_config_manager
-    brand_manager = get_brand_config_manager()
-    brand_manager.set_current_brand(args.brand)
-    print(f"Using brand configuration: {args.brand}")
+    # Get brand configuration
+    if args.brand:
+        brand_config = load_brand_config(args.brand)
+        print(f"Using brand configuration: {args.brand}")
+    else:
+        raise ConfigurationError("Brand name is required. Use --brand <brand_name>")
     
     csv_file = args.csv_file
     field_name = args.field_name
@@ -154,7 +155,8 @@ def main():
     print(f"🔍 Analyzing field '{field_name}' in file: {csv_file}")
     
     try:
-        unique_values = analyze_field_values(csv_file, field_name)
+        field_mapper = FieldMapper.from_brand(args.brand)
+        unique_values = analyze_field_values(csv_file, field_name, field_mapper)
         if unique_values is not None:
             print(f"\n✅ Analysis complete! Found {len(unique_values)} unique values in '{field_name}' field.")
     except Exception as e:
@@ -162,7 +164,7 @@ def main():
         if hasattr(e, 'details'):
             for key, value in e.details.items():
                 print(f"  {key}: {value}")
-        sys.exit(1)  # Keep this one sys.exit for CLI script behavior
+        sys.exit(1)  # Exit with error code for CLI usage
 
 if __name__ == "__main__":
     main()

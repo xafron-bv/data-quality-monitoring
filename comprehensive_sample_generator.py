@@ -16,16 +16,21 @@ import random
 from typing import Dict, List, Any, Tuple, Optional
 from pathlib import Path
 
-from common_interfaces import FieldMapper
+from field_mapper import FieldMapper
 from error_injection import ErrorInjector, load_error_rules
 from anomaly_detectors.anomaly_injection import AnomalyInjector, load_anomaly_rules
 from exceptions import FileOperationError, ConfigurationError
 
 
-def get_available_injection_fields(error_rules_dir: str = os.path.join(os.path.dirname(__file__), 'validators', 'error_injection_rules'), 
+def get_available_injection_fields(field_mapper, error_rules_dir: str = os.path.join(os.path.dirname(__file__), 'validators', 'error_injection_rules'), 
                                  anomaly_rules_dir: str = os.path.join(os.path.dirname(__file__), 'anomaly_detectors', 'anomaly_injection_rules')) -> Dict[str, Dict[str, bool]]:
     """
     Get fields that have error or anomaly injection rules available.
+    
+    Args:
+        field_mapper: FieldMapper instance for the brand
+        error_rules_dir: Directory containing error rules
+        anomaly_rules_dir: Directory containing anomaly rules
     
     Returns:
         Dict mapping field names to their available injection types:
@@ -36,7 +41,6 @@ def get_available_injection_fields(error_rules_dir: str = os.path.join(os.path.d
             ...
         }
     """
-    field_mapper = FieldMapper.from_default_mapping()
     available_fields = {}
     
     for field_name in field_mapper.get_available_fields():
@@ -85,10 +89,10 @@ def generate_comprehensive_sample(df: pd.DataFrame,
         }
     """
     if field_mapper is None:
-        field_mapper = FieldMapper.from_default_mapping()
+        raise ValueError("field_mapper must be provided")
     
     # Get available fields for injection
-    available_fields = get_available_injection_fields(error_rules_dir, anomaly_rules_dir)
+    available_fields = get_available_injection_fields(field_mapper, error_rules_dir, anomaly_rules_dir)
     injectable_fields = {
         field: info for field, info in available_fields.items() 
         if info["errors"] or info["anomalies"]

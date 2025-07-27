@@ -1,32 +1,19 @@
-def get_field_to_column_map(brand_name=None):
+"""
+Field to column mapping for different fields in the dataset.
+"""
+
+from brand_config import load_brand_config
+
+def get_field_to_column_map(brand_name: str = "esqualo"):
     """
-    Get the mapping from field names to column names for a specific brand.
+    Get field to column mapping for a specific brand.
     
     Args:
-        brand_name: Name of the brand. If None, uses current brand.
+        brand_name: Name of the brand (defaults to "esqualo" for backward compatibility)
     
-    Returns:
-        Dictionary mapping field names to column names.
-    
-    Raises:
-        ValueError: If no brand is configured and none specified.
+    Returns a dictionary mapping field names to actual column names in the data.
     """
-    from brand_configs import get_brand_config_manager
-    
-    manager = get_brand_config_manager()
-    
-    # If no brand specified, try to get current brand
-    if brand_name is None:
-        config = manager.get_current_brand()
-        if config:
-            return config.field_mappings
-        else:
-            raise ValueError("No brand configured. Please specify a brand or set current brand.")
-    else:
-        config = manager.get_brand(brand_name)
-        if config:
-            return config.field_mappings
-        else:
-            raise ValueError(f"Brand '{brand_name}' not found in configurations.")
+    config = load_brand_config(brand_name)
+    return config.field_mappings
     
 

@@ -8,20 +8,20 @@ import importlib
 # Add the script's directory to the Python path.
 # This ensures that top-level modules like 'interfaces.py' are found
 # when validator/reporter modules are loaded dynamically from subdirectories.
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from evaluator import Evaluator
-from error_injection import generate_error_samples, load_error_rules
+from error_injection import generate_error_samples, load_error_rules, ErrorInjector
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
 import debug_config
 from exceptions import DataQualityError, ConfigurationError, FileOperationError, ModelError
 
 # Import comprehensive detection modules
 from comprehensive_sample_generator import generate_comprehensive_sample, save_comprehensive_sample
-from comprehensive_detector import ComprehensiveFieldDetector
+# Moved import to avoid circular dependency
 from consolidated_reporter import save_consolidated_reports
-from anomaly_detectors.anomaly_injection import load_anomaly_rules
-from anomaly_detectors.anomaly_injection import AnomalyInjector
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from anomaly_detectors.anomaly_injection import load_anomaly_rules, AnomalyInjector
+from brand_config import load_brand_config, get_available_brands
 
 
 def load_module_class(module_path: str):
@@ -571,8 +571,8 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     parser.add_argument("--high-confidence-threshold", type=float, default=0.8, help="Threshold for high confidence detection results (default: 0.8).")
     
     # Brand configuration options
-    parser.add_argument("--brand", help="Brand name for field mapping.")
-    parser.add_argument("--brand-config", help="Path to brand configuration JSON file.")
+    parser.add_argument("--brand", help="Brand name (deprecated - uses static config)")
+    parser.add_argument("--brand-config", help="Path to brand configuration JSON file (deprecated - uses static config)")
     
     args = parser.parse_args()
 
@@ -583,32 +583,33 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     else:
         debug_config.disable_debug()
     
-    # Set up brand configuration
-    from brand_configs import get_brand_config_manager
-    brand_manager = get_brand_config_manager(specific_brand_file=args.brand_config)
-    
-    if args.brand:
-        brand_manager.set_current_brand(args.brand)
-        print(f"Using brand configuration: {args.brand}")
-    else:
-        available_brands = brand_manager.list_brands()
-        if available_brands:
-            print(f"No brand specified. Available brands: {', '.join(available_brands)}")
-            print("Please specify a brand using --brand option")
-            sys.exit(1)
+    # Handle brand configuration
+    if not args.brand:
+        available_brands = get_available_brands()
+        if len(available_brands) == 1:
+            args.brand = available_brands[0]
+            print(f"Using default brand: {args.brand}")
+        elif len(available_brands) > 1:
+            raise ConfigurationError(
+                f"Multiple brands available. Please specify one with --brand\n"
+                f"Available brands: {', '.join(available_brands)}"
+            )
         else:
-            print("No brand configurations found. Please create a brand configuration first.")
-            print("See manage_brands.py --create <brand_name>")
-            sys.exit(1)
+            raise ConfigurationError("No brand configurations found.")
+    
+    # Load brand configuration
+    try:
+        brand_config = load_brand_config(args.brand)
+        print(f"Using brand configuration: {args.brand}")
+    except FileNotFoundError as e:
+        raise ConfigurationError(f"Brand configuration not found: {e}") from e
     
     # Validate arguments for single-sample mode
     if args.evaluation_mode == "single-sample":
         if not (0.0 <= args.injection_intensity <= 1.0):
-            print("❌ Error: injection-intensity must be between 0.0 and 1.0")
-            sys.exit(1)
+            raise ValueError("injection-intensity must be between 0.0 and 1.0")
         if args.max_issues_per_row < 1:
-            print("❌ Error: max-issues-per-row must be at least 1")
-            sys.exit(1)
+            raise ValueError("max-issues-per-row must be at least 1")
         
         # Run comprehensive evaluation
         run_comprehensive_evaluation(args)
@@ -761,7 +762,6 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         
         # Apply error injection (validation errors) if available
         if run_validation and 'rules' in locals():
-            from error_injection import ErrorInjector
             error_injector = ErrorInjector(rules)
             sample_df, error_injections = error_injector.inject_errors(
                 sample_df, field_name, max_errors=args.max_errors//2, 
@@ -771,7 +771,6 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         
         # Apply anomaly injection (semantic anomalies) if available
         if anomaly_rules:
-            from anomaly_injection import AnomalyInjector
             anomaly_injector = AnomalyInjector(anomaly_rules)
             sample_df, anomaly_injections = anomaly_injector.inject_anomalies(
                 sample_df, field_name, max_anomalies=args.max_errors//2, 
@@ -928,7 +927,10 @@ def run_comprehensive_evaluation(args):
     print("\n🔍 Step 2: Running comprehensive detection across all fields")
     
     # Get field mapper for current brand
-    field_mapper = FieldMapper.from_default_mapping()
+    field_mapper = FieldMapper.from_brand(args.brand)
+    
+    # Import here to avoid circular dependency
+    from comprehensive_detector import ComprehensiveFieldDetector
     
     detector = ComprehensiveFieldDetector(
         field_mapper=field_mapper,

@@ -106,7 +106,7 @@ Each brand configuration file contains:
 - **field_mappings**: Maps standard field names to brand-specific column names
 - **default_data_path**: Path to the brand's main data file
 - **training_data_path**: Path to the brand's training data
-- **ml_models_path**: Path where ML models for this brand are stored
+
 - **enabled_fields**: List of fields to analyze for this brand
 - **custom_thresholds**: Brand-specific detection thresholds
 
@@ -123,7 +123,7 @@ Example configuration:
   },
   "default_data_path": "data/mybrand_data.csv",
   "training_data_path": "data/mybrand_training.csv",
-  "ml_models_path": "anomaly_detectors/ml_based/results/mybrand",
+  
   "enabled_fields": ["material", "color_name", "size"]
 }
 ```

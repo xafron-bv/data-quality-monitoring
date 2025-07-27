@@ -21,7 +21,7 @@ import os
 from typing import Dict, List, Any, Tuple, Optional
 from pathlib import Path
 
-from common_interfaces import FieldMapper
+from field_mapper import FieldMapper
 from exceptions import FileOperationError, ConfigurationError
 
 

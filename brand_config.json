@@ -1,0 +1,39 @@
+{
+  "brand_name": "esqualo",
+  "field_mappings": {
+    "category": "article_structure_name_2",
+    "color_name": "colour_name",
+    "ean": "EAN",
+    "article_number": "article_number",
+    "colour_code": "colour_code",
+    "customs_tariff_number": "customs_tariff_number",
+    "description_short_1": "description_short_1",
+    "long_description_nl": "long_description_NL",
+    "material": "material",
+    "product_name_en": "product_name_EN",
+    "size": "size_name",
+    "care_instructions": "Care Instructions",
+    "season": "season",
+    "manufactured_in": "Manufactured in",
+    "supplier": "supplier",
+    "brand": "brand",
+    "collection": "collection"
+  },
+  "default_data_path": "data/esqualo_2022_fall_original.csv",
+  "training_data_path": "data/esqualo_2022_fall_original.csv",
+  "enabled_fields": [
+    "material",
+    "color_name",
+    "category",
+    "size",
+    "ean",
+    "article_number",
+    "customs_tariff_number"
+  ],
+  "custom_thresholds": {
+    "validation": 0.0,
+    "anomaly": 0.7,
+    "ml": 0.7,
+    "llm": 0.6
+  }
+}

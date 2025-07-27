@@ -21,7 +21,7 @@ import argparse
 # Add the project root to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from common_interfaces import FieldMapper
+from field_mapper import FieldMapper
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
 from anomaly_detectors.ml_based.check_anomalies import load_model_for_field, check_anomalies
 from anomaly_detectors.ml_based.model_training import preprocess_text
@@ -29,6 +29,7 @@ from anomaly_detectors.llm_based.llm_anomaly_detector import LLMAnomalyDetector
 from error_injection import load_error_rules, apply_error_rule
 from anomaly_detectors.anomaly_injection import load_anomaly_rules
 import random
+from brand_config import load_brand_config, get_available_brands
 
 
 class DetectionCurveGenerator:
@@ -44,7 +45,8 @@ class DetectionCurveGenerator:
         """
         self.data_file = data_file
         self.output_dir = output_dir
-        self.field_mapper = FieldMapper.from_default_mapping()
+        # field_mapper will be set when set_brand is called
+        self.field_mapper = None
         
         # Create output directory
         os.makedirs(output_dir, exist_ok=True)
@@ -550,14 +552,20 @@ Example usage:
     parser.add_argument("--output-dir", default="detection_curves", help="Output directory for curves (default: detection_curves)")
     parser.add_argument("--thresholds", nargs='+', type=float, 
                        help="Specific thresholds to test (default: ML=0.1-0.95, LLM=-0.5-0.1)")
-    parser.add_argument("--brand", required=True, help="Brand name for field mapping")
+    parser.add_argument("--brand", help="Brand name (deprecated - uses static config)")
     
     args = parser.parse_args()
     
-    # Set up brand configuration
-    from brand_configs import get_brand_config_manager
-    brand_manager = get_brand_config_manager()
-    brand_manager.set_current_brand(args.brand)
+    # Handle brand configuration
+    if not args.brand:
+        available_brands = get_available_brands()
+        if len(available_brands) == 1:
+            args.brand = available_brands[0]
+            print(f"Using default brand: {args.brand}")
+        else:
+            raise ValueError("Brand must be specified with --brand option")
+    
+    brand_config = load_brand_config(args.brand)
     print(f"Using brand configuration: {args.brand}")
     
     # Convert thresholds to list if provided
@@ -567,6 +575,7 @@ Example usage:
     
     # Initialize generator
     generator = DetectionCurveGenerator(args.data_file, args.output_dir)
+    generator.field_mapper = FieldMapper.from_brand(args.brand)
     
     # Generate curves
     generator.generate_all_curves(fields=args.fields, detection_type=args.detection_type.upper(), thresholds=thresholds)

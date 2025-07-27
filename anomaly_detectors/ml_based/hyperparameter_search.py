@@ -1,16 +1,28 @@
+"""
+Hyperparameter search for ML anomaly detection models.
+"""
 
-import pandas as pd
-import json
-import random
 import os
-from sentence_transformers import SentenceTransformer, losses
-from torch.utils.data import DataLoader
-from sklearn.metrics.pairwise import cosine_similarity
 import sys
+import pandas as pd
+import numpy as np
+import re
+import glob
+import json
+from datetime import datetime
+from sentence_transformers import SentenceTransformer, InputExample, losses, evaluation
+from torch.utils.data import DataLoader
+import torch
+from sklearn.model_selection import train_test_split
+import random
+from itertools import product
+from typing import List, Tuple, Dict, Any
 
-# Add the parent directory to the path to import the error injection module
+# Add parent directory to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-from error_injection import apply_error_rule
+
+from anomaly_detectors.anomaly_injection import load_anomaly_rules
+from anomaly_detectors.ml_based.model_training import create_improved_triplet_dataset, preprocess_text
 
 
 def get_optimal_parameters(field_name, fallback_model_name, fallback_epochs):
@@ -69,7 +81,6 @@ def train_with_params(df, field_name, column_name, rules, params):
         rules: Error injection rules for the field
         params: Hyperparameters for training
     """
-    from model_training import create_improved_triplet_dataset, preprocess_text
     
     triplets = create_improved_triplet_dataset(df[column_name], rules, field_name)
     if not triplets:
@@ -134,8 +145,6 @@ def evaluate_recall_and_precision_performance(model, clean_texts, rules, field_n
         num_samples: Number of samples to use for evaluation
     Returns (recall_score, precision_score, f1_score).
     """
-    import re
-    from model_training import preprocess_text
     
     if not rules or len(clean_texts) < 4:
         return 0.0, 0.0, 0.0
@@ -395,7 +404,6 @@ def save_aggregated_hp_results():
     """
     Read all individual hyperparameter search results and create an aggregated summary.
     """
-    import glob
     
     # Look for HP search results in the results/summary directory
     results_dir = os.path.join('..', 'results', 'summary')

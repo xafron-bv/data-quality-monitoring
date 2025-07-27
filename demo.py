@@ -19,13 +19,17 @@ to simulate real-world data quality issues across multiple fields simultaneously
 This approach is more realistic and efficient than the previous multi-sample method.
 """
 
+import pandas as pd
 import os
 import sys
 import json
-import pandas as pd
-import time
+import numpy as np
 import argparse
+import time
+import traceback
 from pathlib import Path
+from typing import Dict, List, Any, Optional, Tuple
+from datetime import datetime
 
 # Ensure we can import from the project
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -35,14 +39,15 @@ from comprehensive_sample_generator import generate_comprehensive_sample, save_c
 from comprehensive_detector import ComprehensiveFieldDetector
 from consolidated_reporter import save_consolidated_reports
 from confusion_matrix_analyzer import analyze_confusion_matrices
-from common_interfaces import FieldMapper
+from field_mapper import FieldMapper
 from exceptions import DataQualityError, ConfigurationError, FileOperationError
+from brand_config import load_brand_config, get_available_brands
 
 
 class DataQualityDemo:
     """Comprehensive demo of the data quality monitoring system using single-sample approach."""
     
-    def __init__(self, data_file: str, 
+    def __init__(self, data_file: str, brand_name: str,
                  output_dir: str = "demo_results",
                  injection_intensity=0.2, max_issues_per_row=2, core_fields_only=False,
                  enable_validation=True, enable_pattern=True, enable_ml=True, enable_llm=False,
@@ -53,6 +58,7 @@ class DataQualityDemo:
         Initialize the demo with the specified parameters.
         """
         self.data_file = data_file
+        self.brand_name = brand_name
         self.output_dir = output_dir
         self.injection_intensity = injection_intensity
         self.max_issues_per_row = max_issues_per_row
@@ -72,7 +78,7 @@ class DataQualityDemo:
         os.makedirs(output_dir, exist_ok=True)
         
         # Initialize field mapper
-        self.field_mapper = FieldMapper.from_default_mapping()
+        self.field_mapper = FieldMapper.from_brand(brand_name)
         
         print(f"🔍 Data Quality Monitoring System Demo")
         print(f"📊 Target dataset: {self.data_file}")
@@ -260,7 +266,6 @@ class DataQualityDemo:
             return None
         except Exception as e:
             print(f"\n❌ Demo failed: {e}")
-            import traceback
             traceback.print_exc()
             return None
 
@@ -310,8 +315,8 @@ Example usage:
                        help="Column name containing temporal information for LLM dynamic encoding")
     
     # Brand configuration options
-    parser.add_argument("--brand", help="Brand name for field mapping")
-    parser.add_argument("--brand-config", help="Path to brand configuration JSON file")
+    parser.add_argument("--brand", help="Brand name (deprecated - uses static config)")
+    parser.add_argument("--brand-config", help="Path to brand configuration JSON file (deprecated - uses static config)")
     parser.add_argument("--llm-context-columns", type=str, default=None,
                        help="Comma-separated list of context columns for LLM dynamic encoding")
     parser.add_argument("--use-weighted-combination", action="store_true",
@@ -321,47 +326,46 @@ Example usage:
     
     args = parser.parse_args()
     
-    # Set up brand configuration
-    from brand_configs import get_brand_config_manager
-    brand_manager = get_brand_config_manager(specific_brand_file=args.brand_config)
-    
-    # Brand is required unless data file is explicitly provided
-    if not args.brand and not args.data_file:
-        available_brands = brand_manager.list_brands()
-        if available_brands:
-            print(f"Error: Either --brand or --data-file must be specified.")
-            print(f"Available brands: {', '.join(available_brands)}")
+    # Handle brand configuration
+    if not args.brand:
+        available_brands = get_available_brands()
+        if len(available_brands) == 1:
+            args.brand = available_brands[0]
+            print(f"Using default brand: {args.brand}")
+        elif len(available_brands) > 1:
+            raise ConfigurationError(
+                f"Multiple brands available. Please specify one with --brand\n"
+                f"Available brands: {', '.join(available_brands)}"
+            )
         else:
-            print("Error: No brand configurations found.")
-            print("Create a brand configuration using: python manage_brands.py --create <brand_name>")
-        sys.exit(1)
+            raise ConfigurationError("No brand configurations found.")
     
-    if args.brand:
-        brand_manager.set_current_brand(args.brand)
+    # Load brand configuration
+    try:
+        brand_config = load_brand_config(args.brand)
         print(f"Using brand configuration: {args.brand}")
-        
-        # Use brand's data file if --data-file not provided
-        if not args.data_file:
-            brand_data_path = brand_manager.get_data_path(args.brand)
-            if brand_data_path:
-                args.data_file = brand_data_path
-                print(f"Using brand data file: {args.data_file}")
-            else:
-                print(f"Error: No data file configured for brand '{args.brand}' and no --data-file provided")
-                sys.exit(1)
+    except FileNotFoundError as e:
+        raise ConfigurationError(f"Brand configuration not found: {e}") from e
+    
+    # Use brand's data file if --data-file not provided
+    if not args.data_file:
+        if brand_config.default_data_path:
+            args.data_file = brand_config.default_data_path
+            print(f"Using brand data file: {args.data_file}")
+        else:
+            raise ConfigurationError(f"No data file configured for brand '{args.brand}'")
     
     # Validate arguments
     if not (0.0 <= args.injection_intensity <= 1.0):
-        print("❌ Error: injection-intensity must be between 0.0 and 1.0")
-        sys.exit(1)
+        raise ValueError("injection-intensity must be between 0.0 and 1.0")
     
     if args.max_issues_per_row < 1:
-        print("❌ Error: max-issues-per-row must be at least 1")
-        sys.exit(1)
+        raise ValueError("max-issues-per-row must be at least 1")
     
     # Create and run demo
     demo = DataQualityDemo(
         data_file=args.data_file,
+        brand_name=args.brand,
         output_dir=args.output_dir,
         injection_intensity=args.injection_intensity,
         max_issues_per_row=args.max_issues_per_row,
@@ -382,10 +386,8 @@ Example usage:
     
     if result:
         print("\n✅ Demo completed successfully!")
-        sys.exit(0)
     else:
-        print("\n❌ Demo failed or was interrupted")
-        sys.exit(1)
+        raise RuntimeError("Demo failed or was interrupted")
 
 
 if __name__ == "__main__":

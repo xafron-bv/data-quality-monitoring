@@ -1,25 +1,25 @@
 #!/usr/bin/env python3
 """
-Generate Reference Centroids for Existing Trained Models
-
-This script generates reference centroids for all existing trained models
-to enable production-ready single-value anomaly detection.
+Generate centroids for existing ML models.
 """
 
 import os
-import sys
-import pandas as pd
-import numpy as np
 import json
-from datetime import datetime
+import numpy as np
+import torch
+import pandas as pd
+import traceback
+import argparse
 from sentence_transformers import SentenceTransformer
+from typing import List, Dict, Any
 
 # Add parent directories to path
+import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from field_column_map import get_field_to_column_map
 from anomaly_detectors.ml_based.model_training import preprocess_text
 from anomaly_detectors.ml_based.gpu_utils import get_optimal_device, print_device_info
+from field_column_map import get_field_to_column_map
 
 
 def generate_centroid_for_model(model_dir, field_name, column_name, df):
@@ -95,7 +95,6 @@ def generate_centroid_for_model(model_dir, field_name, column_name, df):
         
     except Exception as e:
         print(f"   ❌ Error processing {field_name}: {e}")
-        import traceback
         traceback.print_exc()
         return False
 
@@ -106,23 +105,20 @@ def main():
     print("=" * 70)
     
     # Load the dataset - must be specified via command line
-    import argparse
     parser = argparse.ArgumentParser(description="Generate reference centroids for existing trained models")
     parser.add_argument("data_file", help="Path to the CSV data file")
-    parser.add_argument("--brand", help="Brand name for field mapping")
+    parser.add_argument("--brand", help="Brand name (deprecated - uses static config)")
     args = parser.parse_args()
     
     data_file = args.data_file
     if not os.path.exists(data_file):
-        print(f"❌ Dataset not found: {data_file}")
-        sys.exit(1)
+        raise FileNotFoundError(f"Dataset not found: {data_file}")
     
     try:
         df = pd.read_csv(data_file)
         print(f"📊 Loaded dataset: {df.shape[0]} rows, {df.shape[1]} columns")
     except Exception as e:
-        print(f"❌ Error loading dataset: {e}")
-        sys.exit(1)
+        raise RuntimeError(f"Error loading dataset: {e}") from e
     
     # Get field to column mapping
     field_to_column = get_field_to_column_map()
@@ -130,8 +126,7 @@ def main():
     # Find all existing model directories
     results_dir = "../results"
     if not os.path.exists(results_dir):
-        print(f"❌ Results directory not found: {results_dir}")
-        sys.exit(1)
+        raise FileNotFoundError(f"Results directory not found: {results_dir}")
     
     model_dirs = []
     for item in os.listdir(results_dir):
@@ -139,8 +134,7 @@ def main():
             model_dirs.append(item)
     
     if not model_dirs:
-        print(f"❌ No trained models found in {results_dir}")
-        sys.exit(1)
+        raise RuntimeError(f"No trained models found in {results_dir}")
     
     print(f"📋 Found {len(model_dirs)} trained models")
     

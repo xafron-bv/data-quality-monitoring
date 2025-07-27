@@ -29,7 +29,7 @@ IGNORE_FP="--ignore-fp"
 DEBUG_FLAG=""  # Set to "--debug" to enable debug logging
 
 # Dynamically fetch all fields from the brand configuration
-for field in $(python -c "import sys; sys.path.append('.'); from brand_configs import get_brand_config_manager; m = get_brand_config_manager(); m.set_current_brand('$BRAND'); c = m.get_current_brand(); print(' '.join(c.field_mappings.keys()) if c else '')"); do
+for field in $(python -c "import sys; sys.path.append('.'); from brand_config import load_brand_config; config = load_brand_config('$BRAND'); print(' '.join(config.field_mappings.keys()))"); do
   # Create a directory for this specific evaluation
   eval_dir="${OUTPUT_DIR}/${field// /_}"
   mkdir -p "$eval_dir"
@@ -40,7 +40,7 @@ for field in $(python -c "import sys; sys.path.append('.'); from brand_configs i
   echo "Output directory: $eval_dir"
 
   # Run the evaluation with all three detection methods
-  python evaluate.py \
+  python evaluate_main.py \
     --brand="$BRAND" \
     --validator="$field" \
     --field="$field" \
