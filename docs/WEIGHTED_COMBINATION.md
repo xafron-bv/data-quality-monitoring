@@ -47,7 +47,7 @@ Use the generated weights in detection:
 
 ```bash
 python3 demo.py \
-    --data-file data/esqualo_2022_fall_original.csv \
+    --brand your_brand \
     --core-fields-only \
     --enable-validation \
     --enable-pattern \

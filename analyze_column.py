@@ -133,24 +133,23 @@ def analyze_field_values(csv_file, field_name, field_mapper=None):
         raise DataError(f"Error analyzing CSV: {e}") from e
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python analyze_column.py <csv_file> [field_name]")
-        print("  csv_file: Path to the CSV file to analyze")
-        print("  field_name: Name of the field to analyze (default: 'color_name')")
-        print("Example: python analyze_column.py data/esqualo_2022_fall_original.csv")
-        print("Example: python analyze_column.py data/esqualo_2022_fall_original.csv category")
-        print("Example: python analyze_column.py data/esqualo_2022_fall_original.csv material")
-        raise ConfigurationError(
-            "Missing required arguments",
-            details={
-                'provided_args': sys.argv,
-                'required': 'csv_file',
-                'optional': 'field_name'
-            }
-        )
+    import argparse
+    parser = argparse.ArgumentParser(description='Analyze a specific column in a CSV file')
+    parser.add_argument('csv_file', help='Path to the CSV file to analyze')
+    parser.add_argument('field_name', nargs='?', default='color_name', 
+                       help='Name of the field to analyze (default: color_name)')
+    parser.add_argument('--brand', required=True, help='Brand name for field mapping')
     
-    csv_file = sys.argv[1]
-    field_name = sys.argv[2] if len(sys.argv) > 2 else 'color_name'
+    args = parser.parse_args()
+    
+    # Set up brand configuration
+    from brand_configs import get_brand_config_manager
+    brand_manager = get_brand_config_manager()
+    brand_manager.set_current_brand(args.brand)
+    print(f"Using brand configuration: {args.brand}")
+    
+    csv_file = args.csv_file
+    field_name = args.field_name
     
     print(f"🔍 Analyzing field '{field_name}' in file: {csv_file}")
     

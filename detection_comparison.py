@@ -256,7 +256,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Example usage:
-  python detection_comparison.py data/esqualo_2022_fall.csv
+      python detection_comparison.py data/your_data.csv
   python detection_comparison.py data/my_data.csv --fields material color_name
         """
     )

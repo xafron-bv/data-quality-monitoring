@@ -536,7 +536,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Example usage:
-  python ml_curve_generator.py data/esqualo_2022_fall.csv
+      python ml_curve_generator.py data/your_data.csv --brand your_brand
   python ml_curve_generator.py data/my_data.csv --detection-type llm
   python ml_curve_generator.py data/my_data.csv --fields material color_name category --detection-type ml
   python ml_curve_generator.py data/my_data.csv --output-dir my_curves --thresholds 0.1 0.3 0.5 0.7 0.9
@@ -550,8 +550,15 @@ Example usage:
     parser.add_argument("--output-dir", default="detection_curves", help="Output directory for curves (default: detection_curves)")
     parser.add_argument("--thresholds", nargs='+', type=float, 
                        help="Specific thresholds to test (default: ML=0.1-0.95, LLM=-0.5-0.1)")
+    parser.add_argument("--brand", required=True, help="Brand name for field mapping")
     
     args = parser.parse_args()
+    
+    # Set up brand configuration
+    from brand_configs import get_brand_config_manager
+    brand_manager = get_brand_config_manager()
+    brand_manager.set_current_brand(args.brand)
+    print(f"Using brand configuration: {args.brand}")
     
     # Convert thresholds to list if provided
     thresholds = None

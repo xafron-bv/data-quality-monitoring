@@ -105,11 +105,16 @@ def main():
     print("🚀 Generating Reference Centroids for Existing Trained Models")
     print("=" * 70)
     
-    # Load the dataset
-    data_file = "../../data/esqualo_2022_fall.csv"
+    # Load the dataset - must be specified via command line
+    import argparse
+    parser = argparse.ArgumentParser(description="Generate reference centroids for existing trained models")
+    parser.add_argument("data_file", help="Path to the CSV data file")
+    parser.add_argument("--brand", help="Brand name for field mapping")
+    args = parser.parse_args()
+    
+    data_file = args.data_file
     if not os.path.exists(data_file):
         print(f"❌ Dataset not found: {data_file}")
-        print("Please ensure the dataset file exists and update the path if needed.")
         sys.exit(1)
     
     try:

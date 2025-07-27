@@ -128,6 +128,19 @@ def main():
     print("🚀 Testing LLM-based Anomaly Detector Integration")
     print("=" * 60)
     
+    # Set up a default brand for testing
+    try:
+        from brand_configs import get_brand_config_manager
+        manager = get_brand_config_manager()
+        brands = manager.list_brands()
+        if brands:
+            manager.set_current_brand(brands[0])
+            print(f"Using brand '{brands[0]}' for testing")
+        else:
+            print("⚠️ No brand configurations found. Some tests may fail.")
+    except Exception as e:
+        print(f"⚠️ Could not set up brand configuration: {e}")
+    
     tests = [
         test_llm_imports,
         test_llm_detector_creation,

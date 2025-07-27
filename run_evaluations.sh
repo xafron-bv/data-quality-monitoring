@@ -6,16 +6,30 @@
 # 2. Anomaly Detection (pattern-based)  
 # 3. ML Anomaly Detection (sentence transformers)
 
+# Check if brand is provided as first argument
+if [ $# -lt 1 ]; then
+    echo "Error: Brand name required"
+    echo "Usage: $0 <brand_name> [data_file]"
+    exit 1
+fi
+
+BRAND=$1
+echo "Using brand: $BRAND"
+
 # Default parameters
-DATA_FILE="data/esqualo_2022_fall_original.csv"
+DATA_FILE="data/your_training_data.csv"
+if [ $# -ge 2 ]; then
+    DATA_FILE=$2
+fi
+
 MAX_ERRORS=5
 NUM_SAMPLES=100
 OUTPUT_DIR="evaluation_results"
 IGNORE_FP="--ignore-fp"
 DEBUG_FLAG=""  # Set to "--debug" to enable debug logging
 
-# Dynamically fetch all fields from the centralized field mapper
-for field in $(python -c "from common_interfaces import FieldMapper; fm = FieldMapper.from_default_mapping(); print(' '.join(fm.get_available_fields()))"); do
+# Dynamically fetch all fields from the brand configuration
+for field in $(python -c "import sys; sys.path.append('.'); from brand_configs import get_brand_config_manager; m = get_brand_config_manager(); m.set_current_brand('$BRAND'); c = m.get_current_brand(); print(' '.join(c.field_mappings.keys()) if c else '')"); do
   # Create a directory for this specific evaluation
   eval_dir="${OUTPUT_DIR}/${field// /_}"
   mkdir -p "$eval_dir"
@@ -27,6 +41,7 @@ for field in $(python -c "from common_interfaces import FieldMapper; fm = FieldM
 
   # Run the evaluation with all three detection methods
   python evaluate.py \
+    --brand="$BRAND" \
     --validator="$field" \
     --field="$field" \
     --max-errors=$MAX_ERRORS \
