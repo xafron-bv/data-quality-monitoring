@@ -15,7 +15,7 @@ import torch
 # Add parent directories to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from brand_configs import get_brand_config_manager
+from static_brand_config import get_field_mappings, get_brand_name, get_ml_models_path
 from anomaly_detectors.anomaly_injection import load_anomaly_rules
 
 # Add the parent directory to the path to import the error injection module
@@ -48,20 +48,13 @@ if __name__ == "__main__":
     parser.add_argument("--check-anomalies", metavar="FIELD", help="Run anomaly check on the given field using the trained model.")
     parser.add_argument("--threshold", type=float, default=0.6, help="Similarity threshold for anomaly detection (default: 0.6)")
     parser.add_argument("--output", default=None, help="Optional output CSV file for anomaly check results.")
-    parser.add_argument("--brand", help="Brand name for field mapping")
-    parser.add_argument("--brand-config", help="Path to brand configuration JSON file")
+    parser.add_argument("--brand", help="Brand name (deprecated - uses static config)")
+    parser.add_argument("--brand-config", help="Path to brand configuration JSON file (deprecated - uses static config)")
     args = parser.parse_args()
     
-    # Set up brand configuration if specified
-    if args.brand or args.brand_config:
-        import sys
-        sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-        from brand_configs import get_brand_config_manager
-        
-        brand_manager = get_brand_config_manager(specific_brand_file=args.brand_config)
-        if args.brand:
-            brand_manager.set_current_brand(args.brand)
-            print(f"Using brand configuration: {args.brand}")
+    # Get brand configuration
+    brand = get_brand_name()
+    print(f"Using brand configuration: {brand}")
     
     if args.check_anomalies:
         field_name = args.check_anomalies

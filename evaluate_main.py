@@ -18,10 +18,10 @@ from exceptions import DataQualityError, ConfigurationError, FileOperationError,
 
 # Import comprehensive detection modules
 from comprehensive_sample_generator import generate_comprehensive_sample, save_comprehensive_sample
-from comprehensive_detector import ComprehensiveFieldDetector
+# Moved import to avoid circular dependency
 from consolidated_reporter import save_consolidated_reports
 from anomaly_detectors.anomaly_injection import load_anomaly_rules, AnomalyInjector
-from brand_configs import get_brand_config_manager
+from static_brand_config import get_field_mappings, get_brand_name, get_data_path
 
 
 def load_module_class(module_path: str):
@@ -571,8 +571,8 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     parser.add_argument("--high-confidence-threshold", type=float, default=0.8, help="Threshold for high confidence detection results (default: 0.8).")
     
     # Brand configuration options
-    parser.add_argument("--brand", help="Brand name for field mapping.")
-    parser.add_argument("--brand-config", help="Path to brand configuration JSON file.")
+    parser.add_argument("--brand", help="Brand name (deprecated - uses static config)")
+    parser.add_argument("--brand-config", help="Path to brand configuration JSON file (deprecated - uses static config)")
     
     args = parser.parse_args()
 
@@ -583,22 +583,9 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     else:
         debug_config.disable_debug()
     
-    # Set up brand configuration
-    brand_manager = get_brand_config_manager(specific_brand_file=args.brand_config)
-    
-    if args.brand:
-        brand_manager.set_current_brand(args.brand)
-        print(f"Using brand configuration: {args.brand}")
-    else:
-        available_brands = brand_manager.list_brands()
-        if available_brands:
-            print(f"No brand specified. Available brands: {', '.join(available_brands)}")
-            print("Please specify a brand using --brand option")
-            sys.exit(1)
-        else:
-            print("No brand configurations found. Please create a brand configuration first.")
-            print("See manage_brands.py --create <brand_name>")
-            sys.exit(1)
+    # Get brand configuration
+    brand = get_brand_name()
+    print(f"Using brand configuration: {brand}")
     
     # Validate arguments for single-sample mode
     if args.evaluation_mode == "single-sample":
@@ -926,6 +913,9 @@ def run_comprehensive_evaluation(args):
     
     # Get field mapper for current brand
     field_mapper = FieldMapper.from_default_mapping()
+    
+    # Import here to avoid circular dependency
+    from comprehensive_detector import ComprehensiveFieldDetector
     
     detector = ComprehensiveFieldDetector(
         field_mapper=field_mapper,

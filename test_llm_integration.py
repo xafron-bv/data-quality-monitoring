@@ -15,7 +15,7 @@ from anomaly_detectors.llm_based.llm_anomaly_detector import (
 )
 from comprehensive_detector import ComprehensiveFieldDetector
 from field_mapper import FieldMapper
-from brand_configs import get_brand_config_manager
+from static_brand_config import get_brand_name, get_field_mappings
 
 # Add the project root to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -132,13 +132,8 @@ def main():
     # Set up a default brand for testing
     try:
         # Imports are now at the top level
-        manager = get_brand_config_manager()
-        brands = manager.list_brands()
-        if brands:
-            manager.set_current_brand(brands[0])
-            print(f"Using brand '{brands[0]}' for testing")
-        else:
-            print("⚠️ No brand configurations found. Some tests may fail.")
+        brand = get_brand_name()
+        print(f"Using brand '{brand}' for testing")
     except Exception as e:
         print(f"⚠️ Could not set up brand configuration: {e}")
     

@@ -2,20 +2,14 @@
 Field to column mapping for different fields in the dataset.
 """
 
-from brand_configs import get_brand_config_manager
+from static_brand_config import get_field_mappings
 
 def get_field_to_column_map():
     """
-    Get field to column mapping based on current brand configuration.
+    Get field to column mapping from static configuration.
     
     Returns a dictionary mapping field names to actual column names in the data.
     """
-    brand_manager = get_brand_config_manager()
-    current_brand = brand_manager.get_current_brand()
-    
-    if current_brand and hasattr(current_brand, 'field_mappings'):
-        return current_brand.field_mappings
-    else:
-        raise ValueError("No brand configured or field mappings not found.")
+    return get_field_mappings()
     
 

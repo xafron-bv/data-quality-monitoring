@@ -17,7 +17,7 @@ import warnings
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from anomaly_detectors.anomaly_error import AnomalyError
-from brand_configs import get_brand_config_manager
+from static_brand_config import get_field_mappings, get_brand_name
 from field_column_map import get_field_to_column_map as get_global_map
 
 from transformers import (
@@ -32,6 +32,10 @@ import torch.nn as nn
 from torch.utils.data import Dataset
 from sentence_transformers import SentenceTransformer
 import evaluate
+import re
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.cluster import KMeans
+from transformers import AutoModelForMaskedLM
 
 
 @dataclass
@@ -197,19 +201,8 @@ def print_device_info(device: torch.device, context: str = ""):
     print(f"🖥️  Using device: {device} {context}")
 
 def get_field_to_column_map() -> Dict[str, str]:
-    """Get mapping from field names to column names from current brand configuration."""
-    try:
-        manager = get_brand_config_manager()
-        current_brand = manager.get_current_brand()
-        if current_brand:
-            return current_brand.field_mappings
-        else:
-            # Try to get from field_column_map module
-            return get_global_map()
-    except Exception as e:
-        print(f"Warning: Could not load brand configuration: {e}")
-        # Return empty dict if brand config not available
-        return {}
+    """Get mapping from field names to column names from static configuration."""
+    return get_field_mappings()
 
 def calculate_sequence_probability(model, tokenizer, text: str, device: torch.device) -> float:
     """Calculate the probability of a text sequence using the trained language model."""
@@ -566,4 +559,42 @@ class LLMAnomalyDetector:
             anomaly = self._detect_anomaly(value, context_dict)
             results.append(anomaly)
         
-        return results 
+        return results
+
+
+def create_llm_detector_for_field(
+    field_name: str,
+    threshold: float = -2.0,
+    use_gpu: bool = True,
+    enable_dynamic_encoding: bool = False,
+    enable_prototype_reprogramming: bool = False,
+    enable_in_context_learning: bool = False,
+    temporal_column: Optional[str] = None,
+    context_columns: Optional[List[str]] = None
+) -> LLMAnomalyDetector:
+    """
+    Factory function to create an LLM anomaly detector for a specific field.
+    
+    Args:
+        field_name: Name of the field to detect anomalies for
+        threshold: Probability threshold for anomaly detection
+        use_gpu: Whether to use GPU for inference
+        enable_dynamic_encoding: Enable dynamic context encoding
+        enable_prototype_reprogramming: Enable prototype-based reprogramming
+        enable_in_context_learning: Enable in-context learning
+        temporal_column: Column name for temporal information
+        context_columns: List of column names for context
+        
+    Returns:
+        LLMAnomalyDetector instance
+    """
+    return LLMAnomalyDetector(
+        field_name=field_name,
+        threshold=threshold,
+        use_gpu=use_gpu,
+        enable_dynamic_encoding=enable_dynamic_encoding,
+        enable_prototype_reprogramming=enable_prototype_reprogramming,
+        enable_in_context_learning=enable_in_context_learning,
+        temporal_column=temporal_column,
+        context_columns=context_columns
+    ) 

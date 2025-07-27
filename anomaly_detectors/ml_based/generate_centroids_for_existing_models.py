@@ -107,7 +107,7 @@ def main():
     # Load the dataset - must be specified via command line
     parser = argparse.ArgumentParser(description="Generate reference centroids for existing trained models")
     parser.add_argument("data_file", help="Path to the CSV data file")
-    parser.add_argument("--brand", help="Brand name for field mapping")
+    parser.add_argument("--brand", help="Brand name (deprecated - uses static config)")
     args = parser.parse_args()
     
     data_file = args.data_file

@@ -41,7 +41,7 @@ from consolidated_reporter import save_consolidated_reports
 from confusion_matrix_analyzer import analyze_confusion_matrices
 from field_mapper import FieldMapper
 from exceptions import DataQualityError, ConfigurationError, FileOperationError
-from brand_configs import get_brand_config_manager
+from static_brand_config import get_field_mappings, get_brand_name, get_data_path, get_enabled_fields
 
 
 class DataQualityDemo:
@@ -314,8 +314,8 @@ Example usage:
                        help="Column name containing temporal information for LLM dynamic encoding")
     
     # Brand configuration options
-    parser.add_argument("--brand", help="Brand name for field mapping")
-    parser.add_argument("--brand-config", help="Path to brand configuration JSON file")
+    parser.add_argument("--brand", help="Brand name (deprecated - uses static config)")
+    parser.add_argument("--brand-config", help="Path to brand configuration JSON file (deprecated - uses static config)")
     parser.add_argument("--llm-context-columns", type=str, default=None,
                        help="Comma-separated list of context columns for LLM dynamic encoding")
     parser.add_argument("--use-weighted-combination", action="store_true",
@@ -325,33 +325,19 @@ Example usage:
     
     args = parser.parse_args()
     
-    # Set up brand configuration
-    brand_manager = get_brand_config_manager(specific_brand_file=args.brand_config)
+    # Get brand configuration
+    brand = get_brand_name()
+    print(f"Using brand configuration: {brand}")
     
-    # Brand is required unless data file is explicitly provided
-    if not args.brand and not args.data_file:
-        available_brands = brand_manager.list_brands()
-        if available_brands:
-            print(f"Error: Either --brand or --data-file must be specified.")
-            print(f"Available brands: {', '.join(available_brands)}")
+    # Use brand's data file if --data-file not provided
+    if not args.data_file:
+        brand_data_path = get_data_path()
+        if brand_data_path:
+            args.data_file = brand_data_path
+            print(f"Using brand data file: {args.data_file}")
         else:
-            print("Error: No brand configurations found.")
-            print("Create a brand configuration using: python manage_brands.py --create <brand_name>")
-        sys.exit(1)
-    
-    if args.brand:
-        brand_manager.set_current_brand(args.brand)
-        print(f"Using brand configuration: {args.brand}")
-        
-        # Use brand's data file if --data-file not provided
-        if not args.data_file:
-            brand_data_path = brand_manager.get_data_path(args.brand)
-            if brand_data_path:
-                args.data_file = brand_data_path
-                print(f"Using brand data file: {args.data_file}")
-            else:
-                print(f"Error: No data file configured for brand '{args.brand}' and no --data-file provided")
-                sys.exit(1)
+            print(f"Error: No data file configured in brand_config.json")
+            sys.exit(1)
     
     # Validate arguments
     if not (0.0 <= args.injection_intensity <= 1.0):

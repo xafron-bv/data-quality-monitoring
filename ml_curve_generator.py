@@ -29,7 +29,7 @@ from anomaly_detectors.llm_based.llm_anomaly_detector import LLMAnomalyDetector
 from error_injection import load_error_rules, apply_error_rule
 from anomaly_detectors.anomaly_injection import load_anomaly_rules
 import random
-from brand_configs import get_brand_config_manager
+from static_brand_config import get_field_mappings, get_brand_name
 
 
 class DetectionCurveGenerator:
@@ -551,14 +551,13 @@ Example usage:
     parser.add_argument("--output-dir", default="detection_curves", help="Output directory for curves (default: detection_curves)")
     parser.add_argument("--thresholds", nargs='+', type=float, 
                        help="Specific thresholds to test (default: ML=0.1-0.95, LLM=-0.5-0.1)")
-    parser.add_argument("--brand", required=True, help="Brand name for field mapping")
+    parser.add_argument("--brand", help="Brand name (deprecated - uses static config)")
     
     args = parser.parse_args()
     
-    # Set up brand configuration
-    brand_manager = get_brand_config_manager()
-    brand_manager.set_current_brand(args.brand)
-    print(f"Using brand configuration: {args.brand}")
+    # Get brand configuration
+    brand = get_brand_name()
+    print(f"Using brand configuration: {brand}")
     
     # Convert thresholds to list if provided
     thresholds = None

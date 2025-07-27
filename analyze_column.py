@@ -8,7 +8,7 @@ import os
 import argparse
 from field_mapper import FieldMapper
 from exceptions import FileOperationError, DataError, ConfigurationError
-from brand_configs import get_brand_config_manager
+from static_brand_config import get_field_mappings, get_brand_name
 
 def analyze_field_values(csv_file, field_name, field_mapper=None):
     """
@@ -138,14 +138,13 @@ def main():
     parser.add_argument('csv_file', help='Path to the CSV file to analyze')
     parser.add_argument('field_name', nargs='?', default='color_name', 
                        help='Name of the field to analyze (default: color_name)')
-    parser.add_argument('--brand', required=True, help='Brand name for field mapping')
+    parser.add_argument('--brand', help='Brand name (deprecated - uses static config)')
     
     args = parser.parse_args()
     
-    # Set up brand configuration
-    brand_manager = get_brand_config_manager()
-    brand_manager.set_current_brand(args.brand)
-    print(f"Using brand configuration: {args.brand}")
+    # Get brand configuration
+    brand = get_brand_name()
+    print(f"Using brand configuration: {brand}")
     
     csv_file = args.csv_file
     field_name = args.field_name
