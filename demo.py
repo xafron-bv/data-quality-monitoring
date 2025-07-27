@@ -34,6 +34,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from comprehensive_sample_generator import generate_comprehensive_sample, save_comprehensive_sample
 from comprehensive_detector import ComprehensiveFieldDetector
 from consolidated_reporter import save_consolidated_reports
+from confusion_matrix_analyzer import analyze_confusion_matrices
 from common_interfaces import FieldMapper
 from exceptions import DataQualityError, ConfigurationError, FileOperationError
 
@@ -157,6 +158,18 @@ class DataQualityDemo:
                 sample_name="demo_analysis"
             )
             unified_report_path = report_files["unified_report"]
+            
+            # Step 4: Generate confusion matrix analysis
+            print(f"\n📊 Step 4: Generating confusion matrix analysis")
+            confusion_matrix_files = analyze_confusion_matrices(
+                cell_classifications=cell_classifications,
+                field_results=field_results,
+                injection_metadata=injection_metadata,
+                output_dir=self.output_dir,
+                sample_name="demo_analysis",
+                field_mapper=self.field_mapper,
+                dataset_size=len(sample_df)
+            )
             elapsed_time = time.time() - start_time
             print(f"\n✅ Demo completed successfully in {elapsed_time:.1f}s")
             print(f"\n📋 Demo Results Summary:")
@@ -177,6 +190,7 @@ class DataQualityDemo:
             return {
                 "sample_files": sample_files,
                 "report_files": report_files,
+                "confusion_matrix_files": confusion_matrix_files,
                 "field_results": field_results,
                 "cell_classifications": cell_classifications,
                 "injection_metadata": injection_metadata
@@ -204,12 +218,17 @@ class DataQualityDemo:
             print(f"\n🔑 KEY OUTPUT FILES:")
             print(f"   📄 Sample CSV: {os.path.basename(demo_results['sample_files']['sample_csv'])}")
             print(f"   📋 Unified Report: {os.path.basename(demo_results['report_files']['unified_report'])}")
+            print(f"   📊 Confusion Matrix Report: {os.path.basename(demo_results['confusion_matrix_files']['json_report'])}")
             
             print(f"\n🔍 FOR VISUALIZATION:")
             print(f"   1. Open data_quality_viewer.html in your browser")
             print(f"   2. Upload CSV: {os.path.basename(demo_results['sample_files']['sample_csv'])}")
             print(f"   3. Upload JSON: {os.path.basename(demo_results['report_files']['viewer_report'])}")
             print(f"\n📊 Metrics Report: {os.path.basename(demo_results['report_files']['unified_report'])}")
+            print(f"\n📈 Confusion Matrix Visualizations:")
+            for viz_type, viz_path in demo_results['confusion_matrix_files'].items():
+                if viz_type != 'json_report':
+                    print(f"   • {viz_type.replace('_', ' ').title()}: {os.path.basename(viz_path)}")
             
             return demo_results
             
