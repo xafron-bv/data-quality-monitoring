@@ -1,10 +1,10 @@
 # ML Anomaly Detection System - Technical Architecture
 
-## �️ System Overview
+## System Overview
 
 A production-grade anomaly detection pipeline using **SentenceTransformers** with **triplet loss** training for semantic data quality monitoring. Designed for zero-dependency inference where clean reference data is unavailable.
 
-## 🧠 Core Architecture
+## Core Architecture
 
 ### Training Pipeline
 ```
@@ -24,7 +24,7 @@ Raw Data → Text Preprocessing → Model Encoding → Statistical Outlier Detec
 
 **Critical Constraint**: No clean reference data available during production inference.
 
-## ⚙️ Technical Implementation
+## Technical Implementation
 
 ### Model Architecture
 ```python
@@ -51,24 +51,24 @@ def detect_anomalies(embeddings, threshold=0.6):
     return final_scores < threshold
 ```
 
-## � Technical Features
+## Technical Features
 
-### 🔬 Self-Supervised Learning
+### Self-Supervised Learning
 - **Contrastive Training**: Learn semantic boundaries between normal/anomalous patterns
 - **Domain Adaptation**: Column-specific model fine-tuning with optimized hyperparameters
 - **Transfer Learning**: Leverage pre-trained language model representations
 
-### 🎲 Synthetic Data Generation
+### Synthetic Data Generation
 - **Error Injection Engine**: Configurable rule-based corruption with realistic error patterns
 - **Balanced Sampling**: Maintain positive/negative ratios during triplet generation
 - **Pattern Preservation**: Ensure synthetic errors maintain domain-specific characteristics
 
-### 📊 Reference-Free Inference
+### Reference-Free Inference
 - **Statistical Outlier Detection**: Combine global (centroid-based) and local (neighborhood-based) analysis
 - **Embedding Space Analysis**: Leverage learned semantic representations without external baselines
 - **Threshold Calibration**: Configurable sensitivity based on operational requirements
 
-## 🔧 Performance Characteristics
+## Performance Characteristics
 
 ### Model Performance by Domain
 | Domain | Architecture | Embedding Dim | Recall | Precision | F1 |
@@ -84,12 +84,12 @@ def detect_anomalies(embeddings, threshold=0.6):
 - **Evaluation**: Cross-validation with synthetic anomaly injection
 - **Convergence**: 15-20 trials typically sufficient for optimal configuration
 
-## 🏛️ System Architecture
+## System Architecture
 
 ### Directory Structure
 ```
-anomaly_detectors/ml/
-├── index.py                    # CLI interface & orchestration
+anomaly_detectors/ml_based/
+├── ml_anomaly_detector.py      # Main detector implementation
 ├── model_training.py           # Triplet loss training pipeline
 ├── hyperparameter_search.py    # Bayesian/random HP optimization
 ├── check_anomalies.py         # Reference-free inference engine
@@ -111,33 +111,23 @@ COLUMN_CONFIGS = {
         'learning_rate': 5e-6
     }
 }
-
-# Rule-to-column mapping for domain adaptation
-RULE_MAPPINGS = {
-    "material": "material",
-    "color_name": "colour_name", 
-    "size": "size_name"
-}
 ```
 
-## 🚀 Deployment & Operations
+## Deployment & Operations
 
 ### Training Workflow
 ```bash
 # Full pipeline with hyperparameter optimization
-python index.py train_data.csv --use-hp-search --hp-trials 20
+python anomaly_detectors/ml_based/model_training.py material data.csv --use-hp-search --hp-trials 20
 
 # Production training with pre-optimized parameters  
-python index.py train_data.csv --rules material color_name
+python anomaly_detectors/ml_based/model_training.py material data.csv
 ```
 
 ### Inference Workflow
 ```bash
 # Standard anomaly detection
-python index.py test_data.csv --check-anomalies material --threshold 0.6
-
-# High-sensitivity detection for critical data
-python index.py test_data.csv --check-anomalies material --threshold 0.95
+python anomaly_detectors/ml_based/check_anomalies.py data.csv --field material --threshold 0.6
 ```
 
 ### Hardware Optimization
@@ -145,7 +135,7 @@ python index.py test_data.csv --check-anomalies material --threshold 0.95
 - **Batch Processing**: Configurable batch sizes for memory optimization
 - **Model Caching**: Persistent model storage for rapid inference startup
 
-## 🔬 Technical Innovations
+## Technical Innovations
 
 ### Triplet Loss Design
 - **Semantic Similarity Learning**: Train models to cluster similar concepts while separating anomalies
@@ -162,7 +152,7 @@ python index.py test_data.csv --check-anomalies material --threshold 0.95
 - **Rule-Based Error Synthesis**: Domain-aware synthetic anomaly generation
 - **Transfer Learning**: Leverage pre-trained semantic representations for faster convergence
 
-## ⚡ Performance & Scalability
+## Performance & Scalability
 
 ### Computational Complexity
 - **Training**: O(n²) for triplet generation, O(n) for model training
@@ -174,7 +164,7 @@ python index.py test_data.csv --check-anomalies material --threshold 0.95
 - **Early Stopping**: Prevent overfitting during training
 - **Model Compression**: Use smaller models (384-dim vs 768-dim) when performance permits
 
-## 🔮 Architectural Extensions
+## Architectural Extensions
 
 ### Near-Term Enhancements
 - **Ensemble Methods**: Combine multiple model predictions for improved robustness
@@ -187,18 +177,5 @@ python index.py test_data.csv --check-anomalies material --threshold 0.95
 - **Real-Time Streaming**: Event-driven anomaly detection for live data pipelines
 
 ---
-
-## � Quick Technical Start
-
-```bash
-# Setup environment
-pip install sentence-transformers torch scikit-learn pandas
-
-# Train domain-specific model
-python index.py data/clean_products.csv --rules material --use-hp-search
-
-# Run inference 
-python index.py data/test_products.csv --check-anomalies material --output anomalies.csv
-```
 
 **Architecture Notes**: The system is designed for production ML pipelines requiring high recall anomaly detection without clean reference data dependencies. The triplet loss approach enables semantic understanding while the reference-free inference ensures practical deployment viability.
