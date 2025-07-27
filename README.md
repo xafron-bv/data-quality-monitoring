@@ -10,6 +10,7 @@ All detailed documentation is now located in the [`docs/`](./docs/) directory:
 - [ML Anomaly Detection Documentation](./docs/ML_Anomaly_Detection_Documentation.md)
 - [ML Anomaly Detection Overview](./docs/ML_Anomaly_Detection_Overview.md)
 - [Demo Commands](./docs/demo_commands.md)
+- [Weighted Combination Detection](./docs/WEIGHTED_COMBINATION.md)
 - Prompts Documentation:
   - [Rule Creation Guide](./docs/prompts/rule-create.md)
   - [Validator Creation Guide](./docs/prompts/validator-create.md)
@@ -22,6 +23,16 @@ The system provides three complementary approaches to data quality monitoring:
 1. **Validation** - Rule-based validation with high confidence detection
 2. **Anomaly Detection** - Pattern-based anomaly detection for medium confidence issues  
 3. **ML Detection** - Machine learning-based anomaly detection using sentence transformers
+4. **LLM Detection** - Language model-based anomaly detection using fine-tuned transformers
+
+## 🎯 Detection Combination Methods
+
+The system supports two approaches for combining detection results:
+
+- **Priority-Based** (default): Uses fixed hierarchy (validation > pattern > ML > LLM)
+- **Weighted Combination** (new): Uses performance-based weights for each field/method combination
+
+See [Weighted Combination Documentation](./docs/WEIGHTED_COMBINATION.md) for detailed usage.
 
 ## 📋 Table of Contents
 
@@ -48,6 +59,23 @@ pip install -r anomaly_detectors/ml_based/requirements.txt
 1. **Train ML Models** (optional but recommended)
 2. **Run Evaluations** to test all detection methods
 3. **Analyze Results** from generated reports
+
+### Weighted Combination Quick Start
+
+For improved detection accuracy, use the weighted combination approach:
+
+```bash
+# 1. Run evaluation to generate performance data
+python3 demo.py --data-file data/esqualo_2022_fall_original.csv --injection-intensity 0.15 --core-fields-only --enable-validation --enable-pattern --enable-ml --enable-llm
+
+# 2. Generate detection weights from performance results
+python3 generate_detection_weights.py --input-file demo_results/demo_analysis_unified_report.json --output-file detection_weights.json --verbose
+
+# 3. Run detection with weighted combination
+python3 demo.py --data-file data/esqualo_2022_fall.csv --core-fields-only --enable-validation --enable-pattern --enable-ml --enable-llm --use-weighted-combination --weights-file detection_weights.json
+```
+
+See [Weighted Combination Documentation](./docs/WEIGHTED_COMBINATION.md) for complete details.
 
 ## 🧠 ML Model Training
 
