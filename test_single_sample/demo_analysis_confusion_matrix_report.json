@@ -1,0 +1,257 @@
+{
+  "overall": {
+    "matrix": {
+      "true_positives": 227,
+      "false_positives": 23,
+      "false_negatives": 214,
+      "true_negatives": 13056
+    },
+    "metrics": {
+      "precision": 0.908,
+      "recall": 0.5147,
+      "f1_score": 0.657,
+      "accuracy": 0.9825
+    },
+    "counts": {
+      "total_detected": 250,
+      "total_injected": 441,
+      "total_correctly_detected": 227,
+      "total_incorrectly_detected": 23,
+      "total_missed": 214
+    }
+  },
+  "per_field": {
+    "category": {
+      "matrix": {
+        "true_positives": 57,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_negatives": 2647
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "accuracy": 1.0
+      },
+      "counts": {
+        "total_detected": 57,
+        "total_injected": 57,
+        "total_correctly_detected": 57,
+        "total_incorrectly_detected": 0,
+        "total_missed": 0
+      }
+    },
+    "color_name": {
+      "matrix": {
+        "true_positives": 19,
+        "false_positives": 0,
+        "false_negatives": 52,
+        "true_negatives": 2633
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 0.2676,
+        "f1_score": 0.4222,
+        "accuracy": 0.9808
+      },
+      "counts": {
+        "total_detected": 19,
+        "total_injected": 71,
+        "total_correctly_detected": 19,
+        "total_incorrectly_detected": 0,
+        "total_missed": 52
+      }
+    },
+    "material": {
+      "matrix": {
+        "true_positives": 40,
+        "false_positives": 3,
+        "false_negatives": 18,
+        "true_negatives": 2643
+      },
+      "metrics": {
+        "precision": 0.9302,
+        "recall": 0.6897,
+        "f1_score": 0.7921,
+        "accuracy": 0.9922
+      },
+      "counts": {
+        "total_detected": 43,
+        "total_injected": 58,
+        "total_correctly_detected": 40,
+        "total_incorrectly_detected": 3,
+        "total_missed": 18
+      }
+    },
+    "size": {
+      "matrix": {
+        "true_positives": 34,
+        "false_positives": 9,
+        "false_negatives": 0,
+        "true_negatives": 2661
+      },
+      "metrics": {
+        "precision": 0.7907,
+        "recall": 1.0,
+        "f1_score": 0.8831,
+        "accuracy": 0.9967
+      },
+      "counts": {
+        "total_detected": 43,
+        "total_injected": 34,
+        "total_correctly_detected": 34,
+        "total_incorrectly_detected": 9,
+        "total_missed": 0
+      }
+    },
+    "care_instructions": {
+      "matrix": {
+        "true_positives": 77,
+        "false_positives": 11,
+        "false_negatives": 0,
+        "true_negatives": 2616
+      },
+      "metrics": {
+        "precision": 0.875,
+        "recall": 1.0,
+        "f1_score": 0.9333,
+        "accuracy": 0.9959
+      },
+      "counts": {
+        "total_detected": 88,
+        "total_injected": 77,
+        "total_correctly_detected": 77,
+        "total_incorrectly_detected": 11,
+        "total_missed": 0
+      }
+    }
+  },
+  "per_detection_type": {
+    "validation": {
+      "matrix": {
+        "true_positives": 156,
+        "false_positives": 56,
+        "false_negatives": 145,
+        "true_negatives": 13163
+      },
+      "metrics": {
+        "precision": 0.7358,
+        "recall": 0.5183,
+        "f1_score": 0.6082,
+        "accuracy": 0.9851
+      },
+      "counts": {
+        "total_detected": 212,
+        "total_injected": 301,
+        "total_correctly_detected": 156,
+        "total_incorrectly_detected": 56,
+        "total_missed": 145
+      }
+    },
+    "pattern_based": {
+      "matrix": {
+        "true_positives": 38,
+        "false_positives": 0,
+        "false_negatives": 102,
+        "true_negatives": 13380
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 0.2714,
+        "f1_score": 0.427,
+        "accuracy": 0.9925
+      },
+      "counts": {
+        "total_detected": 38,
+        "total_injected": 140,
+        "total_correctly_detected": 38,
+        "total_incorrectly_detected": 0,
+        "total_missed": 102
+      }
+    },
+    "ml_based": {
+      "matrix": {
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 140,
+        "true_negatives": 13380
+      },
+      "metrics": {
+        "precision": 0,
+        "recall": 0.0,
+        "f1_score": 0,
+        "accuracy": 0.9896
+      },
+      "counts": {
+        "total_detected": 0,
+        "total_injected": 140,
+        "total_correctly_detected": 0,
+        "total_incorrectly_detected": 0,
+        "total_missed": 140
+      }
+    }
+  },
+  "summary": {
+    "overall_performance": {
+      "f1_score": 0.657,
+      "precision": 0.908,
+      "recall": 0.5147,
+      "accuracy": 0.9825
+    },
+    "best_performing_fields": [
+      {
+        "field_name": "category",
+        "f1_score": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      {
+        "field_name": "care_instructions",
+        "f1_score": 0.9333,
+        "precision": 0.875,
+        "recall": 1.0
+      },
+      {
+        "field_name": "size",
+        "f1_score": 0.8831,
+        "precision": 0.7907,
+        "recall": 1.0
+      },
+      {
+        "field_name": "material",
+        "f1_score": 0.7921,
+        "precision": 0.9302,
+        "recall": 0.6897
+      },
+      {
+        "field_name": "color_name",
+        "f1_score": 0.4222,
+        "precision": 1.0,
+        "recall": 0.2676
+      }
+    ],
+    "best_performing_detection_types": [
+      {
+        "detection_type": "validation",
+        "f1_score": 0.6082,
+        "precision": 0.7358,
+        "recall": 0.5183
+      },
+      {
+        "detection_type": "pattern_based",
+        "f1_score": 0.427,
+        "precision": 1.0,
+        "recall": 0.2714
+      },
+      {
+        "detection_type": "ml_based",
+        "f1_score": 0,
+        "precision": 0,
+        "recall": 0.0
+      }
+    ],
+    "total_fields_analyzed": 5,
+    "total_detection_types_analyzed": 3
+  }
+}

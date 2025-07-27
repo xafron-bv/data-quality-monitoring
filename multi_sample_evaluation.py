@@ -705,6 +705,10 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
             else:
                 raise ConfigurationError(f"Could not initialize ML anomaly detector.\nDetails: {e}")
     
+    # Create field mapper for the brand
+    from field_mapper import FieldMapper
+    field_mapper = FieldMapper.from_brand(args.brand)
+    
     # Create evaluator with appropriate components
     evaluator = Evaluator(
         high_confidence_threshold=args.high_confidence_threshold,
@@ -714,7 +718,8 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         validator_reporter=validator_reporter,
         anomaly_detector=anomaly_detector,
         anomaly_reporter=anomaly_reporter,
-        ml_detector=ml_detector
+        ml_detector=ml_detector,
+        field_mapper=field_mapper
     )
     
     # Run evaluation - Generate comprehensive samples with both errors and anomalies
@@ -739,7 +744,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         
         # Apply error injection (validation errors) if available
         if run_validation and 'rules' in locals():
-            error_injector = ErrorInjector(rules)
+            error_injector = ErrorInjector(rules, field_mapper=field_mapper)
             sample_df, error_injections = error_injector.inject_errors(
                 sample_df, field_name, max_errors=args.max_errors//2, 
                 error_probability=args.error_probability/2

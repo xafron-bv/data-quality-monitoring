@@ -53,3 +53,45 @@ python single_sample_multi_field_demo.py --brand your_brand --injection-intensit
 ```
 
 This refactoring makes the purpose of each script clearer and removes redundant functionality.
+
+## Testing Results
+
+Both refactored scripts were successfully tested and are working correctly:
+
+### 1. Single Sample Multi-Field Demo Test
+```bash
+python3 single_sample_multi_field_demo.py \
+  --brand esqualo \
+  --data-file ./data/esqualo_2022_fall_original.csv \
+  --output-dir test_single_sample \
+  --injection-intensity 0.2 \
+  --core-fields-only \
+  --enable-validation \
+  --enable-pattern
+```
+
+**Output Created:**
+- `demo_analysis_confusion_matrix_report.json`
+- Various visualization PNG files (confusion matrices, performance comparisons)
+- `demo_sample.csv` with injected errors across multiple fields
+
+### 2. Multi-Sample Evaluation Test
+```bash
+python3 multi_sample_evaluation.py \
+  ./data/esqualo_2022_fall_original.csv \
+  --field material \
+  --brand esqualo \
+  --output-dir test_multi_sample \
+  --run validation \
+  --num-samples 3
+```
+
+**Output Created:**
+- `full_evaluation_results.json` with statistical analysis
+- Multiple sample CSV files (`sample_0.csv`, `sample_1.csv`, `sample_2.csv`)
+- Corresponding injection metadata files for each sample
+
+### Key Fixes Applied During Testing
+1. Added `field_mapper` parameter to `Evaluator` initialization in `multi_sample_evaluation.py`
+2. Passed `field_mapper` to `ErrorInjector` constructor
+3. Maintained correct parameter passing for `AnomalyInjector` (doesn't require field_mapper)
