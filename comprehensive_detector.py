@@ -76,7 +76,8 @@ class ComprehensiveFieldDetector:
                  enable_validation: bool = True,
                  enable_pattern: bool = True,
                  enable_ml: bool = True,
-                 enable_llm: bool = False):
+                 enable_llm: bool = False,
+                 use_weighted_combination: bool = False):
         """
         Initialize comprehensive field detector.
         
@@ -91,6 +92,8 @@ class ComprehensiveFieldDetector:
             enable_validation: If True, run validation detection
             enable_pattern: If True, run pattern-based anomaly detection
             enable_ml: If True, run ML-based anomaly detection
+            enable_llm: If True, run LLM-based anomaly detection
+            use_weighted_combination: If True, use weighted combination instead of priority-based
         """
         self.field_mapper = field_mapper
         self.validation_threshold = validation_threshold
@@ -98,6 +101,7 @@ class ComprehensiveFieldDetector:
         self.ml_threshold = ml_threshold
         self.llm_threshold = llm_threshold
         self.batch_size = batch_size
+        self.use_weighted_combination = use_weighted_combination
         self.max_workers = max_workers
         self.core_fields_only = core_fields_only
         self.enable_validation = enable_validation
@@ -112,7 +116,88 @@ class ComprehensiveFieldDetector:
         self._validator_cache = {}
         self._anomaly_detector_cache = {}
         self._ml_detector_cache = {}
+        
+        # Initialize detection weights if using weighted combination
+        if self.use_weighted_combination:
+            self.detection_weights = self._calculate_field_weights()
     
+    def _calculate_field_weights(self) -> Dict[str, Dict[str, float]]:
+        """
+        Calculate field-specific weights for each detection method based on 
+        performance analysis from demo results.
+        
+        Returns:
+            Dict mapping field_name -> method -> weight
+        """
+        # Performance data from evaluation results
+        performance_data = {
+            "category": {
+                "pattern_based": {"precision": 1.0, "recall": 1.0, "f1": 1.0},
+                "ml_based": {"precision": 0.0, "recall": 0.0, "f1": 0.0},
+                "llm_based": {"precision": 0.0, "recall": 0.0, "f1": 0.0}
+            },
+            "color_name": {
+                "pattern_based": {"precision": 0.968, "recall": 0.882, "f1": 0.923},
+                "ml_based": {"precision": 0.0, "recall": 0.0, "f1": 0.0},
+                "llm_based": {"precision": 0.0, "recall": 0.0, "f1": 0.0}
+            },
+            "material": {
+                "pattern_based": {"precision": 0.045, "recall": 0.024, "f1": 0.032},
+                "ml_based": {"precision": 0.0, "recall": 0.0, "f1": 0.0},
+                "llm_based": {"precision": 0.0, "recall": 0.0, "f1": 0.0}
+            },
+            "size": {
+                "pattern_based": {"precision": 0.0, "recall": 0.0, "f1": 0.0},
+                "ml_based": {"precision": 0.0, "recall": 0.0, "f1": 0.0},
+                "llm_based": {"precision": 0.0, "recall": 0.0, "f1": 0.0}
+            },
+            "care_instructions": {
+                "pattern_based": {"precision": 0.0, "recall": 0.0, "f1": 0.0},
+                "ml_based": {"precision": 0.0, "recall": 0.0, "f1": 0.0},
+                "llm_based": {"precision": 0.0, "recall": 0.0, "f1": 0.0}
+            }
+        }
+        
+        # Calculate weights for each field
+        field_weights = {}
+        
+        for field_name, methods in performance_data.items():
+            field_weights[field_name] = {}
+            
+            # Calculate total F1 score across all methods for normalization
+            total_f1 = sum(method_perf["f1"] for method_perf in methods.values())
+            
+            # If no method has performance, give equal weights
+            if total_f1 == 0:
+                num_methods = len(methods)
+                for method in methods.keys():
+                    field_weights[field_name][method] = 1.0 / num_methods
+            else:
+                # Weight methods by their F1 score performance
+                for method, method_perf in methods.items():
+                    # Use F1 score as primary weight, with small baseline for untrained methods
+                    f1_score = method_perf["f1"]
+                    baseline_weight = 0.1  # Small weight for untrained methods
+                    field_weights[field_name][method] = max(f1_score, baseline_weight)
+                
+                # Normalize weights to sum to 1
+                total_weight = sum(field_weights[field_name].values())
+                for method in field_weights[field_name]:
+                    field_weights[field_name][method] /= total_weight
+        
+        return field_weights
+    
+    def get_field_detection_weights(self, field_name: str) -> Dict[str, float]:
+        """Get detection weights for a specific field."""
+        if not self.use_weighted_combination:
+            return {"pattern_based": 0.33, "ml_based": 0.33, "llm_based": 0.34}
+        
+        return self.detection_weights.get(field_name, {
+            "pattern_based": 0.33,
+            "ml_based": 0.33, 
+            "llm_based": 0.34
+        })
+
     def get_available_detection_fields(self) -> Dict[str, Dict[str, bool]]:
         """
         Get fields that have detection capabilities available.
@@ -382,7 +467,7 @@ class ComprehensiveFieldDetector:
     
     def classify_cells(self, df: pd.DataFrame, field_results: Dict[str, FieldDetectionResult]) -> List[CellClassification]:
         """
-        Classify each cell based on detection results with priority: validation > pattern-based > ML-based.
+        Classify each cell based on detection results using either priority-based or weighted combination.
         
         Args:
             df: Original DataFrame
@@ -391,7 +476,16 @@ class ComprehensiveFieldDetector:
         Returns:
             List of cell classifications (excludes clean cells)
         """
-        print(f"   🎯 Classifying cells with priority: validation > pattern-based > ML-based")
+        if self.use_weighted_combination:
+            return self._weighted_classify_cells(df, field_results)
+        else:
+            return self._priority_classify_cells(df, field_results)
+    
+    def _priority_classify_cells(self, df: pd.DataFrame, field_results: Dict[str, FieldDetectionResult]) -> List[CellClassification]:
+        """
+        Classify cells using priority-based approach: validation > pattern-based > ML-based > LLM-based.
+        """
+        print(f"   🎯 Classifying cells with PRIORITY-BASED approach: validation > pattern-based > ML-based > LLM-based")
         
         cell_classifications = []
         
@@ -499,6 +593,170 @@ class ComprehensiveFieldDetector:
         print(f"   ✅ Classified {len(cell_classifications)} cells with issues")
         return cell_classifications
     
+    def _weighted_classify_cells(self, df: pd.DataFrame, field_results: Dict[str, FieldDetectionResult]) -> List[CellClassification]:
+        """
+        Classify cells using weighted combination of detection methods.
+        Validation results have highest priority, then anomaly detection results 
+        are combined using field-specific weights.
+        """
+        print(f"   🎯 Classifying cells with WEIGHTED COMBINATION approach")
+        
+        # Dictionary to store weighted detection scores for each cell
+        cell_scores = {}  # (row_idx, column_name) -> {method: score}
+        validation_detections = {}  # (row_idx, column_name) -> validation_result
+        
+        # First pass: collect all detection results
+        for field_name, result in field_results.items():
+            column_name = result.column_name
+            if not column_name:
+                continue
+            
+            weights = self.get_field_detection_weights(field_name)
+            
+            # Store validation results (highest priority - always used)
+            for detection in result.validation_results:
+                row_idx = detection.get('row_index')
+                if row_idx is not None:
+                    key = (row_idx, column_name)
+                    validation_detections[key] = {
+                        'field_name': field_name,
+                        'detection': detection,
+                        'column_name': column_name
+                    }
+            
+            # Collect anomaly detection scores for weighted combination
+            methods_data = [
+                ('pattern_based', result.anomaly_results),
+                ('ml_based', result.ml_results),
+                ('llm_based', result.llm_results)
+            ]
+            
+            for method, detections in methods_data:
+                method_weight = weights.get(method, 0.0)
+                
+                for detection in detections:
+                    row_idx = detection.get('row_index')
+                    if row_idx is not None:
+                        key = (row_idx, column_name)
+                        
+                        # Skip if validation already found this cell
+                        if key in validation_detections:
+                            continue
+                        
+                        if key not in cell_scores:
+                            cell_scores[key] = {
+                                'field_name': field_name,
+                                'column_name': column_name,
+                                'methods': {},
+                                'weighted_score': 0.0,
+                                'best_detection': None
+                            }
+                        
+                        # Store method-specific score
+                        confidence = detection.get('probability', 0.5)
+                        weighted_confidence = confidence * method_weight
+                        
+                        cell_scores[key]['methods'][method] = {
+                            'confidence': confidence,
+                            'weight': method_weight,
+                            'weighted_confidence': weighted_confidence,
+                            'detection': detection
+                        }
+                        
+                        # Update total weighted score
+                        cell_scores[key]['weighted_score'] += weighted_confidence
+                        
+                        # Track best individual detection for details
+                        if (cell_scores[key]['best_detection'] is None or 
+                            confidence > cell_scores[key]['best_detection'].get('probability', 0)):
+                            cell_scores[key]['best_detection'] = detection
+                            cell_scores[key]['best_method'] = method
+        
+        # Second pass: create cell classifications
+        cell_classifications = []
+        
+        # Add validation results (highest priority)
+        for key, val_data in validation_detections.items():
+            row_idx, column_name = key
+            detection = val_data['detection']
+            
+            try:
+                original_value = df.at[row_idx, column_name]
+            except (IndexError, KeyError):
+                original_value = None
+            
+            classification = CellClassification(
+                row_index=row_idx,
+                column_name=column_name,
+                field_name=val_data['field_name'],
+                status='ERROR',
+                message=detection.get('display_message', 'Validation error'),
+                confidence=detection.get('probability', 1.0),
+                detection_type='validation',
+                original_value=original_value,
+                detected_value=detection.get('error_data'),
+                error_code=detection.get('error_code')
+            )
+            
+            cell_classifications.append(classification)
+        
+        # Add weighted anomaly detection results
+        anomaly_threshold = 0.3  # Minimum weighted score to classify as anomaly
+        
+        for key, score_data in cell_scores.items():
+            if score_data['weighted_score'] >= anomaly_threshold:
+                row_idx, column_name = key
+                best_detection = score_data['best_detection']
+                
+                try:
+                    original_value = df.at[row_idx, column_name]
+                except (IndexError, KeyError):
+                    original_value = None
+                
+                # Create detailed message showing contributing methods
+                contributing_methods = []
+                for method, method_data in score_data['methods'].items():
+                    if method_data['weighted_confidence'] > 0:
+                        contributing_methods.append(
+                            f"{method}({method_data['confidence']:.2f}*{method_data['weight']:.2f})"
+                        )
+                
+                message = f"Weighted anomaly (score: {score_data['weighted_score']:.3f}): {', '.join(contributing_methods)}"
+                
+                classification = CellClassification(
+                    row_index=row_idx,
+                    column_name=column_name,
+                    field_name=score_data['field_name'],
+                    status='ANOMALY',
+                    message=message,
+                    confidence=score_data['weighted_score'],
+                    detection_type='weighted_anomaly',
+                    original_value=original_value,
+                    detected_value=best_detection.get('error_data') if best_detection else None,
+                    error_code=best_detection.get('error_code') if best_detection else None
+                )
+                
+                cell_classifications.append(classification)
+        
+        # Sort by row_index for easier navigation
+        cell_classifications.sort(key=lambda x: (x.row_index, x.column_name))
+        
+        validation_count = len(validation_detections)
+        anomaly_count = len([c for c in cell_classifications if c.detection_type == 'weighted_anomaly'])
+        
+        print(f"   ✅ Classified {len(cell_classifications)} cells with issues")
+        print(f"       📝 Validation: {validation_count}")
+        print(f"       🔍 Weighted anomalies: {anomaly_count}")
+        
+        if self.use_weighted_combination:
+            print(f"   📊 Detection weights by field:")
+            for field_name in field_results.keys():
+                weights = self.get_field_detection_weights(field_name)
+                weight_str = ", ".join([f"{method}: {weight:.2f}" for method, weight in weights.items()])
+                print(f"       {field_name}: {weight_str}")
+        
+        return cell_classifications
+
     def run_comprehensive_detection(self, df: pd.DataFrame, 
                                   selected_fields: Optional[List[str]] = None) -> Tuple[Dict[str, FieldDetectionResult], List[CellClassification]]:
         """
