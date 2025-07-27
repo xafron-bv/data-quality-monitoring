@@ -3,7 +3,6 @@ import numpy as np
 import argparse
 import random
 import os
-import sys
 import torch
 import json
 from os import path
@@ -320,8 +319,7 @@ def main():
     
     # Check if data file exists
     if not os.path.exists(args.data_file):
-        print(f"❌ Data file not found: {args.data_file}")
-        sys.exit(1)
+        raise FileNotFoundError(f"Data file not found: {args.data_file}")
     
     # Setup output directory
     output_dir = setup_output_directory()
@@ -351,22 +349,24 @@ def main():
     
     column_name = field_to_column_map.get(args.field)
     if not column_name:
-        print(f"❌ Unknown field: {args.field}")
-        print(f"   Available fields: {list(field_to_column_map.keys())}")
-        sys.exit(1)
+        available_fields = list(field_to_column_map.keys())
+        raise ValueError(
+            f"Unknown field: {args.field}\n"
+            f"Available fields: {available_fields}"
+        )
     
     if column_name not in df.columns:
-        print(f"❌ Column '{column_name}' not found in dataset")
-        print(f"   Available columns: {df.columns.tolist()}")
-        sys.exit(1)
+        raise ValueError(
+            f"Column '{column_name}' not found in dataset\n"
+            f"Available columns: {df.columns.tolist()}"
+        )
     
     # Analyze unique values
     print(f"🔍 Analyzing field '{args.field}' (column: '{column_name}')")
     analysis = analyze_unique_values(df, column_name)
     
     if "error" in analysis:
-        print(f"❌ {analysis['error']}")
-        sys.exit(1)
+        raise RuntimeError(analysis['error'])
     
     print(f"   📊 Unique values: {analysis['unique_count']}")
     print(f"   📏 Average length: {analysis['avg_length']:.1f} characters")
@@ -384,8 +384,7 @@ def main():
             clean_texts.append(processed)
     
     if len(clean_texts) < 10:
-        print(f"❌ Not enough valid texts for training: {len(clean_texts)}")
-        sys.exit(1)
+        raise ValueError(f"Not enough valid texts for training: {len(clean_texts)}. Need at least 10.")
     
     print(f"   📝 Valid training texts: {len(clean_texts)}")
     

@@ -1,10 +1,13 @@
-"""Unified interfaces for data quality monitoring."""
+"""
+Common interfaces used across the data quality system.
+"""
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, Any, Optional, List
 import pandas as pd
+from field_mapper import FieldMapper
 
 
 class DetectionType(str, Enum):
@@ -29,48 +32,24 @@ class DetectionResult:
         return self.confidence >= threshold
 
 
-class FieldMapper:
-    """Centralized field-to-column mapping service."""
-    
-    def __init__(self, mapping: Dict[str, str], brand_name: Optional[str] = None):
-        self._mapping = mapping.copy()
-        self._brand_name = brand_name
-    
-    def get_column_name(self, field_name: str) -> str:
-        return self._mapping.get(field_name, field_name)
-    
-    def validate_column_exists(self, df: pd.DataFrame, field_name: str) -> str:
-        column_name = self.get_column_name(field_name)
-        if column_name not in df.columns:
-            raise ValueError(
-                f"Column '{column_name}' (mapped from field '{field_name}') "
-                f"not found in DataFrame. Available columns: {list(df.columns)}"
-            )
-        return column_name
-    
-    def get_available_fields(self) -> List[str]:
-        return list(self._mapping.keys())
-    
-    def get_brand_name(self) -> Optional[str]:
-        """Get the brand name associated with this mapper."""
-        return self._brand_name
-    
-    @classmethod
-    def from_default_mapping(cls) -> 'FieldMapper':
-        """Get field mapper for current brand."""
-        from brand_configs import get_brand_config_manager
-        manager = get_brand_config_manager()
-        current_brand = manager.get_current_brand()
-        if not current_brand:
-            raise ValueError("No brand configured. Please specify a brand or create a brand configuration.")
-        return cls(current_brand.field_mappings, current_brand.brand_name)
-    
-    @classmethod
-    def from_brand(cls, brand_name: str) -> 'FieldMapper':
-        """Get field mapper for a specific brand."""
-        from brand_configs import get_brand_config_manager
-        manager = get_brand_config_manager()
-        return manager.get_field_mapper(brand_name)
+@dataclass
+class AnomalyIssue:
+    """Represents an anomaly detection issue."""
+    detector_type: str
+    confidence: float
+    description: str
+    suggested_action: Optional[str] = None
+    details: Optional[Dict] = None
+
+
+@dataclass
+class DetectionConfig:
+    """Configuration for anomaly detection"""
+    field_name: str
+    threshold: float = 0.7
+    use_few_shot: bool = False
+    context_columns: Optional[List[str]] = None
+    temporal_column: Optional[str] = None
 
 
 # Legacy compatibility functions

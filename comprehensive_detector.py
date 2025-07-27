@@ -1,28 +1,30 @@
-#!/usr/bin/env python3
 """
-Comprehensive Field-by-Field Detector
-
-This module runs detection methods (validation, pattern-based anomaly detection,
-ML-based anomaly detection) on each field separately and classifies each cell
-with priority: validation > pattern-based > ML-based.
-
-Important: Validation and anomaly detection rules are global and work across all brands.
-The FieldMapper handles translating standard field names to brand-specific column names,
-so the same rules apply regardless of the brand's column naming conventions.
+Comprehensive field detector that orchestrates multiple detection methods.
 """
 
-import pandas as pd
 import os
+import sys
 import json
-from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
+import pandas as pd
+import time
+import gc
+from pathlib import Path
+from dataclasses import dataclass
+from typing import Dict, List, Tuple, Any, Optional
+from collections import defaultdict
+import importlib
 
-from common_interfaces import FieldMapper
-from evaluator import Evaluator
-from error_injection import load_error_rules
+from field_mapper import FieldMapper
+from common_interfaces import AnomalyIssue
+from exceptions import ConfigurationError, DataError, FileOperationError, ModelError
+from anomaly_detectors.anomaly_detector_interface import AnomalyDetectorInterface
+from anomaly_detectors.pattern_based.pattern_based_detector import PatternBasedDetector
+from anomaly_detectors.pattern_based.report import AnomalyReporter
+from debug_config import debug_print
+from validators.validator_interface import ValidatorInterface
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
-from anomaly_detectors.llm_based.llm_anomaly_detector import LLMAnomalyDetector
-from exceptions import ConfigurationError, FileOperationError
+
+from anomaly_detectors.llm_based.llm_anomaly_detector import create_llm_detector_for_field
 
 
 @dataclass
@@ -55,7 +57,6 @@ class FieldDetectionResult:
 
 def load_module_class(module_path: str):
     """Dynamically loads a class from a Python file based on a module path string."""
-    import importlib
     try:
         module_name, class_name = module_path.split(':')
         module = importlib.import_module(module_name)
@@ -139,7 +140,6 @@ class ComprehensiveFieldDetector:
             Dict mapping field_name -> method -> weight
         """
         try:
-            import json
             with open(weights_file, 'r') as f:
                 weights_data = json.load(f)
             
@@ -288,9 +288,6 @@ class ComprehensiveFieldDetector:
         if field_name not in self._anomaly_detector_cache:
             try:
                 # Use the new generic pattern-based detector
-                from anomaly_detectors.pattern_based.pattern_based_detector import PatternBasedDetector
-                from anomaly_detectors.pattern_based.report import AnomalyReporter
-                
                 detector = PatternBasedDetector(field_name)
                 reporter = AnomalyReporter(field_name)
                 
@@ -408,7 +405,6 @@ class ComprehensiveFieldDetector:
                 
                 # Force cleanup of ML detector immediately after use
                 del ml_detector
-                import gc
                 gc.collect()
         
         # Run LLM-based anomaly detection if enabled and available
@@ -442,7 +438,6 @@ class ComprehensiveFieldDetector:
                 
                 # Force cleanup of LLM detector immediately after use
                 del llm_detector
-                import gc
                 gc.collect()
         
         total_issues = len(validation_results) + len(anomaly_results) + len(ml_results) + len(llm_results)
@@ -819,7 +814,6 @@ class ComprehensiveFieldDetector:
             all_cell_classifications.extend(field_classifications)
             
             # Force garbage collection to free memory
-            import gc
             gc.collect()
             
             print(f"      ✅ {field_name}: {result.total_issues} issues found, {len(field_classifications)} cells classified")

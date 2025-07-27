@@ -12,7 +12,7 @@ from unified_detection_interface import (
     DetectionConfig
 )
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
-from common_interfaces import FieldMapper
+from field_mapper import FieldMapper
 from anomaly_detectors.ml_based.ml_anomaly_reporter import MLAnomalyReporter
 
 
@@ -57,7 +57,9 @@ class Evaluator:
         self.ml_reporter = ml_reporter
         
         # Use provided field mapper or create default one
-        self.field_mapper = field_mapper or FieldMapper.from_default_mapping()
+        self.field_mapper = field_mapper
+        if self.field_mapper is None:
+            raise ValueError("field_mapper must be provided")
         
         # Create combined detector for unified approach
         self.combined_detector = CombinedDetector(

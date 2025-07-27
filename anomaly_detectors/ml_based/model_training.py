@@ -1,9 +1,19 @@
-import pandas as pd
-import re
-import random
+"""
+ML model training module for anomaly detection.
+"""
+
 import os
-import json
+import sys
+import pandas as pd
 import numpy as np
+from sentence_transformers import SentenceTransformer, InputExample, losses
+from torch.utils.data import DataLoader
+import torch
+import json
+from typing import List, Tuple, Any, Dict
+import re
+from sklearn.model_selection import train_test_split
+import random
 from datetime import datetime
 from os import path
 from sentence_transformers import SentenceTransformer, InputExample, losses
@@ -334,11 +344,6 @@ def demonstrate_similarity(model, data_series, field_name):
     # Load anomaly injection rules (semantic anomalies)
     anomaly_rule_path = os.path.join(anomaly_rules_dir, rule_file)
     try:
-        # Import anomaly injection functions
-        import sys
-        sys.path.append(path.join(path.dirname(__file__), '..'))
-        from anomaly_detectors.anomaly_injection import load_anomaly_rules
-        
         anomaly_rules = load_anomaly_rules(anomaly_rule_path)
         # Convert anomaly rules to error rule format for compatibility
         converted_anomaly_rules = []

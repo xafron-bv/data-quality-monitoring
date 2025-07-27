@@ -1,20 +1,23 @@
-"""Unified detection interface for data quality monitoring."""
+"""
+Unified detection interface for comprehensive field-by-field detection.
+"""
 
-from abc import ABC, abstractmethod
+import os
+import sys
+import json
 import pandas as pd
-from typing import List, Dict, Any, Optional
-from enum import Enum
+from typing import Dict, List, Any, Optional
+from pathlib import Path
 from dataclasses import dataclass
+from abc import ABC, abstractmethod
 
-from validators.validation_error import ValidationError
-from anomaly_detectors.anomaly_error import AnomalyError
-from anomaly_detectors.reporter_interface import MLAnomalyResult
 from common_interfaces import (
-    DetectionResult, DetectionType, FieldMapper, 
-    convert_validation_error_to_detection_result,
-    convert_anomaly_error_to_detection_result
+    DetectionResult,
+    DetectionType,
+    DetectionConfig
 )
-from exceptions import DataError
+from exceptions import ModelError
+from field_mapper import FieldMapper
 
 
 @dataclass
@@ -111,7 +114,6 @@ class CombinedDetector(UnifiedDetectorInterface):
                         )
                         ml_results.append(result)
             except Exception as e:
-                from exceptions import ModelError
                 raise ModelError(
                     f"ML detection failed for field '{field_name}'",
                     details={'field_name': field_name, 'original_error': str(e)}

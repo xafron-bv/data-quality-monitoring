@@ -42,7 +42,6 @@ class Validator(ValidatorInterface):
             - A ValidationError instance if the value is invalid.
         """
         # <<< LLM: BEGIN IMPLEMENTATION >>>
-        import re
 
         # Check for missing value
         if pd.isna(value):
