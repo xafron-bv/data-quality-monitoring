@@ -1,0 +1,197 @@
+{
+  "sample_name": "demo_analysis",
+  "total_rows": 2704,
+  "total_columns": 36,
+  "fields": {
+    "size": {
+      "validation": {
+        "precision": 0.78,
+        "recall": 1.0,
+        "true_positives": 32,
+        "false_positives": 9,
+        "false_negatives": 0,
+        "errors_injected": 32,
+        "anomalies_injected": null
+      },
+      "pattern_based": {
+        "precision": 0,
+        "recall": 0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "errors_injected": null,
+        "anomalies_injected": 0
+      },
+      "ml_based": {
+        "precision": 0,
+        "recall": 0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "errors_injected": null,
+        "anomalies_injected": 0
+      },
+      "combined": {
+        "precision": 0.78,
+        "recall": 1.0,
+        "true_positives": 32,
+        "false_positives": 9,
+        "false_negatives": 0,
+        "errors_injected": 32,
+        "anomalies_injected": 0
+      }
+    },
+    "category": {
+      "validation": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positives": 17,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "errors_injected": 17,
+        "anomalies_injected": null
+      },
+      "pattern_based": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positives": 33,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "errors_injected": null,
+        "anomalies_injected": 33
+      },
+      "ml_based": {
+        "precision": 0,
+        "recall": 0.0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 33,
+        "errors_injected": null,
+        "anomalies_injected": 33
+      },
+      "combined": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positives": 50,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "errors_injected": 17,
+        "anomalies_injected": 33
+      }
+    },
+    "material": {
+      "validation": {
+        "precision": 0.333,
+        "recall": 0.909,
+        "true_positives": 10,
+        "false_positives": 20,
+        "false_negatives": 1,
+        "errors_injected": 11,
+        "anomalies_injected": null
+      },
+      "pattern_based": {
+        "precision": 0.045,
+        "recall": 0.037,
+        "true_positives": 1,
+        "false_positives": 21,
+        "false_negatives": 26,
+        "errors_injected": null,
+        "anomalies_injected": 27
+      },
+      "ml_based": {
+        "precision": 0,
+        "recall": 0.0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 27,
+        "errors_injected": null,
+        "anomalies_injected": 27
+      },
+      "combined": {
+        "precision": 0.538,
+        "recall": 0.737,
+        "true_positives": 28,
+        "false_positives": 24,
+        "false_negatives": 10,
+        "errors_injected": 11,
+        "anomalies_injected": 27
+      }
+    },
+    "care_instructions": {
+      "validation": {
+        "precision": 0.744,
+        "recall": 1.0,
+        "true_positives": 32,
+        "false_positives": 11,
+        "false_negatives": 0,
+        "errors_injected": 32,
+        "anomalies_injected": null
+      },
+      "pattern_based": {
+        "precision": 0,
+        "recall": 0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "errors_injected": null,
+        "anomalies_injected": 0
+      },
+      "ml_based": {
+        "precision": 0,
+        "recall": 0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "errors_injected": null,
+        "anomalies_injected": 0
+      },
+      "combined": {
+        "precision": 0.744,
+        "recall": 1.0,
+        "true_positives": 32,
+        "false_positives": 11,
+        "false_negatives": 0,
+        "errors_injected": 32,
+        "anomalies_injected": 0
+      }
+    },
+    "color_name": {
+      "validation": {
+        "precision": 0.75,
+        "recall": 1.0,
+        "true_positives": 6,
+        "false_positives": 2,
+        "false_negatives": 0,
+        "errors_injected": 6,
+        "anomalies_injected": null
+      },
+      "pattern_based": {
+        "precision": 1.0,
+        "recall": 0.946,
+        "true_positives": 35,
+        "false_positives": 0,
+        "false_negatives": 2,
+        "errors_injected": null,
+        "anomalies_injected": 37
+      },
+      "ml_based": {
+        "precision": 0,
+        "recall": 0.0,
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 37,
+        "errors_injected": null,
+        "anomalies_injected": 37
+      },
+      "combined": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positives": 43,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "errors_injected": 6,
+        "anomalies_injected": 37
+      }
+    }
+  }
+}
