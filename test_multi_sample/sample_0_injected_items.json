@@ -1,0 +1,1402 @@
+[
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "95% Cotton - 3.5% Polyester - 1.5% Spandex",
+    "anomalous_value": "100% Premium Beef",
+    "operation": "value_replacement",
+    "row_index": 60,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "53% Recycled Polyester - 25% Polyester - 20% Acrylic - 2% Spandex",
+    "anomalous_value": "80% Cheese - 20% Bread",
+    "operation": "value_replacement",
+    "row_index": 96,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "43% Nylon - 35% Acrylic - 13% Wool - 5% Yak - 4% Spandex",
+    "anomalous_value": "150% Cotton",
+    "operation": "value_replacement",
+    "row_index": 142,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "100% Viscose",
+    "anomalous_value": "100% LCD Screen",
+    "operation": "value_replacement",
+    "row_index": 234,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "Shell: 100% Viscose // Lining: 100% Viscose",
+    "anomalous_value": "90% Cotton - 50% Spandex - 30% Wool",
+    "operation": "value_replacement",
+    "row_index": 253,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "100% Viscose",
+    "anomalous_value": "90% Chocolate - 10% Vanilla",
+    "operation": "value_replacement",
+    "row_index": 267,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "93% Polyester - 7% Spandex",
+    "anomalous_value": "100% Premium Beef",
+    "operation": "value_replacement",
+    "row_index": 288,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "93% Polyester - 7% Spandex",
+    "anomalous_value": "95% Steel - 5% Aluminum",
+    "operation": "value_replacement",
+    "row_index": 318,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "93% Polyester - 7% Spandex",
+    "anomalous_value": "100% Coconut Oil",
+    "operation": "value_replacement",
+    "row_index": 329,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "93% Polyester - 7% Spandex",
+    "anomalous_value": "90% Cotton - 50% Spandex - 30% Wool",
+    "operation": "value_replacement",
+    "row_index": 331,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "93% Polyester - 7% Spandex",
+    "anomalous_value": "100% Shark Cartilage",
+    "operation": "value_replacement",
+    "row_index": 340,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "93% Polyester - 7% Spandex",
+    "anomalous_value": "NaN% Cotton",
+    "operation": "value_replacement",
+    "row_index": 341,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "Shell: 100% Polyester Lining: 100% Viscose",
+    "anomalous_value": "90% Algae - 10% Plankton",
+    "operation": "value_replacement",
+    "row_index": 383,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "70% Modal - 30% Polyester",
+    "anomalous_value": "NaN% Cotton",
+    "operation": "value_replacement",
+    "row_index": 457,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "70% Modal - 30% Polyester",
+    "anomalous_value": "90% Chocolate - 10% Vanilla",
+    "operation": "value_replacement",
+    "row_index": 477,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "70% Modal - 30% Polyester",
+    "anomalous_value": "90% Chocolate - 10% Vanilla",
+    "operation": "value_replacement",
+    "row_index": 534,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "70% Modal - 30% Polyester",
+    "anomalous_value": "80% Polyester - 40% Nylon",
+    "operation": "value_replacement",
+    "row_index": 544,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "70% Modal - 30% Polyester",
+    "anomalous_value": "100% Carbon Fiber",
+    "operation": "value_replacement",
+    "row_index": 556,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "95% Viscose - 5% Spandex",
+    "anomalous_value": "100% LCD Screen",
+    "operation": "value_replacement",
+    "row_index": 619,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "34% Acrylic - 34% Cotton - 22% Nylon - 8% Wool - 2% Spandex",
+    "anomalous_value": "80% Polyester - 40% Nylon",
+    "operation": "value_replacement",
+    "row_index": 639,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "55% Polyester - 40% Acrylic - 5% Wool",
+    "anomalous_value": "∞% Polyester",
+    "operation": "value_replacement",
+    "row_index": 651,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "55% Polyester - 40% Acrylic - 5% Wool",
+    "anomalous_value": "100% Bluetooth Module",
+    "operation": "value_replacement",
+    "row_index": 655,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "80% Acrylic - 12% Nylon - 8% Polyester",
+    "anomalous_value": "100% LCD Screen",
+    "operation": "value_replacement",
+    "row_index": 696,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "80% Acrylic - 12% Nylon - 8% Polyester",
+    "anomalous_value": "-50% Cotton - 150% Polyester",
+    "operation": "value_replacement",
+    "row_index": 700,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "60% PU - 40% Viscose",
+    "anomalous_value": "99.9999% Cotton - 0.0001% Magic",
+    "operation": "value_replacement",
+    "row_index": 745,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "60% PU - 40% Viscose",
+    "anomalous_value": "100% Human Hair",
+    "operation": "value_replacement",
+    "row_index": 809,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "60% PU - 40% Viscose",
+    "anomalous_value": "85% Marble - 15% Gold",
+    "operation": "value_replacement",
+    "row_index": 818,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "60% PU - 40% Viscose",
+    "anomalous_value": "90% Algae - 10% Plankton",
+    "operation": "value_replacement",
+    "row_index": 827,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "60% PU - 40% Viscose",
+    "anomalous_value": "100% Carbon Fiber",
+    "operation": "value_replacement",
+    "row_index": 828,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "60% PU - 40% Viscose",
+    "anomalous_value": "75% Wheat - 25% Sugar",
+    "operation": "value_replacement",
+    "row_index": 829,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "60% PU - 40% Viscose",
+    "anomalous_value": "-50% Cotton - 150% Polyester",
+    "operation": "value_replacement",
+    "row_index": 831,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "60% PU - 40% Viscose",
+    "anomalous_value": "100% Granite",
+    "operation": "value_replacement",
+    "row_index": 842,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "60% PU - 40% Viscose",
+    "anomalous_value": "80% Copper Wire - 20% Plastic Coating",
+    "operation": "value_replacement",
+    "row_index": 848,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "60% PU - 40% Viscose",
+    "anomalous_value": "80% Polyester - 40% Nylon",
+    "operation": "value_replacement",
+    "row_index": 851,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "60% PU - 40% Viscose",
+    "anomalous_value": "85% Microprocessor - 15% Heat Sink",
+    "operation": "value_replacement",
+    "row_index": 876,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "60% PU - 40% Viscose",
+    "anomalous_value": "100% Bacterial Culture",
+    "operation": "value_replacement",
+    "row_index": 905,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "60% PU - 40% Viscose",
+    "anomalous_value": "100% Shark Cartilage",
+    "operation": "value_replacement",
+    "row_index": 910,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "60% PU - 40% Viscose",
+    "anomalous_value": "100% Carbon Fiber",
+    "operation": "value_replacement",
+    "row_index": 954,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "60% PU - 40% Viscose",
+    "anomalous_value": "80% Cheese - 20% Bread",
+    "operation": "value_replacement",
+    "row_index": 974,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "60% PU - 40% Viscose",
+    "anomalous_value": "100% Carbon Fiber",
+    "operation": "value_replacement",
+    "row_index": 991,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "60% PU - 40% Viscose",
+    "anomalous_value": "0% Everything",
+    "operation": "value_replacement",
+    "row_index": 999,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "60% PU - 40% Viscose",
+    "anomalous_value": "∞% Polyester",
+    "operation": "value_replacement",
+    "row_index": 1005,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "95% Polyester - 5% Spandex",
+    "anomalous_value": "75% Wheat - 25% Sugar",
+    "operation": "value_replacement",
+    "row_index": 1023,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "100% Polyester",
+    "anomalous_value": "75% Fish Scales - 25% Whale Oil",
+    "operation": "value_replacement",
+    "row_index": 1049,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "100% Polyester",
+    "anomalous_value": "100% Granite",
+    "operation": "value_replacement",
+    "row_index": 1056,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "85% Cotton - 12% Polyester 3% Spandex",
+    "anomalous_value": "100% Bird Feathers",
+    "operation": "value_replacement",
+    "row_index": 1117,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "77% Viscose - 23% Nylon",
+    "anomalous_value": "90% Algae - 10% Plankton",
+    "operation": "value_replacement",
+    "row_index": 1150,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "78% Viscose - 22% Nylon",
+    "anomalous_value": "0% Everything",
+    "operation": "value_replacement",
+    "row_index": 1162,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "78% Viscose - 22% Nylon",
+    "anomalous_value": "-50% Cotton - 150% Polyester",
+    "operation": "value_replacement",
+    "row_index": 1184,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "78% Viscose - 22% Nylon",
+    "anomalous_value": "85% Avocado - 15% Lime",
+    "operation": "value_replacement",
+    "row_index": 1190,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "78% Viscose - 22% Nylon",
+    "anomalous_value": "80% Coral - 20% Seaweed",
+    "operation": "value_replacement",
+    "row_index": 1191,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "78% Viscose - 22% Nylon",
+    "anomalous_value": "200% Silk",
+    "operation": "value_replacement",
+    "row_index": 1246,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "78% Viscose - 22% Nylon",
+    "anomalous_value": "90% Snake Skin - 10% Scales",
+    "operation": "value_replacement",
+    "row_index": 1251,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "78% Viscose - 22% Nylon",
+    "anomalous_value": "80% Polyester - 40% Nylon",
+    "operation": "value_replacement",
+    "row_index": 1266,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "78% Viscose - 22% Nylon",
+    "anomalous_value": "80% Wood - 20% Plastic",
+    "operation": "value_replacement",
+    "row_index": 1291,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "78% Viscose - 22% Nylon",
+    "anomalous_value": "100% Bluetooth Module",
+    "operation": "value_replacement",
+    "row_index": 1296,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "78% Viscose - 22% Nylon",
+    "anomalous_value": "85% Tree Bark - 15% Moss",
+    "operation": "value_replacement",
+    "row_index": 1298,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "78% Viscose - 22% Nylon",
+    "anomalous_value": "-50% Cotton - 150% Polyester",
+    "operation": "value_replacement",
+    "row_index": 1324,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "78% Viscose - 22% Nylon",
+    "anomalous_value": "100% Silicon Chip",
+    "operation": "value_replacement",
+    "row_index": 1369,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "78% Viscose - 22% Nylon",
+    "anomalous_value": "80% Cheese - 20% Bread",
+    "operation": "value_replacement",
+    "row_index": 1393,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "78% Viscose - 22% Nylon",
+    "anomalous_value": "90% Algae - 10% Plankton",
+    "operation": "value_replacement",
+    "row_index": 1419,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "78% Viscose - 22% Nylon",
+    "anomalous_value": "90% Titanium - 10% Ceramic",
+    "operation": "value_replacement",
+    "row_index": 1433,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "78% Viscose - 22% Nylon",
+    "anomalous_value": "80% Copper Wire - 20% Plastic Coating",
+    "operation": "value_replacement",
+    "row_index": 1443,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "50% Acrylic - 30% Nylon - 10% wool - 10% Polyester",
+    "anomalous_value": "100% Optical Fiber",
+    "operation": "value_replacement",
+    "row_index": 1455,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "50% Acrylic - 30% Nylon - 10% wool - 10% Polyester",
+    "anomalous_value": "95% LED - 5% Resistor",
+    "operation": "value_replacement",
+    "row_index": 1456,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "98% Cotton - 2% Spandex",
+    "anomalous_value": "100% Granite",
+    "operation": "value_replacement",
+    "row_index": 1502,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "98% Cotton - 2% Spandex",
+    "anomalous_value": "100% Bird Feathers",
+    "operation": "value_replacement",
+    "row_index": 1510,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "98% Cotton - 2% Spandex",
+    "anomalous_value": "100% Bird Feathers",
+    "operation": "value_replacement",
+    "row_index": 1514,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "50% Viscose - 27% Polyester - 23% Polyamide",
+    "anomalous_value": "200% Silk",
+    "operation": "value_replacement",
+    "row_index": 1539,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "90% Cotton - 10% Spandex",
+    "anomalous_value": "85% Marble - 15% Gold",
+    "operation": "value_replacement",
+    "row_index": 1590,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "100% Acrylic",
+    "anomalous_value": "75% Wheat - 25% Sugar",
+    "operation": "value_replacement",
+    "row_index": 1613,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "61% Viscose - 22% Polyester - 17% Nylon",
+    "anomalous_value": "100% Carbon Fiber",
+    "operation": "value_replacement",
+    "row_index": 1642,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "61% Viscose - 22% Polyester - 17% Nylon",
+    "anomalous_value": "-50% Cotton - 150% Polyester",
+    "operation": "value_replacement",
+    "row_index": 1653,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "61% Viscose - 22% Polyester - 17% Nylon",
+    "anomalous_value": "100% Pure Honey",
+    "operation": "value_replacement",
+    "row_index": 1680,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "57% Acrylic - 24% Wool 19% Nylon",
+    "anomalous_value": "75% Solar Panel - 25% Glass",
+    "operation": "value_replacement",
+    "row_index": 1726,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "81% Acrylic - 17% Nylon 2% Spandex",
+    "anomalous_value": "90% Titanium - 10% Ceramic",
+    "operation": "value_replacement",
+    "row_index": 1743,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "92% Polyester - 8% Spandex",
+    "anomalous_value": "100% Diamond",
+    "operation": "value_replacement",
+    "row_index": 1777,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "92% Polyester - 8% Spandex",
+    "anomalous_value": "85% Marble - 15% Gold",
+    "operation": "value_replacement",
+    "row_index": 1780,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "100% Viscose",
+    "anomalous_value": "100% Carbon Fiber",
+    "operation": "value_replacement",
+    "row_index": 1785,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "100% Viscose",
+    "anomalous_value": "85% Tree Bark - 15% Moss",
+    "operation": "value_replacement",
+    "row_index": 1791,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "95% Cotton - 3.5% Polyester - 1.5% Spandex",
+    "anomalous_value": "80% Copper Wire - 20% Plastic Coating",
+    "operation": "value_replacement",
+    "row_index": 1797,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "97% Polyester - 3% Spandex",
+    "anomalous_value": "90% Quinoa - 10% Kale",
+    "operation": "value_replacement",
+    "row_index": 1809,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "97% Polyester - 3% Spandex",
+    "anomalous_value": "150% Cotton",
+    "operation": "value_replacement",
+    "row_index": 1821,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "97% Polyester - 3% Spandex",
+    "anomalous_value": "100% Glass Fiber",
+    "operation": "value_replacement",
+    "row_index": 1830,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "97% Polyester - 3% Spandex",
+    "anomalous_value": "80% Copper Wire - 20% Plastic Coating",
+    "operation": "value_replacement",
+    "row_index": 1840,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "97% Polyester - 3% Spandex",
+    "anomalous_value": "75% Solar Panel - 25% Glass",
+    "operation": "value_replacement",
+    "row_index": 1842,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "96% Polyester - 4% Spandex",
+    "anomalous_value": "100% Bacterial Culture",
+    "operation": "value_replacement",
+    "row_index": 1853,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "96% Polyester - 4% Spandex",
+    "anomalous_value": "100% Optical Fiber",
+    "operation": "value_replacement",
+    "row_index": 1856,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "77% Acrylic - 19% Polyester 4% Spandex",
+    "anomalous_value": "95% Steel - 5% Aluminum",
+    "operation": "value_replacement",
+    "row_index": 1861,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "42% Viscose - 30% Polyamide - 28% Polyester",
+    "anomalous_value": "100% Silicon Chip",
+    "operation": "value_replacement",
+    "row_index": 1871,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "42% Viscose - 30% Polyamide - 28% Polyester",
+    "anomalous_value": "99.9999% Cotton - 0.0001% Magic",
+    "operation": "value_replacement",
+    "row_index": 1872,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "42% Viscose - 30% Polyamide - 28% Polyester",
+    "anomalous_value": "80% Wood - 20% Plastic",
+    "operation": "value_replacement",
+    "row_index": 1875,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "50% Viscose - 50% Acrylic",
+    "anomalous_value": "90% Chocolate - 10% Vanilla",
+    "operation": "value_replacement",
+    "row_index": 1903,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "50% Viscose - 50% Acrylic",
+    "anomalous_value": "90% Cotton - 50% Spandex - 30% Wool",
+    "operation": "value_replacement",
+    "row_index": 1916,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "100% Nylon",
+    "anomalous_value": "100% Bird Feathers",
+    "operation": "value_replacement",
+    "row_index": 1955,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "100% Viscose",
+    "anomalous_value": "90% Cotton - 50% Spandex - 30% Wool",
+    "operation": "value_replacement",
+    "row_index": 1975,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "100% Polyester",
+    "anomalous_value": "90% Titanium - 10% Ceramic",
+    "operation": "value_replacement",
+    "row_index": 1981,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "100% Polyester",
+    "anomalous_value": "100% LCD Screen",
+    "operation": "value_replacement",
+    "row_index": 1984,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "100% Viscose",
+    "anomalous_value": "85% Marble - 15% Gold",
+    "operation": "value_replacement",
+    "row_index": 1995,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "100% Polyester",
+    "anomalous_value": "85% Microprocessor - 15% Heat Sink",
+    "operation": "value_replacement",
+    "row_index": 2004,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "100% Polyester",
+    "anomalous_value": "80% Polyester - 40% Nylon",
+    "operation": "value_replacement",
+    "row_index": 2036,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "100% Polyester",
+    "anomalous_value": "100% Bird Feathers",
+    "operation": "value_replacement",
+    "row_index": 2039,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "100% Polyester",
+    "anomalous_value": "80% Wood - 20% Plastic",
+    "operation": "value_replacement",
+    "row_index": 2052,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "100% Polyester",
+    "anomalous_value": "75% Wheat - 25% Sugar",
+    "operation": "value_replacement",
+    "row_index": 2061,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "100% Polyester",
+    "anomalous_value": "100% Fresh Salmon",
+    "operation": "value_replacement",
+    "row_index": 2064,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "40% Viscose - 30% Nylon - 27% Polyester - 3% Cashmere",
+    "anomalous_value": "100% Fresh Salmon",
+    "operation": "value_replacement",
+    "row_index": 2082,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "40% Viscose - 30% Nylon - 27% Polyester - 3% Cashmere",
+    "anomalous_value": "75% Wheat - 25% Sugar",
+    "operation": "value_replacement",
+    "row_index": 2084,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "Shell: 100% Polyester Lining: 100% Polyester",
+    "anomalous_value": "100% Optical Fiber",
+    "operation": "value_replacement",
+    "row_index": 2095,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "48% Modal - 48% Polyester - 4% Spandex",
+    "anomalous_value": "90% Quinoa - 10% Kale",
+    "operation": "value_replacement",
+    "row_index": 2101,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "48% Modal - 48% Polyester - 4% Spandex",
+    "anomalous_value": "100% LCD Screen",
+    "operation": "value_replacement",
+    "row_index": 2125,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "48% Modal - 48% Polyester - 4% Spandex",
+    "anomalous_value": "80% Coral - 20% Seaweed",
+    "operation": "value_replacement",
+    "row_index": 2165,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "48% Modal - 48% Polyester - 4% Spandex",
+    "anomalous_value": "90% Quinoa - 10% Kale",
+    "operation": "value_replacement",
+    "row_index": 2174,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "48% Modal - 48% Polyester - 4% Spandex",
+    "anomalous_value": "100% Granite",
+    "operation": "value_replacement",
+    "row_index": 2200,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "48% Modal - 48% Polyester - 4% Spandex",
+    "anomalous_value": "100% Glass Fiber",
+    "operation": "value_replacement",
+    "row_index": 2203,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "48% Modal - 48% Polyester - 4% Spandex",
+    "anomalous_value": "95% Steel - 5% Aluminum",
+    "operation": "value_replacement",
+    "row_index": 2204,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "48% Modal - 48% Polyester - 4% Spandex",
+    "anomalous_value": "80% Cheese - 20% Bread",
+    "operation": "value_replacement",
+    "row_index": 2213,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "48% Modal - 48% Polyester - 4% Spandex",
+    "anomalous_value": "100% Coconut Oil",
+    "operation": "value_replacement",
+    "row_index": 2228,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "86% Cotton - 14% Polyester",
+    "anomalous_value": "100% LCD Screen",
+    "operation": "value_replacement",
+    "row_index": 2257,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "86% Cotton - 14% Polyester",
+    "anomalous_value": "100% Organic Lettuce",
+    "operation": "value_replacement",
+    "row_index": 2262,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "86% Cotton - 14% Polyester",
+    "anomalous_value": "90% Lithium Battery - 10% Circuit Board",
+    "operation": "value_replacement",
+    "row_index": 2273,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "86% Cotton - 14% Polyester",
+    "anomalous_value": "100% Granite",
+    "operation": "value_replacement",
+    "row_index": 2339,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "86% Cotton - 14% Polyester",
+    "anomalous_value": "85% Tree Bark - 15% Moss",
+    "operation": "value_replacement",
+    "row_index": 2358,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "53% Acrylic - 28% Nylon - 10% Wool - 6% Mohair - 3% Spandex",
+    "anomalous_value": "100% Diamond",
+    "operation": "value_replacement",
+    "row_index": 2364,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "53% Acrylic - 28% Nylon - 10% Wool - 6% Mohair - 3% Spandex",
+    "anomalous_value": "100% Granite",
+    "operation": "value_replacement",
+    "row_index": 2369,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "53% Acrylic - 28% Nylon - 10% Wool - 6% Mohair - 3% Spandex",
+    "anomalous_value": "100% Bird Feathers",
+    "operation": "value_replacement",
+    "row_index": 2370,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "53% Recycled Poly - 20% Acrylic - 25% Polyester - 2% Spandex",
+    "anomalous_value": "-50% Cotton - 150% Polyester",
+    "operation": "value_replacement",
+    "row_index": 2383,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_biological_materials",
+    "rule_description": "Replace with biological/organic materials",
+    "original_value": "80% Acrylic - 20% Wool",
+    "anomalous_value": "90% Algae - 10% Plankton",
+    "operation": "value_replacement",
+    "row_index": 2406,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "80% Acrylic - 20% Wool",
+    "anomalous_value": "100% Granite",
+    "operation": "value_replacement",
+    "row_index": 2408,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "51% Nylon - 23% Acrylic 21% Polyester - 5% Wool",
+    "anomalous_value": "100% Concrete",
+    "operation": "value_replacement",
+    "row_index": 2438,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "100% Viscose",
+    "anomalous_value": "100% Organic Lettuce",
+    "operation": "value_replacement",
+    "row_index": 2456,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "68% Viscose - 26% Polyamide - 6% Elastane",
+    "anomalous_value": "90% Cotton - 50% Spandex - 30% Wool",
+    "operation": "value_replacement",
+    "row_index": 2499,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "55% Cotton - 45% Acrylic",
+    "anomalous_value": "99.9999% Cotton - 0.0001% Magic",
+    "operation": "value_replacement",
+    "row_index": 2547,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "86% Cotton - 14% Polyester",
+    "anomalous_value": "∞% Polyester",
+    "operation": "value_replacement",
+    "row_index": 2561,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "48% Modal - 48% Polyester - 4% Spandex",
+    "anomalous_value": "85% Marble - 15% Gold",
+    "operation": "value_replacement",
+    "row_index": 2581,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "86% Cotton - 14% Polyester",
+    "anomalous_value": "-50% Cotton - 150% Polyester",
+    "operation": "value_replacement",
+    "row_index": 2586,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "78% Viscose - 22% Nylon",
+    "anomalous_value": "60% Brick - 40% Mortar",
+    "operation": "value_replacement",
+    "row_index": 2597,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "78% Viscose - 22% Nylon",
+    "anomalous_value": "95% Steel - 5% Aluminum",
+    "operation": "value_replacement",
+    "row_index": 2602,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_food_materials",
+    "rule_description": "Replace with food-based materials",
+    "original_value": "98% Cotton - 2% Spandex",
+    "anomalous_value": "75% Wheat - 25% Sugar",
+    "operation": "value_replacement",
+    "row_index": 2682,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_impossible_compositions",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "98% Cotton - 2% Spandex",
+    "anomalous_value": "80% Polyester - 40% Nylon",
+    "operation": "value_replacement",
+    "row_index": 2685,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_construction_materials",
+    "rule_description": "Replace textile materials with construction materials",
+    "original_value": "Shell: 100% Polyester Lining: 100% Polyester",
+    "anomalous_value": "100% Carbon Fiber",
+    "operation": "value_replacement",
+    "row_index": 2696,
+    "column_name": "material",
+    "field_name": "material"
+  }
+]
