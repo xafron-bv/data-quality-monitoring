@@ -13,22 +13,16 @@ import warnings
 from anomaly_detectors.anomaly_detector_interface import AnomalyDetectorInterface
 from anomaly_detectors.anomaly_error import AnomalyError
 
-# Try to import ML dependencies
-try:
-    from sentence_transformers import SentenceTransformer
-    from sklearn.metrics.pairwise import cosine_similarity
-    ML_AVAILABLE = True
-    
-    from anomaly_detectors.ml_based.check_anomalies import (
-        load_model_for_field, check_anomalies, 
-        _model_cache
-    )
-    from anomaly_detectors.ml_based.model_training import preprocess_text
-    from field_column_map import get_field_to_column_map
-    from anomaly_detectors.ml_based.gpu_utils import get_optimal_device, print_device_info
-except ImportError as e:
-    ML_AVAILABLE = False
-    warnings.warn(f"ML dependencies not available: {e}")
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+
+from anomaly_detectors.ml_based.check_anomalies import (
+    load_model_for_field, check_anomalies, 
+    _model_cache
+)
+from anomaly_detectors.ml_based.model_training import preprocess_text
+from field_column_map import get_field_to_column_map
+from anomaly_detectors.ml_based.gpu_utils import get_optimal_device, print_device_info
 
 
 class MLAnomalyDetector(AnomalyDetectorInterface):
@@ -66,9 +60,6 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
         self.column_name = None
         self.reference_centroid = None
         self.is_initialized = False
-        
-        if not ML_AVAILABLE:
-            raise ImportError("ML dependencies not available. Please check your installation.")
     
     def _get_cache_key(self):
         """Generate a cache key for this detector configuration."""

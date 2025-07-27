@@ -24,12 +24,7 @@ from debug_config import debug_print
 from validators.validator_interface import ValidatorInterface
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
 
-# Optional imports with graceful fallback
-try:
-    from anomaly_detectors.llm_based.llm_anomaly_detector import create_llm_detector_for_field
-    LLM_AVAILABLE = True
-except ImportError:
-    LLM_AVAILABLE = False
+from anomaly_detectors.llm_based.llm_anomaly_detector import create_llm_detector_for_field
 
 
 @dataclass
