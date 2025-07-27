@@ -47,7 +47,8 @@ class DataQualityDemo:
                  injection_intensity=0.2, max_issues_per_row=2, core_fields_only=False,
                  enable_validation=True, enable_pattern=True, enable_ml=True, enable_llm=False,
                  llm_threshold=0.6, llm_few_shot_examples=False, 
-                 llm_temporal_column=None, llm_context_columns=None, use_weighted_combination=False):
+                 llm_temporal_column=None, llm_context_columns=None, use_weighted_combination=False,
+                 weights_file="detection_weights.json"):
         """
         Initialize the demo with the specified parameters.
         """
@@ -65,6 +66,7 @@ class DataQualityDemo:
         self.llm_temporal_column = llm_temporal_column
         self.llm_context_columns = llm_context_columns.split(',') if llm_context_columns else None
         self.use_weighted_combination = use_weighted_combination
+        self.weights_file = weights_file
         
         # Create output directory
         os.makedirs(output_dir, exist_ok=True)
@@ -162,7 +164,8 @@ class DataQualityDemo:
                 enable_pattern=self.enable_pattern,
                 enable_ml=self.enable_ml,
                 enable_llm=self.enable_llm,
-                use_weighted_combination=self.use_weighted_combination
+                use_weighted_combination=self.use_weighted_combination,
+                weights_file=self.weights_file
             )
             
             field_results, cell_classifications = detector.run_comprehensive_detection(sample_df)
@@ -309,6 +312,8 @@ Example usage:
                        help="Comma-separated list of context columns for LLM dynamic encoding")
     parser.add_argument("--use-weighted-combination", action="store_true",
                        help="Use weighted combination of anomaly detection methods instead of priority-based")
+    parser.add_argument("--weights-file", type=str, default="detection_weights.json",
+                       help="Path to JSON file containing detection weights (default: detection_weights.json)")
     
     args = parser.parse_args()
     
@@ -336,7 +341,8 @@ Example usage:
         llm_few_shot_examples=args.llm_few_shot_examples,
         llm_temporal_column=args.llm_temporal_column,
         llm_context_columns=args.llm_context_columns,
-        use_weighted_combination=args.use_weighted_combination
+        use_weighted_combination=args.use_weighted_combination,
+        weights_file=args.weights_file
     )
     
     result = demo.run_complete_demo()
