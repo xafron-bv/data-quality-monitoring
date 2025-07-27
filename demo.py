@@ -19,13 +19,17 @@ to simulate real-world data quality issues across multiple fields simultaneously
 This approach is more realistic and efficient than the previous multi-sample method.
 """
 
+import pandas as pd
 import os
 import sys
 import json
-import pandas as pd
-import time
+import numpy as np
 import argparse
+import time
+import traceback
 from pathlib import Path
+from typing import Dict, List, Any, Optional, Tuple
+from datetime import datetime
 
 # Ensure we can import from the project
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -35,8 +39,9 @@ from comprehensive_sample_generator import generate_comprehensive_sample, save_c
 from comprehensive_detector import ComprehensiveFieldDetector
 from consolidated_reporter import save_consolidated_reports
 from confusion_matrix_analyzer import analyze_confusion_matrices
-from common_interfaces import FieldMapper
+from field_mapper import FieldMapper
 from exceptions import DataQualityError, ConfigurationError, FileOperationError
+from brand_configs import get_brand_config_manager
 
 
 class DataQualityDemo:
@@ -260,7 +265,6 @@ class DataQualityDemo:
             return None
         except Exception as e:
             print(f"\n❌ Demo failed: {e}")
-            import traceback
             traceback.print_exc()
             return None
 
@@ -322,7 +326,6 @@ Example usage:
     args = parser.parse_args()
     
     # Set up brand configuration
-    from brand_configs import get_brand_config_manager
     brand_manager = get_brand_config_manager(specific_brand_file=args.brand_config)
     
     # Brand is required unless data file is explicitly provided

@@ -33,7 +33,8 @@ import json
 import string
 import re
 from typing import List, Dict, Any, Union, Optional, Tuple
-from common_interfaces import FieldMapper
+from field_mapper import FieldMapper
+from exceptions import FileOperationError, ConfigurationError
 
 
 class ErrorInjector:
@@ -462,7 +463,6 @@ def load_error_rules(rules_file_path: str) -> List[Dict[str, Any]]:
         FileOperationError: If the rules file cannot be loaded or parsed
         ConfigurationError: If the rules file format is invalid
     """
-    from exceptions import FileOperationError, ConfigurationError
     
     try:
         with open(rules_file_path, 'r', encoding='utf-8') as f:

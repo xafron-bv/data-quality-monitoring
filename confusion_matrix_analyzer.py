@@ -16,7 +16,7 @@ import seaborn as sns
 from pathlib import Path
 
 from comprehensive_detector import CellClassification, FieldDetectionResult
-from common_interfaces import FieldMapper
+from field_mapper import FieldMapper
 
 
 class ConfusionMatrixAnalyzer:

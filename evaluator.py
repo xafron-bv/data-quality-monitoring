@@ -12,7 +12,7 @@ from unified_detection_interface import (
     DetectionConfig
 )
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
-from common_interfaces import FieldMapper
+from field_mapper import FieldMapper
 from anomaly_detectors.ml_based.ml_anomaly_reporter import MLAnomalyReporter
 
 

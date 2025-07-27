@@ -16,7 +16,7 @@ import random
 from typing import Dict, List, Any, Tuple, Optional
 from pathlib import Path
 
-from common_interfaces import FieldMapper
+from field_mapper import FieldMapper
 from error_injection import ErrorInjector, load_error_rules
 from anomaly_detectors.anomaly_injection import AnomalyInjector, load_anomaly_rules
 from exceptions import FileOperationError, ConfigurationError

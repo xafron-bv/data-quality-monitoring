@@ -1,15 +1,13 @@
 """
-Brand-specific configuration management for multi-brand data quality monitoring.
-
-This module provides a centralized system for managing different brands' column mappings,
-data sources, and specific configurations.
+Brand configuration management system.
 """
 
 import json
 import os
-from typing import Dict, Any, Optional, List
-from dataclasses import dataclass, asdict
 from pathlib import Path
+from typing import Dict, List, Optional, Any
+from dataclasses import dataclass, asdict
+from field_mapper import FieldMapper
 
 
 @dataclass
@@ -155,8 +153,6 @@ class BrandConfigManager:
         Returns:
             FieldMapper instance configured for the brand.
         """
-        from common_interfaces import FieldMapper
-        
         brand_name = brand_name or self._current_brand
         if not brand_name:
             raise ValueError("No brand specified and no current brand set")

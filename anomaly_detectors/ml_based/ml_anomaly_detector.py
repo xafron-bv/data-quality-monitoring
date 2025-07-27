@@ -1,36 +1,34 @@
 """
-ML-based Anomaly Detector
-
-This module implements the AnomalyDetectorInterface for ML-based anomaly detection
-using sentence transformers and trained models.
+ML-based anomaly detector implementation.
 """
 
-import pandas as pd
-from typing import List, Dict, Any, Optional
 import os
-import sys
+import pandas as pd
+import numpy as np
+import json
+from pathlib import Path
+from typing import List, Dict, Any, Optional, Tuple
+import warnings
 
 from anomaly_detectors.anomaly_detector_interface import AnomalyDetectorInterface
 from anomaly_detectors.anomaly_error import AnomalyError
 
-# Add the ml_based directory to the path to import ML modules
-sys.path.append(os.path.dirname(__file__))
-
+# Try to import ML dependencies
 try:
-    # Use absolute imports to avoid relative import issues
+    from sentence_transformers import SentenceTransformer
+    from sklearn.metrics.pairwise import cosine_similarity
+    ML_AVAILABLE = True
+    
     from anomaly_detectors.ml_based.check_anomalies import (
-        load_model_for_field,
-        check_anomalies
+        load_model_for_field, check_anomalies, 
+        _model_cache, save_model_for_field
     )
     from anomaly_detectors.ml_based.model_training import preprocess_text
     from field_column_map import get_field_to_column_map
     from anomaly_detectors.ml_based.gpu_utils import get_optimal_device, print_device_info
-    ML_AVAILABLE = True
 except ImportError as e:
-    # This is an error, not a warning - ML functionality should be available
-    print(f"Error: ML modules failed to import: {e}")
-    print("This indicates a configuration or installation issue, not missing functionality.")
     ML_AVAILABLE = False
+    warnings.warn(f"ML dependencies not available: {e}")
 
 
 class MLAnomalyDetector(AnomalyDetectorInterface):

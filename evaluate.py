@@ -8,8 +8,10 @@ import importlib
 # Add the script's directory to the Python path.
 # This ensures that top-level modules like 'interfaces.py' are found
 # when validator/reporter modules are loaded dynamically from subdirectories.
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from evaluator import Evaluator
-from error_injection import generate_error_samples, load_error_rules
+from error_injection import generate_error_samples, load_error_rules, ErrorInjector
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
 import debug_config
 from exceptions import DataQualityError, ConfigurationError, FileOperationError, ModelError
@@ -18,10 +20,8 @@ from exceptions import DataQualityError, ConfigurationError, FileOperationError,
 from comprehensive_sample_generator import generate_comprehensive_sample, save_comprehensive_sample
 from comprehensive_detector import ComprehensiveFieldDetector
 from consolidated_reporter import save_consolidated_reports
-from anomaly_detectors.anomaly_injection import load_anomaly_rules
-from anomaly_detectors.anomaly_injection import AnomalyInjector
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from anomaly_detectors.anomaly_injection import load_anomaly_rules, AnomalyInjector
+from brand_configs import get_brand_config_manager
 
 
 def load_module_class(module_path: str):
@@ -584,7 +584,6 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         debug_config.disable_debug()
     
     # Set up brand configuration
-    from brand_configs import get_brand_config_manager
     brand_manager = get_brand_config_manager(specific_brand_file=args.brand_config)
     
     if args.brand:
@@ -761,7 +760,6 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         
         # Apply error injection (validation errors) if available
         if run_validation and 'rules' in locals():
-            from error_injection import ErrorInjector
             error_injector = ErrorInjector(rules)
             sample_df, error_injections = error_injector.inject_errors(
                 sample_df, field_name, max_errors=args.max_errors//2, 
@@ -771,7 +769,6 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         
         # Apply anomaly injection (semantic anomalies) if available
         if anomaly_rules:
-            from anomaly_injection import AnomalyInjector
             anomaly_injector = AnomalyInjector(anomaly_rules)
             sample_df, anomaly_injections = anomaly_injector.inject_anomalies(
                 sample_df, field_name, max_anomalies=args.max_errors//2, 

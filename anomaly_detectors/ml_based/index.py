@@ -1,11 +1,20 @@
+"""
+ML-based anomaly detection index generation module.
+"""
+
+import sys
+import os
 import pandas as pd
 import numpy as np
 import argparse
-import random
-import os
-import sys
-import torch
-from os import path
+import json
+from datetime import datetime
+
+# Add parent directories to path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+
+from brand_configs import get_brand_config_manager
+from anomaly_detectors.anomaly_injection import load_anomaly_rules
 
 # Add the parent directory to the path to import the error injection module
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
