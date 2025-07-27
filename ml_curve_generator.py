@@ -563,8 +563,7 @@ Example usage:
             args.brand = available_brands[0]
             print(f"Using default brand: {args.brand}")
         else:
-            print("Error: Brand must be specified with --brand")
-            sys.exit(1)
+            raise ValueError("Brand must be specified with --brand option")
     
     brand_config = load_brand_config(args.brand)
     print(f"Using brand configuration: {args.brand}")

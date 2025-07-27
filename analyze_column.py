@@ -147,8 +147,7 @@ def main():
         brand_config = load_brand_config(args.brand)
         print(f"Using brand configuration: {args.brand}")
     else:
-        print("Error: Brand name is required")
-        sys.exit(1)
+        raise ConfigurationError("Brand name is required. Use --brand <brand_name>")
     
     csv_file = args.csv_file
     field_name = args.field_name
@@ -165,7 +164,7 @@ def main():
         if hasattr(e, 'details'):
             for key, value in e.details.items():
                 print(f"  {key}: {value}")
-        sys.exit(1)  # Keep this one sys.exit for CLI script behavior
+        sys.exit(1)  # Exit with error code for CLI usage
 
 if __name__ == "__main__":
     main()

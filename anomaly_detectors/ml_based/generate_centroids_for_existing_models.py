@@ -112,15 +112,13 @@ def main():
     
     data_file = args.data_file
     if not os.path.exists(data_file):
-        print(f"❌ Dataset not found: {data_file}")
-        sys.exit(1)
+        raise FileNotFoundError(f"Dataset not found: {data_file}")
     
     try:
         df = pd.read_csv(data_file)
         print(f"📊 Loaded dataset: {df.shape[0]} rows, {df.shape[1]} columns")
     except Exception as e:
-        print(f"❌ Error loading dataset: {e}")
-        sys.exit(1)
+        raise RuntimeError(f"Error loading dataset: {e}") from e
     
     # Get field to column mapping
     field_to_column = get_field_to_column_map()
@@ -128,8 +126,7 @@ def main():
     # Find all existing model directories
     results_dir = "../results"
     if not os.path.exists(results_dir):
-        print(f"❌ Results directory not found: {results_dir}")
-        sys.exit(1)
+        raise FileNotFoundError(f"Results directory not found: {results_dir}")
     
     model_dirs = []
     for item in os.listdir(results_dir):
@@ -137,8 +134,7 @@ def main():
             model_dirs.append(item)
     
     if not model_dirs:
-        print(f"❌ No trained models found in {results_dir}")
-        sys.exit(1)
+        raise RuntimeError(f"No trained models found in {results_dir}")
     
     print(f"📋 Found {len(model_dirs)} trained models")
     

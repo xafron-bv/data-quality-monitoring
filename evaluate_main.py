@@ -590,29 +590,26 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
             args.brand = available_brands[0]
             print(f"Using default brand: {args.brand}")
         elif len(available_brands) > 1:
-            print(f"Error: Multiple brands available. Please specify one with --brand")
-            print(f"Available brands: {', '.join(available_brands)}")
-            sys.exit(1)
+            raise ConfigurationError(
+                f"Multiple brands available. Please specify one with --brand\n"
+                f"Available brands: {', '.join(available_brands)}"
+            )
         else:
-            print("Error: No brand configurations found.")
-            sys.exit(1)
+            raise ConfigurationError("No brand configurations found.")
     
     # Load brand configuration
     try:
         brand_config = load_brand_config(args.brand)
         print(f"Using brand configuration: {args.brand}")
     except FileNotFoundError as e:
-        print(f"Error: {e}")
-        sys.exit(1)
+        raise ConfigurationError(f"Brand configuration not found: {e}") from e
     
     # Validate arguments for single-sample mode
     if args.evaluation_mode == "single-sample":
         if not (0.0 <= args.injection_intensity <= 1.0):
-            print("❌ Error: injection-intensity must be between 0.0 and 1.0")
-            sys.exit(1)
+            raise ValueError("injection-intensity must be between 0.0 and 1.0")
         if args.max_issues_per_row < 1:
-            print("❌ Error: max-issues-per-row must be at least 1")
-            sys.exit(1)
+            raise ValueError("max-issues-per-row must be at least 1")
         
         # Run comprehensive evaluation
         run_comprehensive_evaluation(args)
