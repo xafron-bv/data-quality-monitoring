@@ -2,7 +2,7 @@
 
 ```bash
 python demo.py \
-  --data-file data/esqualo_2022_fall.csv \
+  --brand your_brand \
   --output-dir demo_comparison_validation_pattern \
   --injection-intensity 0.15 \
   --max-issues-per-row 2 \
@@ -18,7 +18,7 @@ python demo.py \
 
 ```bash
 python demo.py \
-  --data-file data/esqualo_2022_fall.csv \
+  --brand your_brand \
   --output-dir demo_comparison_validation_ml \
   --injection-intensity 0.15 \
   --max-issues-per-row 2 \
@@ -34,7 +34,7 @@ python demo.py \
 
 ```bash
 python demo.py \
-  --data-file data/esqualo_2022_fall.csv \
+  --brand your_brand \
   --output-dir demo_comparison_all_methods \
   --injection-intensity 0.15 \
   --max-issues-per-row 2 \
@@ -51,7 +51,7 @@ python demo.py \
 
 ```bash
 python demo.py \
-  --data-file data/esqualo_2022_fall.csv \
+  --brand your_brand \
   --output-dir demo_comparison_ml_only \
   --injection-intensity 0.15 \
   --max-issues-per-row 2 \
@@ -64,7 +64,7 @@ python demo.py \
 
 ```bash
 python demo.py \
-  --data-file data/esqualo_2022_fall.csv \
+  --brand your_brand \
   --output-dir demo_comparison_validation_only \
   --injection-intensity 0.15 \
   --max-issues-per-row 2 \
@@ -75,7 +75,7 @@ python demo.py \
 
 ```bash
 python demo.py \
-  --data-file data/esqualo_2022_fall.csv \
+  --brand your_brand \
   --output-dir demo_comparison_llm_only \
   --injection-intensity 0.15 \
   --max-issues-per-row 2 \
@@ -88,7 +88,7 @@ python demo.py \
 
 ```bash
 python demo.py \
-  --data-file data/esqualo_2022_fall.csv \
+  --brand your_brand \
   --output-dir demo_comparison_validation_llm \
   --injection-intensity 0.15 \
   --max-issues-per-row 2 \
@@ -103,7 +103,7 @@ python demo.py \
 
 ```bash
 python demo.py \
-  --data-file data/esqualo_2022_fall.csv \
+  --brand your_brand \
   --output-dir demo_comparison_all_methods_with_llm \
   --injection-intensity 0.15 \
   --max-issues-per-row 2 \
@@ -122,7 +122,7 @@ python demo.py \
 
 ```bash
 python demo.py \
-  --data-file data/esqualo_2022_fall.csv \
+  --brand your_brand \
   --output-dir demo_comparison_llm_few_shot \
   --injection-intensity 0.15 \
   --max-issues-per-row 2 \
@@ -136,7 +136,7 @@ python demo.py \
 
 ```bash
 python demo.py \
-  --data-file data/esqualo_2022_fall.csv \
+  --brand your_brand \
   --output-dir demo_comparison_llm_dynamic \
   --injection-intensity 0.15 \
   --max-issues-per-row 2 \

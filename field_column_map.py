@@ -1,24 +1,32 @@
-def get_field_to_column_map():
+def get_field_to_column_map(brand_name=None):
     """
-    Get the mapping from field names to column names.
+    Get the mapping from field names to column names for a specific brand.
+    
+    Args:
+        brand_name: Name of the brand. If None, uses current brand.
+    
+    Returns:
+        Dictionary mapping field names to column names.
+    
+    Raises:
+        ValueError: If no brand is configured and none specified.
     """
-    return {
-        "category": "article_structure_name_2",
-        "color_name": "colour_name",
-        "ean": "EAN",
-        "article_number": "article_number",
-        "colour_code": "colour_code",
-        "customs_tariff_number": "customs_tariff_number",
-        "description_short_1": "description_short_1",
-        "long_description_nl": "long_description_NL",
-        "material": "material",
-        "product_name_en": "product_name_EN",
-        "size": "size_name",  # Fixed: use 'size' rule file for 'size_name' column
-        "care_instructions": "Care Instructions",  # Added: maps to the actual column name with capitals and space
-        "season": "season",  # Re-added: might be useful for analysis even with limited values
-        "manufactured_in": "Manufactured in",  # Added: maps to column with space
-        "supplier": "supplier",  # Added: supplier information
-        "brand": "brand",  # Added: brand information
-        "collection": "collection",  # Added: collection information
-        # Note: Some fields were previously excluded due to limited unique values but can be useful for specific analyses
-    }
+    from brand_configs import get_brand_config_manager
+    
+    manager = get_brand_config_manager()
+    
+    # If no brand specified, try to get current brand
+    if brand_name is None:
+        config = manager.get_current_brand()
+        if config:
+            return config.field_mappings
+        else:
+            raise ValueError("No brand configured. Please specify a brand or set current brand.")
+    else:
+        config = manager.get_brand(brand_name)
+        if config:
+            return config.field_mappings
+        else:
+            raise ValueError(f"Brand '{brand_name}' not found in configurations.")
+    
+

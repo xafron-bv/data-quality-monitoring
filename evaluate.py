@@ -570,6 +570,10 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     parser.add_argument("--max-workers", type=int, default=7, help="Maximum number of parallel workers (default: 7).")
     parser.add_argument("--high-confidence-threshold", type=float, default=0.8, help="Threshold for high confidence detection results (default: 0.8).")
     
+    # Brand configuration options
+    parser.add_argument("--brand", help="Brand name for field mapping.")
+    parser.add_argument("--brand-config", help="Path to brand configuration JSON file.")
+    
     args = parser.parse_args()
 
     # Set debug logging based on command-line argument
@@ -578,6 +582,24 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         print("Debug logging enabled")
     else:
         debug_config.disable_debug()
+    
+    # Set up brand configuration
+    from brand_configs import get_brand_config_manager
+    brand_manager = get_brand_config_manager(specific_brand_file=args.brand_config)
+    
+    if args.brand:
+        brand_manager.set_current_brand(args.brand)
+        print(f"Using brand configuration: {args.brand}")
+    else:
+        available_brands = brand_manager.list_brands()
+        if available_brands:
+            print(f"No brand specified. Available brands: {', '.join(available_brands)}")
+            print("Please specify a brand using --brand option")
+            sys.exit(1)
+        else:
+            print("No brand configurations found. Please create a brand configuration first.")
+            print("See manage_brands.py --create <brand_name>")
+            sys.exit(1)
     
     # Validate arguments for single-sample mode
     if args.evaluation_mode == "single-sample":
@@ -904,7 +926,12 @@ def run_comprehensive_evaluation(args):
     
     # Step 2: Run comprehensive detection
     print("\n🔍 Step 2: Running comprehensive detection across all fields")
+    
+    # Get field mapper for current brand
+    field_mapper = FieldMapper.from_default_mapping()
+    
     detector = ComprehensiveFieldDetector(
+        field_mapper=field_mapper,
         validation_threshold=args.validation_threshold,
         anomaly_threshold=args.anomaly_threshold,
         ml_threshold=args.ml_threshold,

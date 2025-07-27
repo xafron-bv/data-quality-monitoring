@@ -5,6 +5,10 @@ Comprehensive Field-by-Field Detector
 This module runs detection methods (validation, pattern-based anomaly detection,
 ML-based anomaly detection) on each field separately and classifies each cell
 with priority: validation > pattern-based > ML-based.
+
+Important: Validation and anomaly detection rules are global and work across all brands.
+The FieldMapper handles translating standard field names to brand-specific column names,
+so the same rules apply regardless of the brand's column naming conventions.
 """
 
 import pandas as pd
@@ -250,7 +254,12 @@ class ComprehensiveFieldDetector:
             return False
     
     def _get_validator_components(self, field_name: str) -> Tuple[Any, Any]:
-        """Get or create validator and reporter for a field."""
+        """Get or create validator and reporter for a field.
+        
+        Note: Validators are global and work across all brands. The field_name
+        refers to the standard field name (e.g., 'material'), not the brand-specific
+        column name. The FieldMapper handles the column name translation.
+        """
         if field_name not in self._validator_cache:
             try:
                 validator_module_str = f"validators.{field_name}.validate:Validator"
@@ -270,7 +279,12 @@ class ComprehensiveFieldDetector:
         return self._validator_cache[field_name]
     
     def _get_anomaly_components(self, field_name: str) -> Tuple[Any, Any]:
-        """Get or create anomaly detector and reporter for a field."""
+        """Get or create anomaly detector and reporter for a field.
+        
+        Note: Pattern-based anomaly detectors are global and work across all brands.
+        The field_name refers to the standard field name (e.g., 'material'), not the
+        brand-specific column name. The FieldMapper handles the column name translation.
+        """
         if field_name not in self._anomaly_detector_cache:
             try:
                 # Use the new generic pattern-based detector

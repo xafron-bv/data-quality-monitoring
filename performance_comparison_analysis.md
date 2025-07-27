@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Based on empirical testing with the same dataset (Esqualo 2022 Fall data with 15% injection intensity), the **Weighted Combination approach shows measurably better performance** than the Priority-Based approach across key metrics.
+Based on empirical testing with the same dataset (brand data with 15% injection intensity), the **Weighted Combination approach shows measurably better performance** than the Priority-Based approach across key metrics.
 
 ## 🏆 **Key Performance Improvements**
 
@@ -142,4 +142,4 @@ The performance advantage is expected to increase significantly once ML and LLM 
 
 ---
 
-*Analysis based on empirical testing with Esqualo 2022 Fall dataset, 15% injection intensity, 5 core fields, comparing 229 vs 213 total detections across 13,520 total cell evaluations.*
+*Analysis based on empirical testing with brand dataset, 15% injection intensity, 5 core fields, comparing 229 vs 213 total detections across 13,520 total cell evaluations.*

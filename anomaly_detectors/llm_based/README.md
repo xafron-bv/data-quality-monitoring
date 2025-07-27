@@ -47,7 +47,7 @@ The LLM-based anomaly detector uses **next-token probability prediction** to ide
 ```bash
 # Train a language model for the material field
 python anomaly_detectors/llm_based/llm_model_training.py \
-    data/esqualo_2022_fall_original.csv \
+    data/your_training_data.csv \
     --field material \
     --epochs 3 \
     --threshold -2.0
@@ -58,7 +58,7 @@ python anomaly_detectors/llm_based/llm_model_training.py \
 ```bash
 # Run demo with LLM detection enabled
 python demo.py \
-    --data-file data/esqualo_2022_fall.csv \
+    --brand your_brand \
     --output-dir demo_llm_results \
     --enable-llm \
     --llm-threshold -2.0 \

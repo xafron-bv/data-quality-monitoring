@@ -42,7 +42,7 @@ from exceptions import DataQualityError, ConfigurationError, FileOperationError
 class DataQualityDemo:
     """Comprehensive demo of the data quality monitoring system using single-sample approach."""
     
-    def __init__(self, data_file: str = "data/esqualo_2022_fall.csv", 
+    def __init__(self, data_file: str, 
                  output_dir: str = "demo_results",
                  injection_intensity=0.2, max_issues_per_row=2, core_fields_only=False,
                  enable_validation=True, enable_pattern=True, enable_ml=True, enable_llm=False,
@@ -282,8 +282,8 @@ Example usage:
   python demo.py --data-file my_data.csv --output-dir my_results
         """
     )
-    parser.add_argument("--data-file", default="data/esqualo_2022_fall.csv", 
-                       help="Path to the CSV data file (default: data/esqualo_2022_fall.csv)")
+    parser.add_argument("--data-file", 
+                       help="Path to the CSV data file")
     parser.add_argument("--output-dir", default="demo_results", 
                        help="Output directory for demo results (default: demo_results)")
     parser.add_argument("--injection-intensity", type=float, default=0.2,
@@ -308,6 +308,10 @@ Example usage:
                        help="Enable few-shot examples for LLM detection")
     parser.add_argument("--llm-temporal-column", type=str, default=None,
                        help="Column name containing temporal information for LLM dynamic encoding")
+    
+    # Brand configuration options
+    parser.add_argument("--brand", help="Brand name for field mapping")
+    parser.add_argument("--brand-config", help="Path to brand configuration JSON file")
     parser.add_argument("--llm-context-columns", type=str, default=None,
                        help="Comma-separated list of context columns for LLM dynamic encoding")
     parser.add_argument("--use-weighted-combination", action="store_true",
@@ -316,6 +320,35 @@ Example usage:
                        help="Path to JSON file containing detection weights (default: detection_weights.json)")
     
     args = parser.parse_args()
+    
+    # Set up brand configuration
+    from brand_configs import get_brand_config_manager
+    brand_manager = get_brand_config_manager(specific_brand_file=args.brand_config)
+    
+    # Brand is required unless data file is explicitly provided
+    if not args.brand and not args.data_file:
+        available_brands = brand_manager.list_brands()
+        if available_brands:
+            print(f"Error: Either --brand or --data-file must be specified.")
+            print(f"Available brands: {', '.join(available_brands)}")
+        else:
+            print("Error: No brand configurations found.")
+            print("Create a brand configuration using: python manage_brands.py --create <brand_name>")
+        sys.exit(1)
+    
+    if args.brand:
+        brand_manager.set_current_brand(args.brand)
+        print(f"Using brand configuration: {args.brand}")
+        
+        # Use brand's data file if --data-file not provided
+        if not args.data_file:
+            brand_data_path = brand_manager.get_data_path(args.brand)
+            if brand_data_path:
+                args.data_file = brand_data_path
+                print(f"Using brand data file: {args.data_file}")
+            else:
+                print(f"Error: No data file configured for brand '{args.brand}' and no --data-file provided")
+                sys.exit(1)
     
     # Validate arguments
     if not (0.0 <= args.injection_intensity <= 1.0):

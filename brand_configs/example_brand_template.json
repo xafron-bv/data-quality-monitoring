@@ -1,0 +1,38 @@
+{
+  "brand_name": "YOUR_BRAND_NAME",
+  "field_mappings": {
+    "category": "YOUR_CATEGORY_COLUMN",
+    "color_name": "YOUR_COLOR_COLUMN",
+    "ean": "YOUR_EAN_COLUMN",
+    "article_number": "YOUR_ARTICLE_NUMBER_COLUMN",
+    "colour_code": "YOUR_COLOR_CODE_COLUMN",
+    "customs_tariff_number": "YOUR_CUSTOMS_TARIFF_COLUMN",
+    "description_short_1": "YOUR_SHORT_DESCRIPTION_COLUMN",
+    "long_description_nl": "YOUR_LONG_DESCRIPTION_COLUMN",
+    "material": "YOUR_MATERIAL_COLUMN",
+    "product_name_en": "YOUR_PRODUCT_NAME_COLUMN",
+    "size": "YOUR_SIZE_COLUMN",
+    "care_instructions": "YOUR_CARE_INSTRUCTIONS_COLUMN",
+    "season": "YOUR_SEASON_COLUMN",
+    "manufactured_in": "YOUR_MANUFACTURED_IN_COLUMN",
+    "supplier": "YOUR_SUPPLIER_COLUMN",
+    "brand": "YOUR_BRAND_COLUMN",
+    "collection": "YOUR_COLLECTION_COLUMN"
+  },
+  "default_data_path": "data/YOUR_BRAND_NAME_data.csv",
+  "training_data_path": "data/YOUR_BRAND_NAME_training.csv",
+  "ml_models_path": "anomaly_detectors/ml_based/results/YOUR_BRAND_NAME",
+  "enabled_fields": [
+    "material",
+    "color_name",
+    "category",
+    "size"
+  ],
+  "custom_thresholds": {
+    "validation": 0.0,
+    "anomaly": 0.7,
+    "ml": 0.7,
+    "llm": 0.6
+  },
+  "_comment": "Edit this template and save as YOUR_BRAND_NAME.json in the brand_configs directory. Note: Validation and anomaly detection rules are global and shared across all brands."
+}

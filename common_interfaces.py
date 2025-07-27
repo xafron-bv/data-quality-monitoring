@@ -32,8 +32,9 @@ class DetectionResult:
 class FieldMapper:
     """Centralized field-to-column mapping service."""
     
-    def __init__(self, mapping: Dict[str, str]):
+    def __init__(self, mapping: Dict[str, str], brand_name: Optional[str] = None):
         self._mapping = mapping.copy()
+        self._brand_name = brand_name
     
     def get_column_name(self, field_name: str) -> str:
         return self._mapping.get(field_name, field_name)
@@ -50,27 +51,26 @@ class FieldMapper:
     def get_available_fields(self) -> List[str]:
         return list(self._mapping.keys())
     
+    def get_brand_name(self) -> Optional[str]:
+        """Get the brand name associated with this mapper."""
+        return self._brand_name
+    
     @classmethod
     def from_default_mapping(cls) -> 'FieldMapper':
-        return cls({
-            "category": "article_structure_name_2",
-            "color_name": "colour_name",
-            "ean": "EAN",
-            "article_number": "article_number",
-            "colour_code": "colour_code",
-            "customs_tariff_number": "customs_tariff_number",
-            "description_short_1": "description_short_1",
-            "long_description_nl": "long_description_NL",
-            "material": "material",
-            "product_name_en": "product_name_EN",
-            "size": "size_name",
-            "care_instructions": "Care Instructions",
-            "season": "season",
-            "manufactured_in": "Manufactured in",
-            "supplier": "supplier",
-            "brand": "brand",
-            "collection": "collection",
-        })
+        """Get field mapper for current brand."""
+        from brand_configs import get_brand_config_manager
+        manager = get_brand_config_manager()
+        current_brand = manager.get_current_brand()
+        if not current_brand:
+            raise ValueError("No brand configured. Please specify a brand or create a brand configuration.")
+        return cls(current_brand.field_mappings, current_brand.brand_name)
+    
+    @classmethod
+    def from_brand(cls, brand_name: str) -> 'FieldMapper':
+        """Get field mapper for a specific brand."""
+        from brand_configs import get_brand_config_manager
+        manager = get_brand_config_manager()
+        return manager.get_field_mapper(brand_name)
 
 
 # Legacy compatibility functions

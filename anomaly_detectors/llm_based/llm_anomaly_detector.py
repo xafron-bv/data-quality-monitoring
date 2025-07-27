@@ -176,23 +176,26 @@ def print_device_info(device: torch.device, context: str = ""):
     print(f"🖥️  Using device: {device} {context}")
 
 def get_field_to_column_map() -> Dict[str, str]:
-    """Get mapping from field names to column names."""
-    return {
-        'category': 'article_structure_name_1',
-        'color_name': 'colour_name',
-        'material': 'material',
-        'care_instructions': 'Care Instructions',
-        'season': 'season',
-        'size': 'size_name',
-        'brand': 'brand',
-        'ean': 'EAN',
-        'article_number': 'article_number',
-        'colour_code': 'colour_code',
-        'customs_tariff_number': 'customs_tariff_number',
-        'description_short_1': 'description_short_1',
-        'long_description_nl': 'long_description_NL',
-        'product_name_en': 'product_name_EN'
-    }
+    """Get mapping from field names to column names from current brand configuration."""
+    try:
+        # Import here to avoid circular dependency
+        import sys
+        import os
+        sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        from brand_configs import get_brand_config_manager
+        
+        manager = get_brand_config_manager()
+        current_brand = manager.get_current_brand()
+        if current_brand:
+            return current_brand.field_mappings
+        else:
+            # Try to get from field_column_map module
+            from field_column_map import get_field_to_column_map as get_global_map
+            return get_global_map()
+    except Exception as e:
+        print(f"Warning: Could not load brand configuration: {e}")
+        # Return empty dict if brand config not available
+        return {}
 
 def calculate_sequence_probability(model, tokenizer, text: str, device: torch.device) -> float:
     """Calculate the probability of a text sequence using the trained language model."""

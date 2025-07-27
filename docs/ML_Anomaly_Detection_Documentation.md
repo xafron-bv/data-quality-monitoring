@@ -387,29 +387,29 @@ else:
 
 Train models for all columns:
 ```bash
-python index.py ../../data/esqualo_2022_fall_original.csv
+python index.py ../../data/your_training_data.csv --brand your_brand
 ```
 
 Train with hyperparameter search:
 ```bash
-python index.py ../../data/esqualo_2022_fall_original.csv --use-hp-search --hp-trials 20
+python index.py ../../data/your_training_data.csv --brand your_brand --use-hp-search --hp-trials 20
 ```
 
 Train specific columns only:
 ```bash
-python index.py ../../data/esqualo_2022_fall_original.csv --rules material color_name
+python index.py ../../data/your_training_data.csv --brand your_brand --rules material color_name
 ```
 
 ### 2. Running Anomaly Detection
 
 Basic anomaly detection:
 ```bash
-python index.py ../../data/esqualo_2022_fall.csv --check-anomalies material --output results.csv
+python index.py ../../data/your_data.csv --brand your_brand --check-anomalies material --output results.csv
 ```
 
 With custom threshold:
 ```bash
-python index.py ../../data/esqualo_2022_fall.csv --check-anomalies material --threshold 0.95 --output results.csv
+python index.py ../../data/your_data.csv --brand your_brand --check-anomalies material --threshold 0.95 --output results.csv
 ```
 
 ### 3. Programmatic Usage

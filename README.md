@@ -37,6 +37,7 @@ See [Weighted Combination Documentation](./docs/WEIGHTED_COMBINATION.md) for det
 ## 📋 Table of Contents
 
 - [Quick Start](#quick-start)
+- [Brand Configuration](#brand-configuration)
 - [ML Model Training](#ml-model-training)
 - [Running Evaluations](#running-evaluations)
 - [Directory Structure](#directory-structure)
@@ -66,16 +67,82 @@ For improved detection accuracy, use the weighted combination approach:
 
 ```bash
 # 1. Run evaluation to generate performance data
-python3 demo.py --data-file data/esqualo_2022_fall_original.csv --injection-intensity 0.15 --core-fields-only --enable-validation --enable-pattern --enable-ml --enable-llm
+python3 demo.py --brand your_brand --injection-intensity 0.15 --core-fields-only --enable-validation --enable-pattern --enable-ml --enable-llm
 
 # 2. Generate detection weights from performance results
 python3 generate_detection_weights.py --input-file demo_results/demo_analysis_unified_report.json --output-file detection_weights.json --verbose
 
 # 3. Run detection with weighted combination
-python3 demo.py --data-file data/esqualo_2022_fall.csv --core-fields-only --enable-validation --enable-pattern --enable-ml --enable-llm --use-weighted-combination --weights-file detection_weights.json
+python3 demo.py --brand your_brand --core-fields-only --enable-validation --enable-pattern --enable-ml --enable-llm --use-weighted-combination --weights-file detection_weights.json
 ```
 
 See [Weighted Combination Documentation](./docs/WEIGHTED_COMBINATION.md) for complete details.
+
+## 🏢 Brand Configuration
+
+The system supports multiple brands with different column mappings and data sources. Each brand has its own JSON configuration file in the `brand_configs/` directory.
+
+### Managing Brands
+
+Use the `manage_brands.py` utility to manage brand configurations:
+
+```bash
+# List all configured brands
+python manage_brands.py --list
+
+# Create a new brand configuration template
+python manage_brands.py --create new_brand_name
+
+# Show detailed configuration for a brand
+python manage_brands.py --show your_brand
+
+# Validate a brand configuration
+python manage_brands.py --validate new_brand_name
+```
+
+### Brand Configuration Format
+
+Each brand configuration file contains:
+- **field_mappings**: Maps standard field names to brand-specific column names
+- **default_data_path**: Path to the brand's main data file
+- **training_data_path**: Path to the brand's training data
+- **ml_models_path**: Path where ML models for this brand are stored
+- **enabled_fields**: List of fields to analyze for this brand
+- **custom_thresholds**: Brand-specific detection thresholds
+
+**Important**: Validation and anomaly detection rules are global and shared across all brands. The same rules work for all brands - only the column names are mapped differently.
+
+Example configuration:
+```json
+{
+  "brand_name": "mybrand",
+  "field_mappings": {
+    "material": "ProductComposition",
+    "color_name": "ColorDescription",
+    "size": "SizeName"
+  },
+  "default_data_path": "data/mybrand_data.csv",
+  "training_data_path": "data/mybrand_training.csv",
+  "ml_models_path": "anomaly_detectors/ml_based/results/mybrand",
+  "enabled_fields": ["material", "color_name", "size"]
+}
+```
+
+### Using Different Brands
+
+Specify the brand when running evaluations or demos:
+
+```bash
+# Run evaluation for a specific brand
+python evaluate.py data/mybrand_data.csv --field material --brand mybrand
+
+# Run demo with brand configuration
+python demo.py --brand mybrand
+
+# Train ML models for a specific brand
+cd anomaly_detectors/ml_based
+python index.py ../../data/mybrand_training.csv --brand mybrand
+```
 
 ## 🧠 ML Model Training
 
@@ -88,25 +155,25 @@ The ML-based anomaly detection uses **SentenceTransformers** with **triplet loss
 #### Train All Available Fields
 ```bash
 cd anomaly_detectors/ml_based
-python index.py ../../data/esqualo_2022_fall.csv
+python index.py ../../data/your_training_data.csv --brand your_brand
 ```
 
 #### Train Specific Fields Only
 ```bash
 cd anomaly_detectors/ml_based
-python index.py ../../data/esqualo_2022_fall.csv --rules material color_name category
+python index.py ../../data/your_training_data.csv --brand your_brand --rules material color_name category
 ```
 
 #### Train with Hyperparameter Optimization
 ```bash
 cd anomaly_detectors/ml_based
-python index.py ../../data/esqualo_2022_fall.csv --use-hp-search --hp-trials 20
+python index.py ../../data/your_training_data.csv --brand your_brand --use-hp-search --hp-trials 20
 ```
 
 #### Train Single Field with HP Search
 ```bash
 cd anomaly_detectors/ml_based
-python index.py ../../data/esqualo_2022_fall.csv --rules material --use-hp-search --hp-trials 15
+python index.py ../../data/your_training_data.csv --brand your_brand --rules material --use-hp-search --hp-trials 15
 ```
 
 ### Available Training Fields
@@ -163,7 +230,8 @@ The evaluation system tests all three detection approaches:
 
 #### Evaluate Single Field with All Methods
 ```bash
-python evaluate.py data/esqualo_2022_fall.csv \
+python evaluate.py data/your_data.csv \
+  --brand your_brand \
   --field="material" \
   --validator="material" \
   --ml-detector \
@@ -173,7 +241,8 @@ python evaluate.py data/esqualo_2022_fall.csv \
 
 #### Evaluate with Validation + ML Detection Only
 ```bash
-python evaluate.py data/esqualo_2022_fall.csv \
+python evaluate.py data/your_data.csv \
+  --brand your_brand \
   --field="color_name" \
   --validator="color_name" \
   --ml-detector \
@@ -183,7 +252,8 @@ python evaluate.py data/esqualo_2022_fall.csv \
 
 #### Evaluate ML Detection Only
 ```bash
-python evaluate.py data/esqualo_2022_fall.csv \
+python evaluate.py data/your_data.csv \
+  --brand your_brand \
   --field="category" \
   --validator="category" \
   --ml-detector \
@@ -282,7 +352,7 @@ data-quality-monitoring/
 ├── run_evaluations.sh             # Batch evaluation script
 ├── run_anomaly_detection.sh       # Anomaly detection script
 ├── data/                          # Input data files
-│   └── esqualo_2022_fall.csv
+│   └── your_data.csv
 ├── validators/                    # Rule-based validators
 │   ├── material/
 │   ├── color_name/
