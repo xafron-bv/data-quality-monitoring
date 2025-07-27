@@ -4,3 +4,8 @@ pandas>=1.5.0
 numpy>=1.21.0
 scikit-learn>=1.1.0
 datasets>=2.0.0
+# AnomalyLLM integration dependencies
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+transformers>=4.37.0
