@@ -9,6 +9,8 @@ import numpy as np
 import argparse
 import json
 from datetime import datetime
+import random
+import torch
 
 # Add parent directories to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -65,7 +67,7 @@ if __name__ == "__main__":
         field_name = args.check_anomalies
         print(f"Running anomaly check for field '{field_name}'...")
         df = pd.read_csv(args.csv_file)
-        model, column_name, reference_centroid = load_model_for_field(field_name, results_dir=path.join('..', 'results'))
+        model, column_name, reference_centroid = load_model_for_field(field_name, results_dir=os.path.join('..', 'results'))
         if column_name not in df.columns:
             raise ValueError(f"Column '{column_name}' (mapped from field '{field_name}') not found in CSV.")
         values = df[column_name].tolist()

@@ -30,12 +30,16 @@ try:
         DataCollatorWithPadding
     )
     import torch
+    import torch.nn as nn
     from torch.utils.data import Dataset
+    from sentence_transformers import SentenceTransformer
     import evaluate
     LLM_AVAILABLE = True
 except ImportError as e:
     LLM_AVAILABLE = False
     warnings.warn(f"LLM dependencies not available: {e}")
+    nn = None
+    SentenceTransformer = None
 
 
 @dataclass
@@ -45,62 +49,68 @@ class DynamicContext:
     categorical_info: Optional[str] = None
     contextual_info: Optional[Dict[str, Any]] = None
 
-class DynamicAwareEncoder(nn.Module):
-    """Dynamic-aware encoder that incorporates temporal and contextual information."""
-    
-    def __init__(self, embedding_dim: int = 384, hidden_dim: int = 256):
-        super().__init__()
-        self.embedding_dim = embedding_dim
-        self.hidden_dim = hidden_dim
+if LLM_AVAILABLE and nn is not None:
+    class DynamicAwareEncoder(nn.Module):
+        """Dynamic-aware encoder that incorporates temporal and contextual information."""
         
-        # Temporal encoding
-        self.temporal_encoder = nn.Sequential(
-            nn.Linear(1, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, embedding_dim)
-        )
+        def __init__(self, embedding_dim: int = 384, hidden_dim: int = 256):
+            super().__init__()
+            self.embedding_dim = embedding_dim
+            self.hidden_dim = hidden_dim
+            
+            # Temporal encoding
+            self.temporal_encoder = nn.Sequential(
+                nn.Linear(1, hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, embedding_dim)
+            )
+            
+            # Categorical encoding
+            self.categorical_encoder = nn.Sequential(
+                nn.Linear(1, hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, embedding_dim)
+            )
+            
+            # Fusion layer
+            self.fusion_layer = nn.Sequential(
+                nn.Linear(embedding_dim * 3, hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, embedding_dim)
+            )
         
-        # Categorical encoding
-        self.categorical_encoder = nn.Sequential(
-            nn.Linear(1, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, embedding_dim)
-        )
-        
-        # Fusion layer
-        self.fusion_layer = nn.Sequential(
-            nn.Linear(embedding_dim * 3, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, embedding_dim)
-        )
-    
-    def forward(self, text_embeddings: torch.Tensor, context: Optional[DynamicContext] = None) -> torch.Tensor:
-        if context is None:
-            return text_embeddings
-        
-        if text_embeddings.dim() == 1:
-            text_embeddings = text_embeddings.unsqueeze(0)
-        
-        # Temporal encoding
-        if context.temporal_info is not None:
-            temporal_tensor = torch.tensor([[context.temporal_info]], dtype=torch.float32)
-            temporal_encoded = self.temporal_encoder(temporal_tensor)
-        else:
-            temporal_encoded = torch.zeros(1, self.embedding_dim)
-        
-        # Categorical encoding
-        if context.categorical_info is not None:
-            # Simple hash-based encoding for categorical data
-            cat_hash = hash(context.categorical_info) % 1000
-            cat_tensor = torch.tensor([[cat_hash]], dtype=torch.float32)
-            categorical_encoded = self.categorical_encoder(cat_tensor)
-        else:
-            categorical_encoded = torch.zeros(1, self.embedding_dim)
-        
-        # Ensure combined_features is 2D before fusion
-        combined_features = torch.cat([text_embeddings, temporal_encoded.unsqueeze(0), categorical_encoded.unsqueeze(0)], dim=1)
-        # Ensure fusion_layer output is 2D
-        return self.fusion_layer(combined_features).squeeze(0)  # Squeeze to remove batch dim if it's 1
+        def forward(self, text_embeddings: torch.Tensor, context: Optional[DynamicContext] = None) -> torch.Tensor:
+            if context is None:
+                return text_embeddings
+            
+            if text_embeddings.dim() == 1:
+                text_embeddings = text_embeddings.unsqueeze(0)
+            
+            # Temporal encoding
+            if context.temporal_info is not None:
+                temporal_tensor = torch.tensor([[context.temporal_info]], dtype=torch.float32)
+                temporal_encoded = self.temporal_encoder(temporal_tensor)
+            else:
+                temporal_encoded = torch.zeros(1, self.embedding_dim)
+            
+            # Categorical encoding
+            if context.categorical_info is not None:
+                # Simple hash-based encoding for categorical data
+                cat_hash = hash(context.categorical_info) % 1000
+                cat_tensor = torch.tensor([[cat_hash]], dtype=torch.float32)
+                categorical_encoded = self.categorical_encoder(cat_tensor)
+            else:
+                categorical_encoded = torch.zeros(1, self.embedding_dim)
+            
+            # Ensure combined_features is 2D before fusion
+            combined_features = torch.cat([text_embeddings, temporal_encoded.unsqueeze(0), categorical_encoded.unsqueeze(0)], dim=1)
+            # Ensure fusion_layer output is 2D
+            return self.fusion_layer(combined_features).squeeze(0)  # Squeeze to remove batch dim if it's 1
+else:
+    # Stub class when LLM dependencies are not available
+    class DynamicAwareEncoder:
+        def __init__(self, *args, **kwargs):
+            raise ImportError("LLM dependencies not available")
 
 class PrototypeBasedReprogramming:
     """Prototype-based reprogramming for semantic alignment."""
@@ -137,13 +147,14 @@ class PrototypeBasedReprogramming:
         alpha = 0.3
         return (1 - alpha) * embeddings + alpha * nearest_prototypes
 
-class InContextLearningDetector:
-    """In-context learning detector for few-shot anomaly detection."""
-    
-    def __init__(self, base_model: SentenceTransformer, few_shot_examples: List[str] = None):
-        self.base_model = base_model
-        self.few_shot_examples = few_shot_examples or []
-        self.example_embeddings = None
+if LLM_AVAILABLE:
+    class InContextLearningDetector:
+        """In-context learning detector for few-shot anomaly detection."""
+        
+        def __init__(self, base_model: SentenceTransformer, few_shot_examples: List[str] = None):
+            self.base_model = base_model
+            self.few_shot_examples = few_shot_examples or []
+            self.example_embeddings = None
         
         if self.few_shot_examples:
             self.example_embeddings = self.base_model.encode(self.few_shot_examples)

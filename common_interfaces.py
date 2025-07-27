@@ -42,6 +42,16 @@ class AnomalyIssue:
     details: Optional[Dict] = None
 
 
+@dataclass
+class DetectionConfig:
+    """Configuration for anomaly detection"""
+    field_name: str
+    threshold: float = 0.7
+    use_few_shot: bool = False
+    context_columns: Optional[List[str]] = None
+    temporal_column: Optional[str] = None
+
+
 # Legacy compatibility functions
 def convert_validation_error_to_detection_result(validation_error, field_name: str) -> DetectionResult:
     return DetectionResult(

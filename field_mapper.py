@@ -42,6 +42,17 @@ class FieldMapper:
         """Get the brand name associated with this mapper."""
         return self._brand_name
     
+    def get_available_fields(self) -> List[str]:
+        """Get all available field names. Alias for list_fields()."""
+        return self.list_fields()
+    
+    def validate_column_exists(self, df, field_name: str) -> Optional[str]:
+        """Validate that a column exists in the dataframe for the given field."""
+        column_name = self.get_column_name(field_name)
+        if column_name and column_name in df.columns:
+            return column_name
+        return None
+    
     @classmethod
     def from_default_mapping(cls) -> 'FieldMapper':
         """Get field mapper for current brand."""
