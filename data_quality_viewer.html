@@ -345,18 +345,17 @@
                                     this.fileData.csv = file;
                                 } else if (file.name.endsWith('.json')) {
                                     const data = JSON.parse(content);
-                                    const firstFieldName = Object.keys(data.fields || {})[0];
-                                    const firstField = firstFieldName ? data.fields[firstFieldName] : null;
 
+                                    // Check for specific report types with more specific keys first
                                     if (data.hasOwnProperty('cell_coordinates')) {
                                         this.evaluationResults = data;
                                         this.fileData.issues = file;
-                                    } else if (firstField && firstField.hasOwnProperty('combined') && firstField.combined.hasOwnProperty('precision')) {
-                                        this.performanceReport = data;
-                                        this.fileData.performance = file;
                                     } else if (data.hasOwnProperty('overall') && data.hasOwnProperty('per_field') && data.hasOwnProperty('per_detection_type')) {
                                         this.confusionMatrixData = data;
                                         this.fileData.confusionMatrix = file;
+                                    } else if (data.hasOwnProperty('fields')) { // This will now correctly identify performance reports, even if 'fields' is empty
+                                        this.performanceReport = data;
+                                        this.fileData.performance = file;
                                     } else {
                                         throw new Error(`Unrecognized JSON file format: ${file.name}`);
                                     }
@@ -625,18 +624,39 @@
             }
 
             renderPerformanceDashboard() {
-                const fields = Object.keys(this.performanceReport.fields);
+                const fields = Object.keys(this.performanceReport.fields || {});
                 
                 const selector = document.getElementById('fieldSelector');
                 selector.innerHTML = fields.map(field => `<option value="${field}">${field}</option>`).join('');
+                selector.disabled = fields.length === 0;
 
                 this.renderPerformanceTable(fields);
                 this.renderOverallPerformanceChart(fields);
-                this.updateDetailedPerformanceChart(fields[0]);
+
+                if (fields.length > 0) {
+                    this.updateDetailedPerformanceChart(fields[0]);
+                } else {
+                    // Clear detailed chart if no fields are present
+                    this.createChart('detailedPerformanceChart', 'bar', { labels: [], datasets: [] }, { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'No data to display' },
+                            legend: { display: false }
+                        },
+                        scales: { y: { beginAtZero: true, max: 1 } }
+                    });
+                }
             }
 
             renderPerformanceTable(fields) {
                 const tableBody = document.getElementById('performanceTableBody');
+
+                if (!fields || fields.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">No performance data available in report.</td></tr>`;
+                    return;
+                }
+
                 const format = (num) => num !== null ? (num * 100).toFixed(1) + '%' : 'N/A';
                 let html = '';
                 fields.forEach(field => {
@@ -673,6 +693,7 @@
             }
 
             updateDetailedPerformanceChart(fieldName) {
+                if (!fieldName) return;
                 const fieldData = this.performanceReport.fields[fieldName];
                 const methods = ['validation', 'pattern_based', 'ml_based'];
                 const data = {
