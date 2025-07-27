@@ -14,7 +14,6 @@ class BrandConfig:
     field_mappings: Dict[str, str]  # field_name -> column_name
     default_data_path: Optional[str] = None
     training_data_path: Optional[str] = None
-    ml_models_path: Optional[str] = None
     custom_thresholds: Optional[Dict[str, float]] = None
     enabled_fields: Optional[List[str]] = None
     

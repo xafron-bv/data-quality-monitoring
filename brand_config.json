@@ -21,7 +21,6 @@
   },
   "default_data_path": "data/esqualo_2022_fall_original.csv",
   "training_data_path": "data/esqualo_2022_fall_original.csv",
-  "ml_models_path": "anomaly_detectors/ml_based/results/esqualo",
   "enabled_fields": [
     "material",
     "color_name",
