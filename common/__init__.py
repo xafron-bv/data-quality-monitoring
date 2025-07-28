@@ -1,7 +1,7 @@
 """Common modules and utilities for the anomaly detection system."""
 
 # Import commonly used classes and functions for easier access
-from .common_interfaces import AnomalyIssue
+# No longer importing unused AnomalyIssue
 from .exceptions import (
     DataQualityError, 
     ConfigurationError, 
@@ -14,11 +14,8 @@ from .brand_config import load_brand_config, get_available_brands
 from .evaluator import Evaluator
 from .error_injection import ErrorInjector, generate_error_samples, load_error_rules
 from .unified_detection_interface import UnifiedDetectionInterface
-from .comprehensive_detector import ComprehensiveDetector
-from .consolidated_reporter import ConsolidatedReporter
 
 __all__ = [
-    'AnomalyIssue',
     'DataQualityError',
     'ConfigurationError',
     'FileOperationError', 
@@ -31,7 +28,5 @@ __all__ = [
     'ErrorInjector',
     'generate_error_samples',
     'load_error_rules',
-    'UnifiedDetectionInterface',
-    'ComprehensiveDetector',
-    'ConsolidatedReporter'
+    'UnifiedDetectionInterface'
 ]
