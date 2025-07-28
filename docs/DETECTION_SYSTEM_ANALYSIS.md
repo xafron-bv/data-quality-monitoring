@@ -122,7 +122,7 @@ The system follows a **modular, plugin-based architecture** with clear separatio
 2. **Configuration System**
    - `brand_config.py/json`: Brand-specific field mappings
    - `field_mapper.py`: Translation between standard fields and column names
-   - `detection_weights.json`: Performance-based method weights
+   - `single_sample_multi_field_demo/detection_weights.json`: Performance-based method weights
 
 3. **Reporting Infrastructure**
    - `consolidated_reporter.py`: Unified reporting format

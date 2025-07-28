@@ -1,0 +1,43 @@
+# Pre-commit hooks for the Data Quality Monitoring System
+# Focuses on catching import errors and basic syntax issues
+
+repos:
+  # Basic file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-ast  # Verify Python syntax - catches import errors!
+        name: Check Python AST (syntax and imports)
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: debug-statements  # Check for forgotten debugger imports
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  # Flake8 - Focus on import issues
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        name: Flake8 (import and syntax checking)
+        args: ['--config=.flake8']
+        # Uses the .flake8 configuration file
+
+  # Optional: Basic import sorting
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        name: Sort imports
+        args: ['--profile', 'black', '--line-length', '120', '--skip-gitignore']
+
+# Configure pre-commit behavior
+default_language_version:
+  python: python3
+
+# Exclude directories
+exclude: '^(venv|\.venv|build|dist|\.git|__pycache__|\.mypy_cache|\.pytest_cache|\.cursor)/'
+
+# Run on Python files
+files: '\.py$'
