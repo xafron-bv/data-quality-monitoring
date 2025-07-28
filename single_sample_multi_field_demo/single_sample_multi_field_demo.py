@@ -61,7 +61,7 @@ class DataQualityDemo:
                  enable_validation=True, enable_pattern=True, enable_ml=True, enable_llm=False,
                  llm_threshold=0.6, llm_few_shot_examples=False,
                  llm_temporal_column=None, llm_context_columns=None, use_weighted_combination=False,
-                 weights_file="detection_weights.json"):
+                 weights_file="global_configs/detection_weights.json"):
         """
         Initialize the demo with the specified parameters.
         """
