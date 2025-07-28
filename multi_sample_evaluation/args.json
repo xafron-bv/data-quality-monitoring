@@ -1,0 +1,40 @@
+{
+  "description": "Multi-sample evaluation for anomaly detection system",
+  "arguments": {
+    "input": {
+      "type": "string",
+      "help": "Path to input CSV file",
+      "required": true
+    },
+    "output": {
+      "type": "string",
+      "help": "Output directory for results",
+      "default": "evaluation_results"
+    },
+    "sample_size": {
+      "type": "int",
+      "help": "Number of samples to evaluate",
+      "default": 100
+    },
+    "injection_rate": {
+      "type": "float",
+      "help": "Rate of anomaly injection (0.0-1.0)",
+      "default": 0.2
+    },
+    "detection_methods": {
+      "type": "list",
+      "help": "Detection methods to use",
+      "default": ["validation", "pattern", "ml"]
+    },
+    "ignore_fp": {
+      "type": "flag",
+      "help": "Ignore false positives in evaluation",
+      "default": false
+    },
+    "brand": {
+      "type": "string",
+      "help": "Brand name",
+      "default": null
+    }
+  }
+}

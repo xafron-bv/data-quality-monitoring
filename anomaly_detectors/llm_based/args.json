@@ -1,0 +1,40 @@
+{
+  "description": "Train language model for anomaly detection",
+  "arguments": {
+    "data_file": {
+      "type": "positional",
+      "help": "Path to the CSV data file",
+      "required": true
+    },
+    "field": {
+      "type": "string",
+      "help": "Field name to train model for",
+      "required": true
+    },
+    "epochs": {
+      "type": "int",
+      "help": "Number of training epochs",
+      "default": 3
+    },
+    "batch_size": {
+      "type": "int",
+      "help": "Training batch size",
+      "default": 8
+    },
+    "learning_rate": {
+      "type": "float",
+      "help": "Learning rate",
+      "default": 2e-5
+    },
+    "threshold": {
+      "type": "float",
+      "help": "Anomaly detection threshold",
+      "default": -2.0
+    },
+    "max_length": {
+      "type": "int",
+      "help": "Maximum sequence length",
+      "default": 128
+    }
+  }
+}

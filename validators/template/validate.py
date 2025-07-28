@@ -1,9 +1,11 @@
-import pandas as pd
 from enum import Enum
-from typing import List, Dict, Any, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
-from validators.validator_interface import ValidatorInterface
+import pandas as pd
+
 from validators.validation_error import ValidationError
+from validators.validator_interface import ValidatorInterface
+
 
 class Validator(ValidatorInterface):
     """
