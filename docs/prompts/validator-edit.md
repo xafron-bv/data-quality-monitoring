@@ -1,6 +1,6 @@
 # Validator Generation Prompt
 
-Based on the summary report, improve validate modules to produce less false negatives. Do not change the code structure of the modules, just refactor the functionality. Reproduce the entire module after fixing it. The material validator must not know anything outside of the material format which is one or more parts with percentage for each composition. Do not add any logic that doesn't belong to material format (e.g. care instruction, etc.)
+Based on the summary report, improve validate modules to produce less false negatives. Do not change the code structure of the modules, just refactor the functionality. Reproduce the entire module after fixing it. The material validator must not know anything outside of the material format which is one or more parts with percentage for each composition. Do not add any logic that doesn't belong to material format (e.g. care instruction, etc.)
 
 ## Refined with AI
 
