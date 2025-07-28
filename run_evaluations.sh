@@ -40,7 +40,7 @@ for field in $(python -c "import sys; sys.path.append('.'); from brand_config im
   echo "Output directory: $eval_dir"
 
   # Run the evaluation with all three detection methods
-  python multi_sample_evaluation.py \
+  python ml_evaluation/multi_sample_evaluation.py \
     --brand="$BRAND" \
     --validator="$field" \
     --field="$field" \

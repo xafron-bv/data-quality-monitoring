@@ -18,9 +18,13 @@ Created as part of the weighted combination detection enhancement.
 
 import json
 import os
+import sys
 import argparse
 from typing import Dict, Any
 from pathlib import Path
+
+# Add parent directory to path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def calculate_f1_score(precision: float, recall: float) -> float:
@@ -150,8 +154,8 @@ def main():
     parser = argparse.ArgumentParser(description="Generate detection weights from performance results")
     parser.add_argument("--input-file", "-i", required=True,
                        help="Path to unified report JSON file with performance data")
-    parser.add_argument("--output-file", "-o", default="detection_weights.json",
-                       help="Output file for generated weights (default: detection_weights.json)")
+        parser.add_argument("--output-file", "-o", default=None,
+                        help="Output file for generated weights (default: ./detection_weights.json)")
     parser.add_argument("--baseline-weight", "-b", type=float, default=0.1,
                        help="Baseline weight for untrained methods (default: 0.1)")
     parser.add_argument("--verbose", "-v", action="store_true",
@@ -181,9 +185,14 @@ def main():
         # Create comprehensive report
         weights_report = generate_weights_report(field_weights, performance_data, args.input_file)
         
+        # Set default output file if not provided
+        output_file = args.output_file if args.output_file else os.path.join(
+            os.path.dirname(__file__), "detection_weights.json"
+        )
+        
         # Save weights report
-        print(f"💾 Saving weights to: {args.output_file}")
-        with open(args.output_file, 'w') as f:
+        print(f"💾 Saving weights to: {output_file}")
+        with open(output_file, 'w') as f:
             json.dump(weights_report, f, indent=2)
         
         # Print summary if verbose
