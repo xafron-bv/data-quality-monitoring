@@ -11,3 +11,6 @@ demo_*/
 ml_curves/
 detection_*/
 llm_results/
+
+# Model directories
+models/
