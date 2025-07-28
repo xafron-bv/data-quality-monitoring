@@ -281,10 +281,10 @@ and runs all available detection methods (validation, pattern-based anomaly dete
 ML-based anomaly detection) across all fields simultaneously.
 
 Example usage:
-  python demo.py                                    # Default 20% injection intensity
-  python demo.py --injection-intensity 0.1         # 10% injection intensity  
-  python demo.py --injection-intensity 0.3 --max-issues-per-row 3  # Higher intensity
-  python demo.py --data-file my_data.csv --output-dir my_results
+  python single_sample_multi_field_demo.py                                    # Default 20% injection intensity
+  python single_sample_multi_field_demo.py --injection-intensity 0.1         # 10% injection intensity  
+  python single_sample_multi_field_demo.py --injection-intensity 0.3 --max-issues-per-row 3  # Higher intensity
+  python single_sample_multi_field_demo.py --data-file my_data.csv --output-dir my_results
         """
     )
     parser.add_argument("--data-file", 

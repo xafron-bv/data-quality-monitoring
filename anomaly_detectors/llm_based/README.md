@@ -57,7 +57,7 @@ python anomaly_detectors/llm_based/llm_model_training.py \
 
 ```bash
 # Run demo with LLM detection enabled
-python demo.py \
+python single_sample_multi_field_demo.py \
     --brand your_brand \
     --output-dir demo_llm_results \
     --enable-llm \

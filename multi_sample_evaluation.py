@@ -16,10 +16,7 @@ from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
 import debug_config
 from exceptions import DataQualityError, ConfigurationError, FileOperationError, ModelError
 
-# Import comprehensive detection modules
-from comprehensive_sample_generator import generate_comprehensive_sample, save_comprehensive_sample
-# Moved import to avoid circular dependency
-from consolidated_reporter import save_consolidated_reports
+# Import anomaly injection modules
 from anomaly_detectors.anomaly_injection import load_anomaly_rules, AnomalyInjector
 from brand_config import load_brand_config, get_available_brands
 
@@ -515,23 +512,17 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generic Validator/Reporter and Anomaly Detection Evaluation Engine.",
+        description="Multi-Sample Statistical Evaluation Engine for Data Quality.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
+This script performs statistical evaluation by generating multiple samples with errors/anomalies
+for a SINGLE field, allowing you to measure the performance of detectors across many variations.
+
 Example Usage:
-
-Multi-Sample Mode (Statistical Evaluation):
-  python evaluate.py data/source.csv --field material --output-dir results/material_test
-  python evaluate.py data/source.csv --field care_instructions --validator care_instructions
-  python evaluate.py data/source.csv --field colour_name --anomaly-detector color_name --run anomaly
-  python evaluate.py data/source.csv --field material --ml-detector --run all
-
-Single-Sample Mode (Comprehensive Analysis):
-  python evaluate.py data/source.csv --evaluation-mode single-sample --injection-intensity 0.2
-  python evaluate.py data/source.csv --evaluation-mode single-sample --injection-intensity 0.1 --max-issues-per-row 1
-
-Multi-sample mode generates multiple samples for statistical evaluation of a single field.
-Single-sample mode generates one comprehensive sample with issues across ALL available fields.
+  python multi_sample_evaluation.py data/source.csv --field material --output-dir results/material_test
+  python multi_sample_evaluation.py data/source.csv --field care_instructions --validator care_instructions
+  python multi_sample_evaluation.py data/source.csv --field colour_name --anomaly-detector color_name --run anomaly
+  python multi_sample_evaluation.py data/source.csv --field material --ml-detector --run all
 
 This will automatically look for:
 - Error Injection Rules: validators/error_injection_rules/<validator>.json
@@ -551,11 +542,8 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     parser.add_argument("--anomaly-detector", help="The anomaly detector name to use (e.g., 'material', 'color_name'). Defaults to the validator name if not provided.")
     parser.add_argument("--ml-detector", action="store_true", help="Enable ML-based anomaly detection using sentence transformers.")
     parser.add_argument("--run", choices=["validation", "anomaly", "ml", "both", "all"], default="both", help="Specify which analysis to run: validation, anomaly detection, ml detection, both (validation+anomaly), or all three.")
-    parser.add_argument("--evaluation-mode", choices=["single-sample", "multi-sample"], default="multi-sample", help="Evaluation mode: single-sample (comprehensive) or multi-sample (statistical) (default: multi-sample).")
-    parser.add_argument("--num-samples", type=int, default=32, help="Number of samples to generate for multi-sample evaluation (default: 32).")
+    parser.add_argument("--num-samples", type=int, default=32, help="Number of samples to generate for evaluation (default: 32).")
     parser.add_argument("--max-errors", type=int, default=3, help="Maximum number of errors to combine in a single sample (default: 3).")
-    parser.add_argument("--injection-intensity", type=float, default=0.2, help="Probability of injecting issues in each cell for single-sample mode (0.0-1.0, default: 0.2).")
-    parser.add_argument("--max-issues-per-row", type=int, default=2, help="Maximum number of fields to corrupt per row in single-sample mode (default: 2).")
     parser.add_argument("--output-dir", default="evaluation_results", help="Directory to save all evaluation results and generated samples.")
     parser.add_argument("--ignore-errors", nargs='+', default=[], help="A list of error rule names to ignore during evaluation (e.g., inject_unicode_error).")
     parser.add_argument("--ignore-fp", action="store_true", help="If set, false positives will be ignored in the evaluation.")
@@ -603,19 +591,8 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         print(f"Using brand configuration: {args.brand}")
     except FileNotFoundError as e:
         raise ConfigurationError(f"Brand configuration not found: {e}") from e
-    
-    # Validate arguments for single-sample mode
-    if args.evaluation_mode == "single-sample":
-        if not (0.0 <= args.injection_intensity <= 1.0):
-            raise ValueError("injection-intensity must be between 0.0 and 1.0")
-        if args.max_issues_per_row < 1:
-            raise ValueError("max-issues-per-row must be at least 1")
-        
-        # Run comprehensive evaluation
-        run_comprehensive_evaluation(args)
-        return
 
-    # --- Continue with multi-sample evaluation ---
+    # --- Multi-sample evaluation ---
     # --- Derive paths and class names ---
     field_name = args.field
 
@@ -728,6 +705,10 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
             else:
                 raise ConfigurationError(f"Could not initialize ML anomaly detector.\nDetails: {e}")
     
+    # Create field mapper for the brand
+    from field_mapper import FieldMapper
+    field_mapper = FieldMapper.from_brand(args.brand)
+    
     # Create evaluator with appropriate components
     evaluator = Evaluator(
         high_confidence_threshold=args.high_confidence_threshold,
@@ -737,7 +718,8 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         validator_reporter=validator_reporter,
         anomaly_detector=anomaly_detector,
         anomaly_reporter=anomaly_reporter,
-        ml_detector=ml_detector
+        ml_detector=ml_detector,
+        field_mapper=field_mapper
     )
     
     # Run evaluation - Generate comprehensive samples with both errors and anomalies
@@ -762,7 +744,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         
         # Apply error injection (validation errors) if available
         if run_validation and 'rules' in locals():
-            error_injector = ErrorInjector(rules)
+            error_injector = ErrorInjector(rules, field_mapper=field_mapper)
             sample_df, error_injections = error_injector.inject_errors(
                 sample_df, field_name, max_errors=args.max_errors//2, 
                 error_probability=args.error_probability/2
@@ -875,100 +857,6 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     
     # Report results
     generate_summary_report(evaluation_results, args.output_dir, args.ignore_fp)
-
-
-def run_comprehensive_evaluation(args):
-    """
-    Run comprehensive evaluation using single-sample approach across all available fields.
-    
-    This function generates one comprehensive sample with errors and anomalies across
-    all available fields and runs detection methods on each field separately.
-    """
-    print("🔍 Starting Comprehensive Data Quality Evaluation")
-    print("=" * 80)
-    print(f"📊 Dataset: {args.source_data}")
-    print(f"📁 Output: {args.output_dir}")
-    print(f"🎯 Injection intensity: {args.injection_intensity*100:.1f}%")
-    print(f"🔧 Max issues per row: {args.max_issues_per_row}")
-    print()
-    
-    # Load data
-    try:
-        df = pd.read_csv(args.source_data)
-        print(f"✅ Loaded dataset: {len(df)} rows, {len(df.columns)} columns")
-    except FileNotFoundError:
-        raise FileOperationError(f"Source data file not found at '{args.source_data}'")
-    
-    # Create output directory
-    os.makedirs(args.output_dir, exist_ok=True)
-    
-    # Set debug logging
-    if args.debug:
-        debug_config.enable_debug()
-        print("Debug logging enabled")
-    else:
-        debug_config.disable_debug()
-    
-    # Step 1: Generate comprehensive sample
-    print("📋 Step 1: Generating comprehensive sample with errors and anomalies")
-    sample_df, injection_metadata = generate_comprehensive_sample(
-        df=df,
-        injection_intensity=args.injection_intensity,
-        max_issues_per_row=args.max_issues_per_row
-    )
-    
-    # Save the comprehensive sample
-    sample_files = save_comprehensive_sample(
-        sample_df, injection_metadata, args.output_dir, "evaluation_sample"
-    )
-    print(f"   💾 Saved sample to: {os.path.basename(sample_files['sample_csv'])}")
-    
-    # Step 2: Run comprehensive detection
-    print("\n🔍 Step 2: Running comprehensive detection across all fields")
-    
-    # Get field mapper for current brand
-    field_mapper = FieldMapper.from_brand(args.brand)
-    
-    # Import here to avoid circular dependency
-    from comprehensive_detector import ComprehensiveFieldDetector
-    
-    detector = ComprehensiveFieldDetector(
-        field_mapper=field_mapper,
-        validation_threshold=args.validation_threshold,
-        anomaly_threshold=args.anomaly_threshold,
-        ml_threshold=args.ml_threshold,
-        batch_size=args.batch_size,
-        max_workers=args.max_workers
-    )
-    
-    field_results, cell_classifications = detector.run_comprehensive_detection(sample_df)
-    
-    # Step 3: Generate consolidated reports  
-    print("\n📊 Step 3: Generating evaluation reports")
-    report_files = save_consolidated_reports(
-        cell_classifications=cell_classifications,
-        field_results=field_results,
-        sample_df=sample_df,
-        output_dir=args.output_dir,
-        injection_metadata=injection_metadata,
-        sample_name="comprehensive_evaluation"
-    )
-    unified_report_path = report_files["unified_report"]
-    print(f"\n✅ Comprehensive evaluation completed successfully!")
-    print(f"\n📋 Results Summary:")
-    print(f"   📊 Dataset: {len(sample_df)} rows, {len(sample_df.columns)} columns")
-    print(f"   🎯 Analyzed fields: {len(field_results)}")
-    print(f"   🔍 Total issues detected: {len(cell_classifications)}")
-    by_type = {}
-    for classification in cell_classifications:
-        detection_type = classification.detection_type
-        by_type[detection_type] = by_type.get(detection_type, 0) + 1
-    for detection_type, count in by_type.items():
-        print(f"      {detection_type}: {count}")
-    affected_rows = len(set(c.row_index for c in cell_classifications))
-    print(f"   🎯 Affected rows: {affected_rows} / {len(sample_df)} ({affected_rows/len(sample_df)*100:.1f}%)")
-    print(f"\n📁 Generated Unified Report:")
-    print(f"   {unified_report_path}")
 
 
 if __name__ == '__main__':
