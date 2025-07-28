@@ -16,7 +16,7 @@ import torch
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from common.brand_config import load_brand_config, get_available_brands
-from anomaly_injection import load_anomaly_rules
+from anomaly_detectors.anomaly_injection import load_anomaly_rules
 
 # Add the parent directory to the path to import the error injection module
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))

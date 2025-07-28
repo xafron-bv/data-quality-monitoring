@@ -17,7 +17,7 @@ from common import debug_config
 from common.exceptions import DataQualityError, ConfigurationError, FileOperationError, ModelError
 
 # Import anomaly injection modules
-from anomaly_injection import load_anomaly_rules, AnomalyInjector
+from anomaly_detectors.anomaly_injection import load_anomaly_rules, AnomalyInjector
 from common.brand_config import load_brand_config, get_available_brands
 
 
