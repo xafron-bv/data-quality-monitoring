@@ -8,11 +8,11 @@ Successfully reorganized all imports in the codebase to be at the top level and 
 ### 1. Moved All Imports to Top Level
 - Moved imports from inside functions and classes to the module level
 - Fixed files including:
-  - `test_llm_integration.py`
+  
   - `analyze_column.py`
   - `comprehensive_detector.py`
-  - `evaluate.py`
-  - `demo.py`
+  - `multi_sample_evaluation.py`
+  - `single_sample_multi_field_demo.py`
   - `ml_curve_generator.py`
   - `error_injection.py`
   - And many files in the `anomaly_detectors` directory
@@ -44,4 +44,4 @@ To verify everything works correctly:
 1. Install dependencies: `pip install -r requirements.txt` (or appropriate requirements file)
 2. Run ML training: `python -m anomaly_detectors.ml_based.model_training <field> <data.csv>`
 3. Run LLM training: `python -m anomaly_detectors.llm_based.llm_model_training <field> <data.csv>`
-4. Run the demo: `python demo.py --data <data.csv> --brand <brand_name>`
+4. Run the demo: `python single_sample_multi_field_demo.py --data <data.csv> --brand <brand_name>`

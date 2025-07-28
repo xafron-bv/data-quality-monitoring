@@ -1,7 +1,7 @@
 # 🧪 Demo 1: Validation + Pattern-Based Detection Only
 
 ```bash
-python demo.py \
+python single_sample_multi_field_demo.py \
   --brand your_brand \
   --output-dir demo_comparison_validation_pattern \
   --injection-intensity 0.15 \
@@ -17,7 +17,7 @@ python demo.py \
 # 🧪 Demo 2: Validation + ML-Based Detection Only
 
 ```bash
-python demo.py \
+python single_sample_multi_field_demo.py \
   --brand your_brand \
   --output-dir demo_comparison_validation_ml \
   --injection-intensity 0.15 \
@@ -33,7 +33,7 @@ python demo.py \
 # 🧪 Demo 3: Validation + Pattern-Based + ML-Based Detection
 
 ```bash
-python demo.py \
+python single_sample_multi_field_demo.py \
   --brand your_brand \
   --output-dir demo_comparison_all_methods \
   --injection-intensity 0.15 \
@@ -50,7 +50,7 @@ python demo.py \
 # 🧪 Demo 4: ML-Based Detection Only
 
 ```bash
-python demo.py \
+python single_sample_multi_field_demo.py \
   --brand your_brand \
   --output-dir demo_comparison_ml_only \
   --injection-intensity 0.15 \
@@ -63,7 +63,7 @@ python demo.py \
 # 🧪 Demo 5: Validation only
 
 ```bash
-python demo.py \
+python single_sample_multi_field_demo.py \
   --brand your_brand \
   --output-dir demo_comparison_validation_only \
   --injection-intensity 0.15 \
@@ -74,7 +74,7 @@ python demo.py \
 # 🧪 Demo 6: LLM-Based Detection Only
 
 ```bash
-python demo.py \
+python single_sample_multi_field_demo.py \
   --brand your_brand \
   --output-dir demo_comparison_llm_only \
   --injection-intensity 0.15 \
@@ -87,7 +87,7 @@ python demo.py \
 # 🧪 Demo 7: Validation + LLM-Based Detection
 
 ```bash
-python demo.py \
+python single_sample_multi_field_demo.py \
   --brand your_brand \
   --output-dir demo_comparison_validation_llm \
   --injection-intensity 0.15 \
@@ -102,7 +102,7 @@ python demo.py \
 # 🧪 Demo 8: All Detection Methods (Validation + Pattern + ML + LLM)
 
 ```bash
-python demo.py \
+python single_sample_multi_field_demo.py \
   --brand your_brand \
   --output-dir demo_comparison_all_methods_with_llm \
   --injection-intensity 0.15 \
@@ -121,7 +121,7 @@ python demo.py \
 # 🧪 Demo 9: LLM-Based Detection with Few-Shot Examples
 
 ```bash
-python demo.py \
+python single_sample_multi_field_demo.py \
   --brand your_brand \
   --output-dir demo_comparison_llm_few_shot \
   --injection-intensity 0.15 \
@@ -135,7 +135,7 @@ python demo.py \
 # 🧪 Demo 10: LLM-Based Detection with Dynamic Context
 
 ```bash
-python demo.py \
+python single_sample_multi_field_demo.py \
   --brand your_brand \
   --output-dir demo_comparison_llm_dynamic \
   --injection-intensity 0.15 \

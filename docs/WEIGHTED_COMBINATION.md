@@ -20,7 +20,7 @@ The weighted combination system intelligently combines results from multiple ano
 
 1. **Weight Generation Tool** (`generate_detection_weights.py`)
 2. **Weighted Detection Logic** (in `comprehensive_detector.py`)
-3. **Demo Integration** (in `demo.py`)
+3. **Demo Integration** (in `single_sample_multi_field_demo.py`)
 
 ## Usage
 
@@ -46,7 +46,7 @@ python3 generate_detection_weights.py \
 Use the generated weights in detection:
 
 ```bash
-python3 demo.py \
+python3 single_sample_multi_field_demo.py \
     --brand your_brand \
     --core-fields-only \
     --enable-validation \

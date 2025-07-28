@@ -42,8 +42,8 @@ These require more setup and data:
 
 ### 6. Evaluation and Demo Scripts
 - `evaluator.py` - Test import and basic structure
-- `evaluate.py` - Main evaluation script (requires full setup)
-- `demo.py` - Main demo script (requires data and brand)
+- `multi_sample_evaluation.py` - Multi-sample statistical evaluation script (requires full setup)
+- `single_sample_multi_field_demo.py` - Demo script for testing multiple fields on single sample (requires data and brand)
 - `comprehensive_detector.py` - Core detection orchestrator
 - `comprehensive_sample_generator.py` - Sample generation
 
@@ -54,7 +54,7 @@ These require more setup and data:
 - `detection_comparison.py` - Requires results data
 
 ### 8. Integration Tests
-- `test_llm_integration.py` - Test LLM integration
+
 - `unified_detection_interface.py` - Test unified interface
 
 ## Testing Approach
