@@ -5,10 +5,10 @@ import sys
 import argparse
 import importlib
 
-# Add the script's directory to the Python path.
+# Add the parent directory to the Python path.
 # This ensures that top-level modules like 'interfaces.py' are found
 # when validator/reporter modules are loaded dynamically from subdirectories.
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from evaluator import Evaluator
 from error_injection import generate_error_samples, load_error_rules, ErrorInjector
@@ -544,7 +544,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     parser.add_argument("--run", choices=["validation", "anomaly", "ml", "both", "all"], default="both", help="Specify which analysis to run: validation, anomaly detection, ml detection, both (validation+anomaly), or all three.")
     parser.add_argument("--num-samples", type=int, default=32, help="Number of samples to generate for evaluation (default: 32).")
     parser.add_argument("--max-errors", type=int, default=3, help="Maximum number of errors to combine in a single sample (default: 3).")
-    parser.add_argument("--output-dir", default="evaluation_results", help="Directory to save all evaluation results and generated samples.")
+    parser.add_argument("--output-dir", default=None, help="Directory to save all evaluation results and generated samples (default: ./evaluation_results).")
     parser.add_argument("--ignore-errors", nargs='+', default=[], help="A list of error rule names to ignore during evaluation (e.g., inject_unicode_error).")
     parser.add_argument("--ignore-fp", action="store_true", help="If set, false positives will be ignored in the evaluation.")
     parser.add_argument("--debug", action="store_true", help="Enable debug logging for batch processing and detection operations.")
@@ -642,6 +642,10 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         print(f"ML Detector: MLAnomalyDetector")
         
     print()
+    
+    # Set default output directory if not provided
+    if args.output_dir is None:
+        args.output_dir = os.path.join(os.path.dirname(__file__), "evaluation_results")
     
     # Create output directory
     os.makedirs(args.output_dir, exist_ok=True)

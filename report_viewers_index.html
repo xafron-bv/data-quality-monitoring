@@ -26,7 +26,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Demo Report Viewer -->
-            <a href="demo_report_viewer.html" class="viewer-card block bg-white rounded-lg shadow-md p-6 hover:no-underline">
+            <a href="demo_analysis/demo_report_viewer.html" class="viewer-card block bg-white rounded-lg shadow-md p-6 hover:no-underline">
                 <div class="flex items-start space-x-4">
                     <div class="flex-shrink-0">
                         <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -49,7 +49,7 @@
             </a>
 
             <!-- Unified Report Viewer -->
-            <a href="unified_report_viewer.html" class="viewer-card block bg-white rounded-lg shadow-md p-6 hover:no-underline">
+            <a href="ml_evaluation/unified_report_viewer.html" class="viewer-card block bg-white rounded-lg shadow-md p-6 hover:no-underline">
                 <div class="flex items-start space-x-4">
                     <div class="flex-shrink-0">
                         <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -72,7 +72,7 @@
             </a>
 
             <!-- Confusion Matrix Viewer -->
-            <a href="confusion_matrix_viewer.html" class="viewer-card block bg-white rounded-lg shadow-md p-6 hover:no-underline">
+            <a href="demo_analysis/confusion_matrix_viewer.html" class="viewer-card block bg-white rounded-lg shadow-md p-6 hover:no-underline">
                 <div class="flex items-start space-x-4">
                     <div class="flex-shrink-0">
                         <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -95,7 +95,7 @@
             </a>
 
             <!-- ML Summary Viewer -->
-            <a href="ml_summary_viewer.html" class="viewer-card block bg-white rounded-lg shadow-md p-6 hover:no-underline">
+            <a href="detection_comparison/ml_summary_viewer.html" class="viewer-card block bg-white rounded-lg shadow-md p-6 hover:no-underline">
                 <div class="flex items-start space-x-4">
                     <div class="flex-shrink-0">
                         <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -118,7 +118,7 @@
             </a>
 
             <!-- Detection Weights Viewer -->
-            <a href="detection_weights_viewer.html" class="viewer-card block bg-white rounded-lg shadow-md p-6 hover:no-underline">
+            <a href="weights_generation/detection_weights_viewer.html" class="viewer-card block bg-white rounded-lg shadow-md p-6 hover:no-underline">
                 <div class="flex items-start space-x-4">
                     <div class="flex-shrink-0">
                         <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -166,7 +166,8 @@
         <div class="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
             <h3 class="text-lg font-semibold text-blue-900 mb-2">How to Use These Viewers</h3>
             <ol class="list-decimal list-inside space-y-2 text-sm text-blue-800">
-                <li>Run the appropriate analysis script to generate reports (e.g., <code class="bg-blue-100 px-1 py-0.5 rounded">python single_sample_multi_field_demo.py</code>)</li>
+                <li>Navigate to the appropriate tool directory (e.g., <code class="bg-blue-100 px-1 py-0.5 rounded">cd demo_analysis</code>)</li>
+                <li>Run the analysis script to generate reports (e.g., <code class="bg-blue-100 px-1 py-0.5 rounded">python single_sample_multi_field_demo.py ../data/products.csv</code>)</li>
                 <li>Click on the viewer that matches your report type</li>
                 <li>Upload your JSON report file using the drag-and-drop interface</li>
                 <li>Explore the interactive visualizations and metrics</li>

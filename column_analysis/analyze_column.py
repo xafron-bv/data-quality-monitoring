@@ -6,6 +6,10 @@ import pandas as pd
 import sys
 import os
 import argparse
+
+# Add parent directory to path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from field_mapper import FieldMapper
 from exceptions import FileOperationError, DataError, ConfigurationError
 from brand_config import load_brand_config
