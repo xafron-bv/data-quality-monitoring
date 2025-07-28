@@ -11,8 +11,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
-from common_interfaces import DetectionConfig, DetectionResult, DetectionType
 
+from common.common_interfaces import DetectionConfig, DetectionResult, DetectionType
 from common.exceptions import ModelError
 from common.field_mapper import FieldMapper
 

@@ -139,6 +139,27 @@ def analyze_field_values(csv_file, field_name, field_mapper=None):
     except Exception as e:
         raise DataError(f"Error analyzing CSV: {e}") from e
 
+def entry(csv_file=None, field_name='color_name', brand=None):
+    """Entry function for column analysis."""
+
+    if not csv_file:
+        raise ValueError("csv_file is required")
+
+    # Get brand configuration
+    if brand:
+        brand_config = load_brand_config(brand)
+        print(f"Using brand configuration: {brand}")
+    else:
+        raise ConfigurationError("Brand name is required. Use --brand <brand_name>")
+
+    print(f"🔍 Analyzing field '{field_name}' in file: {csv_file}")
+
+    field_mapper = FieldMapper.from_brand(brand)
+    unique_values = analyze_field_values(csv_file, field_name, field_mapper)
+    if unique_values is not None:
+        print(f"\n✅ Analysis complete! Found {len(unique_values)} unique values in '{field_name}' field.")
+
+
 def main():
     parser = argparse.ArgumentParser(description='Analyze a specific column in a CSV file')
     parser.add_argument('csv_file', help='Path to the CSV file to analyze')
@@ -148,23 +169,12 @@ def main():
 
     args = parser.parse_args()
 
-    # Get brand configuration
-    if args.brand:
-        brand_config = load_brand_config(args.brand)
-        print(f"Using brand configuration: {args.brand}")
-    else:
-        raise ConfigurationError("Brand name is required. Use --brand <brand_name>")
-
-    csv_file = args.csv_file
-    field_name = args.field_name
-
-    print(f"🔍 Analyzing field '{field_name}' in file: {csv_file}")
-
     try:
-        field_mapper = FieldMapper.from_brand(args.brand)
-        unique_values = analyze_field_values(csv_file, field_name, field_mapper)
-        if unique_values is not None:
-            print(f"\n✅ Analysis complete! Found {len(unique_values)} unique values in '{field_name}' field.")
+        entry(
+            csv_file=args.csv_file,
+            field_name=args.field_name,
+            brand=args.brand
+        )
     except Exception as e:
         print(f"❌ Error: {e}")
         if hasattr(e, 'details'):

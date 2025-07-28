@@ -537,6 +537,33 @@ class DetectionCurveGenerator:
         print(f"📁 All curves and metrics saved to: {self.output_dir}/")
 
 
+def entry(data_file=None, detection_type="ml", fields=None, output_dir="detection_curves",
+          thresholds=None, brand=None):
+    """Entry function for ML curve generation."""
+
+    if not data_file:
+        raise ValueError("data_file is required")
+
+    # Handle brand configuration
+    if not brand:
+        available_brands = get_available_brands()
+        if len(available_brands) == 1:
+            brand = available_brands[0]
+            print(f"Using default brand: {brand}")
+        else:
+            raise ValueError("Brand must be specified with --brand option")
+
+    brand_config = load_brand_config(brand)
+    print(f"Using brand configuration: {brand}")
+
+    # Initialize generator
+    generator = DetectionCurveGenerator(data_file, output_dir)
+    generator.field_mapper = FieldMapper.from_brand(brand)
+
+    # Generate curves
+    generator.generate_all_curves(fields=fields, detection_type=detection_type.upper(), thresholds=thresholds)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Generate precision-recall and ROC curves for ML-based and LLM-based anomaly detection",
@@ -561,29 +588,14 @@ Example usage:
 
     args = parser.parse_args()
 
-    # Handle brand configuration
-    if not args.brand:
-        available_brands = get_available_brands()
-        if len(available_brands) == 1:
-            args.brand = available_brands[0]
-            print(f"Using default brand: {args.brand}")
-        else:
-            raise ValueError("Brand must be specified with --brand option")
-
-    brand_config = load_brand_config(args.brand)
-    print(f"Using brand configuration: {args.brand}")
-
-    # Convert thresholds to list if provided
-    thresholds = None
-    if args.thresholds:
-        thresholds = args.thresholds
-
-    # Initialize generator
-    generator = DetectionCurveGenerator(args.data_file, args.output_dir)
-    generator.field_mapper = FieldMapper.from_brand(args.brand)
-
-    # Generate curves
-    generator.generate_all_curves(fields=args.fields, detection_type=args.detection_type.upper(), thresholds=thresholds)
+    entry(
+        data_file=args.data_file,
+        detection_type=args.detection_type,
+        fields=args.fields,
+        output_dir=args.output_dir,
+        thresholds=args.thresholds,
+        brand=args.brand
+    )
 
 
 if __name__ == "__main__":

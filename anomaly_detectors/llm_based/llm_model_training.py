@@ -304,28 +304,25 @@ def setup_output_directory() -> str:
         os.makedirs(output_dir)
     return output_dir
 
-def main():
-    parser = argparse.ArgumentParser(description="Train language model for anomaly detection")
-    parser.add_argument("data_file", help="Path to the CSV data file")
-    parser.add_argument("--field", required=True, help="Field name to train model for")
-    parser.add_argument("--epochs", type=int, default=3, help="Number of training epochs")
-    parser.add_argument("--batch-size", type=int, default=8, help="Training batch size")
-    parser.add_argument("--learning-rate", type=float, default=2e-5, help="Learning rate")
-    parser.add_argument("--threshold", type=float, default=-2.0, help="Anomaly detection threshold")
-    parser.add_argument("--max-length", type=int, default=128, help="Maximum sequence length")
+def entry(data_file=None, field=None, epochs=3, batch_size=8, learning_rate=2e-5,
+          threshold=-2.0, max_length=128):
+    """Entry function for LLM model training."""
 
-    args = parser.parse_args()
+    if not data_file:
+        raise ValueError("data_file is required")
+    if not field:
+        raise ValueError("field is required")
 
     # Check if data file exists
-    if not os.path.exists(args.data_file):
-        raise FileNotFoundError(f"Data file not found: {args.data_file}")
+    if not os.path.exists(data_file):
+        raise FileNotFoundError(f"Data file not found: {data_file}")
 
     # Setup output directory
     output_dir = setup_output_directory()
 
     # Load data
-    print(f"📊 Loading data from {args.data_file}")
-    df = pd.read_csv(args.data_file)
+    print(f"📊 Loading data from {data_file}")
+    df = pd.read_csv(data_file)
     print(f"   ✅ Loaded {len(df)} rows, {len(df.columns)} columns")
 
     # Get field to column mapping
@@ -346,11 +343,11 @@ def main():
         'product_name_en': 'product_name_EN'
     }
 
-    column_name = field_to_column_map.get(args.field)
+    column_name = field_to_column_map.get(field)
     if not column_name:
         available_fields = list(field_to_column_map.keys())
         raise ValueError(
-            f"Unknown field: {args.field}\n"
+            f"Unknown field: {field}\n"
             f"Available fields: {available_fields}"
         )
 
@@ -361,7 +358,7 @@ def main():
         )
 
     # Analyze unique values
-    print(f"🔍 Analyzing field '{args.field}' (column: '{column_name}')")
+    print(f"🔍 Analyzing field '{field}' (column: '{column_name}')")
     analysis = analyze_unique_values(df, column_name)
 
     if "error" in analysis:
@@ -372,7 +369,7 @@ def main():
     print(f"   🎯 Suitable for language modeling: {analysis['suitable_for_lm']}")
 
     if not analysis['suitable_for_lm']:
-        print(f"⚠️  Warning: Field '{args.field}' may not be suitable for language modeling")
+        print(f"⚠️  Warning: Field '{field}' may not be suitable for language modeling")
         print(f"   Consider using a field with more unique values and longer text")
 
     # Get clean texts for training
@@ -388,12 +385,12 @@ def main():
     print(f"   📝 Valid training texts: {len(clean_texts)}")
 
     # Get model configuration
-    config = get_model_config(args.field)
+    config = get_model_config(field)
     config.update({
-        'epochs': args.epochs,
-        'batch_size': args.batch_size,
-        'learning_rate': args.learning_rate,
-        'max_length': args.max_length
+        'epochs': epochs,
+        'batch_size': batch_size,
+        'learning_rate': learning_rate,
+        'max_length': max_length
     })
 
     # Setup device
@@ -402,25 +399,25 @@ def main():
     print(f"🖥️  Using device: {device}")
 
     # Train the model
-    model_output_dir = os.path.join(output_dir, f"{args.field}_model")
-    model_info = train_language_model(clean_texts, args.field, config, device, model_output_dir)
+    model_output_dir = os.path.join(output_dir, f"{field}_model")
+    model_info = train_language_model(clean_texts, field, config, device, model_output_dir)
 
     # Test anomaly detection
     test_results = test_anomaly_detection_with_probability(
-        model_info, clean_texts, args.field, args.threshold
+        model_info, clean_texts, field, threshold
     )
 
     # Save training results
-    results_file = os.path.join(output_dir, f"{args.field}_training_results.json")
+    results_file = os.path.join(output_dir, f"{field}_training_results.json")
     results_summary = {
-        'field_name': args.field,
+        'field_name': field,
         'column_name': column_name,
         'training_config': config,
         'data_analysis': analysis,
         'training_samples': len(clean_texts),
         'test_results': test_results,
         'model_path': model_output_dir,
-        'threshold': args.threshold
+        'threshold': threshold
     }
 
     with open(results_file, 'w') as f:
@@ -429,6 +426,30 @@ def main():
     print(f"💾 Training results saved to: {results_file}")
     print(f"🤖 Model saved to: {model_output_dir}")
     print(f"✅ Training completed successfully!")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Train language model for anomaly detection")
+    parser.add_argument("data_file", help="Path to the CSV data file")
+    parser.add_argument("--field", required=True, help="Field name to train model for")
+    parser.add_argument("--epochs", type=int, default=3, help="Number of training epochs")
+    parser.add_argument("--batch-size", type=int, default=8, help="Training batch size")
+    parser.add_argument("--learning-rate", type=float, default=2e-5, help="Learning rate")
+    parser.add_argument("--threshold", type=float, default=-2.0, help="Anomaly detection threshold")
+    parser.add_argument("--max-length", type=int, default=128, help="Maximum sequence length")
+
+    args = parser.parse_args()
+
+    entry(
+        data_file=args.data_file,
+        field=args.field,
+        epochs=args.epochs,
+        batch_size=args.batch_size,
+        learning_rate=args.learning_rate,
+        threshold=args.threshold,
+        max_length=args.max_length
+    )
+
 
 if __name__ == "__main__":
     main()
