@@ -21,6 +21,9 @@ import argparse
 # Add the project root to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+# Add parent directory to path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from common.field_mapper import FieldMapper
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
 from anomaly_detectors.ml_based.check_anomalies import load_model_for_field, check_anomalies
