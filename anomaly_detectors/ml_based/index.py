@@ -16,11 +16,11 @@ import torch
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from brand_config import load_brand_config, get_available_brands
-from anomaly_detectors.anomaly_injection import load_anomaly_rules
+from common.anomaly_injection import load_anomaly_rules
 
 # Add the parent directory to the path to import the error injection module
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-from error_injection import load_error_rules
+from common.error_injection import load_error_rules
 
 # Import separated modules
 from hyperparameter_search import save_aggregated_hp_results, random_hyperparameter_search, get_optimal_parameters
@@ -147,7 +147,7 @@ if __name__ == "__main__":
             # Import anomaly injection functions
             import sys
             sys.path.append(os.path.join('..', '..'))
-            from anomaly_detectors.anomaly_injection import load_anomaly_rules
+            from common.anomaly_injection import load_anomaly_rules
             
             anomaly_rules = load_anomaly_rules(anomaly_file_path)
             # Convert anomaly rules to error rule format for compatibility

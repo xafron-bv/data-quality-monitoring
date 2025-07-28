@@ -14,7 +14,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from evaluator import Evaluator
-from error_injection import generate_error_samples, load_error_rules, ErrorInjector
+from common.error_injection import generate_error_samples, load_error_rules, ErrorInjector
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
 from common.debug_config import debug_print
 import common.debug_config as debug_config
@@ -22,7 +22,7 @@ from common.exceptions import DataQualityError, ConfigurationError, FileOperatio
 from common.field_mapper import FieldMapper
 
 # Import anomaly injection modules
-from anomaly_detectors.anomaly_injection import load_anomaly_rules, AnomalyInjector
+from common.anomaly_injection import load_anomaly_rules, AnomalyInjector
 from brand_config import load_brand_config, get_available_brands
 
 

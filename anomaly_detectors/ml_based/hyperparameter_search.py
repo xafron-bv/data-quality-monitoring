@@ -21,7 +21,7 @@ from typing import List, Tuple, Dict, Any
 # Add parent directory to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from anomaly_detectors.anomaly_injection import load_anomaly_rules
+from common.anomaly_injection import load_anomaly_rules
 from anomaly_detectors.ml_based.model_training import create_improved_triplet_dataset, preprocess_text
 
 

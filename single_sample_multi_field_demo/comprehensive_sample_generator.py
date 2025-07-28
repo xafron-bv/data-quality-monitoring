@@ -20,8 +20,8 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from common.field_mapper import FieldMapper
-from error_injection import ErrorInjector, load_error_rules
-from anomaly_detectors.anomaly_injection import AnomalyInjector, load_anomaly_rules
+from common.error_injection import ErrorInjector, load_error_rules
+from common.anomaly_injection import AnomalyInjector, load_anomaly_rules
 from common.exceptions import FileOperationError, ConfigurationError
 
 

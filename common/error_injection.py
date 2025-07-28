@@ -13,7 +13,7 @@ The module supports various error injection operations including:
 - Conditional error application
 
 Usage:
-    from error_injection import apply_error_rule, generate_error_samples, ErrorInjector
+    # Self-reference comment removed - functions are defined in this file
     
     # Apply a single error rule
     corrupted_text = apply_error_rule("original text", rule_dict)
