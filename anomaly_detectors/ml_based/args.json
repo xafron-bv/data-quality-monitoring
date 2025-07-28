@@ -1,0 +1,50 @@
+{
+  "description": "RECALL-FOCUSED anomaly detection using sentence transformers",
+  "arguments": {
+    "csv_file": {
+      "type": "positional",
+      "help": "The path to the input CSV file",
+      "required": true
+    },
+    "use_hp_search": {
+      "type": "flag",
+      "help": "Use RECALL-FOCUSED hyperparameter search",
+      "default": false
+    },
+    "hp_trials": {
+      "type": "int",
+      "help": "Number of hyperparameter search trials",
+      "default": 15
+    },
+    "rules": {
+      "type": "list",
+      "help": "List of field names to include in training/hp search (by field name, space-separated, e.g. 'size material'). If not set, all fields are used",
+      "default": null
+    },
+    "check_anomalies": {
+      "type": "string",
+      "help": "Run anomaly check on the given field using the trained model",
+      "default": null
+    },
+    "threshold": {
+      "type": "float",
+      "help": "Similarity threshold for anomaly detection",
+      "default": 0.6
+    },
+    "output": {
+      "type": "string",
+      "help": "Optional output CSV file for anomaly check results",
+      "default": null
+    },
+    "brand": {
+      "type": "string",
+      "help": "Brand name (deprecated - uses static config)",
+      "default": null
+    },
+    "brand_config": {
+      "type": "string",
+      "help": "Path to brand configuration JSON file (deprecated - uses static config)",
+      "default": null
+    }
+  }
+}

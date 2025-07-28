@@ -50,9 +50,27 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Configure brand settings:
+4. (Optional) Install development dependencies and pre-commit hooks:
 ```bash
-# Edit brand_config.json with your field mappings
+# Install development tools (linting, formatting, etc.)
+pip install -r requirements-dev.txt
+
+# Install pre-commit hooks for code quality checks
+pre-commit install
+```
+
+This will set up automatic code quality checks that run before each commit, catching issues like:
+- Import errors and missing modules
+- Syntax errors
+- Basic code style issues
+
+To run the checks manually: `pre-commit run --all-files`
+
+5. Configure brand settings:
+```bash
+# Create or edit brand configuration files in brand_configs/
+# Example: brand_configs/esqualo.json for Esqualo brand
+# Each brand should have its own JSON file in this directory
 ```
 
 ## Quick Start
@@ -153,14 +171,14 @@ Generate optimized weights based on evaluation results:
 ```bash
 python generate_detection_weights.py \
     -i results/report.json \
-    -o detection_weights.json
+                             -o single_sample_multi_field_demo/detection_weights.json
 ```
 
 Use weighted combination:
 ```bash
 python single_sample_multi_field_demo.py \
     --use-weighted-combination \
-    --weights-file detection_weights.json
+    --weights-file single_sample_multi_field_demo/detection_weights.json
 ```
 
 ### Batch Evaluation

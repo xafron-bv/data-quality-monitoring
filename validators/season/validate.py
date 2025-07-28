@@ -1,9 +1,11 @@
-import pandas as pd
 from enum import Enum
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
-from validators.validator_interface import ValidatorInterface
+import pandas as pd
+
 from validators.validation_error import ValidationError
+from validators.validator_interface import ValidatorInterface
+
 
 class Validator(ValidatorInterface):
     """
@@ -77,7 +79,7 @@ class Validator(ValidatorInterface):
 
         # Convert year to integer
         year = int(year_str)
-        
+
         # Check if year is reasonable (not too far in the past or future)
         current_year = 2025  # Based on context date
         if year < 1900 or year > current_year + 5:

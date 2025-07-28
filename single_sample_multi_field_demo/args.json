@@ -1,0 +1,125 @@
+{
+  "description": "Data Quality Monitoring System Demo - Comprehensive Single-Sample Approach",
+  "arguments": {
+    "data_file": {
+      "type": "string",
+      "help": "Path to the CSV data file",
+      "default": null
+    },
+    "output_dir": {
+      "type": "string",
+      "help": "Output directory for demo results",
+      "default": "demo_results"
+    },
+    "injection_intensity": {
+      "type": "float",
+      "help": "Probability of injecting issues in each cell (0.0-1.0)",
+      "default": 0.2
+    },
+    "max_issues_per_row": {
+      "type": "int",
+      "help": "Maximum number of fields to corrupt per row",
+      "default": 2
+    },
+    "validation_threshold": {
+      "type": "float",
+      "help": "Minimum confidence threshold for validation results",
+      "default": 0.0
+    },
+    "anomaly_threshold": {
+      "type": "float",
+      "help": "Minimum confidence threshold for anomaly detection",
+      "default": 0.7
+    },
+    "ml_threshold": {
+      "type": "float",
+      "help": "Minimum confidence threshold for ML detection",
+      "default": 0.7
+    },
+    "llm_threshold": {
+      "type": "float",
+      "help": "Minimum confidence threshold for LLM detection",
+      "default": 0.6
+    },
+    "core_fields_only": {
+      "type": "flag",
+      "help": "Analyze only core fields (material, color_name, category, size, care_instructions) to save memory",
+      "default": false
+    },
+    "enable_validation": {
+      "type": "flag",
+      "help": "Enable validation (rule-based) detection",
+      "default": false
+    },
+    "enable_pattern": {
+      "type": "flag",
+      "help": "Enable pattern-based anomaly detection",
+      "default": false
+    },
+    "enable_ml": {
+      "type": "flag",
+      "help": "Enable ML-based anomaly detection",
+      "default": false
+    },
+    "enable_llm": {
+      "type": "flag",
+      "help": "Enable LLM-based anomaly detection",
+      "default": false
+    },
+    "llm_few_shot_examples": {
+      "type": "flag",
+      "help": "Enable few-shot examples for LLM detection",
+      "default": false
+    },
+    "llm_temporal_column": {
+      "type": "string",
+      "help": "Column name containing temporal information for LLM dynamic encoding",
+      "default": null
+    },
+    "brand": {
+      "type": "string",
+      "help": "Brand name (deprecated - uses static config)",
+      "default": null
+    },
+    "brand_config": {
+      "type": "string",
+      "help": "Path to brand configuration JSON file (deprecated - uses static config)",
+      "default": null
+    },
+    "llm_context_columns": {
+      "type": "string",
+      "help": "Comma-separated list of context columns for LLM dynamic encoding",
+      "default": null
+    },
+    "use_weighted_combination": {
+      "type": "flag",
+      "help": "Use weighted combination of anomaly detection methods instead of priority-based",
+      "default": false
+    },
+    "weights_file": {
+      "type": "string",
+      "help": "Path to JSON file containing detection weights",
+      "default": "detection_weights.json"
+    },
+    "generate_weights": {
+      "type": "flag",
+      "help": "Generate detection weights after demo completion based on performance results",
+      "default": false
+    },
+    "weights_output_file": {
+      "type": "string",
+      "help": "Output file for generated weights",
+      "default": "generated_detection_weights.json"
+    },
+    "baseline_weight": {
+      "type": "float",
+      "help": "Baseline weight for untrained/poor performing methods",
+      "default": 0.1
+    },
+    "weights_verbose": {
+      "type": "flag",
+      "help": "Print detailed weight generation information",
+      "default": false
+    }
+  }
+}

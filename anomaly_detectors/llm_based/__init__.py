@@ -16,4 +16,4 @@ from .llm_anomaly_detector import LLMAnomalyDetector
 
 __all__ = [
     'LLMAnomalyDetector'
-] 
+]

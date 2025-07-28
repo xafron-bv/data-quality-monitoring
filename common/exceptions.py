@@ -1,11 +1,11 @@
 """Exception hierarchy for data quality monitoring system."""
 
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 
 class DataQualityError(Exception):
     """Base exception for all data quality monitoring operations."""
-    
+
     def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
         super().__init__(message)
         self.details = details or {}
@@ -38,4 +38,4 @@ class DataError(DataQualityError):
 
 class FileOperationError(DataQualityError):
     """File operation failures."""
-    pass 
+    pass

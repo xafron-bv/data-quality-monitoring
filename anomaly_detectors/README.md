@@ -51,7 +51,7 @@ Example rule file structure:
 1. Prepare clean data samples
 2. Configure field in `model_training.py`
 3. Run: `python model_training.py --field {field_name}`
-4. Model saved to `results/{field_name}/`
+4. Model saved to `ml_based/models/trained/{field_name}/`
 
 ### 3. LLM-Based Detection (`/llm_based/`)
 - **Purpose**: Advanced semantic understanding with context

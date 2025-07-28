@@ -59,7 +59,7 @@ python model_training.py \
 ```
 
 ### 4. Model Output
-Models are saved to `results/{field_name}/`:
+Models are saved to `models/trained/{field_name}/`:
 - `config.json`: Model configuration
 - `model.safetensors`: Model weights
 - `reference_centroid.npy`: Reference embedding
