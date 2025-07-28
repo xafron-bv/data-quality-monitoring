@@ -1,10 +1,12 @@
-import pandas as pd
 import re
 from enum import Enum
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
-from validators.validator_interface import ValidatorInterface
+import pandas as pd
+
 from validators.validation_error import ValidationError
+from validators.validator_interface import ValidatorInterface
+
 
 class Validator(ValidatorInterface):
     """
@@ -50,7 +52,7 @@ class Validator(ValidatorInterface):
                 probability=1.0,
                 details={}
             )
-        
+
         # Check for invalid type
         if not isinstance(value, str):
             return ValidationError(
@@ -58,7 +60,7 @@ class Validator(ValidatorInterface):
                 probability=1.0,
                 details={"expected": "string", "actual": str(type(value))}
             )
-        
+
         # Check for empty category
         if value == "":
             return ValidationError(
@@ -66,7 +68,7 @@ class Validator(ValidatorInterface):
                 probability=1.0,
                 details={}
             )
-        
+
         # Check for whitespace errors (leading/trailing spaces)
         if value.strip() != value:
             return ValidationError(
@@ -74,7 +76,7 @@ class Validator(ValidatorInterface):
                 probability=0.95,
                 details={"original": value, "stripped": value.strip()}
             )
-        
+
         # Check for HTML tags
         if re.search(r'<[^>]+>', value):
             return ValidationError(
@@ -82,7 +84,7 @@ class Validator(ValidatorInterface):
                 probability=0.98,
                 details={"category": value}
             )
-        
+
         # Check for special characters (excluding alphanumeric, spaces, hyphens, and underscores)
         if re.search(r'[^\w\s\-]', value):
             return ValidationError(
@@ -90,7 +92,7 @@ class Validator(ValidatorInterface):
                 probability=0.9,
                 details={"category": value}
             )
-        
+
         # Check for random noise (characters that don't form valid words)
         # More comprehensive check for random noise - detects:
         # 1. Mixed case with numbers embedded within words
@@ -107,5 +109,5 @@ class Validator(ValidatorInterface):
 
         # If all checks pass, the value is valid.
         return None
-        
+
         # <<< LLM: END IMPLEMENTATION >>>

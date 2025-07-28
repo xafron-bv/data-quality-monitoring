@@ -9,10 +9,11 @@ field-specific rules from JSON configuration files rather than hardcoded logic.
 import json
 import os
 import re
-import pandas as pd
 from enum import Enum
-from typing import Dict, Any, Optional, List, Set
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
+
+import pandas as pd
 
 from anomaly_detectors.anomaly_detector_interface import AnomalyDetectorInterface
 from anomaly_detectors.anomaly_error import AnomalyError
@@ -21,10 +22,10 @@ from anomaly_detectors.anomaly_error import AnomalyError
 class PatternBasedDetector(AnomalyDetectorInterface):
     """
     Generic pattern-based anomaly detector that loads field-specific rules from JSON files.
-    
+
     Rules files should be located in: anomaly_detectors/pattern_based/rules/{field_name}.json
     """
-    
+
     class ErrorCode(str, Enum):
         """Generic error codes for pattern-based detection."""
         INVALID_VALUE = "INVALID_VALUE"
@@ -32,11 +33,11 @@ class PatternBasedDetector(AnomalyDetectorInterface):
         INVALID_FORMAT = "INVALID_FORMAT"
         SUSPICIOUS_PATTERN = "SUSPICIOUS_PATTERN"
         DOMAIN_VIOLATION = "DOMAIN_VIOLATION"
-    
+
     def __init__(self, field_name: str):
         """
         Initialize the detector for a specific field.
-        
+
         Args:
             field_name: The name of the field to detect anomalies for
         """
@@ -45,36 +46,36 @@ class PatternBasedDetector(AnomalyDetectorInterface):
         self.known_values = set()
         self.format_patterns = []
         self.validation_rules = []
-        
+
         # Load field-specific rules
         self._load_rules()
-    
+
     def _load_rules(self):
         """Load field-specific rules from JSON file."""
         rules_dir = Path(__file__).parent / "rules"
         rules_file = rules_dir / f"{self.field_name}.json"
-        
+
         if not rules_file.exists():
             # Create a default rules file template
             self._create_default_rules_file(rules_file)
-            
+
         try:
             with open(rules_file, 'r', encoding='utf-8') as f:
                 self.rules = json.load(f)
-            
+
             # Extract rule components (removed invalid_values)
             self.known_values = set(val.lower() for val in self.rules.get('known_values', []))
             self.format_patterns = self.rules.get('format_patterns', [])
             self.validation_rules = self.rules.get('validation_rules', [])
-            
+
         except Exception as e:
             print(f"Warning: Could not load rules for field '{self.field_name}': {e}")
             self.rules = {}
-    
+
     def _create_default_rules_file(self, rules_file: Path):
         """Create a default rules file template."""
         rules_file.parent.mkdir(parents=True, exist_ok=True)
-        
+
         default_rules = {
             "field_name": self.field_name,
             "description": f"Pattern-based rules for {self.field_name} field",
@@ -106,16 +107,16 @@ class PatternBasedDetector(AnomalyDetectorInterface):
                 }
             ]
         }
-        
+
         with open(rules_file, 'w', encoding='utf-8') as f:
             json.dump(default_rules, f, indent=2, ensure_ascii=False)
-    
+
     def _normalize_value(self, value: str) -> str:
         """Normalize a value for comparison."""
         if not isinstance(value, str):
             return ""
         return value.lower().strip()
-    
+
     def _check_format_patterns(self, value: str) -> Optional[AnomalyError]:
         """Check value against format patterns."""
         for pattern_rule in self.format_patterns:
@@ -133,12 +134,12 @@ class PatternBasedDetector(AnomalyDetectorInterface):
                     }
                 )
         return None
-    
+
     def _check_validation_rules(self, value: str) -> Optional[AnomalyError]:
         """Check value against validation rules."""
         for validation_rule in self.validation_rules:
             rule_type = validation_rule.get('type', '')
-            
+
             if rule_type == 'not_empty' and not value.strip():
                 return AnomalyError(
                     anomaly_type=self.ErrorCode.INVALID_VALUE,
@@ -150,7 +151,7 @@ class PatternBasedDetector(AnomalyDetectorInterface):
                         "message": validation_rule.get('message', 'Value cannot be empty')
                     }
                 )
-            
+
             elif rule_type == 'max_length':
                 max_len = validation_rule.get('max_length', 100)
                 if len(value) > max_len:
@@ -166,7 +167,7 @@ class PatternBasedDetector(AnomalyDetectorInterface):
                             "max_length": max_len
                         }
                     )
-            
+
             elif rule_type == 'min_length':
                 min_len = validation_rule.get('min_length', 1)
                 if len(value) < min_len:
@@ -182,42 +183,42 @@ class PatternBasedDetector(AnomalyDetectorInterface):
                             "min_length": min_len
                         }
                     )
-        
+
         return None
-    
+
     def _detect_anomaly(self, value: Any, context: Dict[str, Any] = None) -> Optional[AnomalyError]:
         """
         Detect anomalies using loaded rules.
-        
+
         Args:
             value: The value to check for anomalies
             context: Optional context information
-            
+
         Returns:
             AnomalyError if anomaly detected, None otherwise
         """
         if pd.isna(value) or not isinstance(value, str) or not value.strip():
             return None
-        
+
         value_str = str(value).strip()
         normalized_value = self._normalize_value(value_str)
-        
+
         # Check format patterns first
         format_error = self._check_format_patterns(value_str)
         if format_error:
             return format_error
-        
+
         # Check validation rules
         validation_error = self._check_validation_rules(value_str)
         if validation_error:
             return validation_error
-        
+
         # Check against known values list (if not empty)
         if self.known_values and normalized_value not in self.known_values:
             # Look for partial matches to suggest possible typos
-            close_matches = [known for known in self.known_values 
+            close_matches = [known for known in self.known_values
                            if known.startswith(normalized_value[:3]) or normalized_value.startswith(known[:3])]
-            
+
             probability = 0.75 if close_matches else 0.85
             return AnomalyError(
                 anomaly_type=self.ErrorCode.UNKNOWN_VALUE,
@@ -230,10 +231,10 @@ class PatternBasedDetector(AnomalyDetectorInterface):
                     "known_values_count": len(self.known_values)
                 }
             )
-        
+
         # No anomalies detected
         return None
-    
+
     def get_detector_args(self) -> Dict[str, Any]:
         """Return arguments needed to recreate this detector instance."""
         return {"field_name": self.field_name}
@@ -241,4 +242,4 @@ class PatternBasedDetector(AnomalyDetectorInterface):
 
 def create_detector(field_name: str) -> PatternBasedDetector:
     """Factory function to create a pattern-based detector for a field."""
-    return PatternBasedDetector(field_name) 
+    return PatternBasedDetector(field_name)

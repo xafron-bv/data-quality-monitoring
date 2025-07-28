@@ -1,10 +1,12 @@
-import pandas as pd
 import re
 from enum import Enum
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
-from validators.validator_interface import ValidatorInterface
+import pandas as pd
+
 from validators.validation_error import ValidationError
+from validators.validator_interface import ValidatorInterface
+
 
 class Validator(ValidatorInterface):
     """
@@ -41,7 +43,7 @@ class Validator(ValidatorInterface):
             - A ValidationError instance if the value is invalid.
         """
         # <<< LLM: BEGIN IMPLEMENTATION >>>
-        
+
         # Check for missing values
         if pd.isna(value):
             return ValidationError(
@@ -49,7 +51,7 @@ class Validator(ValidatorInterface):
                 probability=1.0,
                 details={}
             )
-        
+
         # Check for invalid type
         if not isinstance(value, str):
             return ValidationError(
@@ -57,10 +59,10 @@ class Validator(ValidatorInterface):
                 probability=1.0,
                 details={"expected": "string", "actual": str(type(value))}
             )
-        
+
         # Trim the string for comparison but keep original for reporting
         original_value = value
-        
+
         # Check for extra spaces (leading, trailing, or multiple consecutive spaces)
         if value != value.strip() or "  " in value:
             return ValidationError(
@@ -68,7 +70,7 @@ class Validator(ValidatorInterface):
                 probability=0.95,
                 details={"original": original_value, "suggested": " ".join(value.split())}
             )
-        
+
         # Check for merged words (CamelCase with no spaces)
         # Look for patterns like "WordWord" where there should be a space
         if re.search(r'[a-z][A-Z]', value):
@@ -79,7 +81,7 @@ class Validator(ValidatorInterface):
                 probability=0.85,
                 details={"original": original_value, "suggested": suggested}
             )
-        
+
         # Check for random text noise (non-alphabetic characters except for spaces and slashes)
         # This is a simplified check that looks for digits and special characters
         if re.search(r'[0-9]|[^\w\s/]', value):
@@ -90,7 +92,7 @@ class Validator(ValidatorInterface):
                 probability=0.9,
                 details={"original": original_value, "suggested": clean_value}
             )
-        
+
         # Check for incorrect format using dashes instead of slashes
         if ' - ' in value:
             corrected = value.replace(' - ', '/')
@@ -99,7 +101,7 @@ class Validator(ValidatorInterface):
                 probability=0.8,
                 details={"original": original_value, "suggested": corrected}
             )
-        
+
         # If all checks pass, the value is valid
         return None
 
