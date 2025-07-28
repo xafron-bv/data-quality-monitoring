@@ -1,12 +1,11 @@
-import pandas as pd
-import re
-import pandas as pd
 import re
 from enum import Enum
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
-from validators.validator_interface import ValidatorInterface
+import pandas as pd
+
 from validators.validation_error import ValidationError
+from validators.validator_interface import ValidatorInterface
 
 
 class Validator(ValidatorInterface):
@@ -30,7 +29,7 @@ class Validator(ValidatorInterface):
         MISSING_COMPOSITION = "MISSING_COMPOSITION"
         EXTRANEOUS_TEXT_APPENDED = "EXTRANEOUS_TEXT_APPENDED"
         SUM_NOT_100 = "SUM_NOT_100"
-    
+
     def __init__(self):
         """Initializes the validator and its tokenizer."""
         self.tokenizer_regex = re.compile(r'(\d+(?:\.\d+)?%?|[a-zA-Z]+|[^a-zA-Z0-9\s%])')
@@ -126,7 +125,7 @@ class Validator(ValidatorInterface):
                     probability=0.9,
                     details={"display_message": f"Malformed token detected: '{token}'", "token": token}
                 )
-        
+
         # Rule: Check for numbers that are not followed by a percentage sign
         for token in tokens:
             if re.fullmatch(r'\d+(?:\.\d+)?', token):
@@ -152,7 +151,7 @@ class Validator(ValidatorInterface):
                 probability=1.0,
                 details={"display_message": "Missing composition percentages"}
             )
-        
+
         # Rule: Check for appended text (e.g., care instructions)
         last_percent_indices = [i for i, token in enumerate(tokens) if re.fullmatch(r'\d+(?:\.\d+)?%', token)]
         if last_percent_indices:
@@ -170,7 +169,7 @@ class Validator(ValidatorInterface):
         # Rule: Sum of percentages must be 100
         total_sum = sum(numbers)
         has_colon_delimiter = any(':' in t for t in tokens)
-        
+
         if abs(total_sum - 100.0) > 1e-6:
             is_invalid_multi_part = has_colon_delimiter and (total_sum <= 100 or abs(total_sum % 100.0) > 1e-6)
             if not has_colon_delimiter or is_invalid_multi_part:

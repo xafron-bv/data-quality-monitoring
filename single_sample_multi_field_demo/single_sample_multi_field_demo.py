@@ -9,7 +9,7 @@ single-sample approach. It showcases:
 1. Comprehensive error and anomaly injection across ALL available fields
 2. Three-tiered detection approach:
    - Validation (rule-based, high confidence)
-   - Anomaly Detection (pattern-based, medium confidence)  
+   - Anomaly Detection (pattern-based, medium confidence)
    - ML Detection (semantic similarity, adaptive)
 3. Cell-level classification with priority: validation > pattern-based > ML-based
 4. Consolidated reporting compatible with data_quality_viewer.html
@@ -19,17 +19,18 @@ to simulate real-world data quality issues across multiple fields simultaneously
 This approach is more realistic and efficient than the previous multi-sample method.
 """
 
-import pandas as pd
+import argparse
+import json
 import os
 import sys
-import json
-import numpy as np
-import argparse
 import time
 import traceback
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
+import pandas as pd
 
 # Ensure we can import from the project
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -39,29 +40,26 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import comprehensive detection modules
 from comprehensive_sample_generator import generate_comprehensive_sample, save_comprehensive_sample
-from common.comprehensive_detector import ComprehensiveFieldDetector
+from confusion_matrix_analyzer import analyze_confusion_matrices
 from consolidated_reporter import save_consolidated_reports
 
 # Import weight generation functions
-from generate_detection_weights import (
-    load_performance_data, 
-    generate_weights_from_performance, 
-    generate_weights_report
-)
-from confusion_matrix_analyzer import analyze_confusion_matrices
+from generate_detection_weights import generate_weights_from_performance, generate_weights_report, load_performance_data
+
+from brand_config import get_available_brands, load_brand_config
+from common.comprehensive_detector import ComprehensiveFieldDetector
+from common.exceptions import ConfigurationError, DataQualityError, FileOperationError
 from common.field_mapper import FieldMapper
-from common.exceptions import DataQualityError, ConfigurationError, FileOperationError
-from brand_config import load_brand_config, get_available_brands
 
 
 class DataQualityDemo:
     """Comprehensive demo of the data quality monitoring system using single-sample approach."""
-    
+
     def __init__(self, data_file: str, brand_name: str,
                  output_dir: str = "demo_results",
                  injection_intensity=0.2, max_issues_per_row=2, core_fields_only=False,
                  enable_validation=True, enable_pattern=True, enable_ml=True, enable_llm=False,
-                 llm_threshold=0.6, llm_few_shot_examples=False, 
+                 llm_threshold=0.6, llm_few_shot_examples=False,
                  llm_temporal_column=None, llm_context_columns=None, use_weighted_combination=False,
                  weights_file="detection_weights.json"):
         """
@@ -83,13 +81,13 @@ class DataQualityDemo:
         self.llm_context_columns = llm_context_columns.split(',') if llm_context_columns else None
         self.use_weighted_combination = use_weighted_combination
         self.weights_file = weights_file
-        
+
         # Create output directory
         os.makedirs(output_dir, exist_ok=True)
-        
+
         # Initialize field mapper
         self.field_mapper = FieldMapper.from_brand(brand_name)
-        
+
         print(f"🔍 Data Quality Monitoring System Demo")
         print(f"📊 Target dataset: {self.data_file}")
         print(f"📁 Output directory: {self.output_dir}")
@@ -107,23 +105,23 @@ class DataQualityDemo:
         print(f"🎯 Combination method: {'WEIGHTED' if use_weighted_combination else 'PRIORITY-BASED'}")
         print(f"📋 Fields: {'CORE ONLY' if core_fields_only else 'ALL AVAILABLE'} ({'material, color_name, category, size, care_instructions' if core_fields_only else 'all fields with detection capabilities'})")
         print("=" * 80)
-    
+
     def setup_demo_environment(self):
         """Set up demo directories and load data."""
         print("🛠️  Setting up demo environment...")
-        
+
         # Create demo output directory
         os.makedirs(self.output_dir, exist_ok=True)
-        
+
         # Load and examine the data
         try:
             self.df = pd.read_csv(self.data_file)
             print(f"✅ Loaded data: {self.df.shape[0]} rows, {self.df.shape[1]} columns")
-            
+
             # Check available fields for detection
             detector = ComprehensiveFieldDetector(field_mapper=self.field_mapper)
             available_detection_fields = detector.get_available_detection_fields()
-            
+
             print(f"📋 Available fields for detection: {len(available_detection_fields)}")
             for field_name, capabilities in available_detection_fields.items():
                 try:
@@ -135,20 +133,20 @@ class DataQualityDemo:
                     print(f"      Detection methods: {', '.join(methods)}")
                 except Exception as e:
                     print(f"   ❌ {field_name}: {e}")
-            
+
             self.available_fields = list(available_detection_fields.keys())
             print(f"✅ Demo will analyze {len(self.available_fields)} fields")
-            
+
         except Exception as e:
             raise Exception(f"Failed to load data: {e}")
-    
+
     def run_comprehensive_demo(self):
         """Run comprehensive demo using single-sample approach."""
         print(f"\n🎯 Running comprehensive data quality demo")
         print(f"   📍 Starting demo at {time.strftime('%H:%M:%S')}")
-        
+
         start_time = time.time()
-        
+
         try:
             # Step 1: Generate comprehensive sample with errors and anomalies
             print(f"\n📋 Step 1: Generating comprehensive sample")
@@ -158,13 +156,13 @@ class DataQualityDemo:
                 max_issues_per_row=self.max_issues_per_row,
                 field_mapper=self.field_mapper
             )
-            
+
             # Save the comprehensive sample
             sample_files = save_comprehensive_sample(
                 sample_df, injection_metadata, self.output_dir, "demo_sample"
             )
             print(f"   💾 Saved sample files: {list(sample_files.keys())}")
-            
+
             # Step 2: Run comprehensive detection
             print(f"\n🔍 Step 2: Running comprehensive detection")
             detector = ComprehensiveFieldDetector(
@@ -183,9 +181,9 @@ class DataQualityDemo:
                 use_weighted_combination=self.use_weighted_combination,
                 weights_file=self.weights_file
             )
-            
+
             field_results, cell_classifications = detector.run_comprehensive_detection(sample_df)
-            
+
             # Step 3: Generate consolidated reports
             print(f"\n📊 Step 3: Generating consolidated reports")
             report_files = save_consolidated_reports(
@@ -197,7 +195,7 @@ class DataQualityDemo:
                 sample_name="demo_analysis"
             )
             unified_report_path = report_files["unified_report"]
-            
+
             # Step 4: Generate confusion matrix analysis
             print(f"\n📊 Step 4: Generating confusion matrix analysis")
             confusion_matrix_files = analyze_confusion_matrices(
@@ -225,7 +223,7 @@ class DataQualityDemo:
             print(f"   🎯 Affected rows: {affected_rows} / {len(sample_df)} ({affected_rows/len(sample_df)*100:.1f}%)")
             print(f"\n📁 Generated Unified Report:")
             print(f"   {unified_report_path}")
-            
+
             return {
                 "sample_files": sample_files,
                 "report_files": report_files,
@@ -234,71 +232,71 @@ class DataQualityDemo:
                 "cell_classifications": cell_classifications,
                 "injection_metadata": injection_metadata
             }
-            
+
         except Exception as e:
             print(f"      ❌ Demo failed: {str(e)}")
             raise
 
-    def generate_detection_weights(self, unified_report_path: str, output_file: str, 
+    def generate_detection_weights(self, unified_report_path: str, output_file: str,
                                  baseline_weight: float = 0.1, verbose: bool = False) -> bool:
         """
         Generate detection weights from demo results.
-        
+
         Args:
             unified_report_path: Path to the unified report JSON file
             output_file: Path to save the generated weights
             baseline_weight: Minimum weight for untrained methods
             verbose: Whether to print detailed information
-            
+
         Returns:
             True if weights were generated successfully, False otherwise
         """
         try:
             print(f"\n🔧 Step 4: Generating detection weights")
             print(f"📊 Loading performance data from: {os.path.basename(unified_report_path)}")
-            
+
             # Load performance data from unified report
             performance_data = load_performance_data(unified_report_path)
-            
+
             if not performance_data:
                 print(f"❌ Error: No field performance data found in unified report")
                 return False
-            
+
             print(f"✅ Found performance data for {len(performance_data)} fields")
-            
+
             # Generate weights
             print(f"🔧 Generating weights with baseline weight: {baseline_weight}")
             field_weights = generate_weights_from_performance(performance_data, baseline_weight)
-            
+
             # Create comprehensive report
             weights_report = generate_weights_report(field_weights, performance_data, unified_report_path)
-            
+
             # Save weights report
             weights_path = os.path.join(self.output_dir, output_file)
             print(f"💾 Saving weights to: {os.path.basename(weights_path)}")
             with open(weights_path, 'w') as f:
                 json.dump(weights_report, f, indent=2)
-            
+
             # Print summary if verbose
             if verbose:
                 print(f"\n📋 Generated Weights Summary:")
                 for field_name, summary in weights_report["weight_summary"].items():
-                    weights_str = ", ".join([f"{method}: {weight:.2f}" 
+                    weights_str = ", ".join([f"{method}: {weight:.2f}"
                                            for method, weight in summary["weights"].items()])
                     print(f"   {field_name}: {weights_str}")
                     print(f"      → Dominant: {summary['dominant_method']} ({summary['dominant_weight']:.2f})")
-                
+
                 print(f"\n🔍 Performance Insights:")
                 for field_name, insights in weights_report["performance_insights"].items():
                     print(f"   {field_name}:")
                     for insight in insights:
                         print(f"      • {insight}")
-            
+
             print(f"✅ Detection weights generated successfully!")
             print(f"📁 Weights file: {os.path.basename(weights_path)}")
-            
+
             return True
-            
+
         except Exception as e:
             print(f"❌ Error generating weights: {e}")
             if verbose:
@@ -310,21 +308,21 @@ class DataQualityDemo:
         try:
             print("🚀 Starting Data Quality Monitoring System Demo")
             print("=" * 80)
-            
+
             # Step 1: Setup
             self.setup_demo_environment()
-            
+
             # Step 2: Run comprehensive demo
             demo_results = self.run_comprehensive_demo()
-            
+
             print("\n🎉 Demo completed successfully!")
             print(f"📁 All results saved to: {self.output_dir}")
-            
+
             print(f"\n🔑 KEY OUTPUT FILES:")
             print(f"   📄 Sample CSV: {os.path.basename(demo_results['sample_files']['sample_csv'])}")
             print(f"   📋 Unified Report: {os.path.basename(demo_results['report_files']['unified_report'])}")
             print(f"   📊 Confusion Matrix Report: {os.path.basename(demo_results['confusion_matrix_files']['json_report'])}")
-            
+
             print(f"\n🔍 FOR VISUALIZATION:")
             print(f"   1. Open data_quality_viewer.html in your browser")
             print(f"   2. Upload CSV: {os.path.basename(demo_results['sample_files']['sample_csv'])}")
@@ -334,9 +332,9 @@ class DataQualityDemo:
             for viz_type, viz_path in demo_results['confusion_matrix_files'].items():
                 if viz_type != 'json_report':
                     print(f"   • {viz_type.replace('_', ' ').title()}: {os.path.basename(viz_path)}")
-            
+
             return demo_results
-            
+
         except KeyboardInterrupt:
             print("\n⏹️  Demo interrupted by user")
             return None
@@ -358,15 +356,15 @@ ML-based anomaly detection) across all fields simultaneously.
 
 Example usage:
   python single_sample_multi_field_demo.py                                    # Default 20% injection intensity
-  python single_sample_multi_field_demo.py --injection-intensity 0.1         # 10% injection intensity  
+  python single_sample_multi_field_demo.py --injection-intensity 0.1         # 10% injection intensity
   python single_sample_multi_field_demo.py --injection-intensity 0.3 --max-issues-per-row 3  # Higher intensity
   python single_sample_multi_field_demo.py --data-file my_data.csv --output-dir my_results
   python single_sample_multi_field_demo.py --generate-weights --weights-verbose  # Generate detection weights
         """
     )
-    parser.add_argument("--data-file", 
+    parser.add_argument("--data-file",
                        help="Path to the CSV data file")
-    parser.add_argument("--output-dir", default="demo_results", 
+    parser.add_argument("--output-dir", default="demo_results",
                        help="Output directory for demo results (default: demo_results)")
     parser.add_argument("--injection-intensity", type=float, default=0.2,
                        help="Probability of injecting issues in each cell (0.0-1.0, default: 0.2)")
@@ -386,11 +384,11 @@ Example usage:
     parser.add_argument("--enable-pattern", action="store_true", help="Enable pattern-based anomaly detection")
     parser.add_argument("--enable-ml", action="store_true", help="Enable ML-based anomaly detection")
     parser.add_argument("--enable-llm", action="store_true", help="Enable LLM-based anomaly detection")
-    parser.add_argument("--llm-few-shot-examples", action="store_true", 
+    parser.add_argument("--llm-few-shot-examples", action="store_true",
                        help="Enable few-shot examples for LLM detection")
     parser.add_argument("--llm-temporal-column", type=str, default=None,
                        help="Column name containing temporal information for LLM dynamic encoding")
-    
+
     # Brand configuration options
     parser.add_argument("--brand", help="Brand name (deprecated - uses static config)")
     parser.add_argument("--brand-config", help="Path to brand configuration JSON file (deprecated - uses static config)")
@@ -400,7 +398,7 @@ Example usage:
                        help="Use weighted combination of anomaly detection methods instead of priority-based")
     parser.add_argument("--weights-file", type=str, default="detection_weights.json",
                        help="Path to JSON file containing detection weights (default: detection_weights.json)")
-    
+
     # Weight generation options
     parser.add_argument("--generate-weights", action="store_true",
                        help="Generate detection weights after demo completion based on performance results")
@@ -410,9 +408,9 @@ Example usage:
                        help="Baseline weight for untrained/poor performing methods (default: 0.1)")
     parser.add_argument("--weights-verbose", action="store_true",
                        help="Print detailed weight generation information")
-    
+
     args = parser.parse_args()
-    
+
     # Handle brand configuration
     if not args.brand:
         available_brands = get_available_brands()
@@ -426,14 +424,14 @@ Example usage:
             )
         else:
             raise ConfigurationError("No brand configurations found.")
-    
+
     # Load brand configuration
     try:
         brand_config = load_brand_config(args.brand)
         print(f"Using brand configuration: {args.brand}")
     except FileNotFoundError as e:
         raise ConfigurationError(f"Brand configuration not found: {e}") from e
-    
+
     # Use brand's data file if --data-file not provided
     if not args.data_file:
         if brand_config.default_data_path:
@@ -441,14 +439,14 @@ Example usage:
             print(f"Using brand data file: {args.data_file}")
         else:
             raise ConfigurationError(f"No data file configured for brand '{args.brand}'")
-    
+
     # Validate arguments
     if not (0.0 <= args.injection_intensity <= 1.0):
         raise ValueError("injection-intensity must be between 0.0 and 1.0")
-    
+
     if args.max_issues_per_row < 1:
         raise ValueError("max-issues-per-row must be at least 1")
-    
+
     # Create and run demo
     demo = DataQualityDemo(
         data_file=args.data_file,
@@ -468,12 +466,12 @@ Example usage:
         use_weighted_combination=args.use_weighted_combination,
         weights_file=args.weights_file
     )
-    
+
     result = demo.run_complete_demo()
-    
+
     if result:
         print("\n✅ Demo completed successfully!")
-        
+
         # Generate weights if requested
         if args.generate_weights:
             unified_report_path = result["report_files"]["unified_report"]
@@ -483,7 +481,7 @@ Example usage:
                 baseline_weight=args.baseline_weight,
                 verbose=args.weights_verbose
             )
-            
+
             if weights_generated:
                 print(f"\n🔧 Detection weights generated and saved to: {args.weights_output_file}")
             else:

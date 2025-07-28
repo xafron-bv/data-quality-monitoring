@@ -1,13 +1,13 @@
 
-from abc import ABC, abstractmethod
-import pandas as pd
-from typing import List, Any, Optional, Dict
 import concurrent.futures
+from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Optional
+
+import pandas as pd
 
 from anomaly_detectors.anomaly_error import AnomalyError
-from anomaly_detectors.ml_based.gpu_utils import get_optimal_batch_size
 from anomaly_detectors.ml_based.check_anomalies import check_anomalies
-        
+from anomaly_detectors.ml_based.gpu_utils import get_optimal_batch_size
 from common.debug_config import debug_print
 
 
@@ -15,15 +15,15 @@ def _process_batch_for_anomaly_detection(args):
     """
     Helper function for parallel processing of DataFrame batches.
     This function is defined at module level to be picklable by multiprocessing.
-    
+
     Args:
         args: Tuple of (batch_df, column_name, detector_class, detector_args)
     """
     batch_df, column_name, detector_class, detector_args = args
-    
+
     # Recreate the detector instance in the worker process
     detector_instance = detector_class(**detector_args)
-    
+
     # For ML detectors with GPU support, process in larger sub-batches for efficiency
     if hasattr(detector_instance, 'use_gpu') and detector_instance.use_gpu:
         # Process the entire batch at once for GPU efficiency
@@ -36,27 +36,27 @@ def _process_batch_for_anomaly_detection(args):
 def _process_ml_batch_gpu(batch_df, column_name, detector_instance):
     """GPU-optimized batch processing for ML detectors."""
     batch_anomalies = []
-    
+
     # Extract all values for batch processing
     values = batch_df[column_name].tolist()
     indices = batch_df.index.tolist()
-    
+
     # Process all values at once using GPU acceleration
     try:
         # Load patterns if not already done
         if not detector_instance.is_initialized:
             detector_instance.learn_patterns(batch_df, column_name)
-        
+
         # Check anomalies for the entire batch
         results = check_anomalies(detector_instance.model, values, detector_instance.threshold)
-        
+
         # Convert results to AnomalyError objects
         for i, (index, result) in enumerate(zip(indices, results)):
             if result['is_anomaly']:
                 # Create context from the row data
                 row = batch_df.loc[index]
                 context = {col: row[col] for col in batch_df.columns}
-                
+
                 anomaly_error = detector_instance._detect_anomaly(result['value'], context)
                 if anomaly_error:
                     error_with_context = anomaly_error.with_context(
@@ -65,12 +65,12 @@ def _process_ml_batch_gpu(batch_df, column_name, detector_instance):
                         anomaly_data=result['value']
                     )
                     batch_anomalies.append(error_with_context)
-    
+
     except Exception as e:
         print(f"GPU batch processing failed, falling back to CPU: {e}")
         # Fallback to standard processing
         return _process_batch_cpu(batch_df, column_name, detector_instance)
-    
+
     return batch_anomalies
 
 
@@ -129,7 +129,7 @@ class AnomalyDetectorInterface(ABC):
         """
         Return arguments needed to recreate this detector instance in a worker process.
         Subclasses should override this method to provide their initialization arguments.
-        
+
         Returns:
             Dictionary of arguments that can be passed to the constructor
         """
@@ -139,11 +139,11 @@ class AnomalyDetectorInterface(ABC):
         """
         Detects anomalies in a column and returns a list of AnomalyError objects.
         This method is a non-editable engine that runs the `_detect_anomaly` logic in parallel batches.
-        
+
         Args:
             df (pd.DataFrame): The input DataFrame containing the data to be analyzed.
             column_name (str): The name of the column to check for anomalies.
-            batch_size (int): Number of rows per batch for parallel processing. 
+            batch_size (int): Number of rows per batch for parallel processing.
                              If None, automatically calculates optimal batch size based on data size and workers.
             max_workers (int): Number of parallel workers.
 
@@ -171,7 +171,7 @@ class AnomalyDetectorInterface(ABC):
 
         # Split DataFrame into batches
         batches = [df.iloc[i:i+batch_size] for i in range(0, len(df), batch_size)]
-        
+
         detector_type = "GPU ML" if (hasattr(self, 'use_gpu') and self.use_gpu) else "CPU"
         detector_name = self.__class__.__name__
         print(f"[{detector_name} - {detector_type}] Processing {len(df)} rows with batch size {batch_size}, creating {len(batches)} batches")
@@ -182,11 +182,11 @@ class AnomalyDetectorInterface(ABC):
         # Prepare arguments for the worker function
         detector_class = self.__class__
         detector_args = self.get_detector_args()
-        
+
         batch_args = [(batch, column_name, detector_class, detector_args) for batch in batches]
-        
+
         debug_print(f"[DEBUG] Created {len(batch_args)} batch_args for {len(batches)} batches")
-        
+
         with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
             # Map batches to futures
             futures = [executor.submit(_process_batch_for_anomaly_detection, args) for args in batch_args]

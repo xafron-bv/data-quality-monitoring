@@ -1,17 +1,19 @@
 from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Tuple, Union
+
 import pandas as pd
-from typing import List, Dict, Any, Union, Tuple
 
 from anomaly_detectors.anomaly_error import AnomalyError
+
 
 class MLAnomalyResult:
     """
     Represents the result of an ML-based anomaly detection model.
     This provides more detailed information than the simpler AnomalyError.
     """
-    
-    def __init__(self, 
-                row_index: int, 
+
+    def __init__(self,
+                row_index: int,
                 column_name: str,
                 value: Any,
                 probabiliy: float,
@@ -22,7 +24,7 @@ class MLAnomalyResult:
                 explanation: str = None):
         """
         Initialize a machine learning anomaly result with detailed information.
-        
+
         Args:
             row_index: The index of the row where the anomaly was found
             column_name: The name of the column where the anomaly was found
@@ -43,7 +45,7 @@ class MLAnomalyResult:
         self.cluster_info = cluster_info or {}
         self.probability_info = probability_info or {}
         self.explanation = explanation
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert the ML anomaly result to a dictionary format."""
         return {
@@ -68,8 +70,8 @@ class AnomalyReporterInterface(ABC):
     """
 
     @abstractmethod
-    def generate_report(self, 
-                       anomaly_results: Union[List[AnomalyError], List[MLAnomalyResult]], 
+    def generate_report(self,
+                       anomaly_results: Union[List[AnomalyError], List[MLAnomalyResult]],
                        original_df: pd.DataFrame,
                        threshold: float = 0.7) -> List[Dict[str, Any]]:
         """

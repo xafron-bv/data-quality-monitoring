@@ -16,11 +16,11 @@ Usage:
 Created as part of the weighted combination detection enhancement.
 """
 
+import argparse
 import json
 import os
-import argparse
-from typing import Dict, Any
 from pathlib import Path
+from typing import Any, Dict
 
 
 def calculate_f1_score(precision: float, recall: float) -> float:
@@ -40,25 +40,25 @@ def load_performance_data(results_file: str) -> Dict[str, Any]:
         raise ValueError(f"Error loading performance data from {results_file}: {e}")
 
 
-def generate_weights_from_performance(performance_data: Dict[str, Any], 
+def generate_weights_from_performance(performance_data: Dict[str, Any],
                                     baseline_weight: float = 0.1) -> Dict[str, Dict[str, float]]:
     """
     Generate detection weights based on performance metrics.
-    
+
     Args:
         performance_data: Performance data by field
         baseline_weight: Minimum weight for untrained/poor performing methods
-    
+
     Returns:
         Dict mapping field_name -> method -> weight
     """
     detection_methods = ["pattern_based", "ml_based", "llm_based"]
     field_weights = {}
-    
+
     for field_name, field_data in performance_data.items():
         field_weights[field_name] = {}
         method_scores = {}
-        
+
         # Calculate F1 scores for each detection method
         for method in detection_methods:
             if method in field_data:
@@ -69,10 +69,10 @@ def generate_weights_from_performance(performance_data: Dict[str, Any],
                 method_scores[method] = f1_score
             else:
                 method_scores[method] = 0.0
-        
+
         # Calculate total F1 score for normalization
         total_f1 = sum(method_scores.values())
-        
+
         # Assign weights based on performance
         if total_f1 == 0:
             # If no method has performance, give equal weights
@@ -84,20 +84,20 @@ def generate_weights_from_performance(performance_data: Dict[str, Any],
             for method in detection_methods:
                 f1_score = method_scores[method]
                 field_weights[field_name][method] = max(f1_score, baseline_weight)
-            
+
             # Normalize weights to sum to 1
             total_weight = sum(field_weights[field_name].values())
             for method in detection_methods:
                 field_weights[field_name][method] /= total_weight
-    
+
     return field_weights
 
 
-def generate_weights_report(field_weights: Dict[str, Dict[str, float]], 
-                          performance_data: Dict[str, Any], 
+def generate_weights_report(field_weights: Dict[str, Dict[str, float]],
+                          performance_data: Dict[str, Any],
                           source_file: str) -> Dict[str, Any]:
     """Generate a comprehensive weights report with metadata."""
-    
+
     # Calculate summary statistics
     weight_summary = {}
     for field_name, weights in field_weights.items():
@@ -107,7 +107,7 @@ def generate_weights_report(field_weights: Dict[str, Dict[str, float]],
             "dominant_weight": round(dominant_method[1], 3),
             "weights": {method: round(weight, 3) for method, weight in weights.items()}
         }
-    
+
     # Create performance insights
     performance_insights = {}
     for field_name, field_data in performance_data.items():
@@ -118,7 +118,7 @@ def generate_weights_report(field_weights: Dict[str, Dict[str, float]],
                 precision = method_data.get('precision', 0.0)
                 recall = method_data.get('recall', 0.0)
                 f1 = calculate_f1_score(precision, recall)
-                
+
                 if f1 > 0.8:
                     insights.append(f"{method}: Excellent (F1={f1:.3f})")
                 elif f1 > 0.5:
@@ -129,9 +129,9 @@ def generate_weights_report(field_weights: Dict[str, Dict[str, float]],
                     insights.append(f"{method}: Not effective (F1={f1:.3f})")
             else:
                 insights.append(f"{method}: Not trained/available")
-        
+
         performance_insights[field_name] = insights
-    
+
     return {
         "metadata": {
             "description": "Field-specific weights for anomaly detection methods",
@@ -144,5 +144,3 @@ def generate_weights_report(field_weights: Dict[str, Dict[str, float]],
         "weight_summary": weight_summary,
         "performance_insights": performance_insights
     }
-
-

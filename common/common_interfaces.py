@@ -5,14 +5,16 @@ Common interfaces used across the data quality system.
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, Any, Optional, List
+from typing import Any, Dict, List, Optional
+
 import pandas as pd
+
 from common.field_mapper import FieldMapper
 
 
 class DetectionType(str, Enum):
     VALIDATION = "validation"
-    ANOMALY = "anomaly" 
+    ANOMALY = "anomaly"
     ML_ANOMALY = "ml_anomaly"
 
 
@@ -27,7 +29,7 @@ class DetectionResult:
     error_code: str
     message: str
     details: Dict[str, Any] = field(default_factory=dict)
-    
+
     def is_high_confidence(self, threshold: float) -> bool:
         return self.confidence >= threshold
 
@@ -70,7 +72,7 @@ def convert_anomaly_error_to_detection_result(anomaly_error, field_name: str) ->
     details = anomaly_error.details.copy() if anomaly_error.details else {}
     if hasattr(anomaly_error, 'explanation') and anomaly_error.explanation:
         details['explanation'] = anomaly_error.explanation
-    
+
     return DetectionResult(
         row_index=anomaly_error.row_index,
         field_name=field_name,
@@ -80,4 +82,4 @@ def convert_anomaly_error_to_detection_result(anomaly_error, field_name: str) ->
         error_code=str(anomaly_error.anomaly_type),
         message=details.get('explanation', f"Anomaly detected: {anomaly_error.anomaly_type}"),
         details=details
-    ) 
+    )

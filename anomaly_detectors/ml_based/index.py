@@ -2,40 +2,39 @@
 ML-based anomaly detection index generation module.
 """
 
-import sys
-import os
-import pandas as pd
-import numpy as np
 import argparse
 import json
-from datetime import datetime
+import os
 import random
+import sys
+from datetime import datetime
+
+import numpy as np
+import pandas as pd
 import torch
 
 # Add parent directories to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from brand_config import load_brand_config, get_available_brands
+from brand_config import get_available_brands, load_brand_config
 from common.anomaly_injection import load_anomaly_rules
 
 # Add the parent directory to the path to import the error injection module
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-from common.error_injection import load_error_rules
-
-# Import separated modules
-from hyperparameter_search import save_aggregated_hp_results, random_hyperparameter_search, get_optimal_parameters
-from model_training import train_and_evaluate_similarity_model, get_field_configs, setup_results_directory_structure
-
-# Import field-to-column mapping
-from common.field_column_map import get_field_to_column_map
-
 # Import anomaly checking functions
-from check_anomalies import load_model_for_field, check_anomalies
+from check_anomalies import check_anomalies, load_model_for_field
 
 # Import GPU utilities
 from gpu_utils import get_optimal_device, print_device_info
 
+# Import separated modules
+from hyperparameter_search import get_optimal_parameters, random_hyperparameter_search, save_aggregated_hp_results
+from model_training import get_field_configs, setup_results_directory_structure, train_and_evaluate_similarity_model
 
+from common.error_injection import load_error_rules
+
+# Import field-to-column mapping
+from common.field_column_map import get_field_to_column_map
 
 # --- Main Execution ---
 
@@ -51,7 +50,7 @@ if __name__ == "__main__":
     parser.add_argument("--brand", help="Brand name (deprecated - uses static config)")
     parser.add_argument("--brand-config", help="Path to brand configuration JSON file (deprecated - uses static config)")
     args = parser.parse_args()
-    
+
     # Handle brand configuration
     if not args.brand:
         available_brands = get_available_brands()
@@ -60,10 +59,10 @@ if __name__ == "__main__":
             print(f"Using default brand: {args.brand}")
         else:
             raise ValueError("Brand must be specified with --brand option")
-    
+
     brand_config = load_brand_config(args.brand)
     print(f"Using brand configuration: {args.brand}")
-    
+
     if args.check_anomalies:
         field_name = args.check_anomalies
         print(f"Running anomaly check for field '{field_name}'...")
@@ -84,13 +83,13 @@ if __name__ == "__main__":
               if r['is_anomaly']:
                 print(r)
         exit(0)
-    
+
     print("🎯 RECALL-OPTIMIZED Anomaly Detection Training")
     print("💡 Strategy: Better to flag clean data as anomalous than to miss actual anomalies")
-    
+
     # Setup organized directory structure for all outputs
     setup_results_directory_structure()
-    
+
     # Determine optimal device using shared utility
     device = get_optimal_device(use_gpu=True)
     print_device_info(device, "ML training")
@@ -99,18 +98,18 @@ if __name__ == "__main__":
         df = pd.read_csv(args.csv_file)
     except Exception as e:
         print(f"Error loading CSV: {e}"); exit()
-        
+
     field_to_column_map = get_field_to_column_map()
     field_configs = get_field_configs()
 
     error_rules_dir = os.path.join('..', '..', 'validators', 'error_injection_rules')
     anomaly_rules_dir = os.path.join(os.path.dirname(__file__), '..', 'anomaly_injection_rules')
-    
+
     # Set random seeds for reproducibility
     random.seed(42)
     torch.manual_seed(42)
     np.random.seed(42)
-    
+
     selected_fields = set(args.rules) if args.rules else None
 
     for field_name, column_name in field_to_column_map.items():
@@ -131,7 +130,7 @@ if __name__ == "__main__":
 
         # Load both error injection rules (format/validation anomalies) and anomaly injection rules (semantic anomalies)
         all_rules = []
-        
+
         # Load error injection rules (format/validation anomalies)
         error_file_path = os.path.join(error_rules_dir, f'{field_name}.json')
         try:
@@ -140,7 +139,7 @@ if __name__ == "__main__":
             print(f"Loaded {len(error_rules)} error injection rules from {error_file_path}")
         except FileNotFoundError:
             print(f"Warning: Error injection rules file '{error_file_path}' not found.")
-        
+
         # Load anomaly injection rules (semantic anomalies)
         anomaly_file_path = os.path.join(anomaly_rules_dir, f'{field_name}.json')
         try:
@@ -148,7 +147,7 @@ if __name__ == "__main__":
             import sys
             sys.path.append(os.path.join('..', '..'))
             from common.anomaly_injection import load_anomaly_rules
-            
+
             anomaly_rules = load_anomaly_rules(anomaly_file_path)
             # Convert anomaly rules to error rule format for compatibility
             converted_anomaly_rules = []
@@ -163,7 +162,7 @@ if __name__ == "__main__":
                     'is_anomaly_rule': True  # Flag to identify converted rules
                 }
                 converted_anomaly_rules.append(converted_rule)
-            
+
             all_rules.extend(converted_anomaly_rules)
             print(f"Loaded {len(anomaly_rules)} anomaly injection rules from {anomaly_file_path}")
         except FileNotFoundError:
@@ -174,7 +173,7 @@ if __name__ == "__main__":
         if not all_rules:
             print(f"No rules found for field '{field_name}'. Skipping.")
             continue
-        
+
         print(f"Total rules for training: {len(all_rules)} (errors + anomalies)")
         rules = all_rules
 
@@ -199,7 +198,7 @@ if __name__ == "__main__":
             device=device,
             best_params=best_params
         )
-    
+
     # Save aggregated hyperparameter search results if HP search was used
     if args.use_hp_search:
         save_aggregated_hp_results()

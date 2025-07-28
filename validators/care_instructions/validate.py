@@ -1,10 +1,12 @@
-import pandas as pd
 import re
 from enum import Enum
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
-from validators.validator_interface import ValidatorInterface
+import pandas as pd
+
 from validators.validation_error import ValidationError
+from validators.validator_interface import ValidatorInterface
+
 
 class Validator(ValidatorInterface):
     """
@@ -61,7 +63,7 @@ class Validator(ValidatorInterface):
                 probability=0.95,
                 details={}
             )
-        
+
         # From this point, work with the stripped value
         value = value.strip()
 
@@ -121,7 +123,7 @@ class Validator(ValidatorInterface):
                 probability=0.9,
                 details={}
             )
-        
+
         if '. .' in value or '..' in value:
             return ValidationError(
                 error_type=self.ErrorCode.MISSING_INSTRUCTION,
@@ -149,7 +151,7 @@ class Validator(ValidatorInterface):
                 )
 
         allowed_instructions = {
-            'WASSEN OP MAX 30°C', 'WASSEN OP MAX 40°C', 'WAS IN VERGELIJKBARE KLEUREN', 
+            'WASSEN OP MAX 30°C', 'WASSEN OP MAX 40°C', 'WAS IN VERGELIJKBARE KLEUREN',
             'NIET BLEKEN', 'NIET IN DE DROGER', 'STRIJKEN OP LAGE TEMPERATUUR', 'NIET STRIJKEN', 'NIET STOMEN'
         }
         # Clean the value by removing trailing period for splitting

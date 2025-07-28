@@ -1,0 +1,27 @@
+# Development and testing dependencies
+# Install with: pip install -r requirements-dev.txt
+
+# Linting and code quality
+pre-commit>=3.5.0
+flake8>=7.0.0
+flake8-docstrings>=1.7.0
+flake8-bugbear>=24.0.0
+flake8-comprehensions>=3.14.0
+flake8-simplify>=0.21.0
+isort>=5.13.0
+black>=24.0.0  # Optional code formatter
+
+# Type checking (optional)
+mypy>=1.8.0
+types-requests>=2.31.0
+
+# Testing (for future use)
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Security scanning
+bandit>=1.7.5
+
+# Documentation (optional)
+sphinx>=7.0.0
+sphinx-rtd-theme>=2.0.0

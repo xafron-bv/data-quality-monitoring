@@ -1,10 +1,13 @@
-import pandas as pd
 import json
 import os
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
+import pandas as pd
+
+from common.exceptions import ConfigurationError, FileOperationError
 from validators.reporter_interface import ReporterInterface
 from validators.validation_error import ValidationError
-from common.exceptions import ConfigurationError, FileOperationError
+
 
 class Reporter(ReporterInterface):
     """
@@ -15,7 +18,7 @@ class Reporter(ReporterInterface):
     def __init__(self, validator_name):
         """
         Initialize the reporter and load error messages from the JSON file.
-        
+
         Args:
             validator_name (str): The name of the validator to load error messages for.
         """
@@ -39,7 +42,7 @@ class Reporter(ReporterInterface):
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             "validators", validator_name, "error_messages.json"
         )
-        
+
         try:
             with open(error_messages_path, 'r') as f:
                 return json.load(f)
@@ -51,18 +54,18 @@ class Reporter(ReporterInterface):
     def generate_report(self, validation_errors: List[ValidationError], original_df: pd.DataFrame) -> List[Dict[str, Any]]:
         """
         Generates human-readable messages for a list of validation errors from any validator.
-        
+
         Args:
             validation_errors: List of ValidationError objects from a validator
             original_df: Original dataframe that was validated
-            
+
         Returns:
             List of reports with human-readable error messages
         """
         report = []
         for error in validation_errors:
             error_code = error.error_type
-            
+
             # First try to get the template for the specific error code
             # If not found, try to use DEFAULT, and if that's not available, use a generic message
             if error_code in self.error_messages:
@@ -71,12 +74,12 @@ class Reporter(ReporterInterface):
                 message_template = self.error_messages["DEFAULT"]
             else:
                 message_template = "Unknown error with data: {error_data}"
-            
+
             # Format the message with specific details from the error
             details = error.details.copy() if error.details else {}  # Create a copy to avoid modifying the original
             details['error_data'] = error.error_data  # Add original data for context
             details['probability'] = error.probability  # Add probability for potential use in message
-            
+
             try:
                 display_message = message_template.format(**details)
             except KeyError as e:

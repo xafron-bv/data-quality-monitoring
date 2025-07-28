@@ -4,8 +4,9 @@ Simple brand configuration system.
 
 import json
 import os
-from typing import Dict, Optional, List, Any
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
+
 
 @dataclass
 class BrandConfig:
@@ -16,7 +17,7 @@ class BrandConfig:
     training_data_path: Optional[str] = None
     custom_thresholds: Optional[Dict[str, float]] = None
     enabled_fields: Optional[List[str]] = None
-    
+
     def get_column_name(self, field_name: str) -> str:
         """Get column name for a given field, returns field_name if not mapped."""
         return self.field_mappings.get(field_name, field_name)
@@ -29,54 +30,54 @@ _brand_configs: Dict[str, BrandConfig] = {}
 def load_brand_config(brand_name: str) -> BrandConfig:
     """
     Load brand configuration from JSON file.
-    
+
     Args:
         brand_name: Name of the brand to load configuration for
-        
+
     Returns:
         BrandConfig object
     """
     if brand_name not in _brand_configs:
         # Get the workspace root directory (parent of brand_config.py)
         workspace_root = os.path.dirname(os.path.abspath(__file__))
-        
+
         # Try brand-specific file first
         config_file = os.path.join(workspace_root, f"brand_configs/{brand_name}.json")
-        
+
         # Fall back to single config file if brand configs directory doesn't exist
         if not os.path.exists(config_file):
             config_file = os.path.join(workspace_root, "brand_config.json")
-            
+
         if not os.path.exists(config_file):
             raise FileNotFoundError(f"No configuration found for brand '{brand_name}'")
-            
+
         with open(config_file, 'r') as f:
             data = json.load(f)
-            
+
         # If using the single config file, verify it's for the requested brand
         if config_file == "brand_config.json" and data.get("brand_name") != brand_name:
             # For backward compatibility, accept any brand name with the default config
             data["brand_name"] = brand_name
-            
+
         _brand_configs[brand_name] = BrandConfig(**data)
-    
+
     return _brand_configs[brand_name]
 
 
 def get_available_brands() -> List[str]:
     """Get list of available brand configurations."""
     brands = []
-    
+
     # Get the workspace root directory
     workspace_root = os.path.dirname(os.path.abspath(__file__))
-    
+
     # Check brand_configs directory
     brand_configs_dir = os.path.join(workspace_root, "brand_configs")
     if os.path.exists(brand_configs_dir):
         for filename in os.listdir(brand_configs_dir):
             if filename.endswith('.json'):
                 brands.append(filename[:-5])  # Remove .json extension
-                
+
     # Check default config
     default_config = os.path.join(workspace_root, "brand_config.json")
     if os.path.exists(default_config):
@@ -85,5 +86,5 @@ def get_available_brands() -> List[str]:
             brand_name = data.get("brand_name", "default")
             if brand_name not in brands:
                 brands.append(brand_name)
-                
+
     return brands
