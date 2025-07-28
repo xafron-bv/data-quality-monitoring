@@ -50,7 +50,23 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Configure brand settings:
+4. (Optional) Install development dependencies and pre-commit hooks:
+```bash
+# Install development tools (linting, formatting, etc.)
+pip install -r requirements-dev.txt
+
+# Install pre-commit hooks for code quality checks
+pre-commit install
+```
+
+This will set up automatic code quality checks that run before each commit, catching issues like:
+- Import errors and missing modules
+- Syntax errors
+- Basic code style issues
+
+To run the checks manually: `pre-commit run --all-files`
+
+5. Configure brand settings:
 ```bash
 # Edit brand_config.json with your field mappings
 ```
