@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detection Weights Viewer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .weight-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+        }
+        .weight-bar {
+            height: 1rem;
+            background: #e5e7eb;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            position: relative;
+        }
+        .weight-fill {
+            height: 100%;
+            transition: width 0.5s ease-in-out;
+        }
+        .validation { border-color: #dc2626; }
+        .pattern_based { border-color: #f59e0b; }
+        .ml_based { border-color: #3b82f6; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Detection Weights Viewer</h1>
+            <p class="text-gray-600 mt-2">Visualize optimized detection weights for each field</p>
+        </header>
+
+        <!-- File Upload -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Upload Detection Weights</h2>
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer" id="dropZone">
+                <input type="file" id="fileInput" accept=".json" class="hidden">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <p class="mt-2 text-sm text-gray-600">Drop your detection_weights.json file here or click to browse</p>
+            </div>
+            <div id="fileInfo" class="mt-4 hidden">
+                <p class="text-sm text-gray-600">Selected file: <span id="fileName" class="font-medium"></span></p>
+            </div>
+        </div>
+
+        <!-- Report Content -->
+        <div id="reportContent" class="hidden space-y-8">
+            <!-- Metadata -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-2xl font-semibold mb-4">Report Metadata</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-500">Source File</p>
+                        <p id="sourceFile" class="font-medium">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Generated At</p>
+                        <p id="generatedAt" class="font-medium">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Fields Analyzed</p>
+                        <p id="fieldsCount" class="font-medium">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weight Distribution Overview -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-2xl font-semibold mb-4">Weight Distribution Overview</h2>
+                <canvas id="weightDistributionChart" height="300"></canvas>
+            </div>
+
+            <!-- Field Weights -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-2xl font-semibold mb-4">Field-by-Field Weights</h2>
+                <div class="mb-4 flex items-center space-x-4">
+                    <label class="text-sm font-medium text-gray-700">Sort by:</label>
+                    <select id="sortSelect" class="text-sm border-gray-300 rounded-md">
+                        <option value="field">Field Name</option>
+                        <option value="validation">Validation Weight</option>
+                        <option value="pattern">Pattern Weight</option>
+                        <option value="ml">ML Weight</option>
+                        <option value="total">Total Weight</option>
+                    </select>
+                </div>
+                <div id="fieldWeights" class="space-y-4">
+                    <!-- Field weight cards will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <!-- Performance Insights -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-2xl font-semibold mb-4">Performance Insights</h2>
+                <div id="performanceInsights" class="space-y-4">
+                    <!-- Performance insights will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <!-- Comparative Analysis -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-2xl font-semibold mb-4">Detection Method Comparison</h2>
+                <canvas id="comparisonChart" height="400"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let reportData = null;
+        let weightDistributionChart = null;
+        let comparisonChart = null;
+        let currentSort = 'field';
+        
+        // File handling
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-blue-500', 'bg-blue-50');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        
+        document.getElementById('sortSelect').addEventListener('change', (e) => {
+            currentSort = e.target.value;
+            if (reportData) {
+                displayFieldWeights();
+            }
+        });
+        
+        function handleFile(file) {
+            if (file.type !== 'application/json') {
+                alert('Please upload a JSON file');
+                return;
+            }
+            
+            fileName.textContent = file.name;
+            fileInfo.classList.remove('hidden');
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    reportData = JSON.parse(e.target.result);
+                    displayReport();
+                } catch (error) {
+                    alert('Error parsing JSON file: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        function displayReport() {
+            if (!reportData) return;
+            
+            document.getElementById('reportContent').classList.remove('hidden');
+            
+            // Display metadata
+            displayMetadata();
+            
+            // Display weight distribution overview
+            displayWeightDistribution();
+            
+            // Display field weights
+            displayFieldWeights();
+            
+            // Display performance insights
+            displayPerformanceInsights();
+            
+            // Display comparison chart
+            displayComparisonChart();
+        }
+        
+        function displayMetadata() {
+            const metadata = reportData.metadata || {};
+            document.getElementById('sourceFile').textContent = metadata.source_file || '-';
+            document.getElementById('generatedAt').textContent = metadata.generated_at ? 
+                new Date(metadata.generated_at).toLocaleString() : '-';
+            document.getElementById('fieldsCount').textContent = 
+                Object.keys(reportData.field_weights || {}).length;
+        }
+        
+        function displayWeightDistribution() {
+            const fieldWeights = reportData.field_weights || {};
+            const fields = Object.keys(fieldWeights);
+            
+            const validationWeights = [];
+            const patternWeights = [];
+            const mlWeights = [];
+            
+            fields.forEach(field => {
+                const weights = fieldWeights[field];
+                validationWeights.push(weights.validation || 0);
+                patternWeights.push(weights.pattern_based || 0);
+                mlWeights.push(weights.ml_based || 0);
+            });
+            
+            if (weightDistributionChart) weightDistributionChart.destroy();
+            
+            const ctx = document.getElementById('weightDistributionChart').getContext('2d');
+            weightDistributionChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: fields,
+                    datasets: [
+                        {
+                            label: 'Validation',
+                            data: validationWeights,
+                            backgroundColor: 'rgba(220, 38, 38, 0.8)',
+                            borderColor: 'rgba(220, 38, 38, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Pattern-based',
+                            data: patternWeights,
+                            backgroundColor: 'rgba(245, 158, 11, 0.8)',
+                            borderColor: 'rgba(245, 158, 11, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'ML-based',
+                            data: mlWeights,
+                            backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: true
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            max: 1,
+                            ticks: {
+                                callback: function(value) {
+                                    return (value * 100).toFixed(0) + '%';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + (context.parsed.y * 100).toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function displayFieldWeights() {
+            const container = document.getElementById('fieldWeights');
+            container.innerHTML = '';
+            
+            const fieldWeights = reportData.field_weights || {};
+            const weightSummary = reportData.weight_summary || {};
+            
+            // Sort fields based on selected criteria
+            let sortedFields = Object.entries(fieldWeights);
+            
+            switch (currentSort) {
+                case 'validation':
+                    sortedFields.sort((a, b) => (b[1].validation || 0) - (a[1].validation || 0));
+                    break;
+                case 'pattern':
+                    sortedFields.sort((a, b) => (b[1].pattern_based || 0) - (a[1].pattern_based || 0));
+                    break;
+                case 'ml':
+                    sortedFields.sort((a, b) => (b[1].ml_based || 0) - (a[1].ml_based || 0));
+                    break;
+                case 'total':
+                    sortedFields.sort((a, b) => {
+                        const totalA = (a[1].validation || 0) + (a[1].pattern_based || 0) + (a[1].ml_based || 0);
+                        const totalB = (b[1].validation || 0) + (b[1].pattern_based || 0) + (b[1].ml_based || 0);
+                        return totalB - totalA;
+                    });
+                    break;
+                default:
+                    sortedFields.sort((a, b) => a[0].localeCompare(b[0]));
+            }
+            
+            sortedFields.forEach(([field, weights]) => {
+                const summary = weightSummary[field] || {};
+                const card = createFieldWeightCard(field, weights, summary);
+                container.appendChild(card);
+            });
+        }
+        
+        function createFieldWeightCard(fieldName, weights, summary) {
+            const card = document.createElement('div');
+            const dominantMethod = getDominantMethod(weights);
+            card.className = `weight-card ${dominantMethod}`;
+            
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-lg font-semibold">${fieldName}</h3>
+                    <span class="text-sm text-gray-500">${summary.dominant_method || dominantMethod}</span>
+                </div>
+                
+                <div class="space-y-3">
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-red-600">Validation</span>
+                            <span class="font-medium">${(weights.validation * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="weight-bar">
+                            <div class="weight-fill bg-red-500" style="width: ${weights.validation * 100}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-yellow-600">Pattern-based</span>
+                            <span class="font-medium">${(weights.pattern_based * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="weight-bar">
+                            <div class="weight-fill bg-yellow-500" style="width: ${weights.pattern_based * 100}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-blue-600">ML-based</span>
+                            <span class="font-medium">${(weights.ml_based * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="weight-bar">
+                            <div class="weight-fill bg-blue-500" style="width: ${weights.ml_based * 100}%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                ${summary.rationale ? `
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <p class="text-sm text-gray-600">${summary.rationale}</p>
+                </div>
+                ` : ''}
+            `;
+            
+            return card;
+        }
+        
+        function displayPerformanceInsights() {
+            const container = document.getElementById('performanceInsights');
+            container.innerHTML = '';
+            
+            const insights = reportData.performance_insights || {};
+            
+            Object.entries(insights).forEach(([field, insight]) => {
+                const insightCard = document.createElement('div');
+                insightCard.className = 'bg-gray-50 rounded-lg p-4';
+                
+                insightCard.innerHTML = `
+                    <h4 class="font-semibold mb-2">${field}</h4>
+                    <p class="text-sm text-gray-700 mb-2">${insight.observation}</p>
+                    <p class="text-sm text-gray-600"><strong>Recommendation:</strong> ${insight.recommendation}</p>
+                `;
+                
+                container.appendChild(insightCard);
+            });
+            
+            if (Object.keys(insights).length === 0) {
+                container.innerHTML = '<p class="text-gray-500">No performance insights available</p>';
+            }
+        }
+        
+        function displayComparisonChart() {
+            const fieldWeights = reportData.field_weights || {};
+            const fields = Object.keys(fieldWeights);
+            
+            const avgWeights = {
+                validation: 0,
+                pattern_based: 0,
+                ml_based: 0
+            };
+            
+            fields.forEach(field => {
+                const weights = fieldWeights[field];
+                avgWeights.validation += weights.validation || 0;
+                avgWeights.pattern_based += weights.pattern_based || 0;
+                avgWeights.ml_based += weights.ml_based || 0;
+            });
+            
+            const fieldCount = fields.length || 1;
+            avgWeights.validation /= fieldCount;
+            avgWeights.pattern_based /= fieldCount;
+            avgWeights.ml_based /= fieldCount;
+            
+            if (comparisonChart) comparisonChart.destroy();
+            
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            comparisonChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Validation', 'Pattern-based', 'ML-based'],
+                    datasets: [{
+                        label: 'Average Weight Distribution',
+                        data: [avgWeights.validation, avgWeights.pattern_based, avgWeights.ml_based],
+                        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                        borderColor: 'rgba(99, 102, 241, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(99, 102, 241, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 1,
+                            ticks: {
+                                callback: function(value) {
+                                    return (value * 100).toFixed(0) + '%';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + (context.parsed.r * 100).toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function getDominantMethod(weights) {
+            const methods = [
+                { name: 'validation', value: weights.validation || 0 },
+                { name: 'pattern_based', value: weights.pattern_based || 0 },
+                { name: 'ml_based', value: weights.ml_based || 0 }
+            ];
+            
+            return methods.reduce((prev, current) => 
+                current.value > prev.value ? current : prev
+            ).name;
+        }
+    </script>
+</body>
+</html>

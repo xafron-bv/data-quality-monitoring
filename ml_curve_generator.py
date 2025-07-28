@@ -581,5 +581,5 @@ Example usage:
     generator.generate_all_curves(fields=args.fields, detection_type=args.detection_type.upper(), thresholds=thresholds)
 
 
-if __name__ == "__main__":
-    main() 
+# Main block removed - this module is imported by detection_comparison.py
+# To use this as a standalone script, run detection_comparison.py instead 
