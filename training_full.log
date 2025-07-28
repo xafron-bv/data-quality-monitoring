@@ -1,0 +1,36 @@
+
+============================================================
+ML Index Generation
+============================================================
+Using default brand: esqualo
+Using brand configuration: esqualo
+🎯 RECALL-OPTIMIZED Anomaly Detection Training
+💡 Strategy: Better to flag clean data as anomalous than to miss actual anomalies
+📁 Model directory structure created:
+  - models/
+    ├── trained/          (trained models for each field)
+    ├── summary/          (HP search results, summaries)
+    └── checkpoints/      (temporary training checkpoints)
+Using CPU for ML training
+
+==================== Starting Process for Field: category (Column: article_structure_name_2) ====================
+Using field file: 'category.json', Model: sentence-transformers/multi-qa-MiniLM-L6-cos-v1, Epochs: 4
+Loaded 8 error injection rules from /workspace/anomaly_detectors/ml_based/../../validators/error_injection_rules/category.json
+Loaded 5 anomaly injection rules from /workspace/anomaly_detectors/ml_based/../anomaly_injection_rules/category.json
+Total rules for training: 13 (errors + anomalies)
+Using RECALL-OPTIMIZED parameters for field 'category'
+
+🎯 Training RECALL-OPTIMIZED model for field 'category' (column 'article_structure_name_2')
+Generating improved triplet dataset for anomaly detection...
+Working with 2704 clean texts from field 'category'
+Created 2651 triplets for anomaly detection training.
+Structure: Anchor (clean) -> Positive (clean) -> Negative (error-injected anomaly)
+Training final model with RECALL-OPTIMIZED parameters...
+Parameters: {'model_name': 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1', 'triplet_margin': 0.3, 'distance_metric': <function TripletDistanceMetric.<lambda> at 0x7ff15ea679c0>, 'batch_size': 64, 'epochs': 4, 'learning_rate': 5e-06}
+Training RECALL-OPTIMIZED anomaly detection model for field 'category' with 2120 triplets...
+Model outputs will be saved to: /workspace/anomaly_detectors/ml_based/models/trained/category
+Computing widget examples:   0%|          | 0/1 [00:00<?, ?example/s]                                                                       0%|          | 0/136 [00:00<?, ?it/s]/home/ubuntu/.local/lib/python3.13/site-packages/torch/utils/data/dataloader.py:665: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  warnings.warn(warn_msg)
+/home/ubuntu/.local/lib/python3.13/site-packages/torch/nn/modules/module.py:1762: FutureWarning: `encoder_attention_mask` is deprecated and will be removed in version 4.55.0 for `BertSdpaSelfAttention.forward`.
+  return forward_call(*args, **kwargs)
+  1%|          | 1/136 [00:00<01:58,  1.14it/s]  1%|▏         | 2/136 [00:01<01:23,  1.60it/s]  2%|▏         | 3/136 [00:01<01:06,  1.99it/s]  3%|▎         | 4/136 [00:02<00:58,  2.26it/s]  4%|▎         | 5/136 [00:02<01:21,  1.61it/s]  4%|▍         | 6/136 [00:03<01:30,  1.44it/s]  5%|▌         | 7/136 [00:04<01:15,  1.72it/s]  6%|▌         | 8/136 [00:04<01:06,  1.94it/s]  7%|▋         | 9/136 [00:04<01:00,  2.10it/s]  7%|▋         | 10/136 [00:05<00:56,  2.22it/s]  8%|▊         | 11/136 [00:05<00:53,  2.34it/s]  9%|▉         | 12/136 [00:06<00:50,  2.44it/s] 10%|▉         | 13/136 [00:06<00:48,  2.55it/s] 10%|█         | 14/136 [00:06<00:44,  2.75it/s] 11%|█         | 15/136 [00:07<00:45,  2.66it/s] 12%|█▏        | 16/136 [00:07<00:43,  2.77it/s] 12%|█▎        | 17/136 [00:07<00:42,  2.83it/s] 13%|█▎        | 18/136 [00:08<00:41,  2.81it/s] 14%|█▍        | 19/136 [00:08<00:42,  2.78it/s] 15%|█▍        | 20/136 [00:09<00:46,  2.48it/s] 15%|█▌        | 21/136 [00:09<00:46,  2.49it/s] 16%|█▌        | 22/136 [00:09<00:44,  2.56it/s] 17%|█▋        | 23/136 [00:10<00:44,  2.54it/s] 18%|█▊        | 24/136 [00:10<00:43,  2.56it/s] 18%|█▊        | 25/136 [00:10<00:42,  2.64it/s] 19%|█▉        | 26/136 [00:11<00:42,  2.61it/s] 20%|█▉        | 27/136 [00:11<00:41,  2.64it/s] 21%|██        | 28/136 [00:12<00:39,  2.70it/s] 21%|██▏       | 29/136 [00:12<00:38,  2.77it/s] 22%|██▏       | 30/136 [00:12<00:38,  2.78it/s] 23%|██▎       | 31/136 [00:13<00:40,  2.56it/s] 24%|██▎       | 32/136 [00:13<00:39,  2.61it/s] 24%|██▍       | 33/136 [00:13<00:38,  2.66it/s]                                                 24%|██▍       | 33/136 [00:14<00:38,  2.66it/s] 25%|██▌       | 34/136 [00:15<01:06,  1.53it/s] 26%|██▌       | 35/136 [00:16<01:38,  1.03it/s] 26%|██▋       | 36/136 [00:17<01:25,  1.17it/s] 27%|██▋       | 37/136 [00:18<01:15,  1.31it/s] 28%|██▊       | 38/136 [00:18<01:09,  1.41it/s] 29%|██▊       | 39/136 [00:19<01:02,  1.55it/s] 29%|██▉       | 40/136 [00:19<00:55,  1.74it/s] 30%|███       | 41/136 [00:21<01:35,  1.01s/it] 31%|███       | 42/136 [00:29<04:49,  3.08s/it] 32%|███▏      | 43/136 [00:32<04:40,  3.01s/it] 32%|███▏      | 44/136 [00:33<03:43,  2.42s/it] 33%|███▎      | 45/136 [00:34<03:15,  2.15s/it] 34%|███▍      | 46/136 [00:36<03:02,  2.02s/it]
