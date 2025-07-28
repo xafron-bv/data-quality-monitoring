@@ -15,25 +15,25 @@ import torch
 # Add parent directories to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from brand_config import load_brand_config, get_available_brands
-from anomaly_detectors.anomaly_injection import load_anomaly_rules
+from common.brand_config import load_brand_config, get_available_brands
+from anomaly_injection import load_anomaly_rules
 
 # Add the parent directory to the path to import the error injection module
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-from error_injection import load_error_rules
+from common.error_injection import load_error_rules
 
 # Import separated modules
-from hyperparameter_search import save_aggregated_hp_results, random_hyperparameter_search, get_optimal_parameters
-from model_training import train_and_evaluate_similarity_model, get_field_configs, setup_results_directory_structure
+from anomaly_detectors.ml_based.hyperparameter_search import save_aggregated_hp_results, random_hyperparameter_search, get_optimal_parameters
+from anomaly_detectors.ml_based.model_training import train_and_evaluate_similarity_model, get_field_configs, setup_results_directory_structure
 
 # Import field-to-column mapping
-from field_column_map import get_field_to_column_map
+from common.field_column_map import get_field_to_column_map
 
 # Import anomaly checking functions
-from check_anomalies import load_model_for_field, check_anomalies
+from anomaly_detectors.ml_based.check_anomalies import load_model_for_field, check_anomalies
 
 # Import GPU utilities
-from gpu_utils import get_optimal_device, print_device_info
+from anomaly_detectors.ml_based.gpu_utils import get_optimal_device, print_device_info
 
 
 

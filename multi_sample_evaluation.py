@@ -10,15 +10,15 @@ import importlib
 # when validator/reporter modules are loaded dynamically from subdirectories.
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from evaluator import Evaluator
-from error_injection import generate_error_samples, load_error_rules, ErrorInjector
+from common.evaluator import Evaluator
+from common.error_injection import generate_error_samples, load_error_rules, ErrorInjector
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
-import debug_config
-from exceptions import DataQualityError, ConfigurationError, FileOperationError, ModelError
+from common import debug_config
+from common.exceptions import DataQualityError, ConfigurationError, FileOperationError, ModelError
 
 # Import anomaly injection modules
-from anomaly_detectors.anomaly_injection import load_anomaly_rules, AnomalyInjector
-from brand_config import load_brand_config, get_available_brands
+from anomaly_injection import load_anomaly_rules, AnomalyInjector
+from common.brand_config import load_brand_config, get_available_brands
 
 
 def load_module_class(module_path: str):
@@ -645,7 +645,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     
     # Set default output directory if not provided
     if args.output_dir is None:
-        args.output_dir = os.path.join(os.path.dirname(__file__), "evaluation_results")
+        args.output_dir = os.path.join(os.path.dirname(__file__), "multi_sample_evaluation", "reports")
     
     # Create output directory
     os.makedirs(args.output_dir, exist_ok=True)

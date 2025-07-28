@@ -5,14 +5,14 @@ from validators.validator_interface import ValidatorInterface
 from validators.reporter_interface import ReporterInterface
 from anomaly_detectors.anomaly_detector_interface import AnomalyDetectorInterface
 from anomaly_detectors.reporter_interface import AnomalyReporterInterface
-from unified_detection_interface import (
+from .unified_detection_interface import (
     CombinedDetector, 
     UnifiedReporter,
     DetectionType,
     DetectionConfig
 )
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
-from field_mapper import FieldMapper
+from .field_mapper import FieldMapper
 from anomaly_detectors.ml_based.ml_anomaly_reporter import MLAnomalyReporter
 
 

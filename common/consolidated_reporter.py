@@ -13,7 +13,7 @@ import pandas as pd
 from typing import Dict, List, Any, Optional
 from dataclasses import asdict
 
-from comprehensive_detector import CellClassification, FieldDetectionResult
+from .comprehensive_detector import CellClassification, FieldDetectionResult
 
 
 def clean_value_for_json(value: Any) -> Any:

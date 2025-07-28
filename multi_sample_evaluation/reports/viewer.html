@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Viewer - multi_sample_evaluation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f9;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        .header p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .report-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .report-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .report-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        .report-date {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        .report-type {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background-color: #e0e7ff;
+            color: #4c51bf;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            margin-right: 0.5rem;
+        }
+        .no-reports {
+            text-align: center;
+            padding: 4rem 1rem;
+            color: #666;
+        }
+        .no-reports h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .iframe-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+        .iframe-content {
+            position: relative;
+            width: 90%;
+            height: 90%;
+            margin: 5% auto;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            z-index: 1001;
+        }
+        .close-btn:hover {
+            background: #764ba2;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>multi_sample_evaluation Reports</h1>
+        <p>View and analyze generated reports</p>
+    </div>
+    
+    <div class="container">
+        <div id="reportGrid" class="report-grid">
+            <!-- Reports will be populated here -->
+        </div>
+        
+        <div id="noReports" class="no-reports" style="display: none;">
+            <h2>No Reports Found</h2>
+            <p>Run the multi_sample_evaluation script to generate reports.</p>
+        </div>
+    </div>
+
+    <div id="iframeContainer" class="iframe-container">
+        <div class="iframe-content">
+            <button class="close-btn" onclick="closeReport()">Close</button>
+            <iframe id="reportFrame"></iframe>
+        </div>
+    </div>
+
+    <script>
+        // Function to get list of reports
+        async function loadReports() {
+            try {
+                // Fetch list of files in the reports directory
+                const response = await fetch('.');
+                const text = await response.text();
+                
+                // Parse HTML to find links to files
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                const links = Array.from(doc.querySelectorAll('a'));
+                
+                const reports = links
+                    .map(link => link.href)
+                    .filter(href => {
+                        const filename = href.split('/').pop();
+                        return filename.endsWith('.html') || 
+                               filename.endsWith('.json') || 
+                               filename.endsWith('.csv');
+                    })
+                    .map(href => {
+                        const filename = decodeURIComponent(href.split('/').pop());
+                        const type = filename.split('.').pop();
+                        const date = extractDate(filename) || 'Unknown date';
+                        
+                        return {
+                            filename: filename,
+                            url: filename,
+                            type: type,
+                            date: date,
+                            title: formatTitle(filename)
+                        };
+                    });
+                
+                displayReports(reports);
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                // If fetch fails, try alternative method or show no reports
+                document.getElementById('noReports').style.display = 'block';
+            }
+        }
+        
+        // Extract date from filename if present
+        function extractDate(filename) {
+            const datePatterns = [
+                /(\d{4}-\d{2}-\d{2})/,
+                /(\d{8})/,
+                /(\d{4}_\d{2}_\d{2})/
+            ];
+            
+            for (const pattern of datePatterns) {
+                const match = filename.match(pattern);
+                if (match) {
+                    return match[1].replace(/_/g, '-');
+                }
+            }
+            return null;
+        }
+        
+        // Format filename into readable title
+        function formatTitle(filename) {
+            return filename
+                .replace(/\.[^/.]+$/, '') // Remove extension
+                .replace(/_/g, ' ')
+                .replace(/-/g, ' ')
+                .replace(/\b\w/g, c => c.toUpperCase());
+        }
+        
+        // Display reports in grid
+        function displayReports(reports) {
+            const grid = document.getElementById('reportGrid');
+            const noReports = document.getElementById('noReports');
+            
+            if (reports.length === 0) {
+                noReports.style.display = 'block';
+                return;
+            }
+            
+            grid.innerHTML = reports.map(report => `
+                <div class="report-card" onclick="openReport('${report.url}')">
+                    <div class="report-title">${report.title}</div>
+                    <div class="report-date">${report.date}</div>
+                    <span class="report-type">${report.type.toUpperCase()}</span>
+                </div>
+            `).join('');
+        }
+        
+        // Open report in iframe
+        function openReport(url) {
+            const container = document.getElementById('iframeContainer');
+            const frame = document.getElementById('reportFrame');
+            
+            frame.src = url;
+            container.style.display = 'block';
+        }
+        
+        // Close report iframe
+        function closeReport() {
+            const container = document.getElementById('iframeContainer');
+            const frame = document.getElementById('reportFrame');
+            
+            frame.src = '';
+            container.style.display = 'none';
+        }
+        
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeReport();
+            }
+        });
+        
+        // Close on background click
+        document.getElementById('iframeContainer').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeReport();
+            }
+        });
+        
+        // Load reports on page load
+        window.addEventListener('load', loadReports);
+        
+        // Alternative: Try to load from a reports.json file if available
+        async function loadReportsFromJson() {
+            try {
+                const response = await fetch('reports.json');
+                const reports = await response.json();
+                displayReports(reports);
+            } catch (error) {
+                // Fallback to directory listing
+                loadReports();
+            }
+        }
+    </script>
+</body>
+</html>

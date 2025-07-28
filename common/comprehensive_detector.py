@@ -14,13 +14,13 @@ from typing import Dict, List, Tuple, Any, Optional
 from collections import defaultdict
 import importlib
 
-from field_mapper import FieldMapper
-from common_interfaces import AnomalyIssue
-from exceptions import ConfigurationError, DataError, FileOperationError, ModelError
+from .field_mapper import FieldMapper
+from .common_interfaces import AnomalyIssue
+from .exceptions import ConfigurationError, DataError, FileOperationError, ModelError
 from anomaly_detectors.anomaly_detector_interface import AnomalyDetectorInterface
 from anomaly_detectors.pattern_based.pattern_based_detector import PatternBasedDetector
 from anomaly_detectors.pattern_based.report import AnomalyReporter
-from debug_config import debug_print
+from .debug_config import debug_print
 from validators.validator_interface import ValidatorInterface
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
 

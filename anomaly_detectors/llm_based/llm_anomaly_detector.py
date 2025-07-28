@@ -17,8 +17,8 @@ import warnings
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from anomaly_detectors.anomaly_error import AnomalyError
-from brand_config import load_brand_config
-from field_column_map import get_field_to_column_map as get_global_map
+from common.brand_config import load_brand_config
+from common.field_column_map import get_field_to_column_map as get_global_map
 
 from transformers import (
     AutoTokenizer, 

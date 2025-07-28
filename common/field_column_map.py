@@ -2,7 +2,7 @@
 Field to column mapping for different fields in the dataset.
 """
 
-from brand_config import load_brand_config
+from .brand_config import load_brand_config
 
 def get_field_to_column_map(brand_name: str = "esqualo"):
     """

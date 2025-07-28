@@ -16,10 +16,10 @@ import random
 from typing import Dict, List, Any, Tuple, Optional
 from pathlib import Path
 
-from field_mapper import FieldMapper
-from error_injection import ErrorInjector, load_error_rules
+from .field_mapper import FieldMapper
+from .error_injection import ErrorInjector, load_error_rules
 from anomaly_detectors.anomaly_injection import AnomalyInjector, load_anomaly_rules
-from exceptions import FileOperationError, ConfigurationError
+from .exceptions import FileOperationError, ConfigurationError
 
 
 def get_available_injection_fields(field_mapper, error_rules_dir: str = os.path.join(os.path.dirname(__file__), 'validators', 'error_injection_rules'), 

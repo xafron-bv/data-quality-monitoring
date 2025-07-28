@@ -24,7 +24,7 @@ import sys
 
 # Add the parent directory to the path to import the error injection module
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-from error_injection import apply_error_rule, load_error_rules
+from common.error_injection import apply_error_rule, load_error_rules
 
 
 def get_field_configs():

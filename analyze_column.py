@@ -10,9 +10,9 @@ import argparse
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from field_mapper import FieldMapper
-from exceptions import FileOperationError, DataError, ConfigurationError
-from brand_config import load_brand_config
+from common.field_mapper import FieldMapper
+from common.exceptions import FileOperationError, DataError, ConfigurationError
+from common.brand_config import load_brand_config
 
 def analyze_field_values(csv_file, field_name, field_mapper=None):
     """
@@ -102,10 +102,10 @@ def analyze_field_values(csv_file, field_name, field_mapper=None):
             print("No whitespace variations found.")
         
         # Create analysis_results directory if it doesn't exist
-        os.makedirs('analysis_results', exist_ok=True)
+        os.makedirs(os.path.join(os.path.dirname(__file__), 'analyze_column', 'reports'), exist_ok=True)
         
         # Save results to file
-        output_file = f'analysis_results/{field_name.replace(" ", "_").lower()}_analysis.txt'
+        output_file = os.path.join(os.path.dirname(__file__), 'analyze_column', 'reports', f'{field_name.replace(" ", "_").lower()}_analysis.txt')
         with open(output_file, 'w') as f:
             f.write(f"{field_name} Analysis for {csv_file}\n")
             f.write("=" * 50 + "\n\n")

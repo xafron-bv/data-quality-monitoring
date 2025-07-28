@@ -15,8 +15,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 
-from comprehensive_detector import CellClassification, FieldDetectionResult
-from field_mapper import FieldMapper
+from .comprehensive_detector import CellClassification, FieldDetectionResult
+from .field_mapper import FieldMapper
 
 
 class ConfusionMatrixAnalyzer:

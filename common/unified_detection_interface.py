@@ -11,13 +11,13 @@ from pathlib import Path
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
-from common_interfaces import (
+from .common_interfaces import (
     DetectionResult,
     DetectionType,
     DetectionConfig
 )
-from exceptions import ModelError
-from field_mapper import FieldMapper
+from .exceptions import ModelError
+from .field_mapper import FieldMapper
 
 
 @dataclass

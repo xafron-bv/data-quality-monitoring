@@ -33,8 +33,8 @@ import json
 import string
 import re
 from typing import List, Dict, Any, Union, Optional, Tuple
-from field_mapper import FieldMapper
-from exceptions import FileOperationError, ConfigurationError
+from .field_mapper import FieldMapper
+from .exceptions import FileOperationError, ConfigurationError
 
 
 class ErrorInjector:

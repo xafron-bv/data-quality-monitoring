@@ -19,7 +19,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from anomaly_detectors.ml_based.model_training import preprocess_text
 from anomaly_detectors.ml_based.gpu_utils import get_optimal_device, print_device_info
-from field_column_map import get_field_to_column_map
+from common.field_column_map import get_field_to_column_map
 
 
 def generate_centroid_for_model(model_dir, field_name, column_name, df):

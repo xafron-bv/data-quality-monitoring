@@ -8,7 +8,7 @@ from anomaly_detectors.anomaly_error import AnomalyError
 from anomaly_detectors.ml_based.gpu_utils import get_optimal_batch_size
 from anomaly_detectors.ml_based.check_anomalies import check_anomalies
         
-from debug_config import debug_print
+from common.debug_config import debug_print
 
 
 def _process_batch_for_anomaly_detection(args):

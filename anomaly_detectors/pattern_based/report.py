@@ -8,7 +8,7 @@ from anomaly_detectors.anomaly_error import AnomalyError
 
 # Add the parent directory to the path to import our exception module
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-from exceptions import ConfigurationError, FileOperationError
+from common.exceptions import ConfigurationError, FileOperationError
 
 class AnomalyReporter(AnomalyReporterInterface):
     """
