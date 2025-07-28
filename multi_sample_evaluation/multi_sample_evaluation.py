@@ -10,10 +10,14 @@ import importlib
 # when validator/reporter modules are loaded dynamically from subdirectories.
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+# Add parent directory to path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from evaluator import Evaluator
 from error_injection import generate_error_samples, load_error_rules, ErrorInjector
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
-import debug_config
+from common.debug_config import debug_print
+import common.debug_config as debug_config
 from common.exceptions import DataQualityError, ConfigurationError, FileOperationError, ModelError
 from common.field_mapper import FieldMapper
 

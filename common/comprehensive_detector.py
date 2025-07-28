@@ -20,7 +20,7 @@ from common.exceptions import ConfigurationError, DataError, FileOperationError,
 from anomaly_detectors.anomaly_detector_interface import AnomalyDetectorInterface
 from anomaly_detectors.pattern_based.pattern_based_detector import PatternBasedDetector
 from anomaly_detectors.pattern_based.report import AnomalyReporter
-from debug_config import debug_print
+from common.debug_config import debug_print
 from validators.validator_interface import ValidatorInterface
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
 
