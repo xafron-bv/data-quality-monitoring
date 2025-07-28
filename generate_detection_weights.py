@@ -187,8 +187,11 @@ def main():
         
         # Set default output file if not provided
         output_file = args.output_file if args.output_file else os.path.join(
-            os.path.dirname(__file__), "detection_weights.json"
+            os.path.dirname(__file__), "generate_detection_weights", "reports", "detection_weights.json"
         )
+        
+        # Ensure output directory exists
+        os.makedirs(os.path.dirname(output_file), exist_ok=True)
         
         # Save weights report
         print(f"💾 Saving weights to: {output_file}")

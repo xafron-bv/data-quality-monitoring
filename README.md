@@ -55,6 +55,50 @@ pip install -r requirements.txt
 # Edit brand_config.json with your field mappings
 ```
 
+## Project Structure
+
+The project is organized with a clear separation between entrypoints, dependencies, and data:
+
+```
+.
+├── multi_sample_evaluation.py      # Main evaluation entrypoint
+├── analyze_column.py               # Column analysis tool
+├── generate_detection_weights.py   # Weight generation for detection methods
+├── llm_model_training.py          # LLM model training entrypoint
+├── ml_index.py                    # ML model indexing and training
+├── common/                        # Shared modules and utilities
+│   ├── brand_config.py           # Brand configuration loader
+│   ├── common_interfaces.py      # Common interfaces and data structures
+│   ├── comprehensive_detector.py  # Main detection orchestrator
+│   ├── consolidated_reporter.py   # Unified reporting
+│   ├── debug_config.py           # Debug configuration
+│   ├── error_injection.py        # Error injection for testing
+│   ├── evaluator.py              # Evaluation framework
+│   ├── exceptions.py             # Custom exceptions
+│   ├── field_column_map.py       # Field to column mapping
+│   ├── field_mapper.py           # Field mapping utilities
+│   ├── ml_curve_generator.py     # ML performance curve generation
+│   └── unified_detection_interface.py  # Unified detection interface
+├── anomaly_detectors/             # Anomaly detection modules
+│   ├── ml_based/                 # ML-based detection
+│   ├── pattern_based/            # Pattern-based detection
+│   └── llm_based/                # LLM-based detection
+├── validators/                    # Business rule validators
+├── brand_configs/                 # Brand-specific configurations
+└── data/                         # Data directory (git-ignored)
+```
+
+### Report Directories
+
+Each entrypoint script generates reports in its own subdirectory:
+- `multi_sample_evaluation/reports/` - Evaluation results and metrics
+- `analyze_column/reports/` - Column analysis results
+- `generate_detection_weights/reports/` - Detection weight configurations
+- `llm_model_training/reports/` - LLM training results
+- `ml_index/reports/` - ML model training results
+
+Each report directory contains a `viewer.html` file for browsing generated reports.
+
 ## Quick Start
 
 ### Running the Demo

@@ -300,7 +300,7 @@ def test_anomaly_detection_with_probability(model_info: Dict[str, Any], clean_te
 
 def setup_output_directory() -> str:
     """Setup output directory for training results."""
-    output_dir = "llm_results"
+    output_dir = os.path.join(os.path.dirname(__file__), "llm_model_training", "reports")
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     return output_dir

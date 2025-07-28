@@ -13,6 +13,13 @@ ml_curves/
 detection_*/
 llm_results/
 
+# Report directories for entrypoints
+multi_sample_evaluation/reports/
+analyze_column/reports/
+generate_detection_weights/reports/
+llm_model_training/reports/
+ml_index/reports/
+
 # Brand configurations (keep template only, ignore actual brand configs)
 brand_configs/*.json
 !brand_configs/example_brand_template.json

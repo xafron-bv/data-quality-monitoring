@@ -89,7 +89,14 @@ if __name__ == "__main__":
     print("💡 Strategy: Better to flag clean data as anomalous than to miss actual anomalies")
     
     # Setup organized directory structure for all outputs
-    setup_results_directory_structure()
+    base_results_dir = os.path.join(os.path.dirname(__file__), 'ml_index', 'reports')
+    os.makedirs(base_results_dir, exist_ok=True)
+    os.makedirs(os.path.join(base_results_dir, 'summary'), exist_ok=True)
+    os.makedirs(os.path.join(base_results_dir, 'checkpoints'), exist_ok=True)
+    
+    # Change to the reports directory so relative paths in model_training work
+    original_dir = os.getcwd()
+    os.chdir(os.path.dirname(base_results_dir))
     
     # Determine optimal device using shared utility
     device = get_optimal_device(use_gpu=True)
@@ -203,3 +210,6 @@ if __name__ == "__main__":
     # Save aggregated hyperparameter search results if HP search was used
     if args.use_hp_search:
         save_aggregated_hp_results()
+    
+    # Change back to original directory
+    os.chdir(original_dir)

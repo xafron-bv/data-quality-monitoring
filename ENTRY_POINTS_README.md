@@ -1,151 +1,114 @@
-# Entry Points Organization
+# Entry Points Documentation
 
-This document describes the reorganization of entry point scripts into dedicated folders with their associated viewers and documentation.
+This document describes the organization of entry point scripts and their associated report directories.
 
 ## Structure Overview
 
-Each entry point script has been moved to its own directory containing:
-- The main script
-- Associated HTML viewer(s)
-- HOW-TO.md documentation
-- Output files (generated in subdirectories)
+Entry point scripts (modules not imported by any other module) remain in the project root for easy access. Each entry point has:
+- A dedicated `reports/` subdirectory for output files
+- A `viewer.html` file within the reports directory for browsing results
+- All reports directories are git-ignored to keep the repository clean
 
-## Entry Point Directories
+## Entry Points
 
-### 1. `demo_analysis/`
-**Main Script:** `single_sample_multi_field_demo.py`
-- **Purpose:** Comprehensive demo of data quality monitoring with error injection and detection
-- **Viewers:** 
-  - `demo_report_viewer.html` - Main demo report viewer
-  - `confusion_matrix_viewer.html` - Confusion matrix analysis viewer
-- **Output:** `demo_results/` directory
-- **Documentation:** [HOW-TO.md](demo_analysis/HOW-TO.md)
-
-### 2. `ml_evaluation/`
-**Main Script:** `multi_sample_evaluation.py`
+### 1. `multi_sample_evaluation.py`
 - **Purpose:** Systematic evaluation of detection methods with multiple samples
-- **Viewer:** `unified_report_viewer.html`
-- **Output:** `evaluation_results/` directory
-- **Documentation:** [HOW-TO.md](ml_evaluation/HOW-TO.md)
+- **Reports Directory:** `multi_sample_evaluation/reports/`
+- **Usage:**
+  ```bash
+  python multi_sample_evaluation.py data/source.csv --field material --num-samples 10
+  ```
+- **Key Features:**
+  - Generates multiple samples with injected errors
+  - Evaluates all detection methods
+  - Produces comprehensive performance metrics
+  - Supports brand-specific configurations
 
-### 3. `weights_generation/`
-**Main Script:** `generate_detection_weights.py`
+### 2. `analyze_column.py`
+- **Purpose:** Analyze value distribution and patterns in CSV columns
+- **Reports Directory:** `analyze_column/reports/`
+- **Usage:**
+  ```bash
+  python analyze_column.py --data-file data.csv --field color_name --brand esqualo
+  ```
+- **Key Features:**
+  - Shows unique values and frequencies
+  - Detects whitespace variations
+  - Exports analysis to text files
+
+### 3. `generate_detection_weights.py`
 - **Purpose:** Generate optimized detection weights from performance results
-- **Viewer:** `detection_weights_viewer.html`
-- **Output:** `detection_weights.json`
-- **Documentation:** [HOW-TO.md](weights_generation/HOW-TO.md)
+- **Reports Directory:** `generate_detection_weights/reports/`
+- **Usage:**
+  ```bash
+  python generate_detection_weights.py -i evaluation_results/report.json
+  ```
+- **Key Features:**
+  - Analyzes F1 scores across detection methods
+  - Generates field-specific weights
+  - Outputs JSON configuration for weighted detection
 
-### 4. `detection_comparison/`
-**Main Script:** `detection_comparison.py`
-- **Purpose:** Compare ML and LLM detection methods side-by-side
-- **Viewer:** `ml_summary_viewer.html`
-- **Output:** `detection_comparison_results/` directory
-- **Documentation:** [HOW-TO.md](detection_comparison/HOW-TO.md)
+### 4. `llm_model_training.py`
+- **Purpose:** Train LLM models for anomaly detection
+- **Reports Directory:** `llm_model_training/reports/`
+- **Usage:**
+  ```bash
+  python llm_model_training.py data.csv --field material --num-epochs 3
+  ```
+- **Key Features:**
+  - Fine-tunes language models on field-specific data
+  - Supports custom hyperparameters
+  - Saves trained models and metrics
 
-### 5. `column_analysis/`
-**Main Script:** `analyze_column.py`
-- **Purpose:** Analyze value distribution in CSV columns
-- **Viewer:** None (console output or text file)
-- **Output:** Console or specified file
-- **Documentation:** [HOW-TO.md](column_analysis/HOW-TO.md)
+### 5. `ml_index.py`
+- **Purpose:** Train ML models using sentence transformers
+- **Reports Directory:** `ml_index/reports/`
+- **Usage:**
+  ```bash
+  python ml_index.py data.csv --brand esqualo --field material
+  ```
+- **Key Features:**
+  - Trains similarity-based anomaly detectors
+  - Supports hyperparameter search
+  - Generates model checkpoints and summaries
 
-## Quick Start Guide
+## Viewing Reports
 
-### Running a Demo Analysis:
-```bash
-cd demo_analysis
-python single_sample_multi_field_demo.py ../data/sample_data.csv
-# View results in demo_report_viewer.html
-```
+Each entry point's reports directory contains a `viewer.html` file that provides:
+- A modern, responsive interface for browsing reports
+- Automatic detection of generated files (HTML, JSON, CSV)
+- In-browser viewing with modal overlays
+- Date extraction from filenames for organization
 
-### Evaluating Detection Methods:
-```bash
-cd ml_evaluation
-python multi_sample_evaluation.py ../data/clean_data.csv size
-# View results in unified_report_viewer.html
-```
+To view reports:
+1. Navigate to the entry point's reports directory
+2. Open `viewer.html` in a web browser
+3. Click on any report card to view its contents
 
-### Generating Detection Weights:
-```bash
-cd weights_generation
-python generate_detection_weights.py -i ../demo_analysis/demo_results/demo_analysis_unified_report.json
-# View results in detection_weights_viewer.html
-```
+## Common Dependencies
 
-### Comparing Detection Methods:
-```bash
-cd detection_comparison
-python detection_comparison.py ../data/products.csv
-# View results in ml_summary_viewer.html
-```
+All entry points utilize shared modules from the `common/` directory:
+- `brand_config.py` - Brand configuration management
+- `field_mapper.py` - Field to column mapping
+- `evaluator.py` - Evaluation framework
+- `comprehensive_detector.py` - Detection orchestration
+- `error_injection.py` - Error injection utilities
+- And more...
 
-### Analyzing Column Data:
-```bash
-cd column_analysis
-python analyze_column.py ../data/products.csv material
-```
+## Best Practices
 
-## Viewer Access
+1. **Output Organization:** Always use the designated reports directory for output
+2. **Naming Convention:** Include dates in output filenames for easy tracking
+3. **Configuration:** Use brand configurations for field mappings
+4. **Memory Management:** The system handles large datasets through batching
+5. **GPU Usage:** ML/LLM detection will automatically use GPU if available
 
-All viewers can be accessed through the main index page:
-```bash
-# Open in browser
-report_viewers_index.html
-```
+## Extending the System
 
-Or navigate directly to specific viewers in their respective directories.
-
-## Import Path Updates
-
-All scripts have been updated to import from the parent directory:
-```python
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-```
-
-This ensures proper imports of shared modules like:
-- `field_mapper`
-- `brand_config`
-- `exceptions`
-- `comprehensive_detector`
-- etc.
-
-## Output Directory Behavior
-
-Each script now saves outputs within its own directory by default:
-- `demo_analysis/demo_results/`
-- `ml_evaluation/evaluation_results/`
-- `weights_generation/detection_weights.json`
-- `detection_comparison/detection_comparison_results/`
-
-This keeps related files organized and prevents cluttering the root directory.
-
-## Migration Notes
-
-### For Existing Users:
-1. Scripts are no longer in the root directory
-2. Navigate to the appropriate subdirectory before running
-3. Update any automation scripts with new paths
-4. Existing output directories in root can be moved or deleted
-
-### For New Users:
-1. Start with the demo in `demo_analysis/`
-2. Read the HOW-TO.md in each directory
-3. Use relative paths (e.g., `../data/`) for input files
-
-## Benefits of This Organization
-
-1. **Clarity:** Each tool has its own space with related files
-2. **Documentation:** HOW-TO guides are with their tools
-3. **Isolation:** Output files don't mix between tools
-4. **Discoverability:** Viewers are with their generators
-5. **Maintenance:** Easier to update individual tools
-
-## Future Additions
-
-New entry point scripts should follow the same pattern:
-1. Create a new directory
-2. Move/create the script
-3. Add appropriate viewer(s)
-4. Write a HOW-TO.md
-5. Update import paths
-6. Set default output to script directory
+To add a new entry point:
+1. Ensure it's not imported by any other module
+2. Create a subdirectory with the same name
+3. Add a `reports/` subdirectory
+4. Copy and customize a `viewer.html` from another entry point
+5. Update the output paths to use the reports directory
+6. Add the reports directory to `.gitignore`
