@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Report Viewer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .metric-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            border-left: 4px solid;
+        }
+        .field-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+        }
+        .progress-bar {
+            background-color: #e5e7eb;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            height: 0.5rem;
+        }
+        .progress-fill {
+            height: 100%;
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Unified Report Viewer</h1>
+            <p class="text-gray-600 mt-2">Comprehensive analysis of data quality detection results</p>
+        </header>
+
+        <!-- File Upload -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Upload Unified Report</h2>
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer" id="dropZone">
+                <input type="file" id="fileInput" accept=".json" class="hidden">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <p class="mt-2 text-sm text-gray-600">Drop your unified_report.json file here or click to browse</p>
+            </div>
+            <div id="fileInfo" class="mt-4 hidden">
+                <p class="text-sm text-gray-600">Selected file: <span id="fileName" class="font-medium"></span></p>
+            </div>
+        </div>
+
+        <!-- Summary Metrics -->
+        <div id="summarySection" class="hidden">
+            <h2 class="text-2xl font-semibold mb-4">Summary</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="metric-card border-blue-500">
+                    <h3 class="text-sm font-medium text-gray-500">Total Rows</h3>
+                    <p id="totalRows" class="text-2xl font-semibold mt-1">0</p>
+                </div>
+                <div class="metric-card border-green-500">
+                    <h3 class="text-sm font-medium text-gray-500">Total Columns</h3>
+                    <p id="totalColumns" class="text-2xl font-semibold mt-1">0</p>
+                </div>
+                <div class="metric-card border-yellow-500">
+                    <h3 class="text-sm font-medium text-gray-500">Fields Analyzed</h3>
+                    <p id="fieldsAnalyzed" class="text-2xl font-semibold mt-1">0</p>
+                </div>
+                <div class="metric-card border-red-500">
+                    <h3 class="text-sm font-medium text-gray-500">Total Issues</h3>
+                    <p id="totalIssues" class="text-2xl font-semibold mt-1">0</p>
+                </div>
+            </div>
+
+            <!-- Field Analysis -->
+            <h2 class="text-2xl font-semibold mb-4">Field-by-Field Analysis</h2>
+            <div id="fieldAnalysis" class="space-y-4">
+                <!-- Field cards will be dynamically inserted here -->
+            </div>
+
+            <!-- Performance Charts -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h3 class="text-lg font-semibold mb-4">Detection Type Distribution</h3>
+                    <canvas id="detectionTypeChart"></canvas>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h3 class="text-lg font-semibold mb-4">Performance Metrics</h3>
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Error Type Distribution -->
+            <div class="bg-white rounded-lg shadow-sm p-6 mt-6">
+                <h3 class="text-lg font-semibold mb-4">Issue Type Distribution</h3>
+                <canvas id="issueTypeChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let reportData = null;
+        
+        // File handling
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-blue-500', 'bg-blue-50');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        
+        function handleFile(file) {
+            if (file.type !== 'application/json') {
+                alert('Please upload a JSON file');
+                return;
+            }
+            
+            fileName.textContent = file.name;
+            fileInfo.classList.remove('hidden');
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    reportData = JSON.parse(e.target.result);
+                    displayReport();
+                } catch (error) {
+                    alert('Error parsing JSON file: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        function displayReport() {
+            if (!reportData) return;
+            
+            // Show summary section
+            document.getElementById('summarySection').classList.remove('hidden');
+            
+            // Update summary metrics
+            document.getElementById('totalRows').textContent = reportData.total_rows || 0;
+            document.getElementById('totalColumns').textContent = reportData.total_columns || 0;
+            document.getElementById('fieldsAnalyzed').textContent = Object.keys(reportData.fields || {}).length;
+            
+            // Calculate total issues
+            let totalIssues = 0;
+            const detectionTypeCounts = {};
+            const performanceMetrics = {
+                precision: [],
+                recall: [],
+                f1_score: []
+            };
+            const issueTypes = {};
+            
+            // Analyze fields
+            const fieldAnalysisDiv = document.getElementById('fieldAnalysis');
+            fieldAnalysisDiv.innerHTML = '';
+            
+            for (const [fieldName, fieldData] of Object.entries(reportData.fields || {})) {
+                // Count issues
+                const fieldIssues = (fieldData.validation_errors_detected || 0) + 
+                                  (fieldData.anomalies_detected || 0) + 
+                                  (fieldData.ml_anomalies_detected || 0);
+                totalIssues += fieldIssues;
+                
+                // Count detection types
+                if (fieldData.validation_errors_detected > 0) {
+                    detectionTypeCounts['Validation'] = (detectionTypeCounts['Validation'] || 0) + fieldData.validation_errors_detected;
+                }
+                if (fieldData.anomalies_detected > 0) {
+                    detectionTypeCounts['Pattern-based'] = (detectionTypeCounts['Pattern-based'] || 0) + fieldData.anomalies_detected;
+                }
+                if (fieldData.ml_anomalies_detected > 0) {
+                    detectionTypeCounts['ML-based'] = (detectionTypeCounts['ML-based'] || 0) + fieldData.ml_anomalies_detected;
+                }
+                
+                // Collect performance metrics
+                if (fieldData.precision !== undefined) performanceMetrics.precision.push(fieldData.precision);
+                if (fieldData.recall !== undefined) performanceMetrics.recall.push(fieldData.recall);
+                if (fieldData.f1_score !== undefined) performanceMetrics.f1_score.push(fieldData.f1_score);
+                
+                // Collect issue types
+                for (const [issueType, count] of Object.entries(fieldData.issue_types || {})) {
+                    issueTypes[issueType] = (issueTypes[issueType] || 0) + count;
+                }
+                
+                // Create field card
+                const fieldCard = createFieldCard(fieldName, fieldData);
+                fieldAnalysisDiv.appendChild(fieldCard);
+            }
+            
+            document.getElementById('totalIssues').textContent = totalIssues;
+            
+            // Create charts
+            createDetectionTypeChart(detectionTypeCounts);
+            createPerformanceChart(performanceMetrics);
+            createIssueTypeChart(issueTypes);
+        }
+        
+        function createFieldCard(fieldName, fieldData) {
+            const card = document.createElement('div');
+            card.className = 'field-card';
+            
+            const totalDetected = (fieldData.validation_errors_detected || 0) + 
+                                (fieldData.anomalies_detected || 0) + 
+                                (fieldData.ml_anomalies_detected || 0);
+            
+            const precision = fieldData.precision || 0;
+            const recall = fieldData.recall || 0;
+            const f1Score = fieldData.f1_score || 0;
+            
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-lg font-semibold">${fieldName}</h3>
+                    <span class="px-3 py-1 text-sm rounded-full ${totalDetected > 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
+                        ${totalDetected} issues
+                    </span>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <p class="text-sm text-gray-500">Validation Errors</p>
+                        <p class="font-semibold">${fieldData.validation_errors_detected || 0}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Pattern Anomalies</p>
+                        <p class="font-semibold">${fieldData.anomalies_detected || 0}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">ML Anomalies</p>
+                        <p class="font-semibold">${fieldData.ml_anomalies_detected || 0}</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <div>
+                        <div class="flex justify-between text-sm">
+                            <span>Precision</span>
+                            <span>${(precision * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-blue-500" style="width: ${precision * 100}%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm">
+                            <span>Recall</span>
+                            <span>${(recall * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-green-500" style="width: ${recall * 100}%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm">
+                            <span>F1 Score</span>
+                            <span>${(f1Score * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-purple-500" style="width: ${f1Score * 100}%"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        function createDetectionTypeChart(data) {
+            const ctx = document.getElementById('detectionTypeChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        data: Object.values(data),
+                        backgroundColor: [
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(59, 130, 246, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(59, 130, 246, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createPerformanceChart(metrics) {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            
+            const avgPrecision = metrics.precision.length > 0 ? 
+                metrics.precision.reduce((a, b) => a + b, 0) / metrics.precision.length : 0;
+            const avgRecall = metrics.recall.length > 0 ? 
+                metrics.recall.reduce((a, b) => a + b, 0) / metrics.recall.length : 0;
+            const avgF1 = metrics.f1_score.length > 0 ? 
+                metrics.f1_score.reduce((a, b) => a + b, 0) / metrics.f1_score.length : 0;
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Precision', 'Recall', 'F1 Score'],
+                    datasets: [{
+                        label: 'Average Performance',
+                        data: [avgPrecision, avgRecall, avgF1],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(139, 92, 246, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(139, 92, 246, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1,
+                            ticks: {
+                                callback: function(value) {
+                                    return (value * 100).toFixed(0) + '%';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + (context.parsed.y * 100).toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createIssueTypeChart(issueTypes) {
+            const ctx = document.getElementById('issueTypeChart').getContext('2d');
+            
+            // Sort by count and take top 10
+            const sortedTypes = Object.entries(issueTypes)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+            
+            new Chart(ctx, {
+                type: 'horizontalBar',
+                data: {
+                    labels: sortedTypes.map(item => item[0]),
+                    datasets: [{
+                        label: 'Count',
+                        data: sortedTypes.map(item => item[1]),
+                        backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                        borderColor: 'rgba(99, 102, 241, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

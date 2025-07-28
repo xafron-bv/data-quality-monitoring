@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Quality Report Viewers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .viewer-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .viewer-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Data Quality Report Viewers</h1>
+            <p class="text-xl text-gray-600">Choose a viewer based on your report type</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Demo Report Viewer -->
+            <a href="demo_report_viewer.html" class="viewer-card block bg-white rounded-lg shadow-md p-6 hover:no-underline">
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex-grow">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-2">Demo Report Viewer</h2>
+                        <p class="text-gray-600 text-sm mb-3">
+                            View comprehensive demo reports with data quality issues, performance metrics, and confusion matrices.
+                        </p>
+                        <div class="text-xs text-gray-500">
+                            <span class="font-medium">Compatible files:</span> 
+                            <code class="bg-gray-100 px-1 py-0.5 rounded">*_viewer_report.json</code>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Unified Report Viewer -->
+            <a href="unified_report_viewer.html" class="viewer-card block bg-white rounded-lg shadow-md p-6 hover:no-underline">
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex-grow">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-2">Unified Report Viewer</h2>
+                        <p class="text-gray-600 text-sm mb-3">
+                            Analyze field-by-field detection results with performance metrics and issue distributions.
+                        </p>
+                        <div class="text-xs text-gray-500">
+                            <span class="font-medium">Compatible files:</span> 
+                            <code class="bg-gray-100 px-1 py-0.5 rounded">*_unified_report.json</code>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Confusion Matrix Viewer -->
+            <a href="confusion_matrix_viewer.html" class="viewer-card block bg-white rounded-lg shadow-md p-6 hover:no-underline">
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex-grow">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-2">Confusion Matrix Viewer</h2>
+                        <p class="text-gray-600 text-sm mb-3">
+                            Visualize detection performance with confusion matrices, precision, recall, and F1 scores.
+                        </p>
+                        <div class="text-xs text-gray-500">
+                            <span class="font-medium">Compatible files:</span> 
+                            <code class="bg-gray-100 px-1 py-0.5 rounded">*_confusion_matrix_report.json</code>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- ML Summary Viewer -->
+            <a href="ml_summary_viewer.html" class="viewer-card block bg-white rounded-lg shadow-md p-6 hover:no-underline">
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex-grow">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-2">ML Summary Viewer</h2>
+                        <p class="text-gray-600 text-sm mb-3">
+                            Explore ML detection performance with precision-recall curves and optimal thresholds.
+                        </p>
+                        <div class="text-xs text-gray-500">
+                            <span class="font-medium">Compatible files:</span> 
+                            <code class="bg-gray-100 px-1 py-0.5 rounded">*_summary_report.json</code>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Detection Weights Viewer -->
+            <a href="detection_weights_viewer.html" class="viewer-card block bg-white rounded-lg shadow-md p-6 hover:no-underline">
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex-grow">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-2">Detection Weights Viewer</h2>
+                        <p class="text-gray-600 text-sm mb-3">
+                            Visualize optimized detection weights and performance insights for each field.
+                        </p>
+                        <div class="text-xs text-gray-500">
+                            <span class="font-medium">Compatible files:</span> 
+                            <code class="bg-gray-100 px-1 py-0.5 rounded">detection_weights.json</code>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Placeholder for future viewers -->
+            <div class="viewer-card bg-white rounded-lg shadow-md p-6 opacity-50">
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex-grow">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-2">More Viewers Coming Soon</h2>
+                        <p class="text-gray-600 text-sm mb-3">
+                            Additional viewers for comparison reports and multi-sample evaluations.
+                        </p>
+                        <div class="text-xs text-gray-500">
+                            <span class="font-medium">Planned:</span> Comparison reports, evaluation summaries
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-blue-900 mb-2">How to Use These Viewers</h3>
+            <ol class="list-decimal list-inside space-y-2 text-sm text-blue-800">
+                <li>Run the appropriate analysis script to generate reports (e.g., <code class="bg-blue-100 px-1 py-0.5 rounded">python single_sample_multi_field_demo.py</code>)</li>
+                <li>Click on the viewer that matches your report type</li>
+                <li>Upload your JSON report file using the drag-and-drop interface</li>
+                <li>Explore the interactive visualizations and metrics</li>
+            </ol>
+        </div>
+
+        <footer class="mt-12 text-center text-sm text-gray-500">
+            <p>&copy; 2024 Data Quality Monitoring System. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>
