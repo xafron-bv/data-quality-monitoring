@@ -38,6 +38,8 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from comprehensive_detector import ComprehensiveFieldDetector
+
 # Import comprehensive detection modules
 from comprehensive_sample_generator import generate_comprehensive_sample, save_comprehensive_sample
 from confusion_matrix_analyzer import analyze_confusion_matrices
@@ -47,7 +49,6 @@ from consolidated_reporter import save_consolidated_reports
 from generate_detection_weights import generate_weights_from_performance, generate_weights_report, load_performance_data
 
 from common.brand_config import get_available_brands, load_brand_config
-from common.comprehensive_detector import ComprehensiveFieldDetector
 from common.exceptions import ConfigurationError, DataQualityError, FileOperationError
 from common.field_mapper import FieldMapper
 
@@ -61,7 +62,7 @@ class DataQualityDemo:
                  enable_validation=True, enable_pattern=True, enable_ml=True, enable_llm=False,
                  llm_threshold=0.6, llm_few_shot_examples=False,
                  llm_temporal_column=None, llm_context_columns=None, use_weighted_combination=False,
-                 weights_file="global_configs/detection_weights.json"):
+                 weights_file="detection_weights.json"):
         """
         Initialize the demo with the specified parameters.
         """

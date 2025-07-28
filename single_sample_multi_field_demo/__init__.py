@@ -4,5 +4,6 @@ __all__ = [
     'comprehensive_sample_generator',
     'consolidated_reporter',
     'confusion_matrix_analyzer',
-    'generate_detection_weights'
+    'generate_detection_weights',
+    'comprehensive_detector'
 ]

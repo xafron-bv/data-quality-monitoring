@@ -14,13 +14,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
-from common_interfaces import AnomalyIssue
 
 from anomaly_detectors.anomaly_detector_interface import AnomalyDetectorInterface
-from anomaly_detectors.llm_based.llm_anomaly_detector import create_llm_detector_for_field
+from anomaly_detectors.llm_based.llm_anomaly_detector import LLMAnomalyDetector, create_llm_detector_for_field
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
 from anomaly_detectors.pattern_based.pattern_based_detector import PatternBasedDetector
 from anomaly_detectors.pattern_based.report import AnomalyReporter
+from common.common_interfaces import AnomalyIssue
 from common.debug_config import debug_print
 from common.exceptions import ConfigurationError, DataError, FileOperationError, ModelError
 from common.field_mapper import FieldMapper

@@ -17,7 +17,7 @@ import pandas as pd
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from common.comprehensive_detector import CellClassification, FieldDetectionResult
+from comprehensive_detector import CellClassification, FieldDetectionResult
 
 
 def clean_value_for_json(value: Any) -> Any:

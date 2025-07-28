@@ -171,14 +171,14 @@ Generate optimized weights based on evaluation results:
 ```bash
 python generate_detection_weights.py \
     -i results/report.json \
-    -o detection_weights.json
+                             -o single_sample_multi_field_demo/detection_weights.json
 ```
 
 Use weighted combination:
 ```bash
 python single_sample_multi_field_demo.py \
     --use-weighted-combination \
-    --weights-file detection_weights.json
+    --weights-file single_sample_multi_field_demo/detection_weights.json
 ```
 
 ### Batch Evaluation
