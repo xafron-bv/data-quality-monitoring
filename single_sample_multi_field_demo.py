@@ -38,6 +38,13 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from comprehensive_sample_generator import generate_comprehensive_sample, save_comprehensive_sample
 from comprehensive_detector import ComprehensiveFieldDetector
 from consolidated_reporter import save_consolidated_reports
+
+# Import weight generation functions
+from generate_detection_weights import (
+    load_performance_data, 
+    generate_weights_from_performance, 
+    generate_weights_report
+)
 from confusion_matrix_analyzer import analyze_confusion_matrices
 from field_mapper import FieldMapper
 from exceptions import DataQualityError, ConfigurationError, FileOperationError
@@ -229,6 +236,72 @@ class DataQualityDemo:
             print(f"      ❌ Demo failed: {str(e)}")
             raise
 
+    def generate_detection_weights(self, unified_report_path: str, output_file: str, 
+                                 baseline_weight: float = 0.1, verbose: bool = False) -> bool:
+        """
+        Generate detection weights from demo results.
+        
+        Args:
+            unified_report_path: Path to the unified report JSON file
+            output_file: Path to save the generated weights
+            baseline_weight: Minimum weight for untrained methods
+            verbose: Whether to print detailed information
+            
+        Returns:
+            True if weights were generated successfully, False otherwise
+        """
+        try:
+            print(f"\n🔧 Step 4: Generating detection weights")
+            print(f"📊 Loading performance data from: {os.path.basename(unified_report_path)}")
+            
+            # Load performance data from unified report
+            performance_data = load_performance_data(unified_report_path)
+            
+            if not performance_data:
+                print(f"❌ Error: No field performance data found in unified report")
+                return False
+            
+            print(f"✅ Found performance data for {len(performance_data)} fields")
+            
+            # Generate weights
+            print(f"🔧 Generating weights with baseline weight: {baseline_weight}")
+            field_weights = generate_weights_from_performance(performance_data, baseline_weight)
+            
+            # Create comprehensive report
+            weights_report = generate_weights_report(field_weights, performance_data, unified_report_path)
+            
+            # Save weights report
+            weights_path = os.path.join(self.output_dir, output_file)
+            print(f"💾 Saving weights to: {os.path.basename(weights_path)}")
+            with open(weights_path, 'w') as f:
+                json.dump(weights_report, f, indent=2)
+            
+            # Print summary if verbose
+            if verbose:
+                print(f"\n📋 Generated Weights Summary:")
+                for field_name, summary in weights_report["weight_summary"].items():
+                    weights_str = ", ".join([f"{method}: {weight:.2f}" 
+                                           for method, weight in summary["weights"].items()])
+                    print(f"   {field_name}: {weights_str}")
+                    print(f"      → Dominant: {summary['dominant_method']} ({summary['dominant_weight']:.2f})")
+                
+                print(f"\n🔍 Performance Insights:")
+                for field_name, insights in weights_report["performance_insights"].items():
+                    print(f"   {field_name}:")
+                    for insight in insights:
+                        print(f"      • {insight}")
+            
+            print(f"✅ Detection weights generated successfully!")
+            print(f"📁 Weights file: {os.path.basename(weights_path)}")
+            
+            return True
+            
+        except Exception as e:
+            print(f"❌ Error generating weights: {e}")
+            if verbose:
+                traceback.print_exc()
+            return False
+
     def run_complete_demo(self):
         """Run the complete demo workflow using comprehensive single-sample approach."""
         try:
@@ -285,6 +358,7 @@ Example usage:
   python single_sample_multi_field_demo.py --injection-intensity 0.1         # 10% injection intensity  
   python single_sample_multi_field_demo.py --injection-intensity 0.3 --max-issues-per-row 3  # Higher intensity
   python single_sample_multi_field_demo.py --data-file my_data.csv --output-dir my_results
+  python single_sample_multi_field_demo.py --generate-weights --weights-verbose  # Generate detection weights
         """
     )
     parser.add_argument("--data-file", 
@@ -323,6 +397,16 @@ Example usage:
                        help="Use weighted combination of anomaly detection methods instead of priority-based")
     parser.add_argument("--weights-file", type=str, default="detection_weights.json",
                        help="Path to JSON file containing detection weights (default: detection_weights.json)")
+    
+    # Weight generation options
+    parser.add_argument("--generate-weights", action="store_true",
+                       help="Generate detection weights after demo completion based on performance results")
+    parser.add_argument("--weights-output-file", type=str, default="generated_detection_weights.json",
+                       help="Output file for generated weights (default: generated_detection_weights.json)")
+    parser.add_argument("--baseline-weight", type=float, default=0.1,
+                       help="Baseline weight for untrained/poor performing methods (default: 0.1)")
+    parser.add_argument("--weights-verbose", action="store_true",
+                       help="Print detailed weight generation information")
     
     args = parser.parse_args()
     
@@ -386,6 +470,21 @@ Example usage:
     
     if result:
         print("\n✅ Demo completed successfully!")
+        
+        # Generate weights if requested
+        if args.generate_weights:
+            unified_report_path = result["report_files"]["unified_report"]
+            weights_generated = demo.generate_detection_weights(
+                unified_report_path=unified_report_path,
+                output_file=args.weights_output_file,
+                baseline_weight=args.baseline_weight,
+                verbose=args.weights_verbose
+            )
+            
+            if weights_generated:
+                print(f"\n🔧 Detection weights generated and saved to: {args.weights_output_file}")
+            else:
+                print(f"\n⚠️  Weight generation failed - see error messages above")
     else:
         raise RuntimeError("Demo failed or was interrupted")
 
