@@ -217,10 +217,6 @@ The system follows a modular, layered architecture:
    - Check field mappings in brand_config.json
    - Verify column names in your data
 
-## Project Structure
-
-For detailed information about all executable entrypoints and their organization, see [docs/entrypoints.md](docs/entrypoints.md).
-
 ## Contributing
 
 1. Follow the existing code structure
