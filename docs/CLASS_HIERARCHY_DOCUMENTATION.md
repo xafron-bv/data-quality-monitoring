@@ -454,12 +454,12 @@ The data quality monitoring system implements a sophisticated multi-layered arch
 
 #### Simple Field Analysis
 ```bash
-python evaluate.py data.csv --field material --run validation
+python multi_sample_evaluation.py data.csv --field material --run validation
 ```
 
 #### Multi-Method Analysis  
 ```bash
-python evaluate.py data.csv --field material --ml-detector --run all
+python multi_sample_evaluation.py data.csv --field material --ml-detector --run all
 ```
 
 #### Batch Evaluation
