@@ -16,8 +16,8 @@ from common_interfaces import (
     DetectionType,
     DetectionConfig
 )
-from exceptions import ModelError
-from field_mapper import FieldMapper
+from common.exceptions import ModelError
+from common.field_mapper import FieldMapper
 
 
 @dataclass

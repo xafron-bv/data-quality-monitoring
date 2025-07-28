@@ -16,14 +16,17 @@ import random
 from typing import Dict, List, Any, Tuple, Optional
 from pathlib import Path
 
-from field_mapper import FieldMapper
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from common.field_mapper import FieldMapper
 from error_injection import ErrorInjector, load_error_rules
 from anomaly_detectors.anomaly_injection import AnomalyInjector, load_anomaly_rules
-from exceptions import FileOperationError, ConfigurationError
+from common.exceptions import FileOperationError, ConfigurationError
 
 
-def get_available_injection_fields(field_mapper, error_rules_dir: str = os.path.join(os.path.dirname(__file__), 'validators', 'error_injection_rules'), 
-                                 anomaly_rules_dir: str = os.path.join(os.path.dirname(__file__), 'anomaly_detectors', 'anomaly_injection_rules')) -> Dict[str, Dict[str, bool]]:
+def get_available_injection_fields(field_mapper, error_rules_dir: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'validators', 'error_injection_rules'), 
+                                 anomaly_rules_dir: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'anomaly_detectors', 'anomaly_injection_rules')) -> Dict[str, Dict[str, bool]]:
     """
     Get fields that have error or anomaly injection rules available.
     

@@ -21,7 +21,7 @@ from anomaly_detectors.ml_based.check_anomalies import (
     _model_cache
 )
 from anomaly_detectors.ml_based.model_training import preprocess_text
-from field_column_map import get_field_to_column_map
+from common.field_column_map import get_field_to_column_map
 from anomaly_detectors.ml_based.gpu_utils import get_optimal_device, print_device_info
 
 

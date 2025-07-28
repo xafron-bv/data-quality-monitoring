@@ -14,7 +14,8 @@ from evaluator import Evaluator
 from error_injection import generate_error_samples, load_error_rules, ErrorInjector
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
 import debug_config
-from exceptions import DataQualityError, ConfigurationError, FileOperationError, ModelError
+from common.exceptions import DataQualityError, ConfigurationError, FileOperationError, ModelError
+from common.field_mapper import FieldMapper
 
 # Import anomaly injection modules
 from anomaly_detectors.anomaly_injection import load_anomaly_rules, AnomalyInjector
@@ -706,7 +707,6 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
                 raise ConfigurationError(f"Could not initialize ML anomaly detector.\nDetails: {e}")
     
     # Create field mapper for the brand
-    from field_mapper import FieldMapper
     field_mapper = FieldMapper.from_brand(args.brand)
     
     # Create evaluator with appropriate components

@@ -11,7 +11,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from anomaly_detectors.ml_based.model_training import preprocess_text
 from anomaly_detectors.ml_based.gpu_utils import get_optimal_device, print_device_info, get_optimal_batch_size
-from field_column_map import get_field_to_column_map
+from common.field_column_map import get_field_to_column_map
 
 # Global model cache to avoid reloading models
 _model_cache = {}

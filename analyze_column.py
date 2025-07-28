@@ -6,8 +6,8 @@ import pandas as pd
 import sys
 import os
 import argparse
-from field_mapper import FieldMapper
-from exceptions import FileOperationError, DataError, ConfigurationError
+from common.field_mapper import FieldMapper
+from common.exceptions import FileOperationError, DataError, ConfigurationError
 from brand_config import load_brand_config
 
 def analyze_field_values(csv_file, field_name, field_mapper=None):

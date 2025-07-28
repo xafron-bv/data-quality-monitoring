@@ -21,8 +21,8 @@ import os
 from typing import Dict, List, Any, Tuple, Optional
 from pathlib import Path
 
-from field_mapper import FieldMapper
-from exceptions import FileOperationError, ConfigurationError
+from common.field_mapper import FieldMapper
+from common.exceptions import FileOperationError, ConfigurationError
 
 
 def load_anomaly_rules(rules_path: str) -> List[Dict[str, Any]]:

@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, Any, Optional, List
 import pandas as pd
-from field_mapper import FieldMapper
+from common.field_mapper import FieldMapper
 
 
 class DetectionType(str, Enum):

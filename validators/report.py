@@ -4,7 +4,7 @@ import os
 from typing import List, Dict, Any
 from validators.reporter_interface import ReporterInterface
 from validators.validation_error import ValidationError
-from exceptions import ConfigurationError, FileOperationError
+from common.exceptions import ConfigurationError, FileOperationError
 
 class Reporter(ReporterInterface):
     """

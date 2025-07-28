@@ -13,7 +13,10 @@ import pandas as pd
 from typing import Dict, List, Any, Optional
 from dataclasses import asdict
 
-from comprehensive_detector import CellClassification, FieldDetectionResult
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from common.comprehensive_detector import CellClassification, FieldDetectionResult
 
 
 def clean_value_for_json(value: Any) -> Any:

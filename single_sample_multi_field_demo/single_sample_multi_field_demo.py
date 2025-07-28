@@ -34,9 +34,12 @@ from datetime import datetime
 # Ensure we can import from the project
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+# Add parent directory to path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 # Import comprehensive detection modules
 from comprehensive_sample_generator import generate_comprehensive_sample, save_comprehensive_sample
-from comprehensive_detector import ComprehensiveFieldDetector
+from common.comprehensive_detector import ComprehensiveFieldDetector
 from consolidated_reporter import save_consolidated_reports
 
 # Import weight generation functions
@@ -46,8 +49,8 @@ from generate_detection_weights import (
     generate_weights_report
 )
 from confusion_matrix_analyzer import analyze_confusion_matrices
-from field_mapper import FieldMapper
-from exceptions import DataQualityError, ConfigurationError, FileOperationError
+from common.field_mapper import FieldMapper
+from common.exceptions import DataQualityError, ConfigurationError, FileOperationError
 from brand_config import load_brand_config, get_available_brands
 
 

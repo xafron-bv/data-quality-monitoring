@@ -27,7 +27,7 @@ from hyperparameter_search import save_aggregated_hp_results, random_hyperparame
 from model_training import train_and_evaluate_similarity_model, get_field_configs, setup_results_directory_structure
 
 # Import field-to-column mapping
-from field_column_map import get_field_to_column_map
+from common.field_column_map import get_field_to_column_map
 
 # Import anomaly checking functions
 from check_anomalies import load_model_for_field, check_anomalies
