@@ -278,32 +278,4 @@ def generate_anomaly_samples(df: pd.DataFrame, field_name: str, rules: List[Dict
     return samples
 
 
-# Example usage and testing
-if __name__ == "__main__":
-    # Example usage
-    print("Anomaly Injection System Test")
-    
-    # Create test data
-    test_df = pd.DataFrame({
-        'color_name': ['Black', 'White', 'Red', 'Blue', 'Green'],
-        'material': ['Cotton', 'Polyester', 'Silk', 'Wool', 'Nylon']
-    })
-    
-    # Test color anomaly injection
-    try:
-        color_rules = load_anomaly_rules('anomaly_injection_rules/color_name.json')
-        injector = AnomalyInjector(color_rules)
-        
-        modified_df, anomalies = injector.inject_anomalies(
-            test_df, 'color_name', max_anomalies=2, anomaly_probability=0.8
-        )
-        
-        print(f"\nOriginal colors: {list(test_df['color_name'])}")
-        print(f"Modified colors: {list(modified_df['color_name'])}")
-        print(f"Anomalies injected: {len(anomalies)}")
-        
-        for anomaly in anomalies:
-            print(f"  Row {anomaly['row_index']}: {anomaly['original_value']} -> {anomaly['anomalous_value']}")
-        
-    except Exception as e:
-        print(f"Test failed: {e}") 
+ 

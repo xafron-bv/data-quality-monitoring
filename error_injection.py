@@ -538,29 +538,4 @@ def create_corrupted_variants(texts: List[str],
 
 
 
-# Example usage and testing
-if __name__ == "__main__":
-    # Example usage
-    sample_rules = [
-        {
-            "operation": "string_replace",
-            "rule_name": "test_replace",
-            "params": {"find": "test", "replace": "tset"}
-        },
-        {
-            "operation": "random_noise",
-            "rule_name": "add_noise",
-            "params": {"type": "chars", "length": 2}
-        }
-    ]
-    
-    # Test single rule application
-    test_text = "This is a test string"
-    corrupted = apply_error_rule(test_text, sample_rules[0])
-    print(f"Original: {test_text}")
-    print(f"Corrupted: {corrupted}")
-    
-    # Test ErrorInjector
-    injector = ErrorInjector(sample_rules)
-    corrupted_variant = injector.generate_corrupted_text(test_text, num_corruptions=2)
-    print(f"Multi-corrupted: {corrupted_variant}")
+
