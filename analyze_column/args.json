@@ -1,0 +1,20 @@
+{
+  "description": "Analyze a specific column in a CSV file",
+  "arguments": {
+    "csv_file": {
+      "type": "positional",
+      "help": "Path to the CSV file to analyze",
+      "required": true
+    },
+    "field_name": {
+      "type": "positional",
+      "help": "Name of the field to analyze",
+      "default": "color_name"
+    },
+    "brand": {
+      "type": "string",
+      "help": "Brand name (deprecated - uses static config)",
+      "default": null
+    }
+  }
+}

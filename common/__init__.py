@@ -8,5 +8,6 @@ __all__ = [
     'debug_config',
     'error_injection',
     'anomaly_injection',
-    'brand_config'
+    'brand_config',
+    'args_parser'
 ]
