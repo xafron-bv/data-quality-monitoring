@@ -97,7 +97,7 @@ Each entrypoint script generates reports in its own subdirectory:
 - `llm_model_training/reports/` - LLM training results
 - `ml_index/reports/` - ML model training results
 
-Each report directory contains a `viewer.html` file for browsing generated reports.
+Each entrypoint directory contains a `viewer.html` file for browsing reports in its `reports/` subdirectory.
 
 ## Quick Start
 

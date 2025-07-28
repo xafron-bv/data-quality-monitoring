@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Report Viewer - analyze_column</title>
+    <title>Report Viewer - ml_index</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -121,7 +121,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>analyze_column Reports</h1>
+        <h1>ml_index Reports</h1>
         <p>View and analyze generated reports</p>
     </div>
     
@@ -132,7 +132,7 @@
         
         <div id="noReports" class="no-reports" style="display: none;">
             <h2>No Reports Found</h2>
-            <p>Run the analyze_column script to generate reports.</p>
+            <p>Run the ml_index script to generate reports.</p>
         </div>
     </div>
 
@@ -148,7 +148,7 @@
         async function loadReports() {
             try {
                 // Fetch list of files in the reports directory
-                const response = await fetch('.');
+                const response = await fetch('reports/');
                 const text = await response.text();
                 
                 // Parse HTML to find links to files
@@ -171,7 +171,7 @@
                         
                         return {
                             filename: filename,
-                            url: filename,
+                            url: 'reports/' + filename,
                             type: type,
                             date: date,
                             title: formatTitle(filename)

@@ -5,8 +5,9 @@ This document describes the organization of entry point scripts and their associ
 ## Structure Overview
 
 Entry point scripts (modules not imported by any other module) remain in the project root for easy access. Each entry point has:
-- A dedicated `reports/` subdirectory for output files
-- A `viewer.html` file within the reports directory for browsing results
+- A dedicated directory with the same name as the script
+- A `reports/` subdirectory within that directory for output files
+- A `viewer.html` file in the entry point directory for browsing reports
 - All reports directories are git-ignored to keep the repository clean
 
 ## Entry Points
@@ -74,16 +75,16 @@ Entry point scripts (modules not imported by any other module) remain in the pro
 
 ## Viewing Reports
 
-Each entry point's reports directory contains a `viewer.html` file that provides:
+Each entry point directory contains a `viewer.html` file that provides:
 - A modern, responsive interface for browsing reports
 - Automatic detection of generated files (HTML, JSON, CSV)
 - In-browser viewing with modal overlays
 - Date extraction from filenames for organization
 
 To view reports:
-1. Navigate to the entry point's reports directory
+1. Navigate to the entry point's directory (e.g., `multi_sample_evaluation/`)
 2. Open `viewer.html` in a web browser
-3. Click on any report card to view its contents
+3. Click on any report card to view its contents from the `reports/` subdirectory
 
 ## Common Dependencies
 
