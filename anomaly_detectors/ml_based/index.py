@@ -97,7 +97,7 @@ def entry(csv_file=None, use_hp_search=False, hp_trials=15, rules=None, check_an
     field_to_column_map = get_field_to_column_map()
     field_configs = get_field_configs()
 
-    error_rules_dir = os.path.join('..', '..', 'validators', 'error_injection_rules')
+    error_rules_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'validators', 'error_injection_rules')
     anomaly_rules_dir = os.path.join(os.path.dirname(__file__), '..', 'anomaly_injection_rules')
 
     # Set random seeds for reproducibility
