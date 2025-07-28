@@ -18,7 +18,7 @@ class PatternBasedDetector(AnomalyDetectorInterface):
 
 ### Rule Configuration
 
-Pattern rules are stored in `anomaly_detectors/pattern_based/rules/{field_name}.json`:
+Pattern rules are stored in `rules/{field_name}.json`:
 
 ```json
 {
@@ -117,7 +117,7 @@ Common pattern-based error codes:
 
 To add patterns for a new field:
 
-1. Create `anomaly_detectors/pattern_based/rules/{field_name}.json`
+1. Create `rules/{field_name}.json`
 2. Define:
    - `known_values`: List of valid values
    - `format_patterns`: Regex patterns for valid formats

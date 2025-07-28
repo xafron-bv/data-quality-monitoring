@@ -119,7 +119,7 @@ Validators assign confidence scores based on error severity:
 
 ## Error Injection Rules
 
-Each validator has corresponding error injection rules in `validators/error_injection_rules/`:
+Each validator has corresponding error injection rules in `error_injection_rules/`:
 
 ```json
 {
@@ -146,7 +146,7 @@ To add a new field validator:
 2. Implement `ValidatorInterface`
 3. Define field-specific `ErrorCode` enum
 4. Implement `_validate_entry` method
-5. Add error injection rules in `validators/error_injection_rules/<field_name>.json`
+5. Add error injection rules in `error_injection_rules/<field_name>.json`
 
 ## Best Practices
 

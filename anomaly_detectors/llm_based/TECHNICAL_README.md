@@ -1,4 +1,4 @@
-# LLM-Based Anomaly Detection
+# LLM-Based Anomaly Detection - Technical Documentation
 
 ## Overview
 

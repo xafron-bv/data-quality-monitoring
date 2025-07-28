@@ -63,7 +63,7 @@ anomaly_score = 1.0 - similarity
 
 ## Field-Specific Models
 
-Each field has its own trained model stored in `anomaly_detectors/ml_based/results/`:
+Each field has its own trained model stored in `results/`:
 
 ```
 results/
