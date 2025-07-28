@@ -44,10 +44,10 @@ Entrypoints are Python scripts with `if __name__ == "__main__":` blocks that can
 
 Located in `/workspace/anomaly_detectors/ml_based/`:
 
-### 1. `ml_index_generator.py` (renamed from `index.py`)
-**Purpose**: Generates ML models and indexes for anomaly detection  
-**Usage**: `python ml_index_generator.py <csv_file> [--use-hp-search] [--check-anomalies FIELD]`  
-**Description**: Trains sentence transformer models for each field with hyperparameter optimization
+### 1. `index.py`
+**Purpose**: Main entry point for ML-based anomaly detection  
+**Usage**: `python index.py <csv_file> [--use-hp-search] [--check-anomalies FIELD]`  
+**Description**: Main script that trains sentence transformer models for each field with hyperparameter optimization
 
 ### 2. `generate_centroids_for_existing_models.py`
 **Purpose**: Generates centroid files for existing ML models  
@@ -58,9 +58,9 @@ Located in `/workspace/anomaly_detectors/ml_based/`:
 
 Located in `/workspace/anomaly_detectors/llm_based/`:
 
-### 1. `train_llm_model.py` (renamed from `llm_model_training.py`)
+### 1. `llm_model_training.py`
 **Purpose**: Trains language models for anomaly detection  
-**Usage**: `python train_llm_model.py <data_file> --field <field_name> [--epochs N]`  
+**Usage**: `python llm_model_training.py <data_file> --field <field_name> [--epochs N]`  
 **Description**: Fine-tunes language models for field-specific anomaly detection
 
 ## Other Module Entrypoints
@@ -95,7 +95,7 @@ python analyze_column.py data/esqualo_2022_fall.csv color_name --brand esqualo
 
 # Run ML model training
 cd anomaly_detectors/ml_based
-python ml_index_generator.py ../../data/esqualo_2022_fall.csv --use-hp-search
+python index.py ../../data/esqualo_2022_fall.csv --use-hp-search
 
 # Run single sample demo
 python single_sample_multi_field_demo.py --data-file data/esqualo_2022_fall.csv
