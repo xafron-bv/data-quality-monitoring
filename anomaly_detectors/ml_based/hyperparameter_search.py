@@ -111,7 +111,7 @@ def train_with_params(df, field_name, column_name, rules, params):
     )
 
     # Ensure checkpoints directory exists for temporary training during HP search
-    checkpoints_dir = os.path.join('..', 'results', 'checkpoints')
+    checkpoints_dir = os.path.join(os.path.dirname(__file__), '..', 'results', 'checkpoints')
     os.makedirs(checkpoints_dir, exist_ok=True)
 
     # Train model WITHOUT evaluator and WITHOUT saving (we'll evaluate separately)
@@ -362,7 +362,7 @@ def random_hyperparameter_search(df, field_name, column_name, rules, device, num
         print(f"💡 Consider relaxing precision constraint or adjusting hyperparameter space")
 
     # Save hyperparameter search results to file
-    results_dir = os.path.join('..', 'results', 'summary')
+    results_dir = os.path.join(os.path.dirname(__file__), '..', 'results', 'summary')
     os.makedirs(results_dir, exist_ok=True)
 
     results_file = os.path.join(results_dir, f"hp_search_results_{field_name.replace(' ', '_').lower()}.json")
@@ -407,7 +407,7 @@ def save_aggregated_hp_results():
     """
 
     # Look for HP search results in the results/summary directory
-    results_dir = os.path.join('..', 'results', 'summary')
+    results_dir = os.path.join(os.path.dirname(__file__), '..', 'results', 'summary')
     hp_files = glob.glob(os.path.join(results_dir, "hp_search_results_*.json"))
 
     if not hp_files:

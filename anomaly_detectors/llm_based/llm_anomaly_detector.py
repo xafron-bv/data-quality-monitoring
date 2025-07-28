@@ -338,7 +338,7 @@ class LLMAnomalyDetector:
             return
 
         # Load trained model
-        model_path = f"llm_results/{self.field_name}_model"
+        model_path = os.path.join(os.path.dirname(__file__), "llm_results", f"{self.field_name}_model")
         if not os.path.exists(model_path):
             print(f"❌ No trained model found for field '{self.field_name}' at {model_path}")
             print(f"💡 Skipping LLM detection for this field")

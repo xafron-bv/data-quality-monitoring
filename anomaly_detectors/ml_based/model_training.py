@@ -147,7 +147,7 @@ def train_and_evaluate_similarity_model(df, field_name, column_name, rules, devi
     print(f"\n🎯 Training RECALL-OPTIMIZED model for field '{field_name}' (column '{column_name}')")
 
     # Create results directory structure using field_name
-    results_base_dir = os.path.join('..', 'results')
+    results_base_dir = os.path.join(os.path.dirname(__file__), '..', 'results')
     model_results_dir = os.path.join(results_base_dir, f'results_{field_name.replace(" ", "_").lower()}')
     checkpoints_dir = os.path.join(results_base_dir, 'checkpoints')
 

@@ -90,7 +90,7 @@ class DetectionCurveGenerator:
         available_fields = []
 
         # Check for LLM models in llm_results directory
-        llm_results_dir = "llm_results"
+        llm_results_dir = os.path.join(os.path.dirname(__file__), "..", "anomaly_detectors", "llm_based", "llm_results")
 
         for field_name in self.field_mapper.get_available_fields():
             try:

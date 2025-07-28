@@ -107,7 +107,8 @@ def analyze_field_values(csv_file, field_name, field_mapper=None):
         os.makedirs('analysis_results', exist_ok=True)
 
         # Save results to file
-        output_file = f'analysis_results/{field_name.replace(" ", "_").lower()}_analysis.txt'
+        output_dir = os.path.join(os.path.dirname(__file__), 'analysis_results')
+        output_file = os.path.join(output_dir, f'{field_name.replace(" ", "_").lower()}_analysis.txt')
         with open(output_file, 'w') as f:
             f.write(f"{field_name} Analysis for {csv_file}\n")
             f.write("=" * 50 + "\n\n")

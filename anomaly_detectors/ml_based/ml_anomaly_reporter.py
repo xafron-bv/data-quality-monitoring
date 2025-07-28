@@ -3,6 +3,7 @@ ML-based anomaly reporter implementation following the standard pattern.
 """
 
 import json
+import os
 from typing import Any, Dict, List
 
 import pandas as pd
@@ -32,7 +33,7 @@ class MLAnomalyReporter(AnomalyReporterInterface):
         """Load error message templates for ML-based anomalies."""
         try:
             # Try to load from JSON file
-            with open('anomaly_detectors/ml_based/ml_explanation_templates.json', 'r') as f:
+            with open(os.path.join(os.path.dirname(__file__), 'ml_explanation_templates.json'), 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
             # Use default templates if file doesn't exist
