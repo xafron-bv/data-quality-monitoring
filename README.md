@@ -99,39 +99,100 @@ Each entrypoint script generates reports in its own subdirectory:
 
 Each entrypoint directory contains a `viewer.html` file for browsing reports in its `reports/` subdirectory.
 
-## Quick Start
+## Entry Points
 
-### Running the Demo
-
-The easiest way to see the system in action:
+### 1. `multi_sample_evaluation.py`
+**Purpose:** Systematic evaluation of detection methods with multiple samples
 
 ```bash
-# Basic demo with all detection methods
-python single_sample_multi_field_demo.py \
-    --data-file your_data.csv \
-    --enable-validation \
-    --enable-pattern \
-    --enable-ml
+python multi_sample_evaluation.py data/source.csv --field material --num-samples 10
 ```
 
-### Basic Usage
+- Generates multiple samples with injected errors
+- Evaluates all detection methods (validation, pattern, ML, LLM)
+- Produces comprehensive performance metrics
+- Outputs to `multi_sample_evaluation/reports/`
+
+### 2. `analyze_column.py`
+**Purpose:** Analyze value distribution and patterns in CSV columns
+
+```bash
+python analyze_column.py --data-file data.csv --field color_name --brand esqualo
+```
+
+- Shows unique values and frequencies
+- Detects whitespace variations
+- Exports analysis to `analyze_column/reports/`
+
+### 3. `generate_detection_weights.py`
+**Purpose:** Generate optimized detection weights from performance results
+
+```bash
+python generate_detection_weights.py -i evaluation_results/report.json
+```
+
+- Analyzes F1 scores across detection methods
+- Generates field-specific weights for optimal performance
+- Outputs JSON configuration to `generate_detection_weights/reports/`
+
+### 4. `llm_model_training.py`
+**Purpose:** Train LLM models for anomaly detection
+
+```bash
+python llm_model_training.py data.csv --field material --num-epochs 3
+```
+
+- Fine-tunes language models on field-specific data
+- Supports custom hyperparameters
+- Saves models to `llm_model_training/reports/`
+
+### 5. `ml_index.py`
+**Purpose:** Train ML models using sentence transformers
+
+```bash
+python ml_index.py data.csv --brand esqualo --field material
+```
+
+- Trains similarity-based anomaly detectors
+- Supports hyperparameter search
+- Outputs to `ml_index/reports/`
+
+### Viewing Reports
+
+To view generated reports:
+1. Navigate to the entry point's directory (e.g., `cd multi_sample_evaluation/`)
+2. Open `viewer.html` in a web browser
+3. Browse and interact with all generated reports
+
+## Quick Start
+
+### Basic Workflow
 
 1. **Analyze your data**:
 ```bash
-python analyze_column.py --data-file your_data.csv --column product_name
+python analyze_column.py --data-file your_data.csv --field material --brand esqualo
 ```
 
-2. **Run detection**:
+2. **Train ML models** (optional, for ML-based detection):
 ```bash
-python single_sample_multi_field_demo.py \
-    --data-file your_data.csv \
-    --injection-intensity 0.2 \
-    --output-dir results
+python ml_index.py your_data.csv --brand esqualo --field material
 ```
 
-3. **View results**:
-- Open `data_quality_viewer.html` in your browser
-- Upload the generated CSV and JSON files from the results directory
+3. **Run evaluation**:
+```bash
+python multi_sample_evaluation.py your_data.csv --field material --num-samples 10
+```
+
+4. **View results**:
+```bash
+cd multi_sample_evaluation/
+# Open viewer.html in your browser
+```
+
+5. **Generate optimized weights** (optional):
+```bash
+python generate_detection_weights.py -i multi_sample_evaluation/reports/full_evaluation_results.json
+```
 
 ## Configuration
 
