@@ -57,6 +57,6 @@ class FieldMapper:
     @classmethod
     def from_brand(cls, brand_name: str) -> 'FieldMapper':
         """Get field mapper for a specific brand."""
-        from brand_config import load_brand_config
+        from common.brand_config import load_brand_config
         config = load_brand_config(brand_name)
         return cls(config.field_mappings, brand_name)

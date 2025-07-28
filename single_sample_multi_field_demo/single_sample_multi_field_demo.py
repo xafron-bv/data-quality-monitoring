@@ -46,7 +46,7 @@ from consolidated_reporter import save_consolidated_reports
 # Import weight generation functions
 from generate_detection_weights import generate_weights_from_performance, generate_weights_report, load_performance_data
 
-from brand_config import get_available_brands, load_brand_config
+from common.brand_config import get_available_brands, load_brand_config
 from common.comprehensive_detector import ComprehensiveFieldDetector
 from common.exceptions import ConfigurationError, DataQualityError, FileOperationError
 from common.field_mapper import FieldMapper

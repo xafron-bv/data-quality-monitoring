@@ -18,10 +18,10 @@ from evaluator import Evaluator
 
 import common.debug_config as debug_config
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
-from brand_config import get_available_brands, load_brand_config
 
 # Import anomaly injection modules
 from common.anomaly_injection import AnomalyInjector, load_anomaly_rules
+from common.brand_config import get_available_brands, load_brand_config
 from common.debug_config import debug_print
 from common.error_injection import ErrorInjector, generate_error_samples, load_error_rules
 from common.exceptions import ConfigurationError, DataQualityError, FileOperationError, ModelError

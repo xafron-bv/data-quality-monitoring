@@ -31,8 +31,8 @@ from anomaly_detectors.llm_based.llm_anomaly_detector import LLMAnomalyDetector
 from anomaly_detectors.ml_based.check_anomalies import check_anomalies, load_model_for_field
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
 from anomaly_detectors.ml_based.model_training import preprocess_text
-from brand_config import get_available_brands, load_brand_config
 from common.anomaly_injection import load_anomaly_rules
+from common.brand_config import get_available_brands, load_brand_config
 from common.error_injection import apply_error_rule, load_error_rules
 from common.field_mapper import FieldMapper
 

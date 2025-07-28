@@ -68,7 +68,9 @@ To run the checks manually: `pre-commit run --all-files`
 
 5. Configure brand settings:
 ```bash
-# Edit brand_config.json with your field mappings
+# Create or edit brand configuration files in brand_configs/
+# Example: brand_configs/esqualo.json for Esqualo brand
+# Each brand should have its own JSON file in this directory
 ```
 
 ## Quick Start

@@ -11,7 +11,3 @@ demo_*/
 ml_curves/
 detection_*/
 llm_results/
-
-# Brand configurations (keep template only, ignore actual brand configs)
-brand_configs/*.json
-!brand_configs/example_brand_template.json
