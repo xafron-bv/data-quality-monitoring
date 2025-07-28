@@ -89,13 +89,13 @@ class DetectionCurveGenerator:
         """Get fields that have trained LLM models available."""
         available_fields = []
 
-        # Check for LLM models in llm_results directory
-        llm_results_dir = os.path.join(os.path.dirname(__file__), "..", "anomaly_detectors", "llm_based", "llm_results")
+        # Check for LLM models in models directory
+        llm_models_dir = os.path.join(os.path.dirname(__file__), "..", "anomaly_detectors", "llm_based", "models")
 
         for field_name in self.field_mapper.get_available_fields():
             try:
                 # Check if LLM model exists for this field
-                model_path = os.path.join(llm_results_dir, f"{field_name}_model")
+                model_path = os.path.join(llm_models_dir, f"{field_name}_model")
                 if os.path.exists(model_path):
                     column_name = self.field_mapper.get_column_name(field_name)
                     if column_name in self.df.columns:

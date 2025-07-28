@@ -61,7 +61,7 @@ def entry(csv_file=None, use_hp_search=False, hp_trials=15, rules=None, check_an
         field_name = check_anomalies
         print(f"Running anomaly check for field '{field_name}'...")
         df = pd.read_csv(csv_file)
-        model, column_name, reference_centroid = load_model_for_field(field_name, results_dir=os.path.join(os.path.dirname(__file__), '..', 'results'))
+        model, column_name, reference_centroid = load_model_for_field(field_name)
         if column_name not in df.columns:
             raise ValueError(f"Column '{column_name}' (mapped from field '{field_name}') not found in CSV.")
         values = df[column_name].tolist()

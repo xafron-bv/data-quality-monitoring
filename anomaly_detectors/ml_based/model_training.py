@@ -147,9 +147,9 @@ def train_and_evaluate_similarity_model(df, field_name, column_name, rules, devi
     print(f"\n🎯 Training RECALL-OPTIMIZED model for field '{field_name}' (column '{column_name}')")
 
     # Create results directory structure using field_name
-    results_base_dir = os.path.join(os.path.dirname(__file__), '..', 'results')
-    model_results_dir = os.path.join(results_base_dir, f'results_{field_name.replace(" ", "_").lower()}')
-    checkpoints_dir = os.path.join(results_base_dir, 'checkpoints')
+    models_base_dir = os.path.join(os.path.dirname(__file__), 'models')
+    model_results_dir = os.path.join(models_base_dir, 'trained', f'{field_name.replace(" ", "_").lower()}')
+    checkpoints_dir = os.path.join(models_base_dir, 'checkpoints')
 
     # Ensure all directories exist
     os.makedirs(model_results_dir, exist_ok=True)
@@ -570,22 +570,24 @@ def setup_results_directory_structure():
     """
     Create the organized directory structure for all results and outputs.
     """
-    base_results_dir = 'results'
+    base_dir = os.path.dirname(__file__)
+    models_dir = os.path.join(base_dir, 'models')
 
     # Create main directories
     directories = [
-        base_results_dir,
-        os.path.join(base_results_dir, 'summary'),          # For HP search results and summaries
-        os.path.join(base_results_dir, 'checkpoints'),      # For temporary training checkpoints
+        models_dir,
+        os.path.join(models_dir, 'trained'),           # For trained models
+        os.path.join(models_dir, 'summary'),           # For HP search results and summaries
+        os.path.join(models_dir, 'checkpoints'),       # For temporary training checkpoints
     ]
 
     for directory in directories:
         os.makedirs(directory, exist_ok=True)
 
-    print(f"📁 Results directory structure created:")
-    print(f"  - {base_results_dir}/")
+    print(f"📁 Model directory structure created:")
+    print(f"  - models/")
+    print(f"    ├── trained/          (trained models for each field)")
     print(f"    ├── summary/          (HP search results, summaries)")
-    print(f"    ├── checkpoints/      (temporary training checkpoints)")
-    print(f"    └── results_[column]/ (trained models for each column)")
+    print(f"    └── checkpoints/      (temporary training checkpoints)")
 
-    return base_results_dir
+    return models_dir
