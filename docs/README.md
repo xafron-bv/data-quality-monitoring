@@ -29,33 +29,43 @@ The system employs four complementary detection approaches:
 
 The system follows a modular, plugin-based architecture with clear separation of concerns:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Entry Points Layer                        │
-│  (demo scripts, evaluation tools, comparison utilities)      │
-└─────────────────────────────────────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────┐
-│                  Orchestration Layer                         │
-│  (ComprehensiveFieldDetector, Evaluator, UnifiedInterface)  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────┐
-│                   Detection Methods Layer                    │
-├─────────────────┬─────────────────┬─────────────────────────┤
-│   Validation    │  Pattern-Based  │    ML/LLM-Based         │
-│   (Rule-based)  │   (Anomaly)     │    (Semantic)           │
-└─────────────────┴─────────────────┴─────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────┐
-│                    Core Services Layer                       │
-│  (FieldMapper, BrandConfig, ErrorInjection, Reporters)      │
-└─────────────────────────────────────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────┐
-│                     Data Layer                               │
-│          (CSV files, JSON configs, Model files)              │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph "Entry Points Layer"
+        A1[Demo Scripts]
+        A2[Evaluation Tools]
+        A3[Comparison Utilities]
+    end
+    
+    subgraph "Orchestration Layer"
+        B1[ComprehensiveFieldDetector]
+        B2[Evaluator]
+        B3[UnifiedInterface]
+    end
+    
+    subgraph "Detection Methods Layer"
+        C1[Validation<br/>Rule-based]
+        C2[Pattern-Based<br/>Anomaly]
+        C3[ML/LLM-Based<br/>Semantic]
+    end
+    
+    subgraph "Core Services Layer"
+        D1[FieldMapper]
+        D2[BrandConfig]
+        D3[ErrorInjection]
+        D4[Reporters]
+    end
+    
+    subgraph "Data Layer"
+        E1[CSV Files]
+        E2[JSON Configs]
+        E3[Model Files]
+    end
+    
+    A1 & A2 & A3 --> B1 & B2 & B3
+    B1 & B2 & B3 --> C1 & C2 & C3
+    C1 & C2 & C3 --> D1 & D2 & D3 & D4
+    D1 & D2 & D3 & D4 --> E1 & E2 & E3
 ```
 
 ## Use Cases
