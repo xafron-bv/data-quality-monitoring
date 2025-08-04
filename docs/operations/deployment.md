@@ -78,107 +78,7 @@ python scripts/download_models.py
 python main.py serve --port 8080
 ```
 
-### 2. Docker Deployment
-
-Containerized deployment for better isolation and portability.
-
-#### Dockerfile
-
-```dockerfile
-FROM python:3.8-slim
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Set working directory
-WORKDIR /app
-
-# Copy requirements first for better caching
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
-COPY . .
-
-# Create non-root user
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-USER appuser
-
-# Expose port
-EXPOSE 8080
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8080/health')"
-
-# Run application
-CMD ["python", "main.py", "serve", "--port", "8080"]
-```
-
-#### Docker Compose
-
-```yaml
-version: '3.8'
-
-services:
-  detection-api:
-    build: .
-    ports:
-      - "8080:8080"
-    environment:
-      - ENVIRONMENT=production
-      - LOG_LEVEL=INFO
-      - MODEL_PATH=/models
-      - DATA_PATH=/data
-    volumes:
-      - ./models:/models:ro
-      - ./data:/data
-      - ./results:/results
-    deploy:
-      replicas: 3
-      resources:
-        limits:
-          cpus: '2'
-          memory: 4G
-        reservations:
-          cpus: '1'
-          memory: 2G
-
-  worker:
-    build: .
-    command: python main.py worker
-    environment:
-      - ENVIRONMENT=production
-      - DEVICE=cuda
-    volumes:
-      - ./models:/models:ro
-      - ./data:/data
-      - ./results:/results
-    deploy:
-      replicas: 2
-      resources:
-        limits:
-          cpus: '4'
-          memory: 8G
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-
-  redis:
-    image: redis:alpine
-    volumes:
-      - redis-data:/data
-
-volumes:
-  redis-data:
-```
-
-### 3. Kubernetes Deployment
+### 2. Kubernetes Deployment
 
 Enterprise-grade deployment with auto-scaling and high availability.
 
@@ -292,7 +192,7 @@ spec:
         averageUtilization: 80
 ```
 
-### 4. Cloud Deployment
+### 3. Cloud Deployment
 
 #### AWS Deployment
 
@@ -690,7 +590,7 @@ engine = create_engine(
 1. **High Memory Usage**
    ```bash
    # Check memory usage
-   docker stats
+   top -p $(pgrep -f "python.*main.py")
    
    # Limit model cache size
    export MODEL_CACHE_SIZE=5
