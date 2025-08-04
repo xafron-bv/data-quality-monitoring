@@ -50,74 +50,79 @@ class DetectionCurveGenerator:
         """
         self.data_file = data_file
         self.output_dir = output_dir
-        # field_mapper will be set when set_brand is called
+        self.df = None
         self.field_mapper = None
-
+        self.brand_config = None
+        
         # Create output directory
-        os.makedirs(output_dir, exist_ok=True)
-
-        # Load data
-        self.df = pd.read_csv(data_file)
-        print(f"📊 Loaded dataset: {self.df.shape[0]} rows, {self.df.shape[1]} columns")
-
-        # Set up plotting style
-        plt.style.use('seaborn-v0_8')
-        sns.set_palette("husl")
-
-    def get_available_ml_fields(self) -> List[str]:
-        """Get fields that have trained ML models available."""
+        os.makedirs(self.output_dir, exist_ok=True)
+        
+        # Set matplotlib style
+        plt.style.use('seaborn-v0_8-darkgrid')
+        
+    def load_data(self, brand_name: str = None):
+        """Load the dataset and brand configuration."""
+        # Load dataset
+        self.df = pd.read_csv(self.data_file)
+        print(f"📊 Loaded dataset: {len(self.df)} rows, {len(self.df.columns)} columns")
+        
+        # Load brand configuration
+        if brand_name:
+            self.brand_config = load_brand_config(brand_name)
+        else:
+            # Use a default or static configuration
+            self.brand_config = {
+                "ml_fields": ["material", "color_name", "product_name", "category"],
+                "llm_fields": ["material", "care_instructions", "description_short_1"]
+            }
+        
+        # Initialize field mapper
+        self.field_mapper = FieldMapper.from_brand(brand_name) if brand_name else FieldMapper({})
+        
+    def get_available_fields(self, detection_type: str = "ML") -> List[str]:
+        """Get list of available fields for the detection type."""
+        # Define default fields for each detection type
+        default_ml_fields = ["material", "color_name", "product_name", "category", "size"]
+        default_llm_fields = ["material", "care_instructions", "description_short_1"]
+        
+        if isinstance(self.brand_config, dict):
+            # Using static config
+            if detection_type == "ML":
+                fields = self.brand_config.get("ml_fields", default_ml_fields)
+            else:  # LLM
+                fields = self.brand_config.get("llm_fields", default_llm_fields)
+        else:
+            # Using BrandConfig object - use defaults or enabled_fields
+            if hasattr(self.brand_config, 'enabled_fields') and self.brand_config.enabled_fields:
+                # Filter by detection type based on field characteristics
+                all_fields = self.brand_config.enabled_fields
+                if detection_type == "ML":
+                    # ML works better with categorical/structured fields
+                    fields = [f for f in all_fields if f in default_ml_fields]
+                else:  # LLM
+                    # LLM works better with text fields
+                    fields = [f for f in all_fields if f in default_llm_fields]
+            else:
+                # Use defaults
+                fields = default_ml_fields if detection_type == "ML" else default_llm_fields
+            
+        # Filter fields that exist in the dataset
         available_fields = []
-
-        # Set the correct results directory path
-        results_dir = os.path.join("anomaly_detectors", "results")
-
-        for field_name in self.field_mapper.get_available_fields():
-            try:
-                # Try to load the model for this field with the correct results directory
-                model, column_name, reference_centroid = load_model_for_field(field_name, results_dir=results_dir)
-                if column_name in self.df.columns:
-                    available_fields.append(field_name)
-                    print(f"   ✅ {field_name}: ML model available")
-                else:
-                    print(f"   ⚠️  {field_name}: ML model available but column '{column_name}' not in dataset")
-            except Exception as e:
-                print(f"   ❌ {field_name}: No ML model available ({str(e)[:50]}...)")
-
+        for field in fields:
+            column_name = self.field_mapper.get_column_name(field)
+            if column_name in self.df.columns:
+                available_fields.append(field)
+                
         return available_fields
-
-    def get_available_llm_fields(self) -> List[str]:
-        """Get fields that have trained LLM models available."""
-        available_fields = []
-
-        # Check for LLM models in models directory
-        llm_models_dir = os.path.join(os.path.dirname(__file__), "..", "anomaly_detectors", "llm_based", "models")
-
-        for field_name in self.field_mapper.get_available_fields():
-            try:
-                # Check if LLM model exists for this field
-                model_path = os.path.join(llm_models_dir, f"{field_name}_model")
-                if os.path.exists(model_path):
-                    column_name = self.field_mapper.get_column_name(field_name)
-                    if column_name in self.df.columns:
-                        available_fields.append(field_name)
-                        print(f"   ✅ {field_name}: LLM model available")
-                    else:
-                        print(f"   ⚠️  {field_name}: LLM model available but column '{column_name}' not in dataset")
-                else:
-                    print(f"   ❌ {field_name}: No LLM model available")
-            except Exception as e:
-                print(f"   ❌ {field_name}: Error checking LLM model ({str(e)[:50]}...)")
-
-        return available_fields
-
+    
     def generate_test_data(self, field_name: str, num_samples: int = 100) -> Tuple[List[str], List[bool]]:
         """
-        Generate test data with known anomalies for evaluation.
-
+        Generate test data with injected anomalies.
+        
         Args:
             field_name: Field to generate test data for
-            num_samples: Number of samples to generate
-
+            num_samples: Number of test samples to generate
+            
         Returns:
             Tuple of (values, is_anomaly_labels)
         """
@@ -160,27 +165,65 @@ class DetectionCurveGenerator:
             test_values.append(clean_value)
             test_labels.append(False)  # Not anomalous
 
-        # Add anomalous samples
-        for clean_value in test_clean:
-            if all_rules:
-                # Create anomalous version
-                rule = random.choice(all_rules)
+        # Add anomalous samples with more realistic anomalies
+        anomaly_patterns = self._get_anomaly_patterns(field_name)
+        
+        for i, clean_value in enumerate(test_clean):
+            if all_rules and i < len(all_rules):
+                # Use existing rules
+                rule = all_rules[i % len(all_rules)]
                 if 'error_rule' in rule:  # Error injection rule
                     anomalous_value = apply_error_rule(clean_value, rule['error_rule'])
                 else:  # Anomaly injection rule
                     anomalous_value = rule.get('corrupted_value', clean_value + "_ANOMALY")
-
-                if anomalous_value != clean_value:
-                    test_values.append(anomalous_value)
-                    test_labels.append(True)  # Anomalous
             else:
-                # Create simple anomalies if no rules available
-                anomalous_value = clean_value + "_ANOMALY"
+                # Create realistic anomalies based on field type
+                anomaly_pattern = anomaly_patterns[i % len(anomaly_patterns)]
+                anomalous_value = anomaly_pattern(clean_value)
+
+            if anomalous_value != clean_value:
                 test_values.append(anomalous_value)
-                test_labels.append(True)
+                test_labels.append(True)  # Anomalous
 
         print(f"   📊 Generated {len(test_values)} test samples ({sum(test_labels)} anomalies)")
         return test_values, test_labels
+    
+    def _get_anomaly_patterns(self, field_name: str) -> List[callable]:
+        """Get anomaly generation patterns based on field type."""
+        if field_name == "material":
+            return [
+                lambda x: "100% Premium Beef",
+                lambda x: "85% LED - 15% Resistor", 
+                lambda x: "100% Bacterial Culture",
+                lambda x: "90% Solar Panel - 10% Glass",
+                lambda x: "This is not a material at all",
+                lambda x: x.replace("%", "#"),
+                lambda x: x + " (INVALID)",
+                lambda x: "Random gibberish text",
+                lambda x: "!@#$%^&*()",
+                lambda x: "1234567890"
+            ]
+        elif field_name == "color_name":
+            return [
+                lambda x: "Bright Darkness",
+                lambda x: "Invisible Purple",
+                lambda x: x + "123",
+                lambda x: "RGB(999,999,999)",
+                lambda x: "Not a color",
+                lambda x: "#GGGGGG",
+                lambda x: "Color of the wind"
+            ]
+        else:
+            # Generic anomaly patterns
+            return [
+                lambda x: x + "_ANOMALY",
+                lambda x: "INVALID_" + x,
+                lambda x: x.replace(" ", "_"),
+                lambda x: x[::-1],  # Reverse
+                lambda x: "123" + x,
+                lambda x: x + "###",
+                lambda x: ""  # Empty
+            ]
 
     def evaluate_ml_thresholds(self, field_name: str, thresholds: List[float]) -> Dict[str, List[float]]:
         """
@@ -221,10 +264,9 @@ class DetectionCurveGenerator:
             tn = sum(1 for pred, label in zip(predictions, test_labels) if not pred and not label)
             fn = sum(1 for pred, label in zip(predictions, test_labels) if not pred and label)
 
-            # Calculate precision, recall, and false positive rate
-            precision = tp / (tp + fp) if (tp + fp) > 0 else 1.0
-            recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-            fpr = fp / (fp + tn) if (fp + tn) > 0 else 0.0
+            precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+            recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+            fpr = fp / (fp + tn) if (fp + tn) > 0 else 0
 
             precisions.append(precision)
             recalls.append(recall)
@@ -243,41 +285,44 @@ class DetectionCurveGenerator:
 
         Args:
             field_name: Field to evaluate
-            thresholds: List of thresholds to test (log probability thresholds)
+            thresholds: List of thresholds to test (positive anomaly score thresholds)
 
         Returns:
             Dictionary with precision, recall, fpr (false positive rate) for each threshold
         """
         print(f"   🔍 Evaluating {len(thresholds)} LLM thresholds for {field_name}...")
 
-        # Create LLM detector
-        detector = LLMAnomalyDetector(field_name=field_name, threshold=-10.0)  # Use very low threshold to get all scores
-
-        # Initialize the detector
-        detector.learn_patterns(self.df, self.field_mapper.get_column_name(field_name))
-
-        if not detector.is_initialized or not detector.has_trained_model:
-            raise ValueError(f"Failed to initialize LLM detector for field {field_name}")
+        # Create LLM detector with very low threshold to detect everything
+        detector = LLMAnomalyDetector(field_name=field_name, threshold=0.0)
 
         # Generate test data
         test_values, test_labels = self.generate_test_data(field_name)
-
-        # Get probability scores for all test values
+        
+        # Create DataFrame for bulk detection
+        test_df = pd.DataFrame({field_name: test_values})
+        column_name = self.field_mapper.get_column_name(field_name)
+        
+        # Get detections with raw scores
+        print(f"      🤖 Running LLM detection on {len(test_values)} samples...")
+        detections = detector.bulk_detect(test_df, column_name, batch_size=50, max_workers=1)
+        
+        # Extract probability scores - we need to extract the raw anomaly scores
         probability_scores = []
-        for value in test_values:
-            try:
-                # Get raw probability score from the detector
-                anomaly = detector._detect_anomaly(value)
-                if anomaly:
-                    # Extract the raw probability score from details
-                    raw_score = anomaly.details.get('probability_score', -10.0)
+        for i, detection in enumerate(detections):
+            if detection is not None:
+                # Detection found - extract the raw anomaly score from details
+                if 'anomaly_score' in detection.details:
+                    score = detection.details['anomaly_score']
                 else:
-                    # If no anomaly detected, use a high probability score
-                    raw_score = 0.0
-                probability_scores.append(raw_score)
-            except Exception as e:
-                print(f"      ⚠️  Error processing value '{value[:30]}...': {e}")
+                    # Fall back to normalized probability * 10
+                    score = detection.probability * 10.0
+                probability_scores.append(score)
+            else:
+                # No detection - assign zero score (normal)
                 probability_scores.append(0.0)
+        
+        print(f"      📊 Score range: [{min(probability_scores):.4f}, {max(probability_scores):.4f}]")
+        print(f"      📊 Mean score: {np.mean(probability_scores):.4f}, Std: {np.std(probability_scores):.4f}")
 
         # Evaluate each threshold
         precisions = []
@@ -285,8 +330,8 @@ class DetectionCurveGenerator:
         fprs = []
 
         for threshold in thresholds:
-            # Predict anomalies based on threshold (lower probability = more anomalous)
-            predictions = [score < threshold for score in probability_scores]
+            # Predict anomalies based on threshold (higher score = more anomalous)
+            predictions = [score > threshold for score in probability_scores]
 
             # Calculate metrics
             tp = sum(1 for pred, label in zip(predictions, test_labels) if pred and label)
@@ -294,113 +339,140 @@ class DetectionCurveGenerator:
             tn = sum(1 for pred, label in zip(predictions, test_labels) if not pred and not label)
             fn = sum(1 for pred, label in zip(predictions, test_labels) if not pred and label)
 
-            # Calculate precision, recall, and false positive rate
-            precision = tp / (tp + fp) if (tp + fp) > 0 else 1.0
-            recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-            fpr = fp / (fp + tn) if (fp + tn) > 0 else 0.0
+            precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+            recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+            fpr = fp / (fp + tn) if (fp + tn) > 0 else 0
 
             precisions.append(precision)
             recalls.append(recall)
             fprs.append(fpr)
+            
+            # Debug output for key thresholds
+            if threshold in [0.0001, 0.001, 0.01, 0.1]:
+                print(f"      Threshold {threshold:.4f}: TP={tp}, FP={fp}, TN={tn}, FN={fn} | Prec={precision:.3f}, Rec={recall:.3f}")
 
         return {
             'thresholds': thresholds,
             'precision': precisions,
             'recall': recalls,
-            'fpr': fprs
+            'fpr': fprs,
+            'probability_scores': probability_scores,
+            'test_labels': test_labels
         }
 
     def plot_precision_recall_curve(self, field_name: str, results: Dict[str, List[float]], detection_type: str = "ML"):
-        """Plot precision-recall curve for a field."""
-        plt.figure(figsize=(10, 6))
-
+        """Plot precision-recall curve."""
+        plt.figure(figsize=(10, 8))
+        
         # Plot precision and recall vs threshold
+        plt.subplot(2, 1, 1)
         plt.plot(results['thresholds'], results['precision'], 'b-', linewidth=2, label='Precision', color='blue')
         plt.plot(results['thresholds'], results['recall'], 'r-', linewidth=2, label='Recall', color='red')
-
-        # Find intersection point
-        intersection_idx = None
-        for i in range(len(results['thresholds'])):
-            if abs(results['precision'][i] - results['recall'][i]) < 0.01:  # Within 1% tolerance
-                intersection_idx = i
-                break
-
-        if intersection_idx is not None:
-            plt.scatter(results['thresholds'][intersection_idx], results['precision'][intersection_idx],
-                       color='purple', s=100, zorder=5,
-                       label=f"Intersection (t={results['thresholds'][intersection_idx]:.2f})")
-
-        plt.xlabel('Threshold', fontsize=12)
-        plt.ylabel('Precision / Recall', fontsize=12)
-        plt.title(f'Precision-Recall vs Threshold: {field_name} ({detection_type})', fontsize=14, fontweight='bold')
-        plt.grid(True, alpha=0.3)
+        
+        # Calculate F1 scores
+        f1_scores = [2 * (p * r) / (p + r) if (p + r) > 0 else 0 
+                     for p, r in zip(results['precision'], results['recall'])]
+        plt.plot(results['thresholds'], f1_scores, 'g--', linewidth=2, label='F1 Score', color='green')
+        
+        plt.xlabel('Threshold')
+        plt.ylabel('Score')
+        plt.title(f'{detection_type} Detection Performance vs Threshold - {field_name}')
         plt.legend()
-
-        # Add performance summary
-        max_f1_idx = np.argmax([2 * p * r / (p + r) if (p + r) > 0 else 0
-                               for p, r in zip(results['precision'], results['recall'])])
-        max_f1_threshold = results['thresholds'][max_f1_idx]
-        max_f1_precision = results['precision'][max_f1_idx]
-        max_f1_recall = results['recall'][max_f1_idx]
-
-        plt.figtext(0.02, 0.02,
-                   f'Best F1: {2 * max_f1_precision * max_f1_recall / (max_f1_precision + max_f1_recall):.3f} '
-                   f'(threshold={max_f1_threshold:.2f})',
-                   fontsize=10, style='italic')
-
-        # Save plot
-        plot_path = os.path.join(self.output_dir, f"{field_name}_{detection_type.lower()}_precision_recall.png")
-        plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+        plt.grid(True, alpha=0.3)
+        
+        # Plot precision-recall curve
+        plt.subplot(2, 1, 2)
+        plt.plot(results['recall'], results['precision'], 'b-', linewidth=2)
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.title(f'Precision-Recall Curve - {field_name}')
+        plt.grid(True, alpha=0.3)
+        
+        # Add diagonal line for reference
+        plt.plot([0, 1], [0.5, 0.5], 'k--', alpha=0.5)
+        
+        # Calculate and display AUC
+        auc = np.trapz(results['precision'], results['recall'])
+        plt.text(0.6, 0.2, f'AUC: {auc:.3f}', fontsize=12, 
+                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+        
+        plt.tight_layout()
+        output_path = os.path.join(self.output_dir, f"{field_name}_{detection_type.lower()}_precision_recall.png")
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
         plt.close()
-
-        print(f"   📈 Saved precision-recall curve: {plot_path}")
+        
+        print(f"   📈 Saved precision-recall curve: {output_path}")
 
     def plot_roc_curve(self, field_name: str, results: Dict[str, List[float]], detection_type: str = "ML"):
-        """Plot ROC curve for a field."""
-        plt.figure(figsize=(10, 6))
-
+        """Plot ROC curve."""
+        plt.figure(figsize=(8, 8))
+        
         # Plot ROC curve
-        plt.plot(results['fpr'], results['recall'], 'r-', linewidth=2, label=f'{detection_type} Detection')
-
-        # Add diagonal line (random classifier)
-        plt.plot([0, 1], [0, 1], 'k--', alpha=0.5, label='Random Classifier')
-
-        # Add threshold annotations for key points
-        for i, threshold in enumerate(results['thresholds']):
-            if i % 5 == 0:  # Annotate every 5th threshold
-                plt.annotate(f'{threshold:.2f}',
-                           (results['fpr'][i], results['recall'][i]),
-                           xytext=(5, 5), textcoords='offset points',
-                           fontsize=8, alpha=0.7)
-
-        plt.xlabel('False Positive Rate', fontsize=12)
-        plt.ylabel('True Positive Rate (Recall)', fontsize=12)
-        plt.title(f'ROC Curve: {field_name} ({detection_type})', fontsize=14, fontweight='bold')
-        plt.grid(True, alpha=0.3)
-        plt.legend()
-
-        # Calculate AUC (approximate)
+        plt.plot(results['fpr'], results['recall'], 'b-', linewidth=2)
+        plt.plot([0, 1], [0, 1], 'k--', alpha=0.5)  # Diagonal line
+        
+        # Calculate and display AUC
         auc = np.trapz(results['recall'], results['fpr'])
-        plt.figtext(0.02, 0.02, f'AUC: {auc:.3f}', fontsize=10, style='italic')
-
-        # Save plot
-        plot_path = os.path.join(self.output_dir, f"{field_name}_{detection_type.lower()}_roc.png")
-        plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+        plt.text(0.6, 0.2, f'AUC: {auc:.3f}', fontsize=12,
+                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+        
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate (Recall)')
+        plt.title(f'ROC Curve - {field_name} ({detection_type})')
+        plt.grid(True, alpha=0.3)
+        
+        output_path = os.path.join(self.output_dir, f"{field_name}_{detection_type.lower()}_roc.png")
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
         plt.close()
-
-        print(f"   📈 Saved ROC curve: {plot_path}")
-
-    def save_metrics(self, field_name: str, results: Dict[str, List[float]], detection_type: str = "ML"):
-        """Save detailed metrics to JSON file."""
-        # Calculate additional metrics
-        f1_scores = [2 * p * r / (p + r) if (p + r) > 0 else 0
-                    for p, r in zip(results['precision'], results['recall'])]
-
-        # Find best threshold for different metrics
+        
+        print(f"   📈 Saved ROC curve: {output_path}")
+    
+    def plot_score_distribution(self, field_name: str, scores: List[float], labels: List[bool], detection_type: str = "LLM"):
+        """Plot distribution of scores for normal vs anomalous samples."""
+        plt.figure(figsize=(10, 6))
+        
+        # Separate scores by label
+        normal_scores = [s for s, l in zip(scores, labels) if not l]
+        anomaly_scores = [s for s, l in zip(scores, labels) if l]
+        
+        # Plot histograms
+        plt.hist(normal_scores, bins=30, alpha=0.5, label='Normal', color='blue', density=True)
+        plt.hist(anomaly_scores, bins=30, alpha=0.5, label='Anomaly', color='red', density=True)
+        
+        plt.xlabel(f'{detection_type} Score')
+        plt.ylabel('Density')
+        plt.title(f'Score Distribution - {field_name} ({detection_type})')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        
+        # Add vertical lines for mean values
+        plt.axvline(np.mean(normal_scores), color='blue', linestyle='--', linewidth=2, alpha=0.7)
+        plt.axvline(np.mean(anomaly_scores), color='red', linestyle='--', linewidth=2, alpha=0.7)
+        
+        # Add text with statistics
+        stats_text = f"Normal: μ={np.mean(normal_scores):.4f}, σ={np.std(normal_scores):.4f}\n"
+        stats_text += f"Anomaly: μ={np.mean(anomaly_scores):.4f}, σ={np.std(anomaly_scores):.4f}"
+        plt.text(0.02, 0.95, stats_text, transform=plt.gca().transAxes, 
+                bbox=dict(boxstyle='round', facecolor='white', alpha=0.8),
+                verticalalignment='top')
+        
+        output_path = os.path.join(self.output_dir, f"{field_name}_{detection_type.lower()}_score_distribution.png")
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        print(f"   📊 Saved score distribution: {output_path}")
+    
+    def save_metrics(self, field_name: str, results: Dict[str, Any], detection_type: str = "ML") -> Dict[str, Any]:
+        """Save evaluation metrics to JSON file."""
+        # Calculate F1 scores
+        f1_scores = [2 * (p * r) / (p + r) if (p + r) > 0 else 0 
+                     for p, r in zip(results['precision'], results['recall'])]
+        
+        # Find best thresholds
         best_f1_idx = np.argmax(f1_scores)
         best_precision_idx = np.argmax(results['precision'])
         best_recall_idx = np.argmax(results['recall'])
-
+        
         metrics = {
             'field_name': field_name,
             'detection_type': detection_type,
@@ -430,13 +502,36 @@ class DetectionCurveGenerator:
                 }
             }
         }
-
-        # Save to JSON
-        metrics_path = os.path.join(self.output_dir, f"{field_name}_{detection_type.lower()}_metrics.json")
-        with open(metrics_path, 'w') as f:
+        
+        # Add score statistics if available
+        if 'probability_scores' in results:
+            normal_scores = [s for s, l in zip(results['probability_scores'], results['test_labels']) if not l]
+            anomaly_scores = [s for s, l in zip(results['probability_scores'], results['test_labels']) if l]
+            
+            metrics['score_statistics'] = {
+                'normal': {
+                    'mean': np.mean(normal_scores) if normal_scores else 0,
+                    'std': np.std(normal_scores) if normal_scores else 0,
+                    'min': min(normal_scores) if normal_scores else 0,
+                    'max': max(normal_scores) if normal_scores else 0
+                },
+                'anomaly': {
+                    'mean': np.mean(anomaly_scores) if anomaly_scores else 0,
+                    'std': np.std(anomaly_scores) if anomaly_scores else 0,
+                    'min': min(anomaly_scores) if anomaly_scores else 0,
+                    'max': max(anomaly_scores) if anomaly_scores else 0
+                },
+                'separation': (np.mean(anomaly_scores) - np.mean(normal_scores)) if (normal_scores and anomaly_scores) else 0
+            }
+        
+        output_path = os.path.join(self.output_dir, f"{field_name}_{detection_type.lower()}_metrics.json")
+        with open(output_path, 'w') as f:
             json.dump(metrics, f, indent=2)
-
-        print(f"   📊 Saved metrics: {metrics_path}")
+        
+        print(f"   📊 Saved metrics: {output_path}")
+        print(f"   🏆 Best F1 Score: {f1_scores[best_f1_idx]:.3f} (threshold={results['thresholds'][best_f1_idx]:.2f})")
+        print(f"   📊 Precision: {results['precision'][best_f1_idx]:.3f}, Recall: {results['recall'][best_f1_idx]:.3f}")
+        
         return metrics
 
     def generate_curves_for_field(self, field_name: str, detection_type: str = "ML", thresholds: List[float] = None):
@@ -444,8 +539,8 @@ class DetectionCurveGenerator:
         if thresholds is None:
             if detection_type == "ML":
                 thresholds = [round(x, 2) for x in np.arange(0.1, 1.0, 0.05)]
-            else:  # LLM
-                thresholds = [round(x, 2) for x in np.arange(-0.5, 0.1, 0.05)]
+            else:  # LLM - adjusted for positive anomaly scores
+                thresholds = [0.00001, 0.00005, 0.0001, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0]
 
         print(f"\n🎯 Generating curves for field: {field_name} ({detection_type})")
 
@@ -459,109 +554,119 @@ class DetectionCurveGenerator:
             # Generate plots
             self.plot_precision_recall_curve(field_name, results, detection_type)
             self.plot_roc_curve(field_name, results, detection_type)
+            
+            # Plot score distribution for LLM
+            if detection_type == "LLM" and 'probability_scores' in results:
+                self.plot_score_distribution(field_name, results['probability_scores'], results['test_labels'], detection_type)
 
             # Save metrics
             metrics = self.save_metrics(field_name, results, detection_type)
 
-            # Print summary
-            best_f1 = metrics['best_thresholds']['f1']
-            print(f"   🏆 Best F1 Score: {best_f1['f1']:.3f} (threshold={best_f1['threshold']:.2f})")
-            print(f"   📊 Precision: {best_f1['precision']:.3f}, Recall: {best_f1['recall']:.3f}")
-
             return metrics
-
         except Exception as e:
-            print(f"   ❌ Failed to generate curves for {field_name} ({detection_type}): {e}")
+            print(f"   ❌ Error generating curves for {field_name}: {e}")
+            import traceback
+            traceback.print_exc()
             return None
 
-    def generate_all_curves(self, fields: List[str] = None, detection_type: str = "ML", thresholds: List[float] = None):
-        """Generate curves for all available fields."""
-        if fields is None:
-            if detection_type == "ML":
-                fields = self.get_available_ml_fields()
-            else:  # LLM
-                fields = self.get_available_llm_fields()
-
-        if not fields:
-            print(f"❌ No fields with {detection_type} models available")
-            return
-
-        print(f"🎯 Generating curves for {len(fields)} fields ({detection_type}): {fields}")
-
-        all_metrics = {}
-
-        for field_name in fields:
-            metrics = self.generate_curves_for_field(field_name, detection_type, thresholds)
+    def generate_summary_report(self, all_metrics: List[Dict[str, Any]], detection_type: str):
+        """Generate a summary report across all fields."""
+        summary = {
+            'detection_type': detection_type,
+            'fields': [],
+            'best_overall_threshold': None
+        }
+        
+        # Collect best F1 scores for each field
+        for metrics in all_metrics:
             if metrics:
-                all_metrics[field_name] = metrics
-
-        # Generate summary report
-        self.generate_summary_report(all_metrics, detection_type)
-
-    def generate_summary_report(self, all_metrics: Dict[str, Any], detection_type: str = "ML"):
-        """Generate a summary report comparing all fields."""
-        if not all_metrics:
-            return
-
-        print(f"\n📊 Summary Report ({detection_type})")
-        print("=" * 80)
-
-        # Create summary table
-        summary_data = []
-        for field_name, metrics in all_metrics.items():
-            best_f1 = metrics['best_thresholds']['f1']
-            summary_data.append({
-                'Field': field_name,
-                'Best F1': f"{best_f1['f1']:.3f}",
-                'Threshold': f"{best_f1['threshold']:.2f}",
-                'Precision': f"{best_f1['precision']:.3f}",
-                'Recall': f"{best_f1['recall']:.3f}"
-            })
-
-        # Sort by F1 score
-        summary_data.sort(key=lambda x: float(x['Best F1']), reverse=True)
-
-        # Print table
-        print(f"{'Field':<20} {'Best F1':<10} {'Threshold':<10} {'Precision':<10} {'Recall':<10}")
-        print("-" * 80)
-        for row in summary_data:
-            print(f"{row['Field']:<20} {row['Best F1']:<10} {row['Threshold']:<10} "
-                  f"{row['Precision']:<10} {row['Recall']:<10}")
-
+                field_summary = {
+                    'field_name': metrics['field_name'],
+                    'best_f1': metrics['best_thresholds']['f1'],
+                    'best_precision': metrics['best_thresholds']['precision'],
+                    'best_recall': metrics['best_thresholds']['recall']
+                }
+                
+                # Add score statistics if available
+                if 'score_statistics' in metrics:
+                    field_summary['score_separation'] = metrics['score_statistics']['separation']
+                
+                summary['fields'].append(field_summary)
+        
+        # Find overall best threshold (average of best thresholds)
+        if summary['fields']:
+            avg_threshold = np.mean([f['best_f1']['threshold'] for f in summary['fields']])
+            summary['best_overall_threshold'] = round(avg_threshold, 4)
+        
         # Save summary
         summary_path = os.path.join(self.output_dir, f"{detection_type.lower()}_summary_report.json")
         with open(summary_path, 'w') as f:
-            json.dump(all_metrics, f, indent=2)
-
+            json.dump(summary, f, indent=2)
+        
+        # Print summary table
+        print(f"\n📊 Summary Report ({detection_type})")
+        print("=" * 80)
+        print(f"{'Field':<20} {'Best F1':<10} {'Threshold':<10} {'Precision':<10} {'Recall':<10}")
+        print("-" * 80)
+        
+        for field in summary['fields']:
+            print(f"{field['field_name']:<20} "
+                  f"{field['best_f1']['f1']:<10.3f} "
+                  f"{field['best_f1']['threshold']:<10.2f} "
+                  f"{field['best_f1']['precision']:<10.3f} "
+                  f"{field['best_f1']['recall']:<10.3f}")
+        
+        if summary['best_overall_threshold']:
+            print(f"\n📌 Recommended overall threshold: {summary['best_overall_threshold']}")
+        
         print(f"\n📁 Summary saved to: {summary_path}")
-        print(f"📁 All curves and metrics saved to: {self.output_dir}/")
 
-
-def entry(data_file=None, detection_type="ml", fields=None, output_dir="detection_curves",
-          thresholds=None, brand=None):
-    """Entry function for ML curve generation."""
-
-    if not data_file:
-        raise ValueError("data_file is required")
-
-    # Handle brand configuration
-    if not brand:
-        available_brands = get_available_brands()
-        if len(available_brands) == 1:
-            brand = available_brands[0]
-            print(f"Using default brand: {brand}")
-        else:
-            raise ValueError("Brand must be specified with --brand option")
-
-    brand_config = load_brand_config(brand)
-    print(f"Using brand configuration: {brand}")
-
+def entry(data_file: str, detection_type: str = "ml", fields: List[str] = None,
+          output_dir: str = "detection_curves", thresholds: List[float] = None, brand: str = None):
+    """
+    Main entry point for the curve generator.
+    
+    Args:
+        data_file: Path to CSV data file
+        detection_type: Type of detection ('ml' or 'llm')
+        fields: Specific fields to evaluate (default: all available)
+        output_dir: Output directory for curves
+        thresholds: Custom thresholds to test
+        brand: Brand name (optional)
+    """
     # Initialize generator
     generator = DetectionCurveGenerator(data_file, output_dir)
-    generator.field_mapper = FieldMapper.from_brand(brand)
-
-    # Generate curves
-    generator.generate_all_curves(fields=fields, detection_type=detection_type.upper(), thresholds=thresholds)
+    
+    # Load data
+    if brand:
+        print(f"Using brand configuration: {brand}")
+    generator.load_data(brand)
+    
+    # Determine fields to evaluate
+    detection_type = detection_type.upper()
+    available_fields = generator.get_available_fields(detection_type)
+    
+    if fields:
+        # Filter to requested fields that are available
+        fields_to_evaluate = [f for f in fields if f in available_fields]
+        if not fields_to_evaluate:
+            print(f"❌ None of the requested fields {fields} are available for {detection_type} detection")
+            return
+    else:
+        fields_to_evaluate = available_fields
+    
+    print(f"🎯 Generating curves for {len(fields_to_evaluate)} fields ({detection_type}): {fields_to_evaluate}")
+    
+    # Generate curves for each field
+    all_metrics = []
+    for field in fields_to_evaluate:
+        metrics = generator.generate_curves_for_field(field, detection_type, thresholds)
+        all_metrics.append(metrics)
+    
+    # Generate summary report
+    generator.generate_summary_report(all_metrics, detection_type)
+    
+    print(f"\n📁 All curves and metrics saved to: {output_dir}/")
 
 
 def main():
@@ -570,7 +675,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Example usage:
-      python ml_curve_generator.py data/your_data.csv --brand your_brand
+  python ml_curve_generator.py data/your_data.csv --brand your_brand
   python ml_curve_generator.py data/my_data.csv --detection-type llm
   python ml_curve_generator.py data/my_data.csv --fields material color_name category --detection-type ml
   python ml_curve_generator.py data/my_data.csv --output-dir my_curves --thresholds 0.1 0.3 0.5 0.7 0.9
@@ -583,7 +688,7 @@ Example usage:
     parser.add_argument("--fields", nargs='+', help="Specific fields to generate curves for (default: all available)")
     parser.add_argument("--output-dir", default="detection_curves", help="Output directory for curves (default: detection_curves)")
     parser.add_argument("--thresholds", nargs='+', type=float,
-                       help="Specific thresholds to test (default: ML=0.1-0.95, LLM=-0.5-0.1)")
+                       help="Specific thresholds to test (default: ML=0.1-0.95, LLM=0.00001-1.0)")
     parser.add_argument("--brand", help="Brand name (deprecated - uses static config)")
 
     args = parser.parse_args()
