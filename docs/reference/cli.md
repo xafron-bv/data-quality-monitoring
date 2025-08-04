@@ -203,52 +203,53 @@ python main.py analyze-column CSV_FILE [FIELD_NAME]
 - `CSV_FILE`: Path to the CSV file to analyze
 - `FIELD_NAME`: Name of the field to analyze (default: color_name)
 
-Note: Brand configuration is deprecated and uses static config.
-- `--sample-values INT`: Number of sample values (default: 10)
+**Optional:**
+- `--brand`: Brand name (deprecated - uses static config)
 
 #### Examples
 
 ```bash
-# List available columns
-python main.py analyze-column \
-    --data-file data/products.csv \
-    --list-columns
+# Analyze default column (color_name)
+python main.py analyze-column data/products.csv
 
 # Analyze specific column
-python main.py analyze-column \
-    --data-file data/products.csv \
-    --column material \
-    --show-stats \
-    --show-patterns
+python main.py analyze-column data/products.csv material
 ```
 
 ### ml-curves
-Generate performance curves for ML models.
+Generate precision-recall and ROC curves for ML-based and LLM-based anomaly detection.
 
 ```bash
-python main.py ml-curves [options]
+python main.py ml-curves DATA_FILE [options]
 ```
 
 #### Arguments
 
-**Required:**
-- `--field FIELD`: Field to analyze
-- `--data-file PATH`: Data file with ground truth
+**Positional:**
+- `DATA_FILE`: Path to the CSV data file
 
-**Analysis:**
-- `--thresholds FLOAT [FLOAT ...]`: Threshold values to test
-- `--metric STR`: Metric to optimize (precision/recall/f1)
-- `--output-dir PATH`: Output directory for plots
+**Optional:**
+- `--detection-type {ml,llm}`: Type of detection to evaluate (default: ml)
+- `--fields FIELD [FIELD ...]`: Specific fields to generate curves for (default: all available)
+- `--output-dir PATH`: Output directory for curves (default: detection_curves)
+- `--thresholds FLOAT [FLOAT ...]`: Specific thresholds to test (default: ML=0.1-0.95, LLM=-0.5-0.1)
+- `--brand`: Brand name (deprecated - uses static config)
 
 #### Examples
 
 ```bash
-# Generate curves for material field
-python main.py ml-curves \
-    --field material \
-    --data-file data/test_materials.csv \
-    --thresholds 0.5 0.6 0.7 0.8 0.9 \
-    --output-dir plots/material
+# Generate ML curves for all fields
+python main.py ml-curves data/products.csv
+
+# Generate LLM curves for specific fields
+python main.py ml-curves data/products.csv \
+    --detection-type llm \
+    --fields material color_name \
+    --output-dir llm_curves
+
+# Test specific thresholds
+python main.py ml-curves data/products.csv \
+    --thresholds 0.5 0.6 0.7 0.8 0.9
 ```
 
 ## Global Options
@@ -291,17 +292,6 @@ Save frequently used arguments in JSON files:
 Use with:
 ```bash
 python main.py single-demo --args-file single_demo_args.json
-```
-
-### Environment Variables
-
-Configure defaults via environment variables:
-
-```bash
-export DQ_DATA_PATH=/data/quality
-export DQ_OUTPUT_PATH=/results
-export DQ_LOG_LEVEL=INFO
-export DQ_DEVICE=cuda
 ```
 
 ## Output Formats

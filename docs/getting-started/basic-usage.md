@@ -23,305 +23,298 @@ flowchart LR
 4. **Results**: Comprehensive reports with confidence scores
 5. **Visualization**: Interactive HTML viewer
 
-## Basic Commands
+## Command Structure
 
-### 1. Simple Detection
+### Using Detection Methods
 
-Run detection on your data with default settings:
-
-```bash
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file data/products.csv
-```
-
-### 2. Specify Output Location
+By default, if no detection methods are explicitly enabled, all available methods will run. Use the `--enable` flags to selectively enable specific methods:
 
 ```bash
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file data/products.csv \
-    --output-dir results/my_analysis
-```
-
-### 3. Select Specific Fields
-
-Process only core fields defined in brand configuration:
-
-```bash
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file data/products.csv \
-    --core-fields-only
-```
-
-## Working with Detection Methods
-
-### Enable Specific Methods
-
-By default, if no detection methods are explicitly enabled, all available methods run. To selectively enable methods:
-
-```bash
-# Only validation and ML
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file data/products.csv \
-    --enable-validation \
-    --enable-ml
-```
-
-### Adjusting Thresholds
-
-```bash
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file data/products.csv \
-    --ml-threshold 0.8 \
-    --anomaly-threshold 0.75
-```
-
-## Understanding Results
-
-### Output Files
-
-After running detection, you'll find:
-
-```
-output_dir/
-├── sample_with_errors.csv      # Data with error markers
-├── sample_with_results.csv     # Original data + detection results
-├── detection_report.json       # Detailed JSON report
-├── summary_report.txt          # Human-readable summary
-└── confusion_matrix.png        # Performance visualization (if applicable)
-```
-
-### Result Structure
-
-Each detected issue includes:
-
-```json
-{
-    "row_index": 42,
-    "field": "material",
-    "detection_method": "ml",
-    "error_type": "semantic_anomaly",
-    "confidence": 0.85,
-    "message": "Unusual material description",
-    "original_value": "cottn blen",
-    "suggested_value": "cotton blend"
-}
-```
-
-## Common Workflows
-
-### 1. Data Quality Assessment
-
-Quick assessment of your data quality:
-
-```bash
-# Analyze data distribution first
-python analyze_column/analyze_column.py \
-    --data-file data/products.csv \
-    --column material
-
-# Run comprehensive detection
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file data/products.csv \
-    --enable-validation \
-    --enable-pattern \
-    --enable-ml \
-    --output-dir results/assessment
-```
-
-### 2. Pre-Import Validation
-
-Validate data before importing to production:
-
-```bash
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file data/import_batch.csv \
-    --enable-validation \
-    --validation-threshold 0.0
-```
-
-### 3. Anomaly Detection
-
-Find unusual patterns in existing data:
-
-```bash
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file data/catalog.csv \
-    --enable-pattern \
-    --enable-ml \
-    --anomaly-threshold 0.7
-```
-
-### 4. Performance Testing
-
-Test with synthetic errors:
-
-```bash
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file data/clean_data.csv \
-    --injection-intensity 0.2 \
-    --enable-validation \
-    --enable-pattern \
-    --enable-ml \
-    --output-dir results/performance_test
-```
-
-## Visualization
-
-### Using the HTML Viewer
-
-1. Open the viewer:
-   ```bash
-   open single_sample_multi_field_demo/data_quality_viewer.html
-   ```
-
-2. Upload your files:
-   - CSV: `sample_with_results.csv`
-   - JSON: `detection_report.json`
-
-3. Explore:
-   - Filter by detection method
-   - Sort by confidence score
-   - View error distribution
-   - Export filtered results
-
-### Key Features
-
-- **Interactive Filtering**: Filter by field, method, confidence
-- **Detailed Views**: Click rows for full error details
-- **Statistics**: Summary charts and metrics
-- **Export**: Download filtered results
-
-## Configuration Tips
-
-### Brand Configuration
-
-Set up your brand mapping:
-
-```bash
-# Use predefined brand (brand config is now static)
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file data/products.csv
-
-# Brand configuration is deprecated - uses static config
-```
-
-### Performance Optimization
-
-For large datasets:
-
-```bash
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file data/large_catalog.csv \
-    --core-fields-only
-```
-
-## Interpreting Confidence Scores
-
-### Confidence Levels
-
-- **100%**: Definite error (validation rules)
-- **80-99%**: High confidence anomaly
-- **60-79%**: Medium confidence anomaly
-- **Below 60%**: Low confidence, review manually
-
-### Method-Specific Interpretation
-
-| Method | Typical Range | Interpretation |
-|--------|--------------|----------------|
-| Validation | 100% | Rule violation |
-| Pattern | 70-90% | Statistical outlier |
-| ML | 60-85% | Semantic anomaly |
-| LLM | 50-80% | Context-based issue |
-
-## Best Practices
-
-### 1. Start with Analysis
-
-Always analyze your data first:
-
-```bash
-# List columns
-python analyze_column/analyze_column.py --data-file data.csv --list-columns
-
-# Analyze specific columns
-python analyze_column/analyze_column.py --data-file data.csv --column material
-```
-
-### 2. Progressive Detection
-
-Start with high-confidence methods:
-
-```bash
-# Step 1: Validation only
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file data.csv \
+# Run only validation
+python main.py single-demo \
+    --data-file your_data.csv \
     --enable-validation
 
-# Step 2: Add pattern detection
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file data.csv \
+# Run validation and pattern detection
+python main.py single-demo \
+    --data-file your_data.csv \
     --enable-validation \
     --enable-pattern
 
-# Step 3: Full detection
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file data.csv \
+# Run all methods explicitly
+python main.py single-demo \
+    --data-file your_data.csv \
     --enable-validation \
     --enable-pattern \
     --enable-ml \
     --enable-llm
 ```
 
-### 3. Iterative Refinement
+### Basic Detection Run
 
-1. Run initial detection
-2. Review false positives
-3. Adjust thresholds
-4. Update configurations
-5. Re-run detection
+Simplest form - runs all available detection methods:
 
-### 4. Document Your Settings
-
-Keep track of successful configurations:
-
-```json
-// my_detection_config.json
-{
-    "description": "Optimal settings for product catalog",
-    "thresholds": {
-        "validation": 0.0,
-        "pattern": 0.75,
-        "ml": 0.8,
-        "llm": 0.7
-    },
-    "fields": ["material", "color_name", "category"],
-    "notes": "Reduced ML threshold to catch more typos"
-}
+```bash
+python main.py single-demo --data-file your_data.csv
 ```
 
-## Troubleshooting
+With custom output directory:
 
-### No Errors Detected
+```bash
+python main.py single-demo \
+    --data-file your_data.csv \
+    --output-dir results/my_analysis
+```
 
-- Check if data is actually clean
-- Lower detection thresholds
-- Enable more detection methods
-- Try with `--injection-intensity` for testing
+## Error Injection
 
-### Too Many False Positives
+The system can inject synthetic errors to test detection capabilities.
 
-- Increase detection thresholds
-- Review and update validation rules
-- Use weighted combination mode
-- Focus on specific fields
+### Injection Intensity
 
-### Performance Issues
+Control how many errors are injected:
 
-- Use `--core-fields-only` to process subset of fields
-- Disable resource-intensive methods (LLM) by not using --enable-llm
-- Process smaller files or split large files
+```bash
+# Light injection (20% of cells)
+python main.py single-demo \
+    --data-file clean_data.csv \
+    --injection-intensity 0.2
+
+# Heavy injection (50% of cells)
+python main.py single-demo \
+    --data-file clean_data.csv \
+    --injection-intensity 0.5 \
+    --max-issues-per-row 3
+```
+
+### No Injection (Production Mode)
+
+For real data analysis without synthetic errors:
+
+```bash
+python main.py single-demo \
+    --data-file production_data.csv \
+    --injection-intensity 0.0
+```
+
+## Detection Methods
+
+### 1. Validation (Rule-Based)
+- **Use Case**: Format validation, business rules
+- **Confidence**: 100%
+- **Speed**: Fast
+
+Example:
+```bash
+python main.py single-demo \
+    --data-file your_data.csv \
+    --enable-validation \
+    --validation-threshold 0.0
+```
+
+### 2. Pattern-Based Detection
+- **Use Case**: Anomaly detection based on known patterns
+- **Confidence**: 70-80%
+- **Speed**: Fast
+
+Example:
+```bash
+python main.py single-demo \
+    --data-file your_data.csv \
+    --enable-pattern \
+    --anomaly-threshold 0.7
+```
+
+### 3. ML-Based Detection
+- **Use Case**: Semantic similarity anomalies
+- **Confidence**: Configurable
+- **Speed**: Medium
+- **Requirement**: Trained models
+
+Example:
+```bash
+python main.py single-demo \
+    --data-file your_data.csv \
+    --enable-ml \
+    --ml-threshold 0.7
+```
+
+### 4. LLM-Based Detection
+- **Use Case**: Complex semantic understanding
+- **Confidence**: Configurable
+- **Speed**: Slower
+- **Requirement**: Language models
+
+Example:
+```bash
+python main.py single-demo \
+    --data-file your_data.csv \
+    --enable-llm \
+    --llm-threshold 0.6 \
+    --llm-few-shot-examples
+```
+
+## Threshold Configuration
+
+Adjust detection sensitivity per method:
+
+```bash
+python main.py single-demo \
+    --data-file your_data.csv \
+    --validation-threshold 0.0 \
+    --anomaly-threshold 0.7 \
+    --ml-threshold 0.8 \
+    --llm-threshold 0.6
+```
+
+### Threshold Guidelines
+
+- **Lower values**: More sensitive (more detections)
+- **Higher values**: Less sensitive (fewer detections)
+- **0.0**: Detect everything (validation only)
+- **1.0**: Detect nothing
+
+## Field Selection
+
+### Core Fields Only
+
+Process only essential fields to save memory:
+
+```bash
+python main.py single-demo \
+    --data-file your_data.csv \
+    --core-fields-only
+```
+
+Core fields typically include:
+- material
+- color_name
+- category
+- size
+- care_instructions
+
+## Advanced Options
+
+### Weighted Combination
+
+Use optimized weights for better accuracy:
+
+```bash
+python main.py single-demo \
+    --data-file your_data.csv \
+    --use-weighted-combination \
+    --weights-file detection_weights.json
+```
+
+### Generate Weights
+
+Create optimized weights based on performance:
+
+```bash
+python main.py single-demo \
+    --data-file your_data.csv \
+    --injection-intensity 0.2 \
+    --generate-weights \
+    --weights-output-file custom_weights.json
+```
+
+### LLM Context Enhancement
+
+Provide context for better LLM detection:
+
+```bash
+python main.py single-demo \
+    --data-file your_data.csv \
+    --enable-llm \
+    --llm-temporal-column date_created \
+    --llm-context-columns category,brand,season
+```
+
+## Output Files
+
+After running, you'll find:
+
+```
+output_dir/
+├── report.json                    # Detailed results
+├── viewer_report.json            # Web viewer format
+├── anomaly_summary.csv           # Summary CSV
+├── sample_with_errors.csv        # Data with injections
+├── sample_with_results.csv       # Results per row
+└── confusion_matrix/             # Performance visuals
+    ├── overall_matrix.png
+    ├── per_field_matrix.png
+    └── summary_visual.png
+```
+
+## Practical Examples
+
+### 1. Pre-Import Validation
+
+```bash
+python main.py single-demo \
+    --data-file import_batch.csv \
+    --enable-validation \
+    --validation-threshold 0.0 \
+    --injection-intensity 0.0 \
+    --output-dir validation_results
+```
+
+### 2. Anomaly Detection
+
+```bash
+python main.py single-demo \
+    --data-file historical_data.csv \
+    --enable-pattern \
+    --enable-ml \
+    --anomaly-threshold 0.8 \
+    --ml-threshold 0.75 \
+    --injection-intensity 0.0
+```
+
+### 3. Full System Test
+
+```bash
+python main.py single-demo \
+    --data-file test_data.csv \
+    --injection-intensity 0.3 \
+    --max-issues-per-row 2 \
+    --generate-weights \
+    --output-dir test_results
+```
+
+### 4. Production Monitoring
+
+```bash
+python main.py single-demo \
+    --data-file daily_data.csv \
+    --injection-intensity 0.0 \
+    --use-weighted-combination \
+    --weights-file config/production_weights.json \
+    --core-fields-only \
+    --output-dir monitoring/$(date +%Y%m%d)
+```
+
+## Performance Tips
+
+### Memory Optimization
+- Use `--core-fields-only` for large files
+- Process in batches for very large datasets
+- Disable memory-intensive methods (LLM) if needed
+
+### Speed Optimization
+- Use only required detection methods
+- Increase thresholds to reduce processing
+- Use validation-only for quick checks
+
+### Accuracy Optimization
+- Generate and use weighted combinations
+- Fine-tune thresholds based on your data
+- Train custom ML models for your fields
 
 ## Next Steps
 
-- Set up [Custom Configuration](../configuration/brand-config.md)
-- Learn about [Adding New Fields](../development/new-fields.md)
+1. **Multi-Sample Evaluation**: Use `multi-eval` for batch processing
+2. **Model Training**: Train ML models with `ml-train`
+3. **Field Analysis**: Use `analyze-column` to understand your data
+4. **Custom Configuration**: Set up brand-specific rules

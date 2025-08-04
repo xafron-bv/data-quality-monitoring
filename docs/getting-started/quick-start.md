@@ -1,198 +1,180 @@
 # Quick Start Guide
 
-Get up and running with the Data Quality Detection System in minutes. This guide will walk you through running your first data quality detection.
+Welcome to the Data Quality Monitoring System! This guide will help you get started in minutes.
 
 ## Prerequisites
 
-Before starting, ensure you have:
-- ✅ Completed the [Installation Guide](installation.md)
-- ✅ Python environment activated
-- ✅ Sample data file (CSV format)
+- Python 3.8+
+- pip or conda
+- 4GB+ RAM recommended
 
-## Step 1: Prepare Your Data
+## Installation
 
-The system expects data in CSV format with headers. Here's a sample structure:
-
-```csv
-product_id,product_name,material,color_name,category,size
-P001,Cotton T-Shirt,100% Cotton,Navy Blue,Tops,M
-P002,Leather Jacket,Genuine Leather,Black,Outerwear,L
-P003,Silk Dress,100% Silk,Red,Dresses,S
-```
-
-Place your data file in the `data/` directory:
-
+1. Clone the repository:
 ```bash
-cp your_data.csv data/sample_data.csv
+git clone <repository-url>
+cd data-quality-monitoring
 ```
 
-## Step 2: Run the Demo Script
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Verify installation:
+```bash
+python main.py --help
+```
+
+## Your First Detection Run
 
 The easiest way to start is with the single sample demo:
 
 ```bash
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
+python main.py single-demo \
     --data-file data/sample_data.csv \
     --output-dir results/quick_start
 ```
 
 This will:
 1. Load your data
-2. Run all detection methods
-3. Generate a comprehensive report
-4. Save results to the output directory
+2. Inject synthetic anomalies for testing
+3. Run all detection methods
+4. Generate comprehensive reports
 
-## Step 3: Understanding the Output
+## Understanding the Output
 
-After running, you'll find several files in the output directory:
-
+### Console Output
+You'll see real-time progress:
 ```
-results/quick_start/
-├── sample_with_errors.csv      # Data with injected errors (for testing)
-├── sample_with_results.csv     # Detection results per row
-├── detection_report.json       # Detailed detection report
-└── summary_report.txt          # Human-readable summary
+🔍 Processing sample: quick_start_sample
+📊 Total fields to check: 15
+━━━━━━━━━━━━━━━━━━━━ 100% 15/15
+✅ Detection complete!
 ```
 
-### Reading the Summary Report
+### Generated Files
+Check your output directory:
+- `report.json` - Detailed detection results
+- `viewer_report.json` - Formatted for the web viewer
+- `anomaly_summary.csv` - Summary of all detections
+- `confusion_matrix/` - Performance visualizations
 
-The summary report shows:
-- Total records processed
-- Errors detected by each method
-- Performance metrics
-- Field-level statistics
+### Web Viewer
+1. Open `data_quality_viewer.html` in your browser
+2. Upload the generated CSV and JSON files
+3. Explore interactive visualizations
 
-## Step 4: Visualize Results
-
-Use the interactive HTML viewer:
-
-1. Open `single_sample_multi_field_demo/data_quality_viewer.html` in a browser
-2. Upload your CSV file: `sample_with_results.csv`
-3. Upload the JSON report: `detection_report.json`
-4. Explore the interactive visualizations
-
-## Step 5: Customize Detection
+## Basic Detection Options
 
 ### Enable Specific Methods
-
-Run only validation and pattern-based detection:
+Choose which detection methods to use:
 
 ```bash
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file data/sample_data.csv \
-    --enable-validation \
+# Validation only (fastest)
+python main.py single-demo \
+    --data-file your_data.csv \
+    --enable-validation
+
+# Pattern-based detection
+python main.py single-demo \
+    --data-file your_data.csv \
     --enable-pattern
+
+# ML-based detection (requires trained models)
+python main.py single-demo \
+    --data-file your_data.csv \
+    --enable-ml
+
+# All methods
+python main.py single-demo \
+    --data-file your_data.csv \
+    --enable-validation \
+    --enable-pattern \
+    --enable-ml
 ```
 
-Note: By default, if no detection methods are explicitly enabled, all available methods run. Use the --enable flags to selectively enable specific methods.
-
-### Adjust Detection Thresholds
-
-Make detection more or less sensitive:
+### Adjust Detection Sensitivity
 
 ```bash
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file data/sample_data.csv \
+python main.py single-demo \
+    --data-file your_data.csv \
     --validation-threshold 0.0 \
-    --anomaly-threshold 0.8 \
-    --ml-threshold 0.75
+    --anomaly-threshold 0.7 \
+    --ml-threshold 0.8
 ```
 
-### Process Core Fields Only
-
-Process only the core fields defined in the brand configuration:
+### Control Anomaly Injection
 
 ```bash
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file data/sample_data.csv \
-    --core-fields-only
+# No injection (test on real data)
+python main.py single-demo \
+    --data-file your_data.csv \
+    --injection-intensity 0.0
+
+# Heavy injection for stress testing
+python main.py single-demo \
+    --data-file your_data.csv \
+    --injection-intensity 0.5 \
+    --max-issues-per-row 3
 ```
 
 ## Common Use Cases
 
-### 1. Data Quality Check Before Import
-
+### 1. Test on Clean Data
 ```bash
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file import_data.csv \
-    --enable-validation \
-    --validation-threshold 0.0 \
-    --output-dir results/import_check
-```
-
-### 2. Anomaly Detection in Production Data
-
-```bash
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
-    --data-file production_data.csv \
-    --enable-pattern \
-    --enable-ml \
-    --anomaly-threshold 0.7 \
-    --output-dir results/anomaly_scan
-```
-
-### 3. Comprehensive Analysis with Error Injection
-
-```bash
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
+python main.py single-demo \
     --data-file clean_data.csv \
-    --injection-intensity 0.2 \
-    --enable-validation \
-    --enable-pattern \
-    --enable-ml \
-    --enable-llm \
-    --output-dir results/full_analysis
+    --injection-intensity 0.0 \
+    --output-dir results/baseline
 ```
 
-## Understanding Detection Methods
+### 2. Evaluate Detection Performance
+```bash
+python main.py single-demo \
+    --data-file test_data.csv \
+    --injection-intensity 0.2 \
+    --generate-weights \
+    --output-dir results/evaluation
+```
 
-### Validation (Rule-Based)
-- **Best for**: Format errors, missing values, business rule violations
-- **Confidence**: High (100%)
-- **Example**: Invalid email format, empty required fields
-
-### Pattern-Based Detection
-- **Best for**: Unusual patterns, outliers from known values
-- **Confidence**: Medium (70-80%)
-- **Example**: Unusual color names, rare material combinations
-
-### ML-Based Detection
-- **Best for**: Semantic anomalies, contextual errors
-- **Confidence**: Configurable (default 70%)
-- **Example**: Mismatched product descriptions, category errors
-
-### LLM-Based Detection
-- **Best for**: Complex semantic understanding
-- **Confidence**: Configurable (default 60%)
-- **Example**: Logical inconsistencies, context-dependent errors
-
-## Quick Debugging Tips
-
-### No Errors Detected?
-- Your data might be clean! Try with `--injection-intensity 0.3` to inject test errors
-- Lower detection thresholds to be more sensitive
-- Check if field mappings are correct in brand configuration
-
-### Too Many False Positives?
-- Increase detection thresholds
-- Disable overly sensitive methods
-- Review and update validation rules
-
-### Performance Issues?
-- Use `--core-fields-only` to process fewer fields
-- Disable ML/LLM methods for faster processing by not using their --enable flags
-- Process smaller files or split large files into chunks
+### 3. Production Monitoring
+```bash
+python main.py single-demo \
+    --data-file production_data.csv \
+    --injection-intensity 0.0 \
+    --use-weighted-combination \
+    --weights-file config/production_weights.json \
+    --output-dir results/monitoring
+```
 
 ## Next Steps
 
-Now that you've run your first detection:
+1. **Analyze Your Data**: Use `analyze-column` to understand your fields
+2. **Train Models**: Train ML models for better detection
+3. **Configure Rules**: Customize detection rules for your data
+4. **Batch Processing**: Use `multi-eval` for large-scale evaluation
 
-1. **Learn More**: Read the [Basic Usage Guide](basic-usage.md)
-2. **Configure**: Set up [Brand Configuration](../configuration/brand-config.md)
-3. **Customize**: Add [New Fields](../development/new-fields.md)
-4. **Deploy**: Follow the [Deployment Guide](../operations/deployment.md)
+See the [Basic Usage Guide](basic-usage.md) for more detailed examples.
 
-## Getting Help
+## Troubleshooting
 
-- Check the full [CLI Reference](../reference/cli.md)
-- Review [Configuration Options](../configuration/brand-config.md)
+### Common Issues
+
+1. **"No trained models found"**
+   - Train models first: `python main.py ml-train your_data.csv`
+   
+2. **"Field not recognized"**
+   - Check field mappings in brand configuration
+   - Use `analyze-column` to see available fields
+
+3. **Out of Memory**
+   - Use `--core-fields-only` flag
+   - Reduce sample size
+   - Process in batches
+
+### Getting Help
+
+- Check logs in the output directory
+- Run with `--verbose` for detailed output
+- See [Troubleshooting Guide](../troubleshooting/common-issues.md)

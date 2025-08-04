@@ -52,10 +52,8 @@ Add field configuration in `model_training.py`:
 
 ### 3. Run Training
 ```bash
-python model_training.py \
-    --field new_field \
-    --data_file your_data.csv \
-    --epochs 3
+python ../../main.py ml-train your_data.csv \
+    --fields new_field
 ```
 
 ### 4. Model Output
@@ -84,9 +82,10 @@ Based on hyperparameter search results:
 
 Run hyperparameter search:
 ```bash
-python hyperparameter_search.py \
-    --field material \
-    --n_trials 50
+python ../../main.py ml-train your_data.csv \
+    --fields material \
+    --use-hp-search \
+    --hp-trials 50
 ```
 
 ## GPU Acceleration
