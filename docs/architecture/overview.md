@@ -88,7 +88,7 @@ Coordinates the detection workflow:
 
 - **ComprehensiveFieldDetector**: Manages detection across all fields and methods
 - **Evaluator**: Handles performance evaluation and metrics
-- **UnifiedDetectionInterface**: Provides consistent API for all detection methods
+
 
 ### 3. Detection Methods Layer
 

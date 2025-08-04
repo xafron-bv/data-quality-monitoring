@@ -7,6 +7,7 @@
 * [Installation](getting-started/installation.md)
 * [Quick Start](getting-started/quick-start.md)
 * [Basic Usage](getting-started/basic-usage.md)
+* [Understanding Entrypoints](getting-started/understanding-entrypoints.md)
 
 ## Architecture
 
