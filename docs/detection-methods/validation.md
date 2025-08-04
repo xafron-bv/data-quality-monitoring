@@ -6,6 +6,14 @@ Rule-based validation is the first line of defense in the anomaly detection syst
 
 Rule-based validation uses field-specific validators that implement business logic and domain constraints. Each validator is designed for a specific field type and enforces rules appropriate to that domain.
 
+## How It Works
+
+The validation process follows these steps:
+1. Input data is received by the field validator
+2. Field validator applies validation rules based on field type
+3. Each rule either passes (success) or fails (error)
+4. Results are collected and returned
+
 ## Architecture
 
 ```

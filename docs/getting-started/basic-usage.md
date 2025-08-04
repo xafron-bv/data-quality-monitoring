@@ -232,7 +232,7 @@ python main.py single-demo \
 
 ## Output Files
 
-After running, you'll find:
+After running detection, you'll find the following files in your output directory:
 
 ```
 output_dir/
@@ -246,6 +246,14 @@ output_dir/
     ├── per_field_matrix.png
     └── summary_visual.png
 ```
+
+The output directory contains:
+- **report.json**: Complete detection results in JSON format
+- **viewer_report.json**: Formatted for the HTML viewer
+- **anomaly_summary.csv**: CSV summary of all detected anomalies
+- **sample_with_errors.csv**: Your data with synthetic errors injected (if using evaluation mode)
+- **sample_with_results.csv**: Original data with detection results added
+- **confusion_matrix/**: Folder containing performance visualization images
 
 ## Practical Examples
 

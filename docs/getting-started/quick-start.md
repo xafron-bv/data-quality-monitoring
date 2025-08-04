@@ -159,22 +159,15 @@ See the [Basic Usage Guide](basic-usage.md) for more detailed examples.
 
 ## Troubleshooting
 
-### Common Issues
+If you encounter issues:
+- Check that all requirements are installed
+- Verify your CSV file format matches the expected structure
+- Ensure brand configuration is properly set up
+- Check the logs for detailed error messages
 
-1. **"No trained models found"**
-   - Train models first: `python main.py ml-train your_data.csv`
-   
-2. **"Field not recognized"**
-   - Check field mappings in brand configuration
-   - Use `analyze-column` to see available fields
+---
 
-3. **Out of Memory**
-   - Use `--core-fields-only` flag
-   - Reduce sample size
-   - Process in batches
-
-### Getting Help
-
-- Check logs in the output directory
-- Run with `--verbose` for detailed output
-- See [Troubleshooting Guide](../troubleshooting/common-issues.md)
+Ready to dive deeper? Check out our guides on:
+- [Understanding the different entrypoints](understanding-entrypoints.md)
+- [Configuring detection methods](../configuration/brand-config.md)
+- [Running performance evaluations](../getting-started/basic-usage.md)
