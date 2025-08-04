@@ -142,23 +142,13 @@ cp brand_configs/template.json brand_configs/your_brand.json
 # Edit with your brand's field mappings
 ```
 
-### 2. Environment Variables (Optional)
-
-Set environment variables for custom paths:
-
-```bash
-export DATA_QUALITY_DATA_PATH=/path/to/your/data
-export DATA_QUALITY_MODEL_PATH=/path/to/models
-export DATA_QUALITY_OUTPUT_PATH=/path/to/results
-```
-
 ## Verification
 
 Verify your installation by running a simple detection demo:
 
 ```bash
 # Run a simple detection demo
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py --help
+python main.py single-demo --help
 ```
 
 ## Troubleshooting

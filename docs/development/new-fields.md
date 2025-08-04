@@ -380,21 +380,17 @@ python main.py single-demo \
     --enable-ml \
     --output-dir test_results/new_field
 
-# Verify results
-python verify_field_detection.py \
-    --results test_results/new_field/detection_report.json \
-    --field new_field
+# Review results in test_results/new_field/
 ```
 
 ### 6.3 Performance Testing
 
 ```bash
 # Test with larger dataset
-python multi_sample_evaluation.py \
-    --data-file data/full_dataset.csv \
-    --fields new_field \
-    --num-samples 10 \
-    --sample-size 1000
+python main.py multi-eval \
+    --input data/full_dataset.csv \
+    --sample-size 1000 \
+    --output evaluation_results/new_field
 ```
 
 ## Step 7: Documentation

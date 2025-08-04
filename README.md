@@ -81,7 +81,7 @@ The easiest way to see the system in action:
 
 ```bash
 # Basic demo with all detection methods
-python single_sample_multi_field_demo.py \
+python main.py single-demo \
     --data-file your_data.csv \
     --enable-validation \
     --enable-pattern \
@@ -92,12 +92,12 @@ python single_sample_multi_field_demo.py \
 
 1. **Analyze your data**:
 ```bash
-python analyze_column.py --data-file your_data.csv --column product_name
+python main.py analyze-column your_data.csv product_name
 ```
 
 2. **Run detection**:
 ```bash
-python single_sample_multi_field_demo.py \
+python main.py single-demo \
     --data-file your_data.csv \
     --injection-intensity 0.2 \
     --output-dir results
@@ -130,7 +130,8 @@ Edit `brand_config.json` to map your data columns to standard fields:
 Adjust detection sensitivity:
 
 ```bash
-python single_sample_multi_field_demo.py \
+python main.py single-demo \
+    --data-file your_data.csv \
     --validation-threshold 0.0 \
     --anomaly-threshold 0.7 \
     --ml-threshold 0.7 \
@@ -159,8 +160,7 @@ Add pattern rules:
 
 Train a model:
 ```bash
-# Add field config in model_training.py
-python anomaly_detectors/ml_based/model_training.py --field new_field
+python main.py ml-train your_data.csv --fields new_field
 ```
 
 ## Advanced Usage
@@ -169,25 +169,25 @@ python anomaly_detectors/ml_based/model_training.py --field new_field
 
 Generate optimized weights based on evaluation results:
 ```bash
-python generate_detection_weights.py \
+python single_sample_multi_field_demo/generate_detection_weights.py \
     -i results/report.json \
-                             -o single_sample_multi_field_demo/detection_weights.json
+    -o detection_weights.json
 ```
 
 Use weighted combination:
 ```bash
-python single_sample_multi_field_demo.py \
+python main.py single-demo \
+    --data-file your_data.csv \
     --use-weighted-combination \
-    --weights-file single_sample_multi_field_demo/detection_weights.json
+    --weights-file detection_weights.json
 ```
 
 ### Batch Evaluation
 
 For systematic performance evaluation:
 ```bash
-python multi_sample_evaluation.py \
-    --data-file your_data.csv \
-    --num-samples 10 \
+python main.py multi-eval \
+    --input your_data.csv \
     --sample-size 1000
 ```
 
@@ -195,8 +195,8 @@ python multi_sample_evaluation.py \
 
 Analyze ML model performance:
 ```bash
-python ml_curve_generator.py \
-    --field material \
+python main.py ml-curves your_data.csv \
+    --fields material \
     --output-dir ml_analysis
 ```
 

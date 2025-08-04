@@ -148,7 +148,7 @@ Brand configuration is now statically configured in the system:
 
 ```bash
 # The demo uses static brand configuration (esqualo)
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
+python main.py single-demo \
     --data-file data/esqualo_products.csv
 
 # Brand options are deprecated in favor of static configuration
@@ -184,14 +184,16 @@ if config.enabled_fields and "color_name" in config.enabled_fields:
 touch brand_configs/new_brand.json
 ```
 
-### Step 2: Analyze Your Data
+## Analyzing Your Data
+
+First, understand your data structure:
 
 ```bash
-# Examine column names
-python analyze_column.py --data-file your_data.csv --list-columns
+# List all columns in your data
+python main.py analyze-column your_data.csv
 
-# Analyze specific column
-python analyze_column.py --data-file your_data.csv --column Material
+# Analyze a specific column
+python main.py analyze-column your_data.csv Material
 ```
 
 ### Step 3: Map Fields
@@ -214,10 +216,8 @@ Edit `new_brand.json`:
 
 ```bash
 # Test with small sample
-python single_sample_multi_field_demo.py \
-    --brand new_brand \
-    --sample-size 100 \
-    --dry-run
+python main.py single-demo \
+    --data-file your_data.csv
 ```
 
 ## Multi-Brand Setup
@@ -346,10 +346,9 @@ def validate_config(config):
 
 4. **Testing**: Always test with sample data
    ```bash
-   python single_sample_multi_field_demo.py \
-       --brand new_config \
-       --test-mode \
-       --sample-size 100
+   python main.py single-demo \
+       --data-file your_test_data.csv \
+       --output-dir test_results
    ```
 
 ## Troubleshooting

@@ -50,7 +50,7 @@ Example rule file structure:
 #### Training Process
 1. Prepare clean data samples
 2. Configure field in `model_training.py`
-3. Run: `python model_training.py --field {field_name}`
+3. Run: `python ../main.py ml-train your_data.csv --fields {field_name}`
 4. Model saved to `ml_based/models/trained/{field_name}/`
 
 ### 3. LLM-Based Detection (`/llm_based/`)

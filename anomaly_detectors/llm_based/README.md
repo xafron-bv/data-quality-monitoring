@@ -51,20 +51,19 @@ train_df = pd.DataFrame({
 ```
 
 ### 2. Configure Context (Optional)
+For LLM-based detection, configure context in the main single-demo or multi-eval commands:
 ```bash
-python llm_model_training.py \
-    --field material \
-    --temporal-column date \
-    --context-columns category,brand
+python ../../main.py single-demo \
+    --data-file your_data.csv \
+    --enable-llm \
+    --llm-temporal-column date \
+    --llm-context-columns category,brand
 ```
 
 ### 3. Run Training
 ```bash
-python llm_model_training.py \
-    --field material \
-    --train-file train_data.csv \
-    --val-file val_data.csv \
-    --epochs 10
+python ../../main.py llm-train train_data.csv \
+    --field material
 ```
 
 ## Usage Examples

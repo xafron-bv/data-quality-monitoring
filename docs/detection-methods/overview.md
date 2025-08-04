@@ -175,22 +175,21 @@ Control which methods run via command line:
 
 ```bash
 # Run all methods (default behavior when no methods are explicitly enabled)
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
+python main.py single-demo \
     --data-file data.csv
 
 # Run specific methods
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
+python main.py single-demo \
     --data-file data.csv \
     --enable-validation \
     --enable-pattern
 
 # Adjust thresholds
-python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
+python main.py single-demo \
     --data-file data.csv \
     --validation-threshold 0.0 \
-    --anomaly-threshold 0.7 \
-    --ml-threshold 0.75 \
-    --llm-threshold 0.6
+    --anomaly-threshold 0.8 \
+    --ml-threshold 0.75
 ```
 
 ## Method Dependencies
