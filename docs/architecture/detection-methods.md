@@ -215,7 +215,7 @@ Multiple detectors can run simultaneously:
 
 | Method | Single Record | 1K Records | 100K Records |
 |--------|--------------|------------|--------------|
-| Rule-Based | <1ms | ~10ms | ~1s |
+| Rule-Based | &lt;1ms | ~10ms | ~1s |
 | Pattern-Based | ~5ms | ~50ms | ~5s |
 | ML-Based (CPU) | ~10ms | ~100ms | ~10s |
 | ML-Based (GPU) | ~50ms | ~200ms | ~2s |

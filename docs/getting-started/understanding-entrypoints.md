@@ -12,7 +12,7 @@ The single-demo entrypoint is perfect when you want to quickly check data qualit
 
 ### What It Does
 
-This entrypoint takes your CSV file and runs it through multiple detection methods - validation rules, pattern detection, machine learning models, and optionally, language models. It then generates a beautiful HTML report that you can open in your browser to explore the results interactively.
+This entrypoint takes your CSV file and runs it through multiple detection methods - validation rules, pattern detection, machine learning models, and optionally, language models. It generates a JSON report that you can view using the interactive HTML viewer (data_quality_viewer.html) to explore the results visually.
 
 ### How It Works
 
@@ -45,7 +45,7 @@ Or perhaps you want validation and ML detection, but skip the others:
 python main.py single-demo --data-file your_data.csv --enable-validation --enable-ml
 ```
 
-The beauty is that you get immediate visual feedback. Open the generated HTML file, and you can filter by field, detection method, or confidence level. It's particularly useful when you're exploring a new dataset or debugging specific data quality issues.
+The beauty is that you get immediate visual feedback. Open data_quality_viewer.html in your browser, upload the generated JSON report, and you can filter by field, detection method, or confidence level. It's particularly useful when you're exploring a new dataset or debugging specific data quality issues.
 
 ## Multi-Eval: Performance Testing at Scale
 
@@ -53,30 +53,31 @@ While single-demo is great for exploration, multi-eval is your tool for systemat
 
 ### What It Does
 
-Multi-eval processes multiple samples with known errors and generates detailed performance metrics. It tells you things like: How many real errors did we catch? How many false alarms did we raise? What's our precision and recall?
+Multi-eval systematically evaluates detection performance by injecting known errors into your data. It processes a single field at a time, creating multiple test samples with various error combinations, then measures how well each detection method performs.
 
 ### How It Works
 
-The process is more complex than single-demo:
+The evaluation process is systematic:
 
-1. It expects data with injected errors and ground truth labels
-2. For each sample, it runs the detection methods
-3. It compares detected anomalies against the known errors
-4. It calculates confusion matrices, F1 scores, and other metrics
-5. It generates both numerical results and visual performance charts
+1. It takes clean source data and a specific field to evaluate
+2. It automatically injects different types of errors based on predefined rules
+3. It creates multiple samples with varying error combinations
+4. It runs the selected detection methods on each sample
+5. It compares detected anomalies against the injected errors
+6. It generates detailed metrics and confusion matrices
 
 ### Practical Usage
 
 Basic usage for evaluation:
 
 ```bash
-python main.py multi-eval --data-dir ./evaluation_data --output-dir ./results
+python main.py multi-eval source_data.csv --field material --output-dir ./results
 ```
 
-You can focus on specific detection methods:
+You can enable specific detection methods:
 
 ```bash
-python main.py multi-eval --data-dir ./evaluation_data --enable-ml --enable-pattern
+python main.py multi-eval source_data.csv --field material --ml-detector --run all
 ```
 
 This is invaluable when you're tuning detection thresholds or comparing different approaches. The generated reports show you exactly where each method succeeds and fails.
@@ -104,13 +105,19 @@ The training process is sophisticated:
 Basic training command:
 
 ```bash
-python main.py ml-train --brand your_brand
+python main.py ml-train data.csv
 ```
 
-With custom parameters:
+With hyperparameter search:
 
 ```bash
-python main.py ml-train --brand your_brand --epochs 5 --min-samples 100
+python main.py ml-train data.csv --use-hp-search --hp-trials 20
+```
+
+To check anomalies after training:
+
+```bash
+python main.py ml-train data.csv --check-anomalies material --threshold 0.7
 ```
 
 The key insight here is that you need clean, representative training data. The models learn from examples, so garbage in means garbage out. After training, you'll see metrics showing how well each field's model performs.
@@ -121,30 +128,30 @@ The llm-train entrypoint is the newest addition, bringing the power of large lan
 
 ### What It Does
 
-Instead of training from scratch, this entrypoint fine-tunes pre-trained language models to understand your specific data domains. It's particularly powerful for text-heavy fields like descriptions or categories.
+This entrypoint trains language models to understand your specific data patterns using masked language modeling. It's particularly powerful for text-heavy fields where context and language understanding matter.
 
 ### How It Works
 
 The LLM training process:
 
-1. Starts with a pre-trained language model
-2. Creates prompts that teach the model about your data patterns
-3. Fine-tunes using your training examples
-4. Optimizes for both accuracy and efficiency
-5. Saves the adapted model for inference
+1. Starts with a pre-trained BERT-based model
+2. Prepares your field data for masked language modeling
+3. Trains the model to understand your data vocabulary and patterns
+4. Evaluates perplexity to measure model quality
+5. Saves the trained model for anomaly detection
 
 ### Practical Usage
 
 Basic LLM training:
 
 ```bash
-python main.py llm-train --brand your_brand --model-size small
+python main.py llm-train data.csv --field material
 ```
 
-With specific configuration:
+With custom parameters:
 
 ```bash
-python main.py llm-train --brand your_brand --fields "description,category" --training-samples 1000
+python main.py llm-train data.csv --field material --epochs 5 --batch-size 16 --learning-rate 1e-5
 ```
 
 LLM detection is powerful but resource-intensive. Use it for fields where context and semantics matter most.
@@ -172,13 +179,13 @@ The analysis process examines:
 Analyze a specific column:
 
 ```bash
-python main.py analyze-column --data-file data.csv --column-name "material"
+python main.py analyze-column data.csv material
 ```
 
-With additional options:
+Or use the default field (color_name):
 
 ```bash
-python main.py analyze-column --data-file data.csv --column-name "size" --show-patterns --export-stats
+python main.py analyze-column data.csv
 ```
 
 This is particularly useful during initial data exploration or when debugging specific field issues.
@@ -203,16 +210,16 @@ The curve generation process:
 
 ### Practical Usage
 
-Generate curves for all fields:
+Generate curves for ML detection:
 
 ```bash
-python main.py ml-curves --brand your_brand
+python main.py ml-curves data.csv
 ```
 
-For specific fields with custom ranges:
+For LLM detection with specific fields:
 
 ```bash
-python main.py ml-curves --brand your_brand --fields "material,color" --threshold-range "0.5,0.9"
+python main.py ml-curves data.csv --detection-type llm --fields "material color"
 ```
 
 The ROC curves and precision-recall plots help you make informed decisions about threshold settings. You can see exactly how changing thresholds affects your detection performance.
