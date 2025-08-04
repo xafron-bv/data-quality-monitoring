@@ -16,6 +16,7 @@ class DetectionType(str, Enum):
     VALIDATION = "validation"
     ANOMALY = "anomaly"
     ML_ANOMALY = "ml_anomaly"
+    LLM_ANOMALY = "llm_anomaly"
 
 
 @dataclass

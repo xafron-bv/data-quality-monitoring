@@ -122,7 +122,10 @@ class ErrorInjector:
                         "original_data": original_data,
                         "injected_data": new_data,
                         "error_rule": rule.get('rule_name', rule.get('operation', 'unknown')),
-                        "rule_operation": rule['operation']
+                        "rule_operation": rule['operation'],
+                        "injection_type": "error",  # Mark as error
+                        "column_name": column_name,
+                        "field_name": field_name
                     })
 
         return df_copy, injected_errors

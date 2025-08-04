@@ -248,7 +248,7 @@ class ConfusionMatrixAnalyzer:
                                                    dataset_size: Optional[int] = None) -> Dict[str, Any]:
         """Calculate confusion matrices for each detection type."""
 
-        detection_types = ["validation", "pattern_based", "ml_based"]
+        detection_types = ["validation", "pattern_based", "ml_based", "llm_based"]
         per_type_results = {}
 
         for detection_type in detection_types:

@@ -18,6 +18,7 @@ import pandas as pd
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 import re
+import threading
 
 import evaluate
 import torch
@@ -208,7 +209,8 @@ def get_field_to_column_map(brand_name: str = "esqualo") -> Dict[str, str]:
     return config.field_mappings
 
 def calculate_sequence_probability(model, tokenizer, text: str, device: torch.device) -> float:
-    """Calculate the probability of a text sequence using the trained language model."""
+    """Calculate the anomaly score for a text sequence using the trained language model.
+    Returns a positive score where higher values indicate more anomalous text."""
     try:
         # Tokenize
         inputs = tokenizer(
@@ -223,28 +225,30 @@ def calculate_sequence_probability(model, tokenizer, text: str, device: torch.de
             outputs = model(**inputs)
             logits = outputs.logits
 
-        # Calculate average log probability
+        # Calculate average negative log probability (higher = more anomalous)
         probs = torch.softmax(logits, dim=-1)
         input_ids = inputs['input_ids'][0]
 
-        total_log_prob = 0.0
+        total_neg_log_prob = 0.0
         count = 0
 
         for i, token_id in enumerate(input_ids):
             if token_id != tokenizer.pad_token_id and token_id != tokenizer.cls_token_id:
                 prob = probs[0, i, token_id].item()
                 if prob > 0:
-                    total_log_prob += torch.log(torch.tensor(prob)).item()
+                    # Use negative log probability - higher values = more anomalous
+                    total_neg_log_prob += -torch.log(torch.tensor(prob)).item()
                     count += 1
 
         if count > 0:
-            return total_log_prob / count
+            # Return average negative log probability (positive value)
+            return total_neg_log_prob / count
         else:
-            return -10.0  # Very low probability
+            return 10.0  # High anomaly score
 
     except Exception as e:
         print(f"Error calculating probability: {e}")
-        return -10.0
+        return 10.0  # High anomaly score on error
 
 class LLMAnomalyDetector:
     """
@@ -267,7 +271,8 @@ class LLMAnomalyDetector:
         context_columns: Optional[List[str]] = None
     ):
         self.field_name = field_name
-        self.threshold = threshold
+        # Threshold is now positive - higher values are more anomalous
+        self.threshold = abs(threshold)
         self.use_gpu = use_gpu
         self.device = get_optimal_device(use_gpu)
         self.is_initialized = False
@@ -480,65 +485,275 @@ class LLMAnomalyDetector:
             except Exception as e:
                 print(f"In-context learning failed: {e}")
 
-        # Determine if anomaly based on probability threshold
-        is_anomaly = enhanced_probability < self.threshold
+        # Determine if anomaly based on threshold (higher score = more anomalous)
+        is_anomaly = enhanced_probability > self.threshold
 
         if is_anomaly:
+            # Normalize score to [0,1] range for probability
+            # Assuming typical scores range from 0 to 10
+            normalized_prob = min(enhanced_probability / 10.0, 1.0)
+            
             return AnomalyError(
                 anomaly_type="LLM_LANGUAGE_MODEL_ANOMALY",
-                probability=1 - (enhanced_probability + 10) / 10,  # Convert to [0,1] range
+                probability=normalized_prob,
                 details={
                     "detection_method": "llm_language_model",
-                    "explanation": f"Low probability sequence detected (score: {enhanced_probability:.3f}, threshold: {self.threshold})",
-                    "confidence": (enhanced_probability + 10) / 10,
-                    "probability_score": enhanced_probability,
+                    "explanation": f"High anomaly score detected (score: {enhanced_probability:.3f}, threshold: {self.threshold})",
+                    "confidence": 1.0 - normalized_prob,
+                    "anomaly_score": enhanced_probability,
                     "threshold": self.threshold,
                     "llm_components": explanation_parts
                 },
-                explanation=f"Low probability sequence detected (score: {enhanced_probability:.3f}, threshold: {self.threshold})"
+                explanation=f"High anomaly score detected (score: {enhanced_probability:.3f}, threshold: {self.threshold})"
             )
 
         return None
 
-    def bulk_detect(self, df: pd.DataFrame, column_name: str, batch_size: int = 1000, max_workers: int = 1) -> List[Optional[AnomalyError]]:
+    def bulk_detect(self, df: pd.DataFrame, column_name: str, batch_size: int = 100, max_workers: int = 4) -> List[Optional[AnomalyError]]:
         """
-        Detect anomalies in bulk for a DataFrame column.
-        Compatible with comprehensive_detector.py interface.
-
+        Detect anomalies in bulk for a DataFrame column using parallel processing.
+        
         Args:
             df: DataFrame containing the data
             column_name: Column name to detect anomalies in
-            batch_size: Batch size (not used in this implementation)
-            max_workers: Number of workers (not used in this implementation)
-
+            batch_size: Number of texts to process in each batch
+            max_workers: Number of concurrent workers for parallel processing
+            
         Returns:
             List of AnomalyError objects (None for non-anomalous values)
         """
-        if not self.has_trained_model:
-            print(f"⚠️  No trained model available for field '{self.field_name}', skipping LLM detection")
-            return [None] * len(df)
-
         # Initialize the detector if not already done
         if not self.is_initialized:
             self.learn_patterns(df, column_name)
-
+            
         if not self.is_initialized or not self.has_trained_model:
+            print(f"⚠️  No trained model available for field '{self.field_name}', skipping LLM detection")
             return [None] * len(df)
-
+            
         # Get values from the column
         values = df[column_name].astype(str).tolist()
-
-        # Detect anomalies
+        total_rows = len(values)
+        
+        print(f"[LLM Bulk Detect] Processing {total_rows} rows with batch_size={batch_size}, max_workers={max_workers}")
+        
+        # If using single worker or small dataset, use batch processing
+        if batch_size is None:
+            batch_size = 100  # Default batch size
+        
+        # For now, always use single-threaded processing to avoid parallel issues
+        return self._batch_detect(values, column_name, batch_size)
+        
+        # For multiple workers, split work across processes
+        import concurrent.futures
+        from functools import partial
+        
+        # Calculate chunks for each worker
+        chunk_size = max(batch_size, (total_rows + max_workers - 1) // max_workers)
+        chunks = []
+        
+        for i in range(0, total_rows, chunk_size):
+            chunk_values = values[i:i + chunk_size]
+            chunk_indices = list(range(i, min(i + chunk_size, total_rows)))
+            chunks.append((chunk_values, chunk_indices))
+        
+        print(f"[LLM Bulk Detect] Split into {len(chunks)} chunks for parallel processing")
+        
+        # Process chunks in parallel
+        results = [None] * total_rows
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all chunks for processing
+            future_to_chunk = {
+                executor.submit(self._process_chunk, chunk_values, chunk_indices, column_name, batch_size): chunk_idx
+                for chunk_idx, (chunk_values, chunk_indices) in enumerate(chunks)
+            }
+            
+            # Collect results as they complete
+            for future in concurrent.futures.as_completed(future_to_chunk):
+                chunk_idx = future_to_chunk[future]
+                try:
+                    chunk_results, chunk_indices = future.result()
+                    # Place results in correct positions
+                    for idx, result in zip(chunk_indices, chunk_results):
+                        results[idx] = result
+                except Exception as e:
+                    print(f"[LLM Bulk Detect] Chunk {chunk_idx} failed: {e}")
+                    # Fill failed chunk with None
+                    _, chunk_indices = chunks[chunk_idx]
+                    for idx in chunk_indices:
+                        results[idx] = None
+        
+        print(f"[LLM Bulk Detect] Completed processing {total_rows} rows")
+        return results
+    
+    def _create_worker_model(self):
+        """Create a copy of the model for a worker thread."""
+        import copy
+        import os
+        import torch
+        from transformers import AutoModelForMaskedLM, AutoTokenizer
+        
+        # Create a new detector instance with the same configuration
+        worker_detector = LLMAnomalyDetector(
+            field_name=self.field_name,
+            threshold=self.threshold,
+            use_gpu=False,  # Use CPU for worker threads to avoid GPU memory issues
+            enable_dynamic_encoding=self.enable_dynamic_encoding,
+            enable_prototype_reprogramming=self.enable_prototype_reprogramming,
+            enable_in_context_learning=self.enable_in_context_learning,
+            temporal_column=self.temporal_column,
+            context_columns=self.context_columns
+        )
+        
+        # Copy the model state
+        if self.model_path and os.path.exists(self.model_path):
+            # Load model directly to CPU to avoid meta tensor issues
+            worker_detector.language_model = AutoModelForMaskedLM.from_pretrained(
+                self.model_path,
+                device_map='cpu',
+                torch_dtype=torch.float32
+            )
+            worker_detector.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
+            worker_detector.language_model.eval()
+            worker_detector.is_initialized = True
+            worker_detector.has_trained_model = True
+            worker_detector.model_path = self.model_path
+            worker_detector.column_name = self.column_name
+            worker_detector.device = 'cpu'
+            
+            # Copy optional components if needed
+            if hasattr(self, 'dynamic_encoder') and self.dynamic_encoder:
+                worker_detector.dynamic_encoder = copy.deepcopy(self.dynamic_encoder)
+            if hasattr(self, 'prototype_reprogrammer') and self.prototype_reprogrammer:
+                worker_detector.prototype_reprogrammer = copy.deepcopy(self.prototype_reprogrammer)
+            if hasattr(self, 'in_context_learner') and self.in_context_learner:
+                worker_detector.in_context_learner = copy.deepcopy(self.in_context_learner)
+        
+        return worker_detector
+    
+    def _process_chunk(self, chunk_values: List[str], chunk_indices: List[int], column_name: str, batch_size: int) -> Tuple[List[Optional[AnomalyError]], List[int]]:
+        """Process a chunk of values using batch detection."""
+        # Use the main model with thread safety
+        chunk_results = self._batch_detect(chunk_values, column_name, batch_size)
+        
+        # Add row indices to anomalies
+        for i, (result, row_idx) in enumerate(zip(chunk_results, chunk_indices)):
+            if result:
+                result.row_index = row_idx
+        
+        return chunk_results, chunk_indices
+    
+    def _batch_detect(self, values: List[str], column_name: str, batch_size: int) -> List[Optional[AnomalyError]]:
+        """
+        Detect anomalies using batch processing for efficiency.
+        
+        Args:
+            values: List of text values to check
+            column_name: Column name for context
+            batch_size: Number of texts to process together
+            
+        Returns:
+            List of AnomalyError objects (None for non-anomalous values)
+        """
         results = []
-        for i, value in enumerate(values):
-            anomaly = self._detect_anomaly(value)
-            if anomaly:
-                # Add context information to the anomaly
-                anomaly.row_index = i
-                anomaly.column_name = column_name
-                anomaly.anomaly_data = value
-            results.append(anomaly)
-
+        total_values = len(values)
+        
+        # Process in batches
+        for batch_start in range(0, total_values, batch_size):
+            batch_end = min(batch_start + batch_size, total_values)
+            batch_values = values[batch_start:batch_end]
+            
+            # Preprocess batch
+            processed_batch = [preprocess_text(v) for v in batch_values]
+            valid_indices = [i for i, v in enumerate(processed_batch) if v is not None]
+            
+            if not valid_indices:
+                # All values in batch are invalid
+                results.extend([None] * len(batch_values))
+                continue
+            
+            # Get only valid values for processing
+            valid_values = [processed_batch[i] for i in valid_indices]
+            
+            try:
+                # Batch tokenization
+                inputs = self.tokenizer(
+                    valid_values,
+                    return_tensors='pt',
+                    truncation=True,
+                    max_length=128,
+                    padding=True
+                ).to(self.device)
+                
+                # Batch inference
+                with torch.no_grad():
+                    outputs = self.language_model(**inputs)
+                    logits = outputs.logits
+                
+                # Calculate probabilities for each text in batch
+                batch_probabilities = []
+                for i in range(len(valid_values)):
+                    # Calculate average log probability for this text
+                    probs = torch.softmax(logits[i], dim=-1)
+                    input_ids = inputs['input_ids'][i]
+                    
+                    total_neg_log_prob = 0.0
+                    count = 0
+                    
+                    for j, token_id in enumerate(input_ids):
+                        if token_id != self.tokenizer.pad_token_id and token_id != self.tokenizer.cls_token_id:
+                            prob = probs[j, token_id].item()
+                            if prob > 0:
+                                # Use negative log probability - higher values = more anomalous
+                                total_neg_log_prob += -torch.log(torch.tensor(prob)).item()
+                                count += 1
+                    
+                    if count > 0:
+                        avg_anomaly_score = total_neg_log_prob / count
+                    else:
+                        avg_anomaly_score = 10.0  # High anomaly score
+                        
+                    batch_probabilities.append(avg_anomaly_score)
+                
+                # Create results for this batch
+                batch_results = [None] * len(batch_values)
+                
+                for i, valid_idx in enumerate(valid_indices):
+                    anomaly_score = batch_probabilities[i]
+                    
+                    # Check if anomaly (higher score = more anomalous)
+                    if anomaly_score > self.threshold:
+                        # Normalize score to [0,1] range
+                        normalized_prob = min(anomaly_score / 10.0, 1.0)
+                        
+                        batch_results[valid_idx] = AnomalyError(
+                            anomaly_type="LLM_LANGUAGE_MODEL_ANOMALY",
+                            probability=normalized_prob,
+                            column_name=column_name,
+                            anomaly_data=batch_values[valid_idx],
+                            details={
+                                "detection_method": "llm_language_model_batch",
+                                "explanation": f"High anomaly score detected (score: {anomaly_score:.3f}, threshold: {self.threshold})",
+                                "confidence": 1.0 - normalized_prob,
+                                "anomaly_score": anomaly_score,
+                                "threshold": self.threshold,
+                                "batch_processing": True
+                            },
+                            explanation=f"High anomaly score detected (score: {anomaly_score:.3f}, threshold: {self.threshold})"
+                        )
+                
+                results.extend(batch_results)
+                
+            except Exception as e:
+                print(f"[LLM Batch Detect] Batch processing failed: {e}")
+                # Fall back to individual processing for this batch
+                for value in batch_values:
+                    anomaly = self._detect_anomaly(value)
+                    if anomaly:
+                        anomaly.column_name = column_name
+                        anomaly.anomaly_data = value
+                    results.append(anomaly)
+        
         return results
 
     def detect_anomalies(self, values: List[str], context: Optional[List[Dict[str, Any]]] = None) -> List[Optional[AnomalyError]]:

@@ -38,7 +38,7 @@ from .model_training import get_field_configs, setup_results_directory_structure
 
 # --- Main Execution ---
 
-def entry(csv_file=None, use_hp_search=False, hp_trials=15, rules=None, check_anomalies=None,
+def entry(csv_file=None, use_hp_search=False, hp_trials=15, fields=None, check_anomalies=None,
           threshold=0.6, output=None, brand=None, brand_config=None):
     """Entry function for ML index generation."""
 
@@ -105,10 +105,10 @@ def entry(csv_file=None, use_hp_search=False, hp_trials=15, rules=None, check_an
     torch.manual_seed(42)
     np.random.seed(42)
 
-    selected_fields = set(rules) if rules else None
+    selected_fields = set(fields) if fields else None
 
     for field_name, column_name in field_to_column_map.items():
-        # If --rules is set, skip field_names not in the list
+        # If --fields is set, skip field_names not in the list
         if selected_fields and field_name not in selected_fields:
             continue
         if column_name not in df.columns:
@@ -204,7 +204,7 @@ if __name__ == "__main__":
     parser.add_argument("csv_file", help="The path to the input CSV file.")
     parser.add_argument("--use-hp-search", action="store_true", help="Use RECALL-FOCUSED hyperparameter search.")
     parser.add_argument("--hp-trials", type=int, default=15, help="Number of hyperparameter search trials (default: 15).")
-    parser.add_argument("--rules", nargs='+', default=None, help="List of field names to include in training/hp search (by field name, space-separated, e.g. 'size material'). If not set, all fields are used.")
+    parser.add_argument("--fields", nargs='+', default=None, help="List of field names to include in training/hp search (by field name, space-separated, e.g. 'size material'). If not set, all fields are used.")
     parser.add_argument("--check-anomalies", metavar="FIELD", help="Run anomaly check on the given field using the trained model.")
     parser.add_argument("--threshold", type=float, default=0.6, help="Similarity threshold for anomaly detection (default: 0.6)")
     parser.add_argument("--output", default=None, help="Optional output CSV file for anomaly check results.")
@@ -216,7 +216,7 @@ if __name__ == "__main__":
         csv_file=args.csv_file,
         use_hp_search=args.use_hp_search,
         hp_trials=args.hp_trials,
-        rules=args.rules,
+        fields=args.fields,
         check_anomalies=args.check_anomalies,
         threshold=args.threshold,
         output=args.output,
