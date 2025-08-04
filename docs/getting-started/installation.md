@@ -160,30 +160,6 @@ python -m pytest tests/
 python single_sample_multi_field_demo/single_sample_multi_field_demo.py --help
 ```
 
-## Docker Installation (Alternative)
-
-For containerized deployment:
-
-```dockerfile
-FROM python:3.8-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-CMD ["python", "main.py"]
-```
-
-Build and run:
-
-```bash
-docker build -t data-quality-detector .
-docker run -v $(pwd)/data:/app/data data-quality-detector
-```
-
 ## Troubleshooting
 
 ### Common Issues
