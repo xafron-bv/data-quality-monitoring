@@ -26,12 +26,6 @@ classDiagram
         <<interface>>
         +generate_report(errors, original_df)
     }
-    
-    class UnifiedDetectionInterface {
-        <<interface>>
-        +detect(data, fields, config)
-        +get_detection_results()
-    }
 ```
 
 ## AnomalyDetectorInterface

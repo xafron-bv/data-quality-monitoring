@@ -40,7 +40,7 @@ graph TB
     subgraph "Orchestration Layer"
         B1[ComprehensiveFieldDetector]
         B2[Evaluator]
-        B3[UnifiedDetectionInterface]
+        
     end
     
     subgraph "Detection Methods Layer"
