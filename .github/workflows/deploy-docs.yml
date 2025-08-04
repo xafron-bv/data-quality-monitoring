@@ -8,6 +8,12 @@ on:
       - 'docs/**'
       - '.github/workflows/deploy-docs.yml'
 
+  # Runs on pull requests targeting any branch
+  pull_request:
+    paths:
+      - 'docs/**'
+      - '.github/workflows/deploy-docs.yml'
+
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -46,17 +52,21 @@ jobs:
         run: npm run build
         working-directory: ./docs
 
+      # Only upload artifacts for deployment if on main branch
       - name: Setup Pages
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: actions/configure-pages@v4
 
       - name: Upload artifact
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload entire repository
           path: './docs/build'
 
-  # Deployment job
+  # Deployment job - only runs on main branch
   deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
