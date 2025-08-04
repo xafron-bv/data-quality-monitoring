@@ -7,6 +7,12 @@ on:
     paths:
       - 'docs/**'
       - '.github/workflows/deploy-docs.yml'
+  
+  # Runs on pull requests to validate the build
+  pull_request:
+    paths:
+      - 'docs/**'
+      - '.github/workflows/deploy-docs.yml'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -16,11 +22,12 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  pull-requests: write  # Needed for PR comments
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
-  group: "pages"
+  group: "pages-${{ github.ref }}"
   cancel-in-progress: false
 
 jobs:
@@ -47,16 +54,46 @@ jobs:
         working-directory: ./docs
 
       - name: Setup Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v4
 
       - name: Upload artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload entire repository
           path: './docs/build'
+      
+      # For PRs, upload build artifacts for inspection (optional)
+      - name: Upload PR build artifacts
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-build-pr-${{ github.event.pull_request.number }}
+          path: './docs/build'
+          retention-days: 7
 
-  # Deployment job
+      # Comment on PR with build status (optional)
+      - name: Comment PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const outcome = '${{ job.status }}';
+            const message = outcome === 'success' 
+              ? '✅ Documentation build succeeded! The build artifacts have been uploaded for inspection.'
+              : '❌ Documentation build failed! Please check the workflow logs for details.';
+            
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: message
+            });
+
+  # Deployment job - only runs on main branch
   deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
