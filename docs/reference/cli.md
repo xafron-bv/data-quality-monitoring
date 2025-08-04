@@ -38,19 +38,15 @@ python main.py single-demo [options]
 #### Optional Arguments
 
 **Output Options:**
-- `--output-dir PATH`: Output directory (default: `results/demo_{timestamp}`)
-- `--output-prefix STR`: Prefix for output files
+- `--output-dir PATH`: Output directory (default: `demo_results`)
 
 **Detection Methods:**
-- `--enable-all`: Enable all detection methods
 - `--enable-validation`: Enable validation detection
 - `--enable-pattern`: Enable pattern-based detection
 - `--enable-ml`: Enable ML-based detection
 - `--enable-llm`: Enable LLM-based detection
-- `--disable-validation`: Disable validation
-- `--disable-pattern`: Disable pattern detection
-- `--disable-ml`: Disable ML detection
-- `--disable-llm`: Disable LLM detection
+
+Note: If no detection methods are explicitly enabled, all available methods run by default.
 
 **Thresholds:**
 - `--validation-threshold FLOAT`: Validation threshold (default: 0.0)
@@ -59,22 +55,23 @@ python main.py single-demo [options]
 - `--llm-threshold FLOAT`: LLM threshold (default: 0.6)
 
 **Error Injection:**
-- `--injection-intensity FLOAT`: Error injection rate 0-1 (default: 0.0)
-- `--anomaly-proportion FLOAT`: Proportion of anomalies vs errors (default: 0.5)
+- `--injection-intensity FLOAT`: Probability of injecting issues per cell (default: 0.2)
+- `--max-issues-per-row INT`: Maximum fields to corrupt per row (default: 2)
 
-**Performance:**
-- `--sample-size INT`: Number of rows to process (default: all)
-- `--batch-size INT`: Batch size for processing (default: 100)
-- `--device STR`: Device for ML/LLM (cpu/cuda) (default: auto)
+**LLM Options:**
+- `--llm-few-shot-examples`: Enable few-shot examples for LLM
+- `--llm-temporal-column STR`: Column with temporal info for LLM
+- `--llm-context-columns STR`: Comma-separated context columns
 
 **Combination Strategy:**
 - `--use-weighted-combination`: Use weighted score combination
-- `--weights-file PATH`: Path to detection weights JSON
+- `--weights-file PATH`: Path to detection weights JSON (default: detection_weights.json)
+- `--generate-weights`: Generate weights after completion
+- `--weights-output-file PATH`: Output for generated weights
+- `--baseline-weight FLOAT`: Weight for poor performing methods (default: 0.1)
 
 **Field Selection:**
-- `--fields FIELD1 FIELD2`: Specific fields to analyze
-- `--core-fields-only`: Process only core fields
-- `--exclude-fields FIELD1 FIELD2`: Fields to exclude
+- `--core-fields-only`: Process only core fields (material, color_name, category, size, care_instructions)
 
 #### Examples
 
@@ -93,9 +90,7 @@ python main.py single-demo \
     --data-file data/products.csv \
     --enable-validation \
     --enable-ml \
-    --ml-threshold 0.8 \
-    --disable-pattern \
-    --disable-llm
+    --ml-threshold 0.8
 
 # Using weighted combination
 python main.py single-demo \
@@ -114,36 +109,55 @@ python main.py multi-eval [options]
 #### Arguments
 
 **Required:**
-- `--data-file PATH`: Input data file
+- `--field FIELD`: Target field to validate (e.g., 'material', 'care_instructions')
+
+**Optional:**
+- `--validator STR`: Validator name (defaults to field name)
+- `--anomaly-detector STR`: Anomaly detector name (defaults to validator name)
+- `--ml-detector`: Enable ML-based detection
+- `--llm-detector`: Enable LLM-based detection
+- `--run CHOICE`: What to run: validation, anomaly, ml, llm, both, all (default: both)
 
 **Sampling:**
-- `--num-samples INT`: Number of evaluation samples (default: 10)
-- `--sample-size INT`: Size of each sample (default: 1000)
-- `--seed INT`: Random seed for reproducibility
+- `--num-samples INT`: Number of samples to generate (default: 32)
+- `--max-errors INT`: Max errors per sample (default: 3)
+- `--error-probability FLOAT`: Error injection probability (default: 0.1)
 
-**Evaluation:**
-- `--injection-intensities FLOAT [FLOAT ...]`: List of injection intensities
-- `--cross-validation`: Enable cross-validation
-- `--cv-folds INT`: Number of CV folds (default: 5)
+**Output:**
+- `--output-dir PATH`: Results directory (default: evaluation_results)
+- `--ignore-errors ERROR [ERROR ...]`: Error rules to ignore
+- `--ignore-fp`: Ignore false positives in evaluation
+
+**Thresholds:**
+- `--validation-threshold FLOAT`: Validation threshold (default: 0.0)
+- `--anomaly-threshold FLOAT`: Anomaly threshold (default: 0.7)
+- `--ml-threshold FLOAT`: ML threshold (default: 0.7)
+- `--llm-threshold FLOAT`: LLM threshold (default: 0.6)
+- `--high-confidence-threshold FLOAT`: High confidence threshold (default: 0.8)
+
+**Performance:**
+- `--batch-size INT`: Batch size (default: auto)
+- `--max-workers INT`: Parallel workers (default: 7)
 
 #### Examples
 
 ```bash
 # Basic evaluation
 python main.py multi-eval \
-    --data-file data/products.csv \
-    --num-samples 20 \
-    --sample-size 500
+    --field material \
+    --num-samples 50
 
-# Multiple injection intensities
+# Full evaluation with all detectors
 python main.py multi-eval \
-    --data-file data/products.csv \
-    --injection-intensities 0.1 0.2 0.3 0.4 \
-    --num-samples 10
+    --field care_instructions \
+    --run all \
+    --ml-detector \
+    --llm-detector \
+    --num-samples 100
 ```
 
 ### ml-train
-Train ML-based anomaly detection models.
+Train ML-based anomaly detection models or run anomaly checks.
 
 ```bash
 python main.py ml-train [options]
@@ -151,58 +165,45 @@ python main.py ml-train [options]
 
 #### Arguments
 
-**Required:**
-- `--field FIELD`: Field to train model for
-- `--data-file PATH`: Training data file
+**Options:**
+- `--use-hp-search`: Use recall-focused hyperparameter search
+- `--hp-trials INT`: Number of hyperparameter search trials (default: 15)
+- `--fields FIELD [FIELD ...]`: Fields to include in training (default: all)
+- `--check-anomalies FIELD`: Run anomaly check on given field
+- `--threshold FLOAT`: Similarity threshold for anomaly detection (default: 0.6)
+- `--output PATH`: Output CSV file for anomaly check results
 
-**Training:**
-- `--epochs INT`: Training epochs (default: 10)
-- `--batch-size INT`: Training batch size (default: 32)
-- `--learning-rate FLOAT`: Learning rate (default: 2e-5)
-- `--model-name STR`: Base model name (default: sentence-transformers)
-
-**Output:**
-- `--output-dir PATH`: Model output directory
-- `--save-every INT`: Save checkpoint every N epochs
+Note: This command primarily manages pre-trained models and hyperparameter search rather than training from scratch.
 
 #### Examples
 
 ```bash
-# Train material field model
+# Run hyperparameter search
 python main.py ml-train \
-    --field material \
-    --data-file data/clean_materials.csv \
-    --epochs 20 \
-    --output-dir models/material
+    --use-hp-search \
+    --fields material color_name
 
-# Train with custom parameters
+# Check anomalies in a field
 python main.py ml-train \
-    --field color_name \
-    --data-file data/colors.csv \
-    --batch-size 64 \
-    --learning-rate 1e-5
+    --check-anomalies material \
+    --threshold 0.7 \
+    --output anomaly_results.csv
 ```
 
 ### analyze-column
-Analyze data distribution and patterns in columns.
+Analyze a specific column in a CSV file.
 
 ```bash
-python main.py analyze-column [options]
+python main.py analyze-column CSV_FILE [FIELD_NAME]
 ```
 
 #### Arguments
 
-**Required (one of):**
-- `--column COLUMN`: Column to analyze
-- `--list-columns`: List all columns
+**Positional:**
+- `CSV_FILE`: Path to the CSV file to analyze
+- `FIELD_NAME`: Name of the field to analyze (default: color_name)
 
-**Input:**
-- `--data-file PATH`: Input data file
-
-**Analysis:**
-- `--show-stats`: Show statistical summary
-- `--show-patterns`: Show pattern analysis
-- `--top-n INT`: Number of top values to show (default: 20)
+Note: Brand configuration is deprecated and uses static config.
 - `--sample-values INT`: Number of sample values (default: 10)
 
 #### Examples

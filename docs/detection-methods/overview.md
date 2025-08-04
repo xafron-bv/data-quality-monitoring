@@ -174,18 +174,19 @@ Different fields may benefit from different detection methods:
 Control which methods run via command line:
 
 ```bash
-# Run all methods
-python single_sample_multi_field_demo.py --enable-all
+# Run all methods (default behavior when no methods are explicitly enabled)
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
+    --data-file data.csv
 
 # Run specific methods
-python single_sample_multi_field_demo.py \
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
+    --data-file data.csv \
     --enable-validation \
-    --enable-pattern \
-    --disable-ml \
-    --disable-llm
+    --enable-pattern
 
 # Adjust thresholds
-python single_sample_multi_field_demo.py \
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
+    --data-file data.csv \
     --validation-threshold 0.0 \
     --anomaly-threshold 0.7 \
     --ml-threshold 0.75 \
@@ -239,7 +240,6 @@ For different use cases, consider these combinations:
 
 ## Next Steps
 
-- Dive deep into [Rule-Based Validation](validation.md)
-- Explore [Pattern-Based Detection](pattern-based.md)
-- Learn about [ML-Based Detection](ml-based.md)
-- Understand [LLM-Based Detection](llm-based.md)
+- Explore the [API Reference](../api/interfaces.md)
+- Learn about [Configuration](../configuration/brand-config.md)
+- Read about [Adding New Fields](../development/new-fields.md)
