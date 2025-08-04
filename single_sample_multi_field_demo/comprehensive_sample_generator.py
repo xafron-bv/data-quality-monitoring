@@ -63,8 +63,8 @@ def generate_comprehensive_sample(df: pd.DataFrame,
                                 injection_intensity: float = 0.2,
                                 max_issues_per_row: int = 2,
                                 field_mapper: Optional[FieldMapper] = None,
-                                error_rules_dir: str = os.path.join(os.path.dirname(__file__), 'validators', 'error_injection_rules'),
-                                anomaly_rules_dir: str = os.path.join(os.path.dirname(__file__), 'anomaly_detectors', 'anomaly_injection_rules')) -> Tuple[pd.DataFrame, Dict[str, List[Dict[str, Any]]]]:
+                                error_rules_dir: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'validators', 'error_injection_rules'),
+                                anomaly_rules_dir: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'anomaly_detectors', 'anomaly_injection_rules')) -> Tuple[pd.DataFrame, Dict[str, List[Dict[str, Any]]]]:
     """
     Generate a comprehensive sample with errors and anomalies across all available fields.
 

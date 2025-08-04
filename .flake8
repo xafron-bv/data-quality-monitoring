@@ -55,7 +55,7 @@ per-file-ignores =
     # Allow star imports in __init__ files  
     __init__.py:F403
     # Allow redefinitions in certain files
-    anomaly_detectors/ml_based/index.py:F811
+    anomaly_detectors/ml_based/main.py:F811
     anomaly_detectors/ml_based/ml_anomaly_detector.py:F811
     anomaly_detectors/ml_based/hyperparameter_search.py:F821
     anomaly_detectors/ml_based/model_training.py:F821

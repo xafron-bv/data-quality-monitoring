@@ -248,7 +248,7 @@ class ComprehensiveFieldDetector:
     def _has_llm_capability(self, field_name: str) -> bool:
         """Check if LLM-based anomaly detection is available for a field."""
         try:
-            llm_detector = LLMAnomalyDetector(field_name=field_name, threshold=self.ml_threshold)
+            llm_detector = LLMAnomalyDetector(field_name=field_name, threshold=self.llm_threshold)
             return True
         except:
             return False

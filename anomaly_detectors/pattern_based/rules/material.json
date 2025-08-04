@@ -31,7 +31,7 @@
       "name": "minimum_length",
       "description": "Material should not be too short",
       "type": "min_length",
-      "min_length": 5,
+      "min_length": 2,
       "probability": 0.8,
       "message": "Material composition seems too brief"
     }
