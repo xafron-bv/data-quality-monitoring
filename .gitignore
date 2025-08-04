@@ -16,3 +16,10 @@ llm_results/
 # Model directories
 models/
 core
+
+# Documentation build artifacts
+docs/node_modules/
+docs/build/
+docs/.docusaurus/
+docs/.cache-loader/
+docs/package-lock.json
