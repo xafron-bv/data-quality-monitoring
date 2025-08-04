@@ -16,6 +16,7 @@ const sidebars = {
   // By default, Docusaurus generates a sidebar from the docs folder structure
   tutorialSidebar: [
     'README',
+    'DETECTION_SYSTEM_ANALYSIS',
     {
       type: 'category',
       label: 'Getting Started',
@@ -30,9 +31,6 @@ const sidebars = {
       label: 'Architecture',
       items: [
         'architecture/overview',
-        'architecture/core-components',
-        'architecture/detection-methods',
-        'architecture/data-flow',
       ],
     },
     {
@@ -40,10 +38,6 @@ const sidebars = {
       label: 'Detection Methods',
       items: [
         'detection-methods/overview',
-        'detection-methods/validation',
-        'detection-methods/pattern-based',
-        'detection-methods/ml-based',
-        'detection-methods/llm-based',
       ],
     },
     {
@@ -51,10 +45,6 @@ const sidebars = {
       label: 'API Reference',
       items: [
         'api/interfaces',
-        'api/validators',
-        'api/anomaly-detectors',
-        'api/reporters',
-        'api/utilities',
       ],
     },
     {
@@ -62,9 +52,6 @@ const sidebars = {
       label: 'Configuration',
       items: [
         'configuration/brand-config',
-        'configuration/field-mappings',
-        'configuration/thresholds',
-        'configuration/models',
       ],
     },
     {
@@ -72,10 +59,6 @@ const sidebars = {
       label: 'Development',
       items: [
         'development/new-fields',
-        'development/validators',
-        'development/training',
-        'development/testing',
-        'development/contributing',
       ],
     },
     {
@@ -83,9 +66,6 @@ const sidebars = {
       label: 'Operations',
       items: [
         'operations/deployment',
-        'operations/performance',
-        'operations/monitoring',
-        'operations/troubleshooting',
       ],
     },
     {
@@ -93,9 +73,6 @@ const sidebars = {
       label: 'Reference',
       items: [
         'reference/cli',
-        'reference/config-files',
-        'reference/error-codes',
-        'reference/glossary',
       ],
     },
   ],

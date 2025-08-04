@@ -43,7 +43,23 @@ const config = {
           path: '.', // Use current directory as docs
           routeBasePath: '/', // Serve docs at the root
           sidebarPath: './sidebars.js',
-          exclude: ['**/node_modules/**', '**/.docusaurus/**', '**/build/**', '**/.git/**', '**/src/**', '**/static/**'],
+          exclude: [
+            '**/node_modules/**', 
+            '**/.docusaurus/**', 
+            '**/build/**', 
+            '**/.git/**', 
+            '**/src/**', 
+            '**/static/**',
+            '**/pitch/**',
+            '**/.gitbook.yaml',
+            '**/book.json',
+            '**/SUMMARY.md',
+            '**/package.json',
+            '**/package-lock.json',
+            '**/*.js',
+            '**/*.json',
+            '**/*.css'
+          ],
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
