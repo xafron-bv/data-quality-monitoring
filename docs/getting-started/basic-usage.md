@@ -30,55 +30,49 @@ flowchart LR
 Run detection on your data with default settings:
 
 ```bash
-python single_sample_multi_field_demo.py \
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
     --data-file data/products.csv
 ```
 
 ### 2. Specify Output Location
 
 ```bash
-python single_sample_multi_field_demo.py \
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
     --data-file data/products.csv \
     --output-dir results/my_analysis
 ```
 
 ### 3. Select Specific Fields
 
+Process only core fields defined in brand configuration:
+
 ```bash
-python single_sample_multi_field_demo.py \
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
     --data-file data/products.csv \
-    --fields material color_name category
+    --core-fields-only
 ```
 
 ## Working with Detection Methods
 
-### Enable All Methods
+### Enable Specific Methods
 
-```bash
-python single_sample_multi_field_demo.py \
-    --data-file data/products.csv \
-    --enable-all
-```
-
-### Selective Method Activation
+By default, if no detection methods are explicitly enabled, all available methods run. To selectively enable methods:
 
 ```bash
 # Only validation and ML
-python single_sample_multi_field_demo.py \
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
     --data-file data/products.csv \
     --enable-validation \
-    --enable-ml \
-    --disable-pattern \
-    --disable-llm
+    --enable-ml
 ```
 
 ### Adjusting Thresholds
 
 ```bash
-python single_sample_multi_field_demo.py \
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
     --data-file data/products.csv \
     --ml-threshold 0.8 \
-    --pattern-threshold 0.75
+    --anomaly-threshold 0.75
 ```
 
 ## Understanding Results
@@ -121,14 +115,16 @@ Quick assessment of your data quality:
 
 ```bash
 # Analyze data distribution first
-python analyze_column.py \
+python analyze_column/analyze_column.py \
     --data-file data/products.csv \
     --column material
 
 # Run comprehensive detection
-python single_sample_multi_field_demo.py \
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
     --data-file data/products.csv \
-    --enable-all \
+    --enable-validation \
+    --enable-pattern \
+    --enable-ml \
     --output-dir results/assessment
 ```
 
@@ -137,11 +133,10 @@ python single_sample_multi_field_demo.py \
 Validate data before importing to production:
 
 ```bash
-python single_sample_multi_field_demo.py \
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
     --data-file data/import_batch.csv \
     --enable-validation \
-    --validation-threshold 0.0 \
-    --fail-on-errors
+    --validation-threshold 0.0
 ```
 
 ### 3. Anomaly Detection
@@ -149,7 +144,7 @@ python single_sample_multi_field_demo.py \
 Find unusual patterns in existing data:
 
 ```bash
-python single_sample_multi_field_demo.py \
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
     --data-file data/catalog.csv \
     --enable-pattern \
     --enable-ml \
@@ -161,10 +156,12 @@ python single_sample_multi_field_demo.py \
 Test with synthetic errors:
 
 ```bash
-python single_sample_multi_field_demo.py \
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
     --data-file data/clean_data.csv \
     --injection-intensity 0.2 \
-    --enable-all \
+    --enable-validation \
+    --enable-pattern \
+    --enable-ml \
     --output-dir results/performance_test
 ```
 
@@ -201,15 +198,11 @@ python single_sample_multi_field_demo.py \
 Set up your brand mapping:
 
 ```bash
-# Use predefined brand
-python single_sample_multi_field_demo.py \
-    --data-file data/products.csv \
-    --brand esqualo
+# Use predefined brand (brand config is now static)
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
+    --data-file data/products.csv
 
-# Or specify custom config
-python single_sample_multi_field_demo.py \
-    --data-file data/products.csv \
-    --config my_brand_config.json
+# Brand configuration is deprecated - uses static config
 ```
 
 ### Performance Optimization
@@ -217,10 +210,8 @@ python single_sample_multi_field_demo.py \
 For large datasets:
 
 ```bash
-python single_sample_multi_field_demo.py \
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
     --data-file data/large_catalog.csv \
-    --sample-size 10000 \
-    --batch-size 500 \
     --core-fields-only
 ```
 
@@ -250,10 +241,10 @@ Always analyze your data first:
 
 ```bash
 # List columns
-python analyze_column.py --data-file data.csv --list-columns
+python analyze_column/analyze_column.py --data-file data.csv --list-columns
 
 # Analyze specific columns
-python analyze_column.py --data-file data.csv --column material
+python analyze_column/analyze_column.py --data-file data.csv --column material
 ```
 
 ### 2. Progressive Detection
@@ -262,20 +253,23 @@ Start with high-confidence methods:
 
 ```bash
 # Step 1: Validation only
-python single_sample_multi_field_demo.py \
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
     --data-file data.csv \
     --enable-validation
 
 # Step 2: Add pattern detection
-python single_sample_multi_field_demo.py \
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
     --data-file data.csv \
     --enable-validation \
     --enable-pattern
 
 # Step 3: Full detection
-python single_sample_multi_field_demo.py \
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
     --data-file data.csv \
-    --enable-all
+    --enable-validation \
+    --enable-pattern \
+    --enable-ml \
+    --enable-llm
 ```
 
 ### 3. Iterative Refinement
@@ -323,14 +317,11 @@ Keep track of successful configurations:
 
 ### Performance Issues
 
-- Use `--sample-size` to process subset
-- Disable resource-intensive methods (LLM)
-- Increase `--batch-size` for efficiency
-- Use `--device cpu` if GPU issues
+- Use `--core-fields-only` to process subset of fields
+- Disable resource-intensive methods (LLM) by not using --enable-llm
+- Process smaller files or split large files
 
 ## Next Steps
 
-- Explore [Advanced Features](../guides/running-detection.md)
 - Set up [Custom Configuration](../configuration/brand-config.md)
 - Learn about [Adding New Fields](../development/new-fields.md)
-- Review [Performance Tuning](../operations/performance.md)

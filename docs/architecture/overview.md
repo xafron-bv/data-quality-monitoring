@@ -49,7 +49,7 @@ graph TB
     subgraph "Core Services"
         CS1[Field Mapper]
         CS2[Brand Config]
-        CS3[Error Injection]
+        CS3[Error Injector]
         CS4[Model Cache]
     end
     
@@ -88,7 +88,7 @@ Coordinates the detection workflow:
 
 - **ComprehensiveFieldDetector**: Manages detection across all fields and methods
 - **Evaluator**: Handles performance evaluation and metrics
-- **UnifiedInterface**: Provides consistent API for all detection methods
+- **UnifiedDetectionInterface**: Provides consistent API for all detection methods
 
 ### 3. Detection Methods Layer
 
@@ -115,7 +115,7 @@ Provides shared functionality:
 
 - **FieldMapper**: Translates between standard fields and column names
 - **BrandConfig**: Manages brand-specific configurations
-- **ErrorInjection**: Generates synthetic errors for testing
+- **ErrorInjector**: Generates synthetic errors for testing
 - **Reporters**: Formats and outputs detection results
 
 ### 5. Data Layer
@@ -261,6 +261,6 @@ The system includes several performance optimizations:
 
 ## Next Steps
 
-- Learn about [Core Components](core-components.md) in detail
-- Understand [Detection Methods](detection-methods.md) implementation
-- Explore [Data Flow](data-flow.md) through the system
+- Understand [Detection Methods](../detection-methods/overview.md) implementation
+- Explore the [API Reference](../api/interfaces.md)
+- Learn about [Configuration](../configuration/brand-config.md)

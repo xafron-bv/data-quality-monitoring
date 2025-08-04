@@ -4,41 +4,39 @@ This guide covers deployment options and best practices for the Data Quality Det
 
 ## Deployment Architecture
 
+The Data Quality Detection System is designed as a batch processing tool that can be integrated into data pipelines or run on-demand.
+
 ```mermaid
 graph TB
-    subgraph "Load Balancer"
-        LB[Nginx/HAProxy]
+    subgraph "Data Sources"
+        S1[CSV Files]
+        S2[Data Pipeline]
+        S3[Database Export]
     end
     
-    subgraph "Application Tier"
-        A1[Detection Service 1]
-        A2[Detection Service 2]
-        A3[Detection Service N]
+    subgraph "Detection System"
+        D1[Field Mapper]
+        D2[Validators]
+        D3[Pattern Detectors]
+        D4[ML Models]
     end
     
-    subgraph "Processing Tier"
-        W1[Worker 1<br/>ML/LLM Processing]
-        W2[Worker 2<br/>ML/LLM Processing]
-        W3[Worker N<br/>ML/LLM Processing]
+    subgraph "Output"
+        O1[Detection Reports]
+        O2[CSV Results]
+        O3[JSON Reports]
     end
     
-    subgraph "Storage Tier"
-        D1[(Input Data)]
-        D2[(Model Storage)]
-        D3[(Results Storage)]
-        D4[(Configuration)]
+    subgraph "Storage"
+        ST1[Brand Configs]
+        ST2[Pre-trained Models]
+        ST3[Detection Rules]
     end
     
-    subgraph "Monitoring"
-        M1[Metrics]
-        M2[Logs]
-        M3[Alerts]
-    end
-    
-    LB --> A1 & A2 & A3
-    A1 & A2 & A3 --> W1 & W2 & W3
-    W1 & W2 & W3 --> D1 & D2 & D3 & D4
-    A1 & A2 & A3 --> M1 & M2 & M3
+    S1 & S2 & S3 --> D1
+    D1 --> D2 & D3 & D4
+    ST1 & ST2 & ST3 --> D2 & D3 & D4
+    D2 & D3 & D4 --> O1 & O2 & O3
 ```
 
 ## Deployment Options
@@ -58,7 +56,7 @@ Simple deployment for small-scale usage.
 ```bash
 # 1. Clone repository
 git clone <repository-url>
-cd detection-system
+cd <project-directory>
 
 # 2. Create virtual environment
 python3.8 -m venv venv
@@ -67,129 +65,113 @@ source venv/bin/activate
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Configure environment
-cp .env.example .env
-# Edit .env with your settings
+# 4. Configure brand settings
+# Edit brand_configs/your_brand.json with your field mappings
 
-# 5. Initialize models
-python scripts/download_models.py
+# 5. Run detection on data
+python main.py single-demo --data-file your_data.csv
 
-# 6. Run service
-python main.py serve --port 8080
+# Note: This system is currently designed for batch processing
+# rather than as a running service
 ```
 
-### 2. Kubernetes Deployment
+### 2. Kubernetes Batch Processing
 
-Enterprise-grade deployment with auto-scaling and high availability.
+Run detection jobs in Kubernetes as batch workloads.
 
-#### Deployment Manifest
+#### Batch Job Configuration
 
 ```yaml
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: detection-system
+  name: detection-job
   labels:
     app: detection-system
 spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: detection-system
   template:
     metadata:
       labels:
         app: detection-system
     spec:
       containers:
-      - name: detection-api
+      - name: detection
         image: detection-system:latest
-        ports:
-        - containerPort: 8080
+        command: ["python", "main.py", "single-demo"]
+        args:
+          - "--data-file=/data/input.csv"
+          - "--output-dir=/data/results"
+          - "--enable-validation"
+          - "--enable-pattern"
+          - "--enable-ml"
         env:
-        - name: ENVIRONMENT
-          value: "production"
-        - name: MODEL_PATH
-          value: "/models"
+        - name: PYTHONUNBUFFERED
+          value: "1"
         resources:
           requests:
-            memory: "2Gi"
-            cpu: "1000m"
-          limits:
             memory: "4Gi"
             cpu: "2000m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 5
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+            nvidia.com/gpu: "1"  # Optional: for GPU acceleration
         volumeMounts:
+        - name: data
+          mountPath: /data
         - name: models
-          mountPath: /models
+          mountPath: /workspace/anomaly_detectors/ml_based/models
           readOnly: true
         - name: config
-          mountPath: /config
+          mountPath: /workspace/brand_configs
           readOnly: true
       volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: data-pvc
       - name: models
         persistentVolumeClaim:
           claimName: models-pvc
       - name: config
         configMap:
-          name: detection-config
+          name: brand-configs
+      restartPolicy: OnFailure
 ```
 
-#### Service Configuration
+#### CronJob for Scheduled Processing
 
 ```yaml
-apiVersion: v1
-kind: Service
+apiVersion: batch/v1
+kind: CronJob
 metadata:
-  name: detection-service
+  name: detection-cronjob
 spec:
-  selector:
-    app: detection-system
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 8080
-  type: LoadBalancer
-```
-
-#### Horizontal Pod Autoscaler
-
-```yaml
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: detection-hpa
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: detection-system
-  minReplicas: 3
-  maxReplicas: 10
-  metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
+  schedule: "0 2 * * *"  # Run daily at 2 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: detection
+            image: detection-system:latest
+            command: ["python", "main.py", "single-demo"]
+            args:
+              - "--data-file=/data/daily/input.csv"
+              - "--output-dir=/data/daily/results"
+              - "--enable-validation"
+              - "--enable-pattern"
+              - "--enable-ml"
+            resources:
+              requests:
+                memory: "4Gi"
+                cpu: "2000m"
+            volumeMounts:
+            - name: data
+              mountPath: /data
+          volumes:
+          - name: data
+            persistentVolumeClaim:
+              claimName: data-pvc
+          restartPolicy: OnFailure
 ```
 
 ### 3. Cloud Deployment
