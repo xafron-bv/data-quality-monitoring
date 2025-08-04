@@ -16,7 +16,6 @@ const sidebars = {
   // By default, Docusaurus generates a sidebar from the docs folder structure
   tutorialSidebar: [
     'README',
-    'DETECTION_SYSTEM_ANALYSIS',
     {
       type: 'category',
       label: 'Getting Started',

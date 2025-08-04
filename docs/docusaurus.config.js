@@ -50,7 +50,6 @@ const config = {
             '**/.git/**', 
             '**/src/**', 
             '**/static/**',
-            '**/pitch/**',
             '**/.gitbook.yaml',
             '**/book.json',
             '**/SUMMARY.md',
