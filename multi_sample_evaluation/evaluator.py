@@ -7,11 +7,16 @@ import pandas as pd
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from unified_detection_interface import CombinedDetector, DetectionConfig, DetectionType, UnifiedReporter
+import unified_detection_interface
+CombinedDetector = unified_detection_interface.CombinedDetector
+DetectionConfig = unified_detection_interface.DetectionConfig  
+DetectionType = unified_detection_interface.DetectionType
+UnifiedReporter = unified_detection_interface.UnifiedReporter
 
 from anomaly_detectors.anomaly_detector_interface import AnomalyDetectorInterface
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
 from anomaly_detectors.ml_based.ml_anomaly_reporter import MLAnomalyReporter
+from anomaly_detectors.llm_based.llm_anomaly_detector import LLMAnomalyDetector
 from anomaly_detectors.reporter_interface import AnomalyReporterInterface
 from common.field_mapper import FieldMapper
 from validators.reporter_interface import ReporterInterface
@@ -35,6 +40,7 @@ class Evaluator:
                  anomaly_reporter: Optional[AnomalyReporterInterface] = None,
                  ml_detector: Optional[MLAnomalyDetector] = None,
                  ml_reporter: Optional[MLAnomalyReporter] = None,
+                 llm_detector: Optional[LLMAnomalyDetector] = None,
                  field_mapper: Optional[FieldMapper] = None):
         """
         Initialize the Evaluator with validators, anomaly detectors, and ML detectors.
@@ -46,6 +52,7 @@ class Evaluator:
             anomaly_reporter: Optional reporter to format anomaly detection results
             ml_detector: Optional ML-based anomaly detector
             ml_reporter: Optional reporter to format ML-based anomaly detection results
+            llm_detector: Optional LLM-based anomaly detector
             field_mapper: Optional field mapper service (uses default if not provided)
         """
         self.batch_size = batch_size
@@ -57,6 +64,7 @@ class Evaluator:
         self.anomaly_reporter = anomaly_reporter
         self.ml_detector = ml_detector
         self.ml_reporter = ml_reporter
+        self.llm_detector = llm_detector
 
         # Use provided field mapper or create default one
         self.field_mapper = field_mapper
@@ -70,7 +78,8 @@ class Evaluator:
             max_workers=self.max_workers,
             validator=validator,
             anomaly_detector=anomaly_detector,
-            ml_detector=ml_detector
+            ml_detector=ml_detector,
+            llm_detector=llm_detector
         )
         # Create unified reporter for combined detection approach
         self.unified_reporter = UnifiedReporter(high_confidence_threshold, include_technical_details=True)
@@ -95,7 +104,8 @@ class Evaluator:
                         detection_types: Optional[List[DetectionType]] = None,
                         validation_threshold: float = None,
                         anomaly_threshold: float = None,
-                        ml_threshold: float = None) -> Dict[str, Any]:
+                        ml_threshold: float = None,
+                        llm_threshold: float = None) -> Dict[str, Any]:
         """
         Evaluates a field using the unified detection interface that combines all approaches.
 
@@ -115,9 +125,11 @@ class Evaluator:
             validation_threshold=validation_threshold,
             anomaly_threshold=anomaly_threshold,
             ml_threshold=ml_threshold,
+            llm_threshold=llm_threshold if llm_threshold is not None else 0.6,
             enable_validation=detection_types is None or DetectionType.VALIDATION in detection_types,
             enable_anomaly_detection=detection_types is None or DetectionType.ANOMALY in detection_types,
-            enable_ml_detection=detection_types is None or DetectionType.ML_ANOMALY in detection_types
+            enable_ml_detection=detection_types is None or DetectionType.ML_ANOMALY in detection_types,
+            enable_llm_detection=self.llm_detector is not None and (detection_types is None or DetectionType.LLM_ANOMALY in detection_types)
         )
 
         # Run unified detection
@@ -248,7 +260,8 @@ class Evaluator:
                         use_unified_approach: bool,
                         validation_threshold: float = None,
                         anomaly_threshold: float = None,
-                        ml_threshold: float = None) -> Dict[str, Any]:
+                        ml_threshold: float = None,
+                        llm_threshold: float = None) -> Dict[str, Any]:
         """
         Evaluates a sample including validation, anomaly detection, ML detection, and measuring performance.
 
@@ -277,6 +290,8 @@ class Evaluator:
                 detection_types.append(DetectionType.ANOMALY)
             if self.ml_detector:
                 detection_types.append(DetectionType.ML_ANOMALY)
+            if self.llm_detector:
+                detection_types.append(DetectionType.LLM_ANOMALY)
 
             unified_results = self.evaluate_unified(
                 sample_df,
@@ -284,7 +299,8 @@ class Evaluator:
                 detection_types=detection_types,
                 validation_threshold=validation_threshold,
                 anomaly_threshold=anomaly_threshold,
-                ml_threshold=ml_threshold
+                ml_threshold=ml_threshold,
+                llm_threshold=llm_threshold
             )
 
             # Convert unified results to individual format for compatibility
@@ -297,16 +313,19 @@ class Evaluator:
                 "validation_results": [r for r in unified_results.get("unified_results", []) if r.get("detection_type") == "validation"],
                 "anomaly_results": [r for r in unified_results.get("unified_results", []) if r.get("detection_type") == "anomaly"],
                 "ml_results": [r for r in unified_results.get("unified_results", []) if r.get("detection_type") == "ml_anomaly"],
+                "llm_results": [r for r in unified_results.get("unified_results", []) if r.get("detection_type") == "llm_anomaly"],
 
                 # Count individual approach results
                 "total_validation_errors": len([r for r in unified_results.get("unified_results", []) if r.get("detection_type") == "validation"]),
                 "total_anomalies": len([r for r in unified_results.get("unified_results", []) if r.get("detection_type") == "anomaly"]),
                 "total_ml_issues": len([r for r in unified_results.get("unified_results", []) if r.get("detection_type") == "ml_anomaly"]),
+                "total_llm_issues": len([r for r in unified_results.get("unified_results", []) if r.get("detection_type") == "llm_anomaly"]),
 
                 # Approach availability flags
                 "validation_available": run_validation and self.validator is not None,
                 "anomaly_detection_available": run_anomaly_detection and self.anomaly_detector is not None,
                 "ml_detection_available": self.ml_detector is not None,
+                "llm_detection_available": self.llm_detector is not None,
 
                 # Unified approach results
                 "unified_approach_used": True,
@@ -348,6 +367,7 @@ class Evaluator:
                 "validation_available": run_validation and self.validator is not None,
                 "anomaly_detection_available": run_anomaly_detection and self.anomaly_detector is not None,
                 "ml_detection_available": self.ml_detector is not None,
+                "llm_detection_available": self.llm_detector is not None,
 
                 # Unified approach not used
                 "unified_approach_used": False

@@ -64,7 +64,12 @@ class PatternBasedDetector(AnomalyDetectorInterface):
                 self.rules = json.load(f)
 
             # Extract rule components (removed invalid_values)
-            self.known_values = set(val.lower() for val in self.rules.get('known_values', []))
+            # Filter out comments and empty strings from known_values
+            raw_values = self.rules.get('known_values', [])
+            self.known_values = set(
+                val.lower() for val in raw_values 
+                if val and not val.strip().startswith('#')
+            )
             self.format_patterns = self.rules.get('format_patterns', [])
             self.validation_rules = self.rules.get('validation_rules', [])
 
@@ -213,8 +218,9 @@ class PatternBasedDetector(AnomalyDetectorInterface):
         if validation_error:
             return validation_error
 
-        # Check against known values list (if not empty)
-        if self.known_values and normalized_value not in self.known_values:
+        # Check against known values list (only if not empty)
+        # Skip this check if known_values is empty (no restrictions)
+        if self.known_values and len(self.known_values) > 0 and normalized_value not in self.known_values:
             # Look for partial matches to suggest possible typos
             close_matches = [known for known in self.known_values
                            if known.startswith(normalized_value[:3]) or normalized_value.startswith(known[:3])]

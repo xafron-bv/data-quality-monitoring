@@ -204,7 +204,8 @@ def create_detailed_analysis_report(cell_classifications: List[CellClassificatio
             "methods_by_field": methods_by_field,
             "total_fields_with_validation": sum(1 for methods in methods_by_field.values() if "validation" in methods),
             "total_fields_with_pattern_detection": sum(1 for methods in methods_by_field.values() if "pattern_based" in methods),
-            "total_fields_with_ml_detection": sum(1 for methods in methods_by_field.values() if "ml_based" in methods)
+            "total_fields_with_ml_detection": sum(1 for methods in methods_by_field.values() if "ml_based" in methods),
+            "total_fields_with_llm_detection": sum(1 for methods in methods_by_field.values() if "llm_based" in methods)
         },
         "issue_distribution": {
             "by_field": issues_by_field,
@@ -317,7 +318,8 @@ def compute_per_field_metrics(cell_classifications, injection_metadata, field_re
     methods = [
         ("validation", "error"),
         ("pattern_based", "anomaly"),
-        ("ml_based", "anomaly")
+        ("ml_based", "anomaly"),
+        ("llm_based", "anomaly")
     ]
     for field in fields:
         result[field] = {}
