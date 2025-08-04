@@ -174,15 +174,15 @@ Rules can be defined in JSON configuration:
 ```python
 class ValidationError:
     def __init__(self, 
-                 error_type: str,
-                 message: str,
-                 severity: str = "ERROR"):
+                 error_type: Union[str, Enum],
+                 probability: float,
+                 details: Optional[Dict[str, Any]] = None):
         self.error_type = error_type
-        self.message = message
-        self.severity = severity
+        self.probability = probability  # 0-1 indicating error probability
+        self.details = details or {}
         self.row_index = None
         self.column_name = None
-        self.value = None
+        self.error_data = None
 ```
 
 ### Error Types

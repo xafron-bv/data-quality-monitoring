@@ -22,14 +22,13 @@ Each detection method implements the `AnomalyDetectorInterface`:
 ```python
 class AnomalyDetectorInterface(ABC):
     @abstractmethod
-    def is_anomaly(self, data: Any) -> bool:
+    def _detect_anomaly(self, value: Any, context: Dict[str, Any] = None) -> Optional[AnomalyError]:
         pass
     
-    @abstractmethod
     def learn_patterns(self, df: pd.DataFrame, column_name: str) -> None:
         pass
     
-    def bulk_detect(self, df: pd.DataFrame, column_name: str, max_workers: int = None) -> List[AnomalyError]:
+    def bulk_detect(self, df: pd.DataFrame, column_name: str, batch_size: Optional[int], max_workers: int) -> List[AnomalyError]:
         pass
 ```
 
@@ -48,7 +47,7 @@ The architecture supports:
 
 - Horizontal scaling through parallel workers
 - Vertical scaling with GPU acceleration
-- Streaming processing for large datasets
+- Batch processing for large datasets
 - Distributed execution (future)
 
 ## Detection Pipeline
@@ -147,10 +146,12 @@ Input Data → Feature Engineering → Prediction → Anomaly Score
 
 ### Model Types
 
-- **Isolation Forest**: Tree-based anomaly detection
-- **One-Class SVM**: Support vector machines
-- **Autoencoders**: Neural network reconstruction
-- **Clustering**: DBSCAN, K-means variants
+The ML-based detection uses:
+
+- **Sentence Transformers**: For text embedding and similarity
+- **Cosine Similarity**: For anomaly scoring
+- **Triplet Loss Training**: For learning representations
+- **Field-specific Models**: Different transformer models per field type
 
 ### GPU Acceleration
 
@@ -191,39 +192,22 @@ Input → Context Building → LLM Inference → Interpretation
 
 ## Integration Patterns
 
-### Cascading Detection
+The system supports multiple integration approaches:
 
-```python
-# Fast checks first
-if rule_based.is_anomaly(data):
-    return anomaly
+### Sequential Processing
 
-# Statistical analysis
-if pattern_based.is_anomaly(data):
-    return anomaly
+Detection methods can be run in sequence, with early exit on first detection:
+- Fast rule-based checks first
+- Pattern-based analysis for statistical anomalies
+- ML models for complex patterns
+- LLM for difficult cases (if enabled)
 
-# ML models for complex cases
-if ml_based.is_anomaly(data):
-    return anomaly
+### Parallel Processing
 
-# LLM for final verification
-return llm_based.is_anomaly(data)
-```
-
-### Ensemble Detection
-
-```python
-# Parallel execution
-results = parallel_map([
-    rule_based.detect,
-    pattern_based.detect,
-    ml_based.detect,
-    llm_based.detect
-], data)
-
-# Weighted voting
-final_score = weighted_average(results, weights)
-```
+Multiple detectors can run simultaneously:
+- All methods process the same data in parallel
+- Results are aggregated based on configuration
+- Supports different aggregation strategies (union, intersection, voting)
 
 ## Performance Characteristics
 

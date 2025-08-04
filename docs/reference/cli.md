@@ -20,7 +20,6 @@ graph TD
     A --> E[llm-train]
     A --> F[analyze-column]
     A --> G[ml-curves]
-    A --> H[compare]
 ```
 
 ## Command Reference

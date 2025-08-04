@@ -52,16 +52,15 @@ The `AnomalyDetectorInterface` defines the contract for all anomaly detection im
 ```python
 class AnomalyDetectorInterface(ABC):
     @abstractmethod
-    def is_anomaly(self, data: Any) -> bool:
-        """Checks if a single data point is anomalous"""
+    def _detect_anomaly(self, value: Any, context: Dict[str, Any] = None) -> Optional[AnomalyError]:
+        """Detects anomalies in a single data entry"""
         pass
     
-    @abstractmethod
     def learn_patterns(self, df: pd.DataFrame, column_name: str) -> None:
-        """Learns patterns from training data"""
+        """Learns patterns from training data (optional)"""
         pass
     
-    def bulk_detect(self, df: pd.DataFrame, column_name: str, max_workers: int = None) -> List[AnomalyError]:
+    def bulk_detect(self, df: pd.DataFrame, column_name: str, batch_size: Optional[int], max_workers: int) -> List[AnomalyError]:
         """Detects anomalies in bulk with parallel processing"""
         pass
 ```
@@ -141,11 +140,11 @@ For testing and evaluation, the system includes error injection capabilities:
 
 ### Debug Configuration
 
-The `DebugConfig` provides runtime debugging controls:
+The debug module provides runtime debugging controls:
 
-- Verbose logging
-- Performance profiling
-- Memory usage tracking
+- Debug print functions
+- Global debug flag management
+- Conditional output based on debug state
 
 ## Integration Points
 
@@ -190,9 +189,9 @@ All components implement consistent error handling:
 The system is optimized for:
 
 - Large-scale batch processing
-- Real-time validation
+- Fast validation with minimal latency
 - GPU acceleration (when available)
-- Memory-efficient streaming
+- Memory-efficient batch processing
 - Parallel execution
 
 ## Extensibility

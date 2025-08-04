@@ -21,7 +21,6 @@ The system accepts data from multiple sources:
 1. **CSV Files** - Primary input format
 2. **Pandas DataFrames** - In-memory processing
 3. **JSON Data** - Configuration and small datasets
-4. **API Endpoints** - Real-time data streams
 
 ### Data Loading
 
@@ -202,8 +201,8 @@ The system supports multiple output formats:
 
 4. **Visualization**
    - Distribution plots
-   - Anomaly heatmaps
-   - Time series charts
+   - Confusion matrix heatmaps
+   - Performance comparison charts
 
 ## Configuration Flow
 
@@ -219,13 +218,13 @@ Brand Config → Field Config → Model Config → Runtime Config
 
 ```python
 # Load brand configuration
-brand_config = BrandConfig.load(brand_name)
+brand_config = load_brand_config(brand_name)
 
 # Field mappings
-field_mappings = brand_config.get_field_mappings()
+field_mappings = brand_config.field_mappings
 
-# Model parameters
-model_config = brand_config.get_model_config()
+# Custom thresholds
+thresholds = brand_config.custom_thresholds
 
 # Runtime options
 runtime_config = parse_args()
@@ -282,13 +281,7 @@ gc.collect()
 
 ### Progress Tracking
 
-```python
-# Progress bar
-with tqdm(total=len(df)) as pbar:
-    for batch in batches:
-        process_batch(batch)
-        pbar.update(len(batch))
-```
+The system provides progress feedback through console output during processing. Various components support `show_progress_bar` parameters to enable progress indication.
 
 ### Performance Metrics
 
