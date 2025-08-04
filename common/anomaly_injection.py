@@ -164,9 +164,12 @@ class AnomalyInjector:
                     if new_value != current_value:
                         anomalies_for_row.append({
                             'rule_name': rule.get('rule_name', 'unknown'),
+                            'error_rule': rule.get('rule_name', 'unknown'),  # For compatibility with evaluator
+                            'injection_type': 'anomaly',  # Mark as anomaly
                             'rule_description': rule.get('description', ''),
                             'original_value': current_value,
                             'anomalous_value': new_value,
+                            'injected_data': new_value,  # For compatibility
                             'operation': rule.get('operation'),
                             'row_index': row_idx,
                             'column_name': column_name,

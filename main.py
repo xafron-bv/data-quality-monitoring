@@ -16,7 +16,7 @@ from analyze_column.analyze_column import entry as analyze_column_entry
 from anomaly_detectors.llm_based.llm_model_training import entry as llm_train_entry
 
 # Import entry functions from all entrypoints
-from anomaly_detectors.ml_based.index import entry as ml_index_entry
+from anomaly_detectors.ml_based.main import entry as ml_index_entry
 from common.args_parser import create_parser_from_config, load_args_config
 from ml_curve_generator.ml_curve_generator import entry as ml_curves_entry
 from multi_sample_evaluation.multi_sample_evaluation import main as multi_eval_main
@@ -24,7 +24,7 @@ from single_sample_multi_field_demo.single_sample_multi_field_demo import main a
 
 # Define entrypoint configurations
 ENTRYPOINTS = {
-    'ml-index': {
+    'ml-train': {
         'module': 'anomaly_detectors.ml_based',
         'entry': ml_index_entry,
         'args_json': 'anomaly_detectors/ml_based/args.json'
@@ -98,7 +98,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Available commands:
-  ml-index          Generate ML model indexes
+  ml-train          Train ML models
   llm-train         Train LLM models
   analyze-column    Analyze a specific column
   ml-curves         Generate ML performance curves
@@ -106,7 +106,7 @@ Available commands:
   multi-eval        Run multi-sample evaluation
 
 Examples:
-  python main.py ml-index data.csv
+  python main.py ml-train data.csv
   python main.py llm-train data.csv --field color_name
   python main.py single-demo --brand esqualo --enable-validation --enable-ml
   python main.py multi-eval --input data.csv --output results/
@@ -152,9 +152,9 @@ For help on a specific command:
                     return 1
 
                 print("\n" + "="*60)
-                print("ML Index Generation")
+                print("ML Model Training")
                 print("="*60)
-                run_entrypoint('ml-index', [args.data_file])
+                run_entrypoint('ml-train', [args.data_file])
 
                 print("\n" + "="*60)
                 print("LLM Model Training")
@@ -171,7 +171,7 @@ For help on a specific command:
                 print("="*60)
 
                 # Show help for each command
-                for cmd in ['ml-index', 'llm-train', 'analyze-column', 'ml-curves', 'single-demo', 'multi-eval']:
+                for cmd in ['ml-train', 'llm-train', 'analyze-column', 'ml-curves', 'single-demo', 'multi-eval']:
                     print(f"\n--- {cmd} help ---")
                     try:
                         run_entrypoint(cmd, ['--help'])

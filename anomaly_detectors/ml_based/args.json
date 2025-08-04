@@ -16,7 +16,7 @@
       "help": "Number of hyperparameter search trials",
       "default": 15
     },
-    "rules": {
+    "fields": {
       "type": "list",
       "help": "List of field names to include in training/hp search (by field name, space-separated, e.g. 'size material'). If not set, all fields are used",
       "default": null

@@ -3,6 +3,10 @@ import importlib
 import json
 import os
 import sys
+import time
+import psutil
+import tracemalloc
+from datetime import datetime
 
 import pandas as pd
 
@@ -17,7 +21,69 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from evaluator import Evaluator
 
 import common.debug_config as debug_config
+
+class ExecutionMetrics:
+    """Track execution metrics for performance monitoring."""
+    
+    def __init__(self):
+        self.start_time = None
+        self.end_time = None
+        self.peak_memory_mb = 0
+        self.process = psutil.Process()
+        self.initial_memory = None
+        self.tracemalloc_snapshot = None
+        self.detection_times = {
+            'validation': 0,
+            'anomaly': 0,
+            'ml': 0,
+            'llm': 0,
+            'total': 0
+        }
+        self.sample_metrics = []
+        
+    def start(self):
+        """Start tracking metrics."""
+        self.start_time = time.time()
+        tracemalloc.start()
+        self.initial_memory = self.process.memory_info().rss / 1024 / 1024  # MB
+        
+    def update_peak_memory(self):
+        """Update peak memory usage."""
+        current_memory = self.process.memory_info().rss / 1024 / 1024  # MB
+        self.peak_memory_mb = max(self.peak_memory_mb, current_memory)
+        
+    def record_detection_time(self, detection_type, duration):
+        """Record time taken for a specific detection type."""
+        if detection_type in self.detection_times:
+            self.detection_times[detection_type] += duration
+            
+    def record_sample_metrics(self, sample_idx, metrics):
+        """Record metrics for a specific sample."""
+        self.sample_metrics.append({
+            'sample_idx': sample_idx,
+            'metrics': metrics
+        })
+        
+    def stop(self):
+        """Stop tracking and calculate final metrics."""
+        self.end_time = time.time()
+        self.update_peak_memory()
+        
+        # Get tracemalloc statistics
+        current, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+        
+        return {
+            'total_execution_time_seconds': self.end_time - self.start_time,
+            'peak_memory_mb': self.peak_memory_mb,
+            'memory_increase_mb': self.peak_memory_mb - self.initial_memory,
+            'tracemalloc_peak_mb': peak / 1024 / 1024,
+            'detection_times': self.detection_times,
+            'per_sample_avg_time': (self.end_time - self.start_time) / len(self.sample_metrics) if self.sample_metrics else 0,
+            'timestamp': datetime.now().isoformat()
+        }
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
+from anomaly_detectors.llm_based.llm_anomaly_detector import LLMAnomalyDetector
 
 # Import anomaly injection modules
 from common.anomaly_injection import AnomalyInjector, load_anomaly_rules
@@ -219,22 +285,24 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
     # Determine if we have validation results or only anomaly detection
     has_validation = any('validation_performed' in result for result in evaluation_results)
     has_anomalies = any('anomaly_results' in result for result in evaluation_results)
-    has_ml_results = any('unified_results' in result for result in evaluation_results)
+    has_ml_results = any('ml_results' in result and len(result['ml_results']) > 0 for result in evaluation_results)
+    has_llm_results = any('llm_results' in result and len(result['llm_results']) > 0 for result in evaluation_results)
 
-    if has_validation and has_anomalies and has_ml_results:
-        summary_lines.append("VALIDATION, ANOMALY DETECTION, AND ML DETECTION SUMMARY")
-    elif has_validation and has_anomalies:
-        summary_lines.append("VALIDATION AND ANOMALY DETECTION SUMMARY")
-    elif has_validation and has_ml_results:
-        summary_lines.append("VALIDATION AND ML DETECTION SUMMARY")
-    elif has_anomalies and has_ml_results:
-        summary_lines.append("ANOMALY AND ML DETECTION SUMMARY")
-    elif has_validation:
-        summary_lines.append("VALIDATION EVALUATION SUMMARY")
-    elif has_ml_results:
-        summary_lines.append("ML DETECTION SUMMARY")
+    # Build header based on what detection methods were used
+    header_parts = []
+    if has_validation:
+        header_parts.append("VALIDATION")
+    if has_anomalies:
+        header_parts.append("ANOMALY DETECTION")
+    if has_ml_results:
+        header_parts.append("ML DETECTION")
+    if has_llm_results:
+        header_parts.append("LLM DETECTION")
+    
+    if header_parts:
+        summary_lines.append(", ".join(header_parts) + " SUMMARY")
     else:
-        summary_lines.append("ANOMALY DETECTION SUMMARY")
+        summary_lines.append("NO DETECTION RESULTS")
 
     summary_lines.append("=" * 80)
 
@@ -245,6 +313,7 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
     total_ignored_fps = 0
     total_anomalies = 0  # Count total anomalies
     total_ml_issues = 0  # Count total ML detection issues
+    total_llm_issues = 0  # Count total LLM detection issues
 
     for i, result in enumerate(evaluation_results):
         # Handle validation results if present
@@ -271,9 +340,12 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
         anomalies = result.get('anomaly_results', [])
         total_anomalies += len(anomalies)
 
-        # Handle ML unified results
-        ml_results = result.get('unified_results', [])
+        # Handle ML and LLM results
+        ml_results = result.get('ml_results', [])
         total_ml_issues += len(ml_results)
+        
+        llm_results = result.get('llm_results', [])
+        total_llm_issues += len(llm_results)
 
         sample_id = result.get('sample_id', f"Sample {i}")
 
@@ -366,17 +438,13 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
             summary_lines.append("OVERALL ML DETECTION METRICS:")
         summary_lines.append(f"  - Total ML Issues Detected: {total_ml_issues}")
 
-        # List ML detection types and counts if we have ML results
-        if total_ml_issues > 0:
-            ml_types = {}
-            for result in evaluation_results:
-                for ml_issue in result.get('unified_results', []):
-                    detection_type = ml_issue.get('detection_type', 'Unknown')
-                    ml_types[detection_type] = ml_types.get(detection_type, 0) + 1
-
-            summary_lines.append("\nML DETECTION TYPES:")
-            for ml_type, count in ml_types.items():
-                summary_lines.append(f"  - {ml_type}: {count}")
+    # Add LLM metrics section if LLM detection was run
+    if has_llm_results:
+        if has_validation or has_anomalies or has_ml_results:
+            summary_lines.append("\nOVERALL LLM DETECTION METRICS:")
+        else:
+            summary_lines.append("OVERALL LLM DETECTION METRICS:")
+        summary_lines.append(f"  - Total LLM Issues Detected: {total_llm_issues}")
 
     # Add false negatives section if validation was run
     if has_validation:
@@ -466,7 +534,7 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
     field_name = evaluation_results[0].get('field_name', 'unknown') if evaluation_results else 'unknown'
     cell_coordinates = generate_cell_coordinate_mapping(evaluation_results, field_name)
 
-    full_results_path = os.path.join(os.path.dirname(__file__), output_dir, 'full_evaluation_results.json')
+    full_results_path = os.path.join(output_dir, 'full_evaluation_results.json')
     with open(full_results_path, 'w') as f:
         # Convert sets to lists and handle non-JSON serializable objects
         def make_serializable(obj):
@@ -490,7 +558,16 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
                 except (TypeError, ValueError):
                     return str(obj)  # Convert to string if not serializable
 
-        serializable_results = make_serializable(evaluation_results)
+        # Extract execution metrics if present
+        execution_metrics = None
+        results_without_metrics = []
+        for result in evaluation_results:
+            if 'execution_metrics' in result:
+                execution_metrics = result['execution_metrics']
+            else:
+                results_without_metrics.append(result)
+        
+        serializable_results = make_serializable(results_without_metrics)
 
         # Create enhanced output with human-readable summary at the top
         enhanced_output = {
@@ -498,6 +575,10 @@ def generate_summary_report(evaluation_results, output_dir, ignore_fp=False):
             "cell_coordinates": cell_coordinates,
             "detailed_evaluation_results": serializable_results
         }
+        
+        # Add execution metrics if available
+        if execution_metrics:
+            enhanced_output["execution_metrics"] = execution_metrics
 
         json.dump(enhanced_output, f, indent=2)
 
@@ -548,7 +629,8 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     parser.add_argument("--validator", help="The validator name to use for files and classes (e.g., 'material', 'care_instructions'). Defaults to the field name if not provided.")
     parser.add_argument("--anomaly-detector", help="The anomaly detector name to use (e.g., 'material', 'color_name'). Defaults to the validator name if not provided.")
     parser.add_argument("--ml-detector", action="store_true", help="Enable ML-based anomaly detection using sentence transformers.")
-    parser.add_argument("--run", choices=["validation", "anomaly", "ml", "both", "all"], default="both", help="Specify which analysis to run: validation, anomaly detection, ml detection, both (validation+anomaly), or all three.")
+    parser.add_argument("--llm-detector", action="store_true", help="Enable LLM-based anomaly detection.")
+    parser.add_argument("--run", choices=["validation", "anomaly", "ml", "llm", "both", "all"], default="both", help="Specify which analysis to run: validation, anomaly detection, ml detection, llm detection, both (validation+anomaly), or all.")
     parser.add_argument("--num-samples", type=int, default=32, help="Number of samples to generate for evaluation (default: 32).")
     parser.add_argument("--max-errors", type=int, default=3, help="Maximum number of errors to combine in a single sample (default: 3).")
     parser.add_argument("--output-dir", default="evaluation_results", help="Directory to save all evaluation results and generated samples.")
@@ -560,6 +642,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     parser.add_argument("--validation-threshold", type=float, default=0.0, help="Minimum confidence threshold for validation results (default: 0.0).")
     parser.add_argument("--anomaly-threshold", type=float, default=0.7, help="Minimum confidence threshold for anomaly detection (default: 0.7).")
     parser.add_argument("--ml-threshold", type=float, default=0.7, help="Minimum confidence threshold for ML detection (default: 0.7).")
+    parser.add_argument("--llm-threshold", type=float, default=0.6, help="Minimum confidence threshold for LLM detection (default: 0.6).")
     parser.add_argument("--error-probability", type=float, default=0.1, help="Probability of injecting errors in each row (default: 0.1).")
     parser.add_argument("--batch-size", type=int, help="Batch size for processing (default: auto-determined based on system).")
     parser.add_argument("--max-workers", type=int, default=7, help="Maximum number of parallel workers (default: 7).")
@@ -619,10 +702,12 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     run_validation = args.run in ["validation", "both", "all"]
     run_anomaly = args.run in ["anomaly", "both", "all"]
     run_ml = args.run in ["ml", "all"] or args.ml_detector
+    run_llm = args.run in ["llm", "all"] or args.llm_detector
 
     # If running "both", try to include all methods but keep it simple
     if args.run == "both":
         run_ml = False  # For now, don't auto-include ML with "both" to avoid complexity
+        run_llm = False  # Same for LLM
 
     rules_path = os.path.join('validators', 'error_injection_rules', f'{validator_name}.json')
     validator_module_str = f"validators.{validator_name}.validate:Validator"
@@ -647,6 +732,10 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     if run_ml:
         print(f"Using ML-based anomaly detection")
         print(f"ML Detector: MLAnomalyDetector")
+    
+    if run_llm:
+        print(f"Using LLM-based anomaly detection")
+        print(f"LLM Detector: LLMAnomalyDetector")
 
     print()
 
@@ -706,11 +795,28 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
             print("ML anomaly detector initialized successfully.")
         except Exception as e:
             print(f"Error: Could not initialize ML anomaly detector.\nDetails: {e}")
-            if run_validation or run_anomaly:
+            if run_validation or run_anomaly or run_llm:
                 print("Continuing without ML-based anomaly detection.")
                 run_ml = False
             else:
                 raise ConfigurationError(f"Could not initialize ML anomaly detector.\nDetails: {e}")
+
+    # Load LLM detection components if needed
+    llm_detector = None
+    if run_llm:
+        try:
+            llm_detector = LLMAnomalyDetector(
+                field_name=validator_name,
+                threshold=args.llm_threshold,
+            )
+            print("LLM anomaly detector initialized successfully.")
+        except Exception as e:
+            print(f"Error: Could not initialize LLM anomaly detector.\nDetails: {e}")
+            if run_validation or run_anomaly or run_ml:
+                print("Continuing without LLM-based anomaly detection.")
+                run_llm = False
+            else:
+                raise ConfigurationError(f"Could not initialize LLM anomaly detector.\nDetails: {e}")
 
     # Create field mapper for the brand
     field_mapper = FieldMapper.from_brand(args.brand)
@@ -725,18 +831,24 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         anomaly_detector=anomaly_detector,
         anomaly_reporter=anomaly_reporter,
         ml_detector=ml_detector,
+        llm_detector=llm_detector,
         field_mapper=field_mapper
     )
 
+    # Initialize metrics tracking
+    exec_metrics = ExecutionMetrics()
+    exec_metrics.start()
+    
     # Run evaluation - Generate comprehensive samples with both errors and anomalies
     print(f"Generating {args.num_samples} samples with errors and anomalies...")
+    sample_generation_start = time.time()
 
     all_samples = []
 
     # Load anomaly injection rules
     anomaly_rules = []
     try:
-        anomaly_rules_path = os.path.join(os.path.dirname(__file__), 'anomaly_detectors', 'anomaly_injection_rules', f"{validator_name}.json")
+        anomaly_rules_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'anomaly_detectors', 'anomaly_injection_rules', f"{validator_name}.json")
         anomaly_rules = load_anomaly_rules(anomaly_rules_path)
         print(f"Loaded {len(anomaly_rules)} anomaly injection rules")
     except Exception:
@@ -767,11 +879,11 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
             all_injected_items.extend(anomaly_injections)
 
         # Save sample
-        sample_path = os.path.join(os.path.dirname(__file__), args.output_dir, f"sample_{i}.csv")
+        sample_path = os.path.join(args.output_dir, f"sample_{i}.csv")
         sample_df.to_csv(sample_path, index=False)
 
         # Save injection metadata
-        injections_path = os.path.join(os.path.dirname(__file__), args.output_dir, f"sample_{i}_injected_items.json")
+        injections_path = os.path.join(args.output_dir, f"sample_{i}_injected_items.json")
         with open(injections_path, 'w') as f:
             json.dump(all_injected_items, f, indent=2, ensure_ascii=False)
 
@@ -782,85 +894,132 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         })
 
     error_samples = all_samples
-    print(f"Generated samples with {sum(len(s['injected_errors']) for s in all_samples)} total injected items")
+    sample_generation_time = time.time() - sample_generation_start
+    print(f"Generated samples with {sum(len(s['injected_errors']) for s in all_samples)} total injected items in {sample_generation_time:.2f} seconds")
+    exec_metrics.update_peak_memory()
 
-    # Run detection methods once on the full dataset
-    print(f"Running detection methods on dataset with {len(df)} rows...")
+    # Run detection methods on each sample
+    print(f"Running detection methods on {len(all_samples)} samples...")
 
     # Use unified approach when running multiple detection methods to avoid duplication
-    use_unified = (run_ml and (run_validation or run_anomaly)) or (run_validation and run_anomaly and run_ml)
+    use_unified = ((run_ml or run_llm) and (run_validation or run_anomaly)) or (run_validation and run_anomaly and (run_ml or run_llm))
 
-    # Run detection once on the original dataset
-    dataset_results = evaluator.evaluate_sample(
-        df,
-        field_name,
-        injected_errors=[],  # No injected errors for the base dataset
-        run_validation=run_validation,
-        run_anomaly_detection=run_anomaly,
-        use_unified_approach=use_unified,
-        validation_threshold=args.validation_threshold,
-        anomaly_threshold=args.anomaly_threshold,
-        ml_threshold=args.ml_threshold
-    )
-
-    print(f"Detection complete. Found:")
-    if run_validation:
-        print(f"  - Validation errors: {dataset_results.get('total_validation_errors', 0)}")
-    if run_anomaly:
-        print(f"  - Anomalies: {dataset_results.get('total_anomalies', 0)}")
-    if run_ml:
-        print(f"  - ML issues: {dataset_results.get('total_ml_issues', 0)}")
-
-    # Now evaluate performance against each sample's injected errors
+    # Process each sample
     evaluation_results = []
-    for sample in error_samples:
-        # Calculate performance metrics by comparing detection results with sample's injected errors
+    detection_start_time = time.time()
+    
+    for sample_idx, sample in enumerate(all_samples):
+        print(f"\nProcessing sample {sample_idx + 1}/{len(all_samples)}...")
+        sample_start_time = time.time()
+        
+        # Run detection on this sample
+        sample_results = evaluator.evaluate_sample(
+            sample['data'],
+            field_name,
+            injected_errors=sample['injected_errors'],
+            run_validation=run_validation,
+            run_anomaly_detection=run_anomaly,
+            use_unified_approach=use_unified,
+            validation_threshold=args.validation_threshold,
+            anomaly_threshold=args.anomaly_threshold,
+            ml_threshold=args.ml_threshold,
+            llm_threshold=args.llm_threshold
+        )
+
+        # Store sample results
         sample_result = {
             "field_name": field_name,
-            "row_count": len(df),
-            "sample_id": sample.get("sample_index", f"sample_{len(evaluation_results)}"),
-            "sample_path": f"sample_{sample.get('sample_index', len(evaluation_results))}.csv",
-
-            # Copy detection results from the single dataset run
-            "validation_results": dataset_results.get("validation_results", []),
-            "anomaly_results": dataset_results.get("anomaly_results", []),
-            "ml_results": dataset_results.get("ml_results", []),
-            "total_validation_errors": dataset_results.get("total_validation_errors", 0),
-            "total_anomalies": dataset_results.get("total_anomalies", 0),
-            "total_ml_issues": dataset_results.get("total_ml_issues", 0),
+            "row_count": len(sample['data']),
+            "sample_id": sample.get("sample_index", sample_idx),
+            "sample_path": f"sample_{sample.get('sample_index', sample_idx)}.csv",
+            
+            # Store all detection results
+            "validation_results": sample_results.get("validation_results", []),
+            "anomaly_results": sample_results.get("anomaly_results", []),
+            "ml_results": sample_results.get("ml_results", []),
+            "llm_results": sample_results.get("llm_results", []),
+            "total_validation_errors": sample_results.get("total_validation_errors", 0),
+            "total_anomalies": sample_results.get("total_anomalies", 0),
+            "total_ml_issues": sample_results.get("total_ml_issues", 0),
+            "total_llm_issues": sample_results.get("total_llm_issues", 0),
 
             # Approach availability flags
-            "validation_available": dataset_results.get("validation_available", False),
-            "anomaly_detection_available": dataset_results.get("anomaly_detection_available", False),
-            "ml_detection_available": dataset_results.get("ml_detection_available", False),
-            "unified_approach_used": dataset_results.get("unified_approach_used", False),
+            "validation_available": sample_results.get("validation_available", False),
+            "anomaly_detection_available": sample_results.get("anomaly_detection_available", False),
+            "ml_detection_available": sample_results.get("ml_detection_available", False),
+            "llm_detection_available": sample_results.get("llm_detection_available", False),
+            "unified_approach_used": sample_results.get("unified_approach_used", False),
         }
 
         # If we have unified results, copy them too
-        if "unified_results" in dataset_results:
+        if "unified_results" in sample_results:
             sample_result.update({
-                "unified_results": dataset_results["unified_results"],
-                "unified_total_issues": dataset_results.get("unified_total_issues", 0),
-                "unified_issues_by_type": dataset_results.get("unified_issues_by_type", {}),
+                "unified_results": sample_results["unified_results"],
+                "unified_total_issues": sample_results.get("unified_total_issues", 0),
+                "unified_issues_by_type": sample_results.get("unified_issues_by_type", {}),
             })
 
         # Calculate performance metrics for this sample's injected errors
         if sample.get("injected_errors") and run_validation:
             validation_results_for_metrics = sample_result["validation_results"]
-            metrics = evaluator._calculate_metrics(
+            perf_metrics = evaluator._calculate_metrics(
                 sample["data"],  # Use the sample DataFrame with injected errors
                 field_name,
                 validation_results_for_metrics,
                 sample["injected_errors"]
             )
-            sample_result.update(metrics)
+            sample_result.update(perf_metrics)
 
         # Add flags to indicate what was run
         if not run_validation:
             sample_result["validation_performed"] = False
 
+        # Record sample processing time
+        sample_time = time.time() - sample_start_time
+        exec_metrics.record_sample_metrics(sample_idx, {
+            'processing_time': sample_time,
+            'total_detections': (
+                sample_result.get("total_validation_errors", 0) +
+                sample_result.get("total_anomalies", 0) +
+                sample_result.get("total_ml_issues", 0) +
+                sample_result.get("total_llm_issues", 0)
+            )
+        })
+        exec_metrics.update_peak_memory()
+        
         evaluation_results.append(sample_result)
-
+    
+    # Record total detection time
+    total_detection_time = time.time() - detection_start_time
+    exec_metrics.record_detection_time('total', total_detection_time)
+    
+    # Print summary of all samples
+    print(f"\n{'='*80}")
+    print("MULTI-SAMPLE EVALUATION COMPLETE")
+    print(f"{'='*80}")
+    print(f"Processed {len(all_samples)} samples")
+    
+    # Stop metrics tracking and get final metrics
+    execution_metrics = exec_metrics.stop()
+    
+    # Print execution metrics
+    print(f"\n{'='*80}")
+    print("EXECUTION METRICS")
+    print(f"{'='*80}")
+    print(f"Total Execution Time: {execution_metrics['total_execution_time_seconds']:.2f} seconds")
+    print(f"  - Sample Generation: {sample_generation_time:.2f} seconds")
+    print(f"  - Detection Phase: {total_detection_time:.2f} seconds")
+    print(f"  - Average per Sample: {execution_metrics['per_sample_avg_time']:.2f} seconds")
+    print(f"\nMemory Usage:")
+    print(f"  - Peak Memory: {execution_metrics['peak_memory_mb']:.2f} MB")
+    print(f"  - Memory Increase: {execution_metrics['memory_increase_mb']:.2f} MB")
+    print(f"  - Tracemalloc Peak: {execution_metrics['tracemalloc_peak_mb']:.2f} MB")
+    
+    # Add metrics to results
+    evaluation_results.append({
+        'execution_metrics': execution_metrics
+    })
+    
     # Report results
     generate_summary_report(evaluation_results, args.output_dir, args.ignore_fp)
 
