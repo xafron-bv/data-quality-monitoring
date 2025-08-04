@@ -26,7 +26,7 @@ Before installing the system, ensure you have the following prerequisites:
 
 ```bash
 git clone <repository-url>
-cd detection-system
+cd <project-directory>
 ```
 
 ### 2. Create a Virtual Environment
@@ -58,8 +58,12 @@ The core dependencies include:
 - `numpy`: Numerical computations
 - `scikit-learn`: Machine learning utilities
 - `sentence-transformers`: ML-based detection models
-- `torch/tensorflow`: Deep learning frameworks
-- `tqdm`: Progress bars for long operations
+- `torch`: Deep learning framework
+- `transformers`: Hugging Face transformers library
+- `datasets`: Dataset loading and processing
+- `accelerate`: Hardware-accelerated training
+- `matplotlib` & `seaborn`: Visualization tools
+- `evaluate`: Model evaluation metrics
 
 ### 4. Install Development Dependencies (Optional)
 
@@ -150,12 +154,9 @@ export DATA_QUALITY_OUTPUT_PATH=/path/to/results
 
 ## Verification
 
-Verify your installation by running the test suite:
+Verify your installation by running a simple detection demo:
 
 ```bash
-# Run basic tests
-python -m pytest tests/
-
 # Run a simple detection demo
 python single_sample_multi_field_demo/single_sample_multi_field_demo.py --help
 ```
@@ -182,7 +183,6 @@ python single_sample_multi_field_demo/single_sample_multi_field_demo.py --help
 
 ### Getting Help
 
-- Check the [Troubleshooting Guide](../operations/troubleshooting.md)
 - Review error logs in the output directory
 - Submit issues on the project repository
 

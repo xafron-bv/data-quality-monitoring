@@ -10,33 +10,27 @@ The system uses abstract base classes (ABCs) to define interfaces, ensuring cons
 classDiagram
     class AnomalyDetectorInterface {
         <<interface>>
-        +learn_patterns(data, field)
-        +detect_anomaly(value, field)
-        +bulk_detect(values, field)
-        +get_confidence_threshold()
-        +save_model(path)
-        +load_model(path)
+        +_detect_anomaly(value, context)
+        +learn_patterns(df, column_name)
+        +get_detector_args()
+        +bulk_detect(df, column_name, batch_size, max_workers)
     }
     
     class ValidatorInterface {
         <<interface>>
-        +validate(value, row_index)
-        +bulk_validate(values)
-        +get_field_type()
+        +_validate_entry(value)
+        +bulk_validate(df, column_name)
     }
     
     class ReporterInterface {
         <<interface>>
-        +generate_report(results, output_format)
-        +save_report(report, path)
-        +get_supported_formats()
+        +generate_report(errors, original_df)
     }
     
-    class UnifiedDetectorInterface {
+    class UnifiedDetectionInterface {
         <<interface>>
-        +detect(data, field, method)
-        +get_detection_methods()
-        +set_thresholds(thresholds)
+        +detect(data, fields, config)
+        +get_detection_results()
     }
 ```
 
@@ -49,77 +43,68 @@ Base interface for all anomaly detection methods.
 
 ### Methods
 
-#### learn_patterns(data: pd.DataFrame, field: str) -> None
+#### _detect_anomaly(value: Any, context: Dict[str, Any] = None) -> Optional[AnomalyError]
 
-Learns patterns from training data for a specific field.
+Contains the specific anomaly detection logic for a single data entry. This method must be implemented by subclasses.
 
 **Parameters:**
-- `data` (pd.DataFrame): Training data containing clean examples
-- `field` (str): Field name to learn patterns for
+- `value` (Any): The data from the DataFrame column to be checked for anomalies
+- `context` (Optional[Dict[str, Any]]): Optional dictionary containing additional context data
+
+**Returns:**
+- None if no anomaly is detected
+- An AnomalyError instance if an anomaly is detected
 
 **Example:**
 ```python
-detector = MLAnomalyDetector()
+def _detect_anomaly(self, value, context=None):
+    if value not in self.known_patterns:
+        return AnomalyError(
+            anomaly_type="unknown_value",
+            probability=0.85,
+            anomaly_data={"value": value, "expected": self.known_patterns}
+        )
+    return None
+```
+
+#### learn_patterns(df: pd.DataFrame, column_name: str) -> None
+
+Learns normal patterns from the data to establish a baseline for anomaly detection. This is an optional method that anomaly detectors can override.
+
+**Parameters:**
+- `df` (pd.DataFrame): The input DataFrame containing the data to learn from
+- `column_name` (str): The name of the column to learn patterns from
+
+**Example:**
+```python
+detector = PatternBasedDetector()
 detector.learn_patterns(clean_data, 'material')
 ```
 
-#### detect_anomaly(value: Any, field: str) -> Dict[str, Any]
+#### get_detector_args() -> Dict[str, Any]
 
-Detects if a single value is anomalous.
-
-**Parameters:**
-- `value` (Any): Value to check for anomalies
-- `field` (str): Field name for context
+Return arguments needed to recreate this detector instance in a worker process.
 
 **Returns:**
-- Dict containing:
-  - `is_anomaly` (bool): Whether value is anomalous
-  - `confidence` (float): Confidence score (0-1)
-  - `reason` (str): Explanation for detection
-  - `details` (Dict): Additional detection details
+- Dictionary of arguments that can be passed to the constructor
+
+#### bulk_detect(df: pd.DataFrame, column_name: str, batch_size: Optional[int], max_workers: int) -> List[AnomalyError]
+
+Detects anomalies in a column and returns a list of AnomalyError objects. This method runs the `_detect_anomaly` logic in parallel batches.
+
+**Parameters:**
+- `df` (pd.DataFrame): The input DataFrame containing the data to be analyzed
+- `column_name` (str): The name of the column to check for anomalies
+- `batch_size` (Optional[int]): Number of rows per batch. If None, automatically calculated
+- `max_workers` (int): Number of parallel workers
+
+**Returns:**
+- List[AnomalyError]: A list of AnomalyError instances
 
 **Example:**
 ```python
-result = detector.detect_anomaly("unknwn_material", "material")
-# {'is_anomaly': True, 'confidence': 0.85, 'reason': 'Unknown material type'}
+anomalies = detector.bulk_detect(data_df, 'material', batch_size=1000, max_workers=4)
 ```
-
-#### bulk_detect(values: List[Any], field: str) -> List[Dict[str, Any]]
-
-Performs batch anomaly detection for efficiency.
-
-**Parameters:**
-- `values` (List[Any]): List of values to check
-- `field` (str): Field name for context
-
-**Returns:**
-- List of detection results (same format as detect_anomaly)
-
-**Example:**
-```python
-results = detector.bulk_detect(['cotton', 'silk', 'unknwn'], 'material')
-```
-
-#### get_confidence_threshold() -> float
-
-Returns the confidence threshold used for anomaly classification.
-
-**Returns:**
-- float: Threshold value (0-1)
-
-#### save_model(path: str) -> None
-
-Saves the trained model to disk.
-
-**Parameters:**
-- `path` (str): Directory path to save model files
-
-#### load_model(path: str) -> None
-
-Loads a previously trained model from disk.
-
-**Parameters:**
-- `path` (str): Directory path containing model files
 
 ### Implementations
 
@@ -136,16 +121,16 @@ Base interface for field validators that enforce business rules.
 
 ### Methods
 
-#### validate(value: Any, row_index: Optional[int] = None) -> List[ValidationError]
+#### _validate_entry(value: Any) -> Optional[ValidationError]
 
-Validates a single value against business rules.
+Contains the specific validation logic for a single data entry. This method must be implemented by subclasses.
 
 **Parameters:**
-- `value` (Any): Value to validate
-- `row_index` (Optional[int]): Row index for error reporting
+- `value` (Any): The data from the DataFrame column to be validated
 
 **Returns:**
-- List[ValidationError]: List of validation errors found
+- None if the value is valid
+- A ValidationError instance if the value is invalid
 
 **Example:**
 ```python
@@ -154,22 +139,21 @@ errors = validator.validate("", row_index=5)
 # [ValidationError(type='EMPTY_VALUE', severity='ERROR', confidence=1.0)]
 ```
 
-#### bulk_validate(values: List[Any]) -> List[List[ValidationError]]
+#### bulk_validate(df: pd.DataFrame, column_name: str) -> List[ValidationError]
 
-Validates multiple values in batch.
+Validates a column and returns a list of ValidationError objects. This method runs the `_validate_entry` logic for each row.
 
 **Parameters:**
-- `values` (List[Any]): List of values to validate
+- `df` (pd.DataFrame): The input DataFrame containing the data to be validated
+- `column_name` (str): The name of the column to validate within the DataFrame
 
 **Returns:**
-- List of error lists, one per value
+- List[ValidationError]: A list of ValidationError instances with row context
 
-#### get_field_type() -> str
-
-Returns the field type this validator handles.
-
-**Returns:**
-- str: Field type name
+**Example:**
+```python
+errors = validator.bulk_validate(data_df, 'material')
+```
 
 ### ValidationError Class
 
@@ -177,10 +161,10 @@ Returns the field type this validator handles.
 @dataclass
 class ValidationError:
     error_type: str          # Error code (e.g., 'EMPTY_VALUE')
-    severity: str           # 'ERROR', 'WARNING', or 'INFO'
-    confidence: float       # Always 1.0 for validators
-    details: Dict[str, Any] # Additional error context
-    message: Optional[str]  # Human-readable message
+    probability: float      # Always 1.0 for validators
+    row_index: Optional[int] # Row index where error occurred
+    column_name: Optional[str] # Column name where error occurred
+    error_data: Any         # The actual problematic value
 ```
 
 ### Creating Custom Validators
@@ -193,19 +177,14 @@ class CustomValidator(ValidatorInterface):
     def __init__(self):
         self.field_type = "custom_field"
     
-    def validate(self, value, row_index=None):
-        errors = []
-        
+    def _validate_entry(self, value):
         # Add validation logic
         if not value:
-            errors.append(ValidationError(
+            return ValidationError(
                 error_type="MISSING_VALUE",
-                severity="ERROR",
-                confidence=1.0,
-                details={"value": value, "row": row_index}
-            ))
-        
-        return errors
+                probability=1.0
+            )
+        return None
 ```
 
 ## ReporterInterface
@@ -213,35 +192,29 @@ class CustomValidator(ValidatorInterface):
 Base interface for report generation across different formats.
 
 ### Location
-`anomaly_detectors/reporter_interface.py`
+`validators/reporter_interface.py`
 
 ### Methods
 
-#### generate_report(results: Dict[str, Any], output_format: str = 'json') -> Any
+#### generate_report(validation_errors: List[ValidationError], original_df: pd.DataFrame) -> List[Dict[str, Any]]
 
-Generates a report from detection results.
-
-**Parameters:**
-- `results` (Dict): Detection results to report
-- `output_format` (str): Output format ('json', 'csv', 'html')
-
-**Returns:**
-- Report in specified format
-
-#### save_report(report: Any, path: str) -> None
-
-Saves report to file.
+Generates human-readable messages for a list of validation errors.
 
 **Parameters:**
-- `report` (Any): Report data
-- `path` (str): File path to save report
-
-#### get_supported_formats() -> List[str]
-
-Returns list of supported output formats.
+- `validation_errors` (List[ValidationError]): The list of ValidationError objects produced by a Validator
+- `original_df` (pd.DataFrame): The original DataFrame, useful for providing additional context
 
 **Returns:**
-- List[str]: Format names
+- List[Dict[str, Any]]: A list of dictionaries, where each dictionary contains:
+  - `row_index`: The integer index of the row containing the error
+  - `error_data`: The original problematic data
+  - `display_message`: A human-readable string explaining the error
+
+**Example:**
+```python
+report = reporter.generate_report(validation_errors, data_df)
+# [{"row_index": 5, "error_data": "", "display_message": "Empty material value"}]
+```
 
 ### Report Structure
 
@@ -275,40 +248,63 @@ High-level interface that combines multiple detection methods.
 
 ### Methods
 
-#### detect(data: pd.DataFrame, field: str, method: str = 'all') -> pd.DataFrame
+#### detect_issues(df: pd.DataFrame, field_name: str, config: DetectionConfig) -> List[DetectionResult]
 
-Runs detection on data using specified method(s).
-
-**Parameters:**
-- `data` (pd.DataFrame): Input data
-- `field` (str): Field to analyze
-- `method` (str): Detection method ('validation', 'pattern', 'ml', 'llm', 'all')
-
-**Returns:**
-- pd.DataFrame: Data with detection results added
-
-#### get_detection_methods() -> List[str]
-
-Returns available detection methods.
-
-**Returns:**
-- List[str]: Method names
-
-#### set_thresholds(thresholds: Dict[str, float]) -> None
-
-Sets confidence thresholds for each detection method.
+Runs detection using configured methods.
 
 **Parameters:**
-- `thresholds` (Dict[str, float]): Method-to-threshold mapping
+- `df` (pd.DataFrame): Input DataFrame
+- `field_name` (str): Standard field name to analyze
+- `config` (DetectionConfig): Configuration specifying thresholds and enabled methods
+
+**Returns:**
+- List[DetectionResult]: List of all detected issues
 
 **Example:**
 ```python
-detector.set_thresholds({
-    'validation': 0.0,
-    'pattern': 0.7,
-    'ml': 0.75,
-    'llm': 0.6
-})
+config = DetectionConfig(
+    validation_threshold=0.0,
+    anomaly_threshold=0.7,
+    ml_threshold=0.75,
+    enable_validation=True,
+    enable_anomaly_detection=True,
+    enable_ml_detection=True
+)
+results = detector.detect_issues(data_df, 'material', config)
+```
+
+### DetectionConfig
+
+Configuration class for controlling detection behavior:
+
+```python
+@dataclass
+class DetectionConfig:
+    validation_threshold: float
+    anomaly_threshold: float
+    ml_threshold: float
+    llm_threshold: float = 0.6
+    enable_validation: bool = True
+    enable_anomaly_detection: bool = True
+    enable_ml_detection: bool = True
+    enable_llm_detection: bool = False
+```
+
+### DetectionResult
+
+Unified result format for all detection methods:
+
+```python
+@dataclass
+class DetectionResult:
+    row_index: int
+    field_name: str
+    detection_type: DetectionType
+    error_code: str
+    confidence: float
+    message: str
+    details: Dict[str, Any]
+    value: Any
 ```
 
 ## Usage Examples
@@ -318,58 +314,53 @@ detector.set_thresholds({
 ```python
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
 from validators.material.validate import Validator as MaterialValidator
-from single_sample_multi_field_demo.consolidated_reporter import ConsolidatedReporter
+from validators.report import Reporter
 
 # Initialize components
 ml_detector = MLAnomalyDetector()
 validator = MaterialValidator()
-reporter = ConsolidatedReporter()
+reporter = Reporter('material')
 
 # Load and prepare data
 data = pd.read_csv('data.csv')
 
-# Train ML model
-ml_detector.learn_patterns(data, 'material')
+# Detect validation errors
+validation_errors = validator.bulk_validate(data, 'material')
 
-# Detect anomalies
-ml_results = ml_detector.bulk_detect(data['material'].values, 'material')
-validation_results = validator.bulk_validate(data['material'].values)
+# Detect ML anomalies
+ml_anomalies = ml_detector.bulk_detect(data, 'material', batch_size=1000, max_workers=4)
 
-# Generate report
-all_results = {
-    'ml': ml_results,
-    'validation': validation_results
-}
-report = reporter.generate_report(all_results)
-reporter.save_report(report, 'output/report.json')
+# Generate human-readable report
+validation_report = reporter.generate_report(validation_errors, data)
 ```
 
 ### Custom Implementation
 
 ```python
 from anomaly_detectors.anomaly_detector_interface import AnomalyDetectorInterface
+from anomaly_detectors.anomaly_error import AnomalyError
 
 class CustomDetector(AnomalyDetectorInterface):
     def __init__(self, threshold=0.8):
         self.threshold = threshold
         self.patterns = {}
     
-    def learn_patterns(self, data, field):
-        # Implement pattern learning
-        self.patterns[field] = self._extract_patterns(data[field])
-    
-    def detect_anomaly(self, value, field):
+    def _detect_anomaly(self, value, context=None):
         # Implement detection logic
-        score = self._calculate_score(value, field)
-        return {
-            'is_anomaly': score > self.threshold,
-            'confidence': score,
-            'reason': 'Custom detection logic',
-            'details': {'patterns': self.patterns.get(field, [])}
-        }
+        if value not in self.patterns:
+            return AnomalyError(
+                anomaly_type="unknown_pattern",
+                probability=0.85,
+                anomaly_data={"value": value}
+            )
+        return None
     
-    def get_confidence_threshold(self):
-        return self.threshold
+    def learn_patterns(self, df, column_name):
+        # Implement pattern learning
+        self.patterns = set(df[column_name].unique())
+    
+    def get_detector_args(self):
+        return {"threshold": self.threshold}
 ```
 
 ## Best Practices
@@ -382,6 +373,6 @@ class CustomDetector(AnomalyDetectorInterface):
 
 ## Next Steps
 
-- Explore specific [Validators](validators.md) implementations
-- Learn about [Anomaly Detectors](anomaly-detectors.md) in detail
-- Understand [Reporters](reporters.md) and output formats
+- Learn about [Configuration](../configuration/brand-config.md)
+- Read about [Adding New Fields](../development/new-fields.md)
+- Explore [Detection Methods](../detection-methods/overview.md)

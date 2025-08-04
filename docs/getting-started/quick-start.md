@@ -81,10 +81,10 @@ Run only validation and pattern-based detection:
 python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
     --data-file data/sample_data.csv \
     --enable-validation \
-    --enable-pattern \
-    --disable-ml \
-    --disable-llm
+    --enable-pattern
 ```
+
+Note: By default, if no detection methods are explicitly enabled, all available methods run. Use the --enable flags to selectively enable specific methods.
 
 ### Adjust Detection Thresholds
 
@@ -98,14 +98,14 @@ python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
     --ml-threshold 0.75
 ```
 
-### Process Specific Fields
+### Process Core Fields Only
 
-Focus on specific data fields:
+Process only the core fields defined in the brand configuration:
 
 ```bash
 python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
     --data-file data/sample_data.csv \
-    --fields material color_name category
+    --core-fields-only
 ```
 
 ## Common Use Cases
@@ -137,7 +137,10 @@ python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
 python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
     --data-file clean_data.csv \
     --injection-intensity 0.2 \
-    --enable-all \
+    --enable-validation \
+    --enable-pattern \
+    --enable-ml \
+    --enable-llm \
     --output-dir results/full_analysis
 ```
 
@@ -177,8 +180,8 @@ python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
 
 ### Performance Issues?
 - Use `--core-fields-only` to process fewer fields
-- Disable ML/LLM methods for faster processing
-- Reduce sample size with `--sample-size 1000`
+- Disable ML/LLM methods for faster processing by not using their --enable flags
+- Process smaller files or split large files into chunks
 
 ## Next Steps
 
@@ -187,11 +190,9 @@ Now that you've run your first detection:
 1. **Learn More**: Read the [Basic Usage Guide](basic-usage.md)
 2. **Configure**: Set up [Brand Configuration](../configuration/brand-config.md)
 3. **Customize**: Add [New Fields](../development/new-fields.md)
-4. **Evaluate**: Run [Performance Evaluation](../guides/evaluation.md)
-5. **Deploy**: Follow the [Deployment Guide](../operations/deployment.md)
+4. **Deploy**: Follow the [Deployment Guide](../operations/deployment.md)
 
 ## Getting Help
 
 - Check the full [CLI Reference](../reference/cli.md)
 - Review [Configuration Options](../configuration/brand-config.md)
-- See [Troubleshooting Guide](../operations/troubleshooting.md) for common issues

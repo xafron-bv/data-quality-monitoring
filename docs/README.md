@@ -40,7 +40,7 @@ graph TB
     subgraph "Orchestration Layer"
         B1[ComprehensiveFieldDetector]
         B2[Evaluator]
-        B3[UnifiedInterface]
+        B3[UnifiedDetectionInterface]
     end
     
     subgraph "Detection Methods Layer"
@@ -52,7 +52,7 @@ graph TB
     subgraph "Core Services Layer"
         D1[FieldMapper]
         D2[BrandConfig]
-        D3[ErrorInjection]
+        D3[ErrorInjector]
         D4[Reporters]
     end
     
@@ -99,5 +99,3 @@ This documentation is organized into the following sections:
 ## Support and Contribution
 
 The Data Quality Detection System is designed to be extensible and customizable. Whether you're adding new fields, creating custom validators, or implementing new detection methods, this documentation provides comprehensive guidance.
-
-For questions, issues, or contributions, please refer to our [Contributing Guide](development/contributing.md).

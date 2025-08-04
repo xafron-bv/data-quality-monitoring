@@ -33,9 +33,10 @@ Before implementing, understand your field's characteristics:
 
 ```bash
 # Analyze field data distribution
-python analyze_column.py \
-    --data-file data/sample.csv \
-    --column new_field_name
+python analyze_column/analyze_column.py data/sample.csv new_field_name
+
+# Or use the main entry point
+python main.py analyze-column data/sample.csv new_field_name
 
 # Output includes:
 # - Unique values count
@@ -72,76 +73,46 @@ class Validator(ValidatorInterface):
         self.min_length = 6
         self.max_length = 50
         
-    def validate(self, value, row_index=None):
+    def _validate_entry(self, value):
         """Validate a single value."""
-        errors = []
-        
         # Convert to string for validation
         str_value = str(value).strip()
         
         # Check for empty values
         if not str_value or str_value.lower() in ['nan', 'none', 'null']:
-            errors.append(ValidationError(
+            return ValidationError(
                 error_type="EMPTY_VALUE",
-                severity="ERROR",
-                confidence=1.0,
-                details={
-                    "value": value,
-                    "row_index": row_index
-                }
-            ))
-            return errors
+                probability=1.0
+            )
         
         # Check length constraints
         if len(str_value) < self.min_length:
-            errors.append(ValidationError(
+            return ValidationError(
                 error_type="TOO_SHORT",
-                severity="ERROR",
-                confidence=1.0,
-                details={
-                    "value": str_value,
-                    "min_length": self.min_length,
-                    "actual_length": len(str_value)
-                }
-            ))
+                probability=1.0
+            )
         
         if len(str_value) > self.max_length:
-            errors.append(ValidationError(
+            return ValidationError(
                 error_type="TOO_LONG",
-                severity="WARNING",
-                confidence=1.0,
-                details={
-                    "value": str_value,
-                    "max_length": self.max_length,
-                    "actual_length": len(str_value)
-                }
-            ))
+                probability=1.0
+            )
         
         # Check format pattern
         if not self.valid_pattern.match(str_value):
-            errors.append(ValidationError(
+            return ValidationError(
                 error_type="INVALID_FORMAT",
-                severity="ERROR",
-                confidence=1.0,
-                details={
-                    "value": str_value,
-                    "expected_pattern": self.valid_pattern.pattern
-                }
-            ))
+                probability=1.0
+            )
         
         # Add custom business logic
         if self._violates_business_rule(str_value):
-            errors.append(ValidationError(
+            return ValidationError(
                 error_type="BUSINESS_RULE_VIOLATION",
-                severity="ERROR",
-                confidence=1.0,
-                details={
-                    "value": str_value,
-                    "rule": "Custom business rule description"
-                }
-            ))
+                probability=1.0
+            )
         
-        return errors
+        return None
     
     def _violates_business_rule(self, value):
         """Implement custom business logic."""
@@ -317,12 +288,19 @@ FIELD_CONFIGS = {
 
 ### 4.3 Train the Model
 
+ML models are typically pre-trained or use transfer learning. To configure and test ML detection for your new field:
+
 ```bash
-python anomaly_detectors/ml_based/model_training.py \
-    --field new_field \
-    --data-file data/new_field_training.csv \
-    --output-dir models/new_field \
-    --epochs 10
+# Run hyperparameter search for the new field
+python main.py ml-train \
+    --use-hp-search \
+    --fields new_field \
+    --hp-trials 15
+
+# Test anomaly detection
+python main.py ml-train \
+    --check-anomalies new_field \
+    --threshold 0.75
 ```
 
 ## Step 5: Configure Field Mapping
@@ -340,38 +318,16 @@ Edit `brand_configs/your_brand.json`:
         "new_field": "Your_Column_Name"
     },
     
-    "field_configs": {
-        "new_field": {
-            "display_name": "New Field",
-            "description": "Description of the new field",
-            "data_type": "string",
-            "required": true,
-            "detection_methods": ["validation", "pattern", "ml"]
-        }
-    }
+    "enabled_fields": [
+        // ... existing fields ...
+        "new_field"
+    ]
 }
 ```
 
-### 5.2 Add to Standard Fields
+### 5.2 Register the Field
 
-Update `common/field_definitions.py`:
-
-```python
-STANDARD_FIELDS = {
-    # ... existing fields ...
-    
-    'new_field': {
-        'name': 'new_field',
-        'display_name': 'New Field',
-        'category': 'product_info',
-        'data_type': 'string',
-        'validation_enabled': True,
-        'pattern_enabled': True,
-        'ml_enabled': True,
-        'llm_enabled': False
-    }
-}
-```
+The new field will be automatically recognized once it's added to the brand configuration and the corresponding validator is created in the `validators/new_field/` directory.
 
 ## Step 6: Test Implementation
 
@@ -390,23 +346,25 @@ class TestNewFieldValidator:
     def test_valid_values(self):
         valid_values = ['AB1234', 'CD5678', 'EF9012']
         for value in valid_values:
-            errors = self.validator.validate(value)
-            assert len(errors) == 0
+            error = self.validator._validate_entry(value)
+            assert error is None
     
     def test_empty_value(self):
-        errors = self.validator.validate('')
-        assert len(errors) == 1
-        assert errors[0].error_type == 'EMPTY_VALUE'
+        error = self.validator._validate_entry('')
+        assert error is not None
+        assert error.error_type == 'EMPTY_VALUE'
     
     def test_invalid_format(self):
         invalid_values = ['abc123', '123ABC', 'ABCDEF']
         for value in invalid_values:
-            errors = self.validator.validate(value)
-            assert any(e.error_type == 'INVALID_FORMAT' for e in errors)
+            error = self.validator._validate_entry(value)
+            assert error is not None
+            assert error.error_type == 'INVALID_FORMAT'
     
     def test_business_rules(self):
-        errors = self.validator.validate('XX0000')
-        assert any(e.error_type == 'BUSINESS_RULE_VIOLATION' for e in errors)
+        error = self.validator._validate_entry('XX0000')
+        assert error is not None
+        assert error.error_type == 'BUSINESS_RULE_VIOLATION'
 ```
 
 ### 6.2 Integration Tests
@@ -415,10 +373,11 @@ Test with the complete system:
 
 ```bash
 # Test with sample data
-python single_sample_multi_field_demo.py \
+python main.py single-demo \
     --data-file test_data/new_field_test.csv \
-    --fields new_field \
-    --enable-all \
+    --enable-validation \
+    --enable-pattern \
+    --enable-ml \
     --output-dir test_results/new_field
 
 # Verify results

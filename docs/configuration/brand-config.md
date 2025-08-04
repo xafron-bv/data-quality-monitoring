@@ -34,8 +34,7 @@ Brand configurations are stored in `brand_configs/` directory:
 ```
 brand_configs/
 ├── esqualo.json      # Esqualo brand config
-├── template.json     # Template for new brands
-└── your_brand.json   # Your custom brand
+└── your_brand.json   # Your custom brand config
 ```
 
 ### Configuration File Structure
@@ -43,8 +42,6 @@ brand_configs/
 ```json
 {
     "brand_name": "your_brand",
-    "description": "Configuration for Your Brand data",
-    "version": "1.0",
     
     "field_mappings": {
         "material": "Material_Column",
@@ -55,25 +52,21 @@ brand_configs/
         "season": "Season_Code"
     },
     
-    "default_paths": {
-        "data_path": "data/your_brand_data.csv",
-        "output_path": "results/your_brand/",
-        "model_path": "models/your_brand/"
-    },
+    "default_data_path": "data/your_brand_data.csv",
+    "training_data_path": "data/your_brand_training.csv",
     
-    "thresholds": {
+    "enabled_fields": [
+        "material",
+        "color_name",
+        "category",
+        "size"
+    ],
+    
+    "custom_thresholds": {
         "validation": 0.0,
-        "pattern": 0.7,
-        "ml": 0.75,
+        "anomaly": 0.7,
+        "ml": 0.7,
         "llm": 0.6
-    },
-    
-    "custom_fields": {
-        "brand_specific_field": {
-            "type": "text",
-            "required": true,
-            "validation_rules": ["not_empty", "format_check"]
-        }
     }
 }
 ```
@@ -116,63 +109,33 @@ The system recognizes these standard fields:
 
 ## Advanced Configuration
 
-### Multiple Data Sources
+### Enabled Fields
 
-Support multiple data formats:
+The `enabled_fields` array specifies which fields should be processed:
 
 ```json
 {
-    "data_sources": {
-        "primary": {
-            "path": "data/main_catalog.csv",
-            "format": "csv",
-            "encoding": "utf-8"
-        },
-        "secondary": {
-            "path": "data/inventory.xlsx",
-            "format": "excel",
-            "sheet_name": "Products"
-        }
-    }
+    "enabled_fields": [
+        "material",
+        "color_name", 
+        "category",
+        "size",
+        "care_instructions"
+    ]
 }
 ```
 
-### Field-Specific Thresholds
+### Custom Thresholds
 
-Override detection thresholds per field:
-
-```json
-{
-    "field_thresholds": {
-        "material": {
-            "validation": 0.0,
-            "pattern": 0.8,
-            "ml": 0.85
-        },
-        "color_name": {
-            "pattern": 0.7,
-            "ml": 0.7
-        }
-    }
-}
-```
-
-### Custom Validation Rules
-
-Add brand-specific validation rules:
+Override global detection thresholds:
 
 ```json
 {
-    "custom_rules": {
-        "material": {
-            "allowed_prefixes": ["100%", "Pure"],
-            "forbidden_terms": ["Unknown", "TBD"],
-            "max_length": 50
-        },
-        "category": {
-            "allowed_values": ["Tops", "Bottoms", "Dresses", "Accessories"],
-            "hierarchical": true
-        }
+    "custom_thresholds": {
+        "validation": 0.0,
+        "anomaly": 0.7,
+        "ml": 0.75,
+        "llm": 0.6
     }
 }
 ```
@@ -181,43 +144,44 @@ Add brand-specific validation rules:
 
 ### Command Line
 
-Specify brand configuration when running detection:
+Brand configuration is now statically configured in the system:
 
 ```bash
-# Use specific brand config
-python single_sample_multi_field_demo.py \
-    --brand esqualo \
+# The demo uses static brand configuration (esqualo)
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py \
     --data-file data/esqualo_products.csv
 
-# Override config file
-python single_sample_multi_field_demo.py \
-    --config brand_configs/custom_brand.json
+# Brand options are deprecated in favor of static configuration
 ```
 
 ### Programmatic Usage
 
 ```python
-from common.brand_config import BrandConfig
+from common.brand_config import load_brand_config
 
 # Load brand configuration
-config = BrandConfig("your_brand")
+config = load_brand_config("your_brand")
 
 # Access field mappings
-material_column = config.get_field_mapping("material")
+material_column = config.get_column_name("material")
 
-# Get thresholds
-thresholds = config.get_thresholds()
+# Get custom thresholds
+if config.custom_thresholds:
+    ml_threshold = config.custom_thresholds.get("ml", 0.7)
 
-# Use in detection
-detector.set_config(config)
+# Check if field is enabled
+if config.enabled_fields and "color_name" in config.enabled_fields:
+    # Process color field
+    pass
 ```
 
 ## Creating a New Brand Configuration
 
-### Step 1: Copy Template
+### Step 1: Create Configuration File
 
 ```bash
-cp brand_configs/template.json brand_configs/new_brand.json
+# Create a new brand configuration file
+touch brand_configs/new_brand.json
 ```
 
 ### Step 2: Analyze Your Data
