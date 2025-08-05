@@ -1,0 +1,2 @@
+# This file ensures the pdf directory is tracked in git
+# The actual PDF will be generated during the build process
