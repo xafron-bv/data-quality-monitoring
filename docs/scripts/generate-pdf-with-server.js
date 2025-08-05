@@ -32,14 +32,23 @@ async function generatePDF() {
   await sleep(5000);
   
   try {
-    // Generate PDF using docs-to-pdf
-    const command = `npx docs-to-pdf docusaurus --initialDocURLs="http://localhost:3001/README" --outputPDFFilename="xafron-documentation.pdf" --coverTitle="Xafron Documentation" --coverSub="Data Quality Detection System<br/>Version ${new Date().getFullYear()}" --disableTOC=false --pdfMargin="20,20,20,20"`;
+    // Generate PDF using docs-to-pdf with explicit Docusaurus v2 parameters
+    const command = `npx docs-to-pdf --initialDocURLs="http://localhost:3001/" --contentSelector="article" --paginationSelector="a.pagination-nav__link.pagination-nav__link--next" --excludeSelectors=".margin-vert--xl a,[class^='tocCollapsible'],.breadcrumbs,.theme-edit-this-page" --outputPDFFilename="xafron-documentation.pdf" --coverTitle="Xafron Documentation" --coverSub="Data Quality Detection System<br/>Version ${new Date().getFullYear()}" --pdfMargin="20,20,20,20"`;
     
     console.log('Generating PDF...');
+    console.log('Command:', command);
+    
+    // Set up environment for Puppeteer
+    const env = {
+      ...process.env,
+      PUPPETEER_ARGS: process.env.PUPPETEER_ARGS || '--no-sandbox,--disable-setuid-sandbox',
+      PUPPETEER_EXECUTABLE_PATH: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
+    };
     
     execSync(command, {
       stdio: 'inherit',
-      cwd: path.join(__dirname, '..')
+      cwd: path.join(__dirname, '..'),
+      env: env
     });
     
     // Move the generated PDF to the correct location
@@ -56,10 +65,29 @@ async function generatePDF() {
         fs.mkdirSync(staticPdfDir, { recursive: true });
       }
       fs.copyFileSync(targetPdf, path.join(staticPdfDir, 'xafron-documentation.pdf'));
+      console.log(`PDF copied to static directory: ${path.join(staticPdfDir, 'xafron-documentation.pdf')}`);
+    } else {
+      console.error('PDF generation failed - file not found at:', generatedPdf);
     }
     
   } catch (error) {
     console.error('Error generating PDF:', error);
+    console.error('This might be due to missing browser dependencies in CI environment');
+    
+    // Create a placeholder file to prevent 404 errors
+    const staticPdfDir = path.join(__dirname, '..', 'static', 'pdf');
+    if (!fs.existsSync(staticPdfDir)) {
+      fs.mkdirSync(staticPdfDir, { recursive: true });
+    }
+    
+    // Create a simple text file explaining the issue
+    const placeholderPath = path.join(staticPdfDir, 'xafron-documentation.pdf');
+    const placeholderContent = `PDF generation failed during build.
+Please check the GitHub Actions logs for more details.
+Visit the online documentation at: https://docs.xafron.nl/`;
+    
+    fs.writeFileSync(placeholderPath, placeholderContent);
+    console.log('Created placeholder file at:', placeholderPath);
   } finally {
     // Kill the server
     try {

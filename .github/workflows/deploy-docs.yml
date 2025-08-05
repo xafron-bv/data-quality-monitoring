@@ -49,6 +49,24 @@ jobs:
         run: npm ci
         working-directory: ./docs
 
+      - name: Install Chrome dependencies for PDF generation
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            wget \
+            gnupg \
+            ca-certificates
+          
+          # Add Google Chrome repository
+          wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          
+          # Update and install Chrome
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
       - name: Generate sidebars
         run: node scripts/generate-sidebars.js
         working-directory: ./docs
@@ -56,6 +74,10 @@ jobs:
       - name: Build website
         run: npm run build
         working-directory: ./docs
+        env:
+          # Puppeteer configuration for CI
+          PUPPETEER_ARGS: "--no-sandbox,--disable-setuid-sandbox,--disable-dev-shm-usage,--disable-accelerated-2d-canvas,--no-first-run,--no-zygote,--disable-gpu"
+          PUPPETEER_EXECUTABLE_PATH: "/usr/bin/google-chrome-stable"
 
       - name: Setup Pages
         if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
