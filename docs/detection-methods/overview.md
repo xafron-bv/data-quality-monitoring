@@ -2,6 +2,41 @@
 
 The Data Quality Detection System employs four complementary detection methods, each leveraging different theoretical foundations to identify data quality issues. This document provides comprehensive theoretical explanations of how each method works, why specific approaches were chosen, and the mathematical foundations underlying the detection algorithms.
 
+## Executive Summary
+
+**Four-Layered Detection Strategy:**
+
+1. **Validation** (100% confidence): Deterministic rule-based checks using domain expertise encoded as validation logic
+2. **Pattern-Based** (70-80% confidence): JSON-configurable pattern matching against known values and regex rules  
+3. **ML-Based** (60-75% confidence): Semantic similarity detection using fine-tuned sentence transformers with centroid comparison
+4. **LLM-Based** (50-70% confidence): Language model probability scoring with contextual understanding
+
+**Key Innovation: Centroid-Based ML Detection**
+Unlike traditional anomaly detection, our ML approach trains models to cluster all valid values around a central reference point (centroid). During inference, we simply measure how far a new value is from this learned center of "normal" data. This approach is both fast and semantically meaningful.
+
+**Key Innovation: Domain-Specific Language Modeling**
+The LLM approach fine-tunes language models on field-specific data to learn what "normal" text looks like for each data type. Anomalies are detected by their low probability under the learned language model.
+
+## Core Concept: Progressive Confidence Levels
+
+```mermaid
+graph LR
+    A[Input Value] --> B{Validation Rules}
+    B -->|Pass| C{Pattern Match}
+    B -->|Fail| CERTAIN[🚨 CERTAIN ANOMALY]
+    
+    C -->|Match Known| VALID[✅ VALID]
+    C -->|No Match| D{ML Similarity}
+    
+    D -->|High Similarity| LIKELY_VALID[✅ LIKELY VALID]
+    D -->|Low Similarity| E{LLM Probability}
+    
+    E -->|High Probability| MAYBE_VALID[⚠️ MAYBE VALID]
+    E -->|Low Probability| LIKELY_ANOMALY[🚨 LIKELY ANOMALY]
+```
+
+Each layer provides different confidence levels, allowing the system to make progressively more nuanced decisions as data complexity increases.
+
 ## Theoretical Foundation Overview
 
 ```mermaid
@@ -45,45 +80,56 @@ Pure rule-based validation using deterministic logic and exact pattern matching.
 - **Explainable**: Clear mapping from rule to violation
 
 ### Implementation Details
+Validation uses sophisticated rule-based logic with tokenization and semantic analysis:
 ```python
-def validate(value, rules):
-    for rule in rules:
-        if not rule.evaluate(value):
-            return ValidationError(rule.message, confidence=1.0)
-    return None
+class Validator(ValidatorInterface):
+    def _validate_entry(self, value):
+        # Multi-layered validation:
+        # 1. Basic checks (null, empty, whitespace)
+        # 2. Character validation and tokenization
+        # 3. Format pattern matching
+        # 4. Domain-specific business rules
+        # 5. Semantic consistency checks
+        
+        if validation_fails(value):
+            return ValidationError(error_type, probability, details)
+        return None
 ```
 
 ## 2. Pattern-Based Detection
 
 ### Theoretical Approach
-Statistical anomaly detection using pattern recognition and outlier identification without requiring training data.
+Rule-based pattern matching using JSON-configured detection rules rather than statistical analysis.
 
 **Mathematical Foundation:**
-- **Statistical Thresholds**: Values outside μ ± kσ flagged as outliers
 - **Set Membership**: Direct lookup against known valid values
-- **String Distance Metrics**: Edit distance for approximate matching
-- **Frequency Analysis**: Rare patterns identified as potential anomalies
+- **Regular Expression Matching**: Pattern validation using regex engines
+- **Rule-Based Logic**: Configurable validation rules and format patterns
+- **Confidence Scoring**: Rule-specific confidence levels based on pattern types
 
 **Why This Approach:**
-- **No Training Data Required**: Works with predefined patterns and statistical analysis
-- **Fast Detection**: O(1) lookup for known patterns, O(n) for statistical analysis
-- **Moderate Confidence**: 70-80% accuracy based on statistical principles
-- **Adaptable**: Rules can be updated without retraining
+- **No Training Data Required**: Uses predefined rules and known value sets
+- **Fast Detection**: O(1) lookup for known values, O(n) for regex patterns
+- **Moderate Confidence**: 70-80% accuracy based on rule coverage
+- **Configurable**: Rules can be updated via JSON without code changes
 
 ### Implementation Strategy
 ```python
-def detect_pattern_anomaly(value, patterns):
-    # 1. Exact pattern matching
-    if value in patterns.known_valid:
-        return None
-    
-    # 2. Statistical outlier detection
-    if is_statistical_outlier(value, patterns.distribution):
-        return PatternAnomaly(confidence=0.75)
-    
-    # 3. Format validation
-    if not matches_expected_format(value, patterns.format_rules):
-        return FormatAnomaly(confidence=0.8)
+class PatternBasedDetector:
+    def detect_anomaly(self, value):
+        # 1. Known value lookup
+        if value.lower() in self.known_values:
+            return None
+        
+        # 2. Format pattern validation
+        for pattern in self.format_patterns:
+            if not re.match(pattern['regex'], value):
+                return AnomalyError(pattern['message'])
+        
+        # 3. Custom validation rules
+        for rule in self.validation_rules:
+            if rule.violates(value):
+                return AnomalyError(rule['message'])
 ```
 
 ## 3. ML-Based Detection: Centroid Similarity Approach
@@ -129,18 +175,39 @@ Where:
 ```
 
 **Training Strategy:**
-1. **Triplet Generation**: For each clean text, create triplets where:
+The training happens offline and produces two key artifacts:
+1. **Fine-tuned Model**: A sentence transformer optimized for the specific field
+2. **Reference Centroid**: The mean embedding vector of all clean training data
+
+**Triplet Generation Process:**
+1. **Triplet Creation**: For each clean text, create triplets where:
    - Anchor: Original clean text (e.g., "cotton")
    - Positive: Any other clean text (e.g., "wool") 
    - Negative: Error-injected variant (e.g., "cott0n", "furniture")
 
 2. **Error Injection**: Systematic corruption using domain-specific rules:
-   - Character substitution/deletion
-   - OCR-like errors
-   - Semantic category violations
-   - Format violations
+   - Character substitution/deletion (typos)
+   - OCR-like errors (character confusion)
+   - Semantic category violations (wrong domain words)
+   - Format violations (structural errors)
 
-3. **Objective**: Train the model so that all clean values are semantically similar, while anomalies are pushed away in embedding space.
+3. **Training Objective**: Minimize distance between anchor/positive pairs while maximizing distance between anchor/negative pairs. This teaches the model that all clean values should be semantically close.
+
+**Centroid Computation Phase:**
+After training, we compute the reference centroid:
+```
+centroid = mean(embeddings_of_all_clean_training_data)
+```
+This single vector represents the "center of normality" for the field.
+
+**Detection Phase (Production):**
+```
+1. Encode new value: embedding = model.encode(value)
+2. Compute similarity: similarity = cosine_similarity(embedding, centroid)  
+3. Anomaly decision: is_anomaly = similarity < threshold
+```
+
+The beauty of this approach is that detection requires only a single similarity computation, making it extremely fast while leveraging all the semantic understanding from training.
 
 ### Why This Approach Was Chosen
 
@@ -159,23 +226,26 @@ Where:
 
 ```python
 class MLAnomalyDetector:
-    def __init__(self, field_name):
-        self.model = None           # Fine-tuned sentence transformer
-        self.reference_centroid = None  # Mean of clean embeddings
+    def __init__(self, field_name, threshold=0.7):
+        self.field_name = field_name
+        self.model = None           # Pre-trained sentence transformer
+        self.reference_centroid = None  # Pre-computed centroid from training
+        self.threshold = threshold
         
-    def learn_patterns(self, clean_data):
-        # 1. Fine-tune model using triplet loss
-        triplets = create_triplets(clean_data, error_rules)
-        self.model = fine_tune_with_triplets(triplets)
-        
-        # 2. Compute reference centroid
-        embeddings = self.model.encode(clean_data)
-        self.reference_centroid = np.mean(embeddings, axis=0)
+    def learn_patterns(self, df, column_name):
+        # Load pre-trained model and reference centroid
+        self.model, self.column_name, self.reference_centroid = \
+            load_model_for_field(self.field_name)
         
     def detect_anomaly(self, value):
+        # Encode value and compare to reference centroid
         embedding = self.model.encode([value])
         similarity = cosine_similarity(embedding, self.reference_centroid)
-        return similarity < self.threshold
+        
+        if similarity < self.threshold:
+            return AnomalyError("ML_SEMANTIC_ANOMALY", 
+                              probability=1-similarity)
+        return None
 ```
 
 ## 4. LLM-Based Detection: Language Modeling Approach
@@ -216,18 +286,34 @@ The LLM-based detector leverages the fundamental insight that language models as
    ```
 
 **Training Process:**
+The training produces a field-specific language model that understands what "normal" text looks like for that data type.
+
 ```python
 def train_language_model(clean_texts, field_name):
     # 1. Tokenize and create masked examples
     dataset = create_masked_dataset(clean_texts, mask_prob=0.15)
     
-    # 2. Fine-tune pre-trained BERT/DistilBERT
+    # 2. Fine-tune pre-trained BERT/DistilBERT on field data
     model = AutoModelForMaskedLM.from_pretrained('distilbert-base-uncased')
     trainer = Trainer(model=model, train_dataset=dataset)
     trainer.train()
     
     # 3. Save field-specific model
     model.save_pretrained(f'models/{field_name}_model')
+```
+
+**Detection Process:**
+```python
+def detect_anomaly(model, tokenizer, text):
+    # 1. Calculate how "probable" this text is under the learned model
+    tokens = tokenizer(text)
+    probabilities = model.predict_token_probabilities(tokens)
+    
+    # 2. Compute anomaly score (higher = more anomalous)
+    anomaly_score = -mean(log(probabilities))
+    
+    # 3. Compare to threshold
+    return anomaly_score > threshold
 ```
 
 ### Advanced Features
@@ -277,11 +363,11 @@ Enables adaptation with minimal examples:
 
 | Aspect | Validation | Pattern-Based | ML-Based | LLM-Based |
 |--------|------------|---------------|----------|-----------|
-| **Theoretical Basis** | Boolean Logic | Statistical Analysis | Embedding Similarity | Language Probability |
+| **Theoretical Basis** | Boolean Logic | Rule-Based Matching | Embedding Similarity | Language Probability |
 | **Training Required** | No | No | Yes (Triplet Learning) | Yes (Language Modeling) |
-| **Mathematical Foundation** | Set Theory | Statistical Thresholds | Vector Similarity | Token Probability |
+| **Mathematical Foundation** | Set Theory | Regex + Rule Logic | Vector Similarity | Token Probability |
 | **Confidence Level** | 100% | 70-80% | Configurable (60-75%) | Configurable (50-70%) |
-| **Computational Complexity** | O(1) | O(log n) | O(1) inference | O(n) sequence length |
+| **Computational Complexity** | O(1) | O(1) lookup + O(n) regex | O(1) inference | O(n) sequence length |
 | **Semantic Understanding** | None | Limited | High | Very High |
 | **Context Awareness** | None | None | Limited | High |
 | **Explainability** | Perfect | Good | Moderate | Limited |
