@@ -60,6 +60,17 @@ const sidebars = {
   },
   {
     type: "category",
+    label: "User Guides",
+    items: [
+      "user-guides/analyzing-data",
+      "user-guides/running-detection",
+      "user-guides/viewing-results",
+      "user-guides/evaluating-performance",
+      "user-guides/optimizing-weights"
+    ]
+  },
+  {
+    type: "category",
     label: "Development",
     items: [
       "development/new-fields"
