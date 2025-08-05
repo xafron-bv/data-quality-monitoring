@@ -41,6 +41,14 @@ repos:
         language: system
         files: '^docs/.*\.md$'
         pass_filenames: false
+      
+      - id: docusaurus-build
+        name: Build Docusaurus documentation
+        entry: bash -c "cd docs && npm ci --silent && npm run build && rm -rf build"
+        language: system
+        files: '^docs/.*\.(md|js|json|css)$'
+        pass_filenames: false
+        description: "Ensures documentation builds successfully without keeping artifacts"
 
 # Configure pre-commit behavior
 default_language_version:
