@@ -37,9 +37,9 @@ repos:
     hooks:
       - id: validate-mermaid
         name: Validate Mermaid diagrams
-        entry: bash -c "cd docs && node scripts/validate-mermaid.js"
+        entry: bash -c "node docs/scripts/validate-mermaid.js ."
         language: system
-        files: '^docs/.*\.md$'
+        files: '.*\.md$'
         pass_filenames: false
       
       - id: docusaurus-build
