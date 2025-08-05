@@ -531,6 +531,6 @@ Before deploying a new field:
 
 ## Next Steps
 
-- Learn about [Creating Validators](validators.md) in detail
-- Understand [Training Models](training.md) for ML detection
-- Explore [Testing](testing.md) strategies
+- Learn about creating validators in detail (documentation coming soon)
+- Understand training models for ML detection (documentation coming soon)
+- Explore testing strategies (documentation coming soon)

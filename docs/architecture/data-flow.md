@@ -6,10 +6,25 @@ This document describes how data flows through the anomaly detection system from
 
 The data flow follows a pipeline architecture:
 
-```
-Input Data → Preprocessing → Validation → Detection → Reporting → Output
-     ↓            ↓              ↓           ↓            ↓          ↓
-Configuration  Field Mapping  Rules     Models      Formatters   Results
+```mermaid
+flowchart LR
+    ID[Input Data]:::input --> PP[Preprocessing]:::process
+    PP --> VA[Validation]:::process
+    VA --> DE[Detection]:::process
+    DE --> RE[Reporting]:::process
+    RE --> OU[Output]:::output
+    
+    CO[Configuration]:::config --> PP
+    FM[Field Mapping]:::config --> VA
+    RU[Rules]:::config --> VA
+    MO[Models]:::config --> DE
+    FO[Formatters]:::config --> RE
+    RS[Results]:::output --> OU
+    
+    classDef input fill:#81c784,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef process fill:#64b5f6,stroke:#1565c0,stroke-width:2px,color:#000
+    classDef config fill:#ffb74d,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef output fill:#ce93d8,stroke:#6a1b9a,stroke-width:2px,color:#000
 ```
 
 ## Input Stage
@@ -72,10 +87,28 @@ Common preprocessing steps:
 
 Validators process columns in parallel:
 
-```
-DataFrame → Column Splitter → Validator Pool → Result Aggregator
-                ↓                   ↓               ↓
-            [Col1, Col2, ...]   [V1, V2, ...]   [Errors]
+```mermaid
+flowchart LR
+    DF[DataFrame]:::data --> CS[Column Splitter]:::process
+    CS --> C1[Col1]:::column
+    CS --> C2[Col2]:::column
+    CS --> C3[Col3...]:::column
+    
+    C1 --> V1[Validator 1]:::validator
+    C2 --> V2[Validator 2]:::validator
+    C3 --> V3[Validator N]:::validator
+    
+    V1 --> RA[Result Aggregator]:::process
+    V2 --> RA
+    V3 --> RA
+    
+    RA --> ER[Errors List]:::output
+    
+    classDef data fill:#81c784,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef process fill:#64b5f6,stroke:#1565c0,stroke-width:2px,color:#000
+    classDef column fill:#fff176,stroke:#f9a825,stroke-width:2px,color:#000
+    classDef validator fill:#4fc3f7,stroke:#0288d1,stroke-width:2px,color:#000
+    classDef output fill:#ff8a65,stroke:#d84315,stroke-width:2px,color:#000
 ```
 
 ### Validation Flow
@@ -104,16 +137,11 @@ ValidationError(
 
 ## Detection Stage
 
-### Multi-Method Processing
+The detection stage processes data through multiple detection methods based on configuration.
 
-Detection methods can run in parallel or sequence:
+### Method Selection
 
-```
-Data → Method Selector → Detection Pipeline → Result Merger
-           ↓                    ↓                 ↓
-      [Rule, Pattern,     [Detectors]        [Anomalies]
-       ML, LLM]
-```
+The system selects detection methods based on field type and configuration. Data flows through the method selector, then to the detection pipeline, and finally to the result merger.
 
 ### Batch Processing
 
@@ -299,11 +327,12 @@ memory_usage = df.memory_usage(deep=True).sum()
 
 ### Future Architecture
 
-```
-Master Node → Task Queue → Worker Nodes → Result Queue → Aggregator
-     ↓            ↓            ↓              ↓             ↓
-[Scheduler]  [Partitions]  [Process]      [Collect]    [Merge]
-```
+The distributed processing architecture follows a master-worker pattern:
+- Master node manages task scheduling
+- Task queue distributes work partitions
+- Worker nodes process data in parallel
+- Result queue collects processed data
+- Aggregator merges final results
 
 ### Scaling Strategies
 

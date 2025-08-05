@@ -21,43 +21,49 @@ Configurable thresholds, weights, and field mappings allow the system to adapt t
 ```mermaid
 graph TB
     subgraph "User Interface"
-        UI1[CLI Tools]
-        UI2[HTML Viewer]
-        UI3[API Endpoints]
+        style "User Interface" fill:#e3f2fd,stroke:#0d47a1,stroke-width:2px
+        UI1[CLI Tools]:::ui
+        UI2[HTML Viewer]:::ui
+        UI3[API Endpoints]:::ui
     end
     
     subgraph "Entry Points"
-        EP1[single_sample_demo]
-        EP2[multi_sample_evaluation]
-        EP3[ml_curve_generator]
-        EP4[analyze_column]
+        style "Entry Points" fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+        EP1[single_sample_demo]:::entry
+        EP2[multi_sample_evaluation]:::entry
+        EP3[ml_curve_generator]:::entry
+        EP4[analyze_column]:::entry
     end
     
     subgraph "Orchestration"
-        O1[ComprehensiveFieldDetector]
-        O2[ConsolidatedReporter]
-        O3[ConfusionMatrixAnalyzer]
+        style "Orchestration" fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+        O1[ComprehensiveFieldDetector]:::orchestrator
+        O2[ConsolidatedReporter]:::orchestrator
+        O3[ConfusionMatrixAnalyzer]:::orchestrator
     end
     
     subgraph "Detection Engine"
-        DE1[Validation Engine]
-        DE2[Pattern Detector]
-        DE3[ML Detector]
-        DE4[LLM Detector]
+        style "Detection Engine" fill:#fff8e1,stroke:#f57f17,stroke-width:2px
+        DE1[Validation Engine]:::validator
+        DE2[Pattern Detector]:::detector
+        DE3[ML Detector]:::ml
+        DE4[LLM Detector]:::llm
     end
     
     subgraph "Core Services"
-        CS1[Field Mapper]
-        CS2[Brand Config]
-        CS3[Error Injector]
-        CS4[Model Cache]
+        style "Core Services" fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+        CS1[Field Mapper]:::service
+        CS2[Brand Config]:::service
+        CS3[Error Injector]:::service
+        CS4[Model Cache]:::service
     end
     
     subgraph "Data Storage"
-        DS1[(CSV Data)]
-        DS2[(JSON Configs)]
-        DS3[(ML Models)]
-        DS4[(Detection Results)]
+        style "Data Storage" fill:#eceff1,stroke:#263238,stroke-width:2px
+        DS1[(CSV Data)]:::storage
+        DS2[(JSON Configs)]:::storage
+        DS3[(ML Models)]:::storage
+        DS4[(Detection Results)]:::storage
     end
     
     UI1 --> EP1 & EP2 & EP3 & EP4
@@ -68,6 +74,16 @@ graph TB
     O1 --> O2 & O3
     O2 & O3 --> DS4
     UI2 --> DS4
+    
+    classDef ui fill:#64b5f6,stroke:#1565c0,stroke-width:2px,color:#000
+    classDef entry fill:#81c784,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef orchestrator fill:#ba68c8,stroke:#6a1b9a,stroke-width:2px,color:#fff
+    classDef validator fill:#4fc3f7,stroke:#0288d1,stroke-width:2px,color:#000
+    classDef detector fill:#ffb74d,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef ml fill:#ff8a65,stroke:#d84315,stroke-width:2px,color:#000
+    classDef llm fill:#f06292,stroke:#c2185b,stroke-width:2px,color:#fff
+    classDef service fill:#fff176,stroke:#f9a825,stroke-width:2px,color:#000
+    classDef storage fill:#b0bec5,stroke:#455a64,stroke-width:2px,color:#000
 ```
 
 ## Layer Architecture
@@ -97,16 +113,23 @@ Implements the core detection algorithms:
 ```mermaid
 graph LR
     subgraph "Detection Methods"
-        V[Validation<br/>100% Confidence]
-        P[Pattern-Based<br/>70-80% Confidence]
-        M[ML-Based<br/>Configurable]
-        L[LLM-Based<br/>Configurable]
+        style "Detection Methods" fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+        V[Validation<br/>100% Confidence]:::validator
+        P[Pattern-Based<br/>70-80% Confidence]:::pattern
+        M[ML-Based<br/>Configurable]:::ml
+        L[LLM-Based<br/>Configurable]:::llm
     end
     
-    V --> VR[Rule Engine]
-    P --> PR[Pattern Matcher]
-    M --> MR[Similarity Engine]
-    L --> LR[Language Model]
+    V --> VR[Rule Engine]:::engine
+    P --> PR[Pattern Matcher]:::engine
+    M --> MR[Similarity Engine]:::engine
+    L --> LR[Language Model]:::engine
+    
+    classDef validator fill:#4fc3f7,stroke:#0288d1,stroke-width:2px,color:#000
+    classDef pattern fill:#ffb74d,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef ml fill:#ff8a65,stroke:#d84315,stroke-width:2px,color:#000
+    classDef llm fill:#f06292,stroke:#c2185b,stroke-width:2px,color:#fff
+    classDef engine fill:#b39ddb,stroke:#512da8,stroke-width:2px,color:#000
 ```
 
 ### 4. Core Services Layer

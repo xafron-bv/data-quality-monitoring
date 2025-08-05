@@ -385,6 +385,6 @@ Enable debug logging:
 
 ## Next Steps
 
-- Configure [Field Mappings](field-mappings.md) in detail
-- Set up [Detection Thresholds](thresholds.md)
-- Learn about [Model Configuration](models.md)
+- Configure field mappings in detail (documentation coming soon)
+- Set up detection thresholds (documentation coming soon)
+- Learn about model configuration (documentation coming soon)

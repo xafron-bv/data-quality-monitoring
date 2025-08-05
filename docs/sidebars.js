@@ -13,68 +13,73 @@
 
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
 const sidebars = {
-  // By default, Docusaurus generates a sidebar from the docs folder structure
+  // Auto-generated from docs folder structure
   tutorialSidebar: [
-    'README',
-    {
-      type: 'category',
-      label: 'Getting Started',
-      items: [
-        'getting-started/installation',
-        'getting-started/quick-start',
-        'getting-started/basic-usage',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Architecture',
-      items: [
-        'architecture/overview',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Detection Methods',
-      items: [
-        'detection-methods/overview',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'API Reference',
-      items: [
-        'api/interfaces',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Configuration',
-      items: [
-        'configuration/brand-config',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Development',
-      items: [
-        'development/new-fields',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Operations',
-      items: [
-        'operations/deployment',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Reference',
-      items: [
-        'reference/cli',
-      ],
-    },
-  ],
+  "README",
+  {
+    type: "category",
+    label: "Getting Started",
+    items: [
+      "getting-started/basic-usage",
+      "getting-started/installation",
+      "getting-started/quick-start",
+      "getting-started/understanding-entrypoints"
+    ]
+  },
+  {
+    type: "category",
+    label: "Architecture",
+    items: [
+      "architecture/core-components",
+      "architecture/data-flow",
+      "architecture/detection-methods",
+      "architecture/overview"
+    ]
+  },
+  {
+    type: "category",
+    label: "Detection Methods",
+    items: [
+      "detection-methods/overview",
+      "detection-methods/validation"
+    ]
+  },
+  {
+    type: "category",
+    label: "API Reference",
+    items: [
+      "api/interfaces"
+    ]
+  },
+  {
+    type: "category",
+    label: "Configuration",
+    items: [
+      "configuration/brand-config"
+    ]
+  },
+  {
+    type: "category",
+    label: "Development",
+    items: [
+      "development/new-fields"
+    ]
+  },
+  {
+    type: "category",
+    label: "Operations",
+    items: [
+      "operations/deployment"
+    ]
+  },
+  {
+    type: "category",
+    label: "Reference",
+    items: [
+      "reference/cli"
+    ]
+  }
+],
 };
 
 export default sidebars;

@@ -623,6 +623,8 @@ def ready():
 
 ## Next Steps
 
-- Configure [Performance Tuning](performance.md)
-- Set up [Monitoring](monitoring.md)
-- Review [Troubleshooting Guide](troubleshooting.md)
+After deployment:
+
+- Configure performance tuning (documentation coming soon)
+- Set up monitoring (documentation coming soon) 
+- Review troubleshooting guide (documentation coming soon)

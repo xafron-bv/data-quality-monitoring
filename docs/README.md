@@ -32,40 +32,53 @@ The system follows a modular, plugin-based architecture with clear separation of
 ```mermaid
 graph TB
     subgraph "Entry Points Layer"
-        A1[Demo Scripts]
-        A2[Evaluation Tools]
-        A3[Comparison Utilities]
+        style "Entry Points Layer" fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+        A1[Demo Scripts]:::entrypoint
+        A2[Evaluation Tools]:::entrypoint
+        A3[Comparison Utilities]:::entrypoint
     end
     
     subgraph "Orchestration Layer"
-        B1[ComprehensiveFieldDetector]
-        B2[Evaluator]
-        
+        style "Orchestration Layer" fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+        B1[ComprehensiveFieldDetector]:::orchestrator
+        B2[Evaluator]:::orchestrator
+        B3[Comparator]:::orchestrator
     end
     
     subgraph "Detection Methods Layer"
-        C1[Validation<br/>Rule-based]
-        C2[Pattern-Based<br/>Anomaly]
-        C3[ML/LLM-Based<br/>Semantic]
+        style "Detection Methods Layer" fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+        C1[Validation<br/>Rule-based]:::validator
+        C2[Pattern-Based<br/>Anomaly]:::detector
+        C3[ML/LLM-Based<br/>Semantic]:::ml
     end
     
     subgraph "Core Services Layer"
-        D1[FieldMapper]
-        D2[BrandConfig]
-        D3[ErrorInjector]
-        D4[Reporters]
+        style "Core Services Layer" fill:#fff3e0,stroke:#e65100,stroke-width:2px
+        D1[FieldMapper]:::service
+        D2[BrandConfig]:::service
+        D3[ErrorInjector]:::service
+        D4[Reporters]:::service
     end
     
     subgraph "Data Layer"
-        E1[CSV Files]
-        E2[JSON Configs]
-        E3[Model Files]
+        style "Data Layer" fill:#f5f5f5,stroke:#424242,stroke-width:2px
+        E1[CSV Files]:::data
+        E2[JSON Configs]:::data
+        E3[Model Files]:::data
     end
     
     A1 & A2 & A3 --> B1 & B2 & B3
     B1 & B2 & B3 --> C1 & C2 & C3
     C1 & C2 & C3 --> D1 & D2 & D3 & D4
     D1 & D2 & D3 & D4 --> E1 & E2 & E3
+    
+    classDef entrypoint fill:#81c784,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef orchestrator fill:#9575cd,stroke:#4527a0,stroke-width:2px,color:#fff
+    classDef validator fill:#4fc3f7,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef detector fill:#ffb74d,stroke:#e65100,stroke-width:2px,color:#000
+    classDef ml fill:#f06292,stroke:#ad1457,stroke-width:2px,color:#fff
+    classDef service fill:#ffd54f,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef data fill:#90a4ae,stroke:#37474f,stroke-width:2px,color:#000
 ```
 
 ## Use Cases
