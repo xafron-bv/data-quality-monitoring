@@ -26,7 +26,7 @@ The system employs four complementary detection approaches, each with different 
 
 ### 2. Pattern-Based Anomaly Detection
 - **Confidence**: 70-80% (configurable)
-- **Purpose**: Medium-confidence detection using statistical patterns
+- **Purpose**: Medium-confidence detection using JSON-configured patterns
 - **Best for**: Outliers, unusual patterns, format deviations
 - **Speed**: Fast
 

@@ -21,7 +21,7 @@ When you run single-demo, here's what happens behind the scenes:
 1. First, it loads your CSV file and maps the columns to standard field types like material, color, size, and category
 2. Then, it runs each enabled detection method in parallel for efficiency
 3. Validation checks come first - these are fast, rule-based checks for obvious errors
-4. Pattern detection looks for statistical anomalies and unusual patterns
+4. Pattern detection uses JSON-configured rules and known value patterns
 5. ML-based detection uses pre-trained models to find subtle anomalies
 6. Finally, it compiles everything into an interactive HTML viewer
 
@@ -242,7 +242,7 @@ Each entrypoint serves a specific purpose in the data quality journey. Single-de
 Here are some practical tips from experience:
 
 - Always start with validation rules - they're fast and catch obvious errors
-- Use pattern detection for statistical anomalies
+- Use pattern detection for known value matching and format validation
 - Reserve ML detection for subtle patterns that rules miss
 - Only enable LLM detection when you need semantic understanding
 - Train models on clean, representative data

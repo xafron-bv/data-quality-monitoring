@@ -433,7 +433,7 @@ Begin with basic validation rules and gradually add complexity:
 ```python
 # Phase 1: Basic validation (empty, format)
 # Phase 2: Business rules
-# Phase 3: Statistical anomalies
+# Phase 3: Pattern-based rules and known values
 # Phase 4: ML-based detection
 ```
 

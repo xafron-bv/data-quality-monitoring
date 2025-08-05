@@ -43,7 +43,7 @@ Each layer provides different confidence levels, allowing the system to make pro
 graph TD
     subgraph "Detection Paradigms"
         A[Rule-Based Detection<br/>Deterministic Logic]
-        B[Statistical Detection<br/>Pattern Recognition]
+        B[Rule-Based Detection<br/>Pattern Recognition]
         C[Semantic Detection<br/>Embedding Similarity]
         D[Language Modeling<br/>Probability Estimation]
     end
@@ -57,7 +57,7 @@ graph TD
     
     subgraph "Mathematical Foundations"
         A1 --> A2[Boolean Logic<br/>Exact Matching]
-        B1 --> B2[Statistical Thresholds<br/>Outlier Detection]
+        B1 --> B2[JSON Rules<br/>Pattern Matching]
         C1 --> C2[Vector Similarity<br/>Centroid Comparison]
         D1 --> D2[Token Probability<br/>Language Likelihood]
     end
