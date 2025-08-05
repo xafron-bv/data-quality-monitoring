@@ -32,6 +32,16 @@ repos:
         name: Sort imports
         args: ['--profile', 'black', '--line-length', '120', '--skip-gitignore']
 
+  # Local hooks for documentation
+  - repo: local
+    hooks:
+      - id: validate-mermaid
+        name: Validate Mermaid diagrams
+        entry: bash -c "cd docs && node scripts/validate-mermaid.js"
+        language: system
+        files: '^docs/.*\.md$'
+        pass_filenames: false
+
 # Configure pre-commit behavior
 default_language_version:
   python: python3
@@ -39,5 +49,5 @@ default_language_version:
 # Exclude directories
 exclude: '^(venv|\.venv|build|dist|\.git|__pycache__|\.mypy_cache|\.pytest_cache|\.cursor)/'
 
-# Run on Python files
+# Run on Python files by default
 files: '\.py$'
