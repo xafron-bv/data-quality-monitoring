@@ -16,10 +16,20 @@ The validation process follows these steps:
 
 ## Architecture
 
-```
-Input Data → Field Validator → Validation Rules → Error/Success
-                   ↓                   ↓
-              Field Type          Rule Engine
+```mermaid
+flowchart LR
+    ID[Input Data]:::input --> FV[Field Validator]:::process
+    FV --> VR[Validation Rules]:::process
+    VR --> ES[Error/Success]:::output
+    
+    FT[Field Type]:::config --> FV
+    RE[Rule Engine]:::engine --> VR
+    
+    classDef input fill:#81c784,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef process fill:#64b5f6,stroke:#1565c0,stroke-width:2px,color:#000
+    classDef output fill:#ce93d8,stroke:#6a1b9a,stroke-width:2px,color:#000
+    classDef config fill:#ffeb3b,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef engine fill:#ffb74d,stroke:#f57c00,stroke-width:2px,color:#000
 ```
 
 ## Available Validators

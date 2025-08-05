@@ -84,10 +84,18 @@ Multiple detection results are combined:
 
 ### Architecture
 
-```
-Input → Validator → Rule Engine → Result
-         ↓
-    Field Rules
+```mermaid
+flowchart LR
+    I[Input]:::input --> V[Validator]:::process
+    V --> RE[Rule Engine]:::process
+    RE --> R[Result]:::output
+    
+    FR[Field Rules]:::rules --> V
+    
+    classDef input fill:#81c784,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef process fill:#64b5f6,stroke:#1565c0,stroke-width:2px,color:#000
+    classDef output fill:#ce93d8,stroke:#6a1b9a,stroke-width:2px,color:#000
+    classDef rules fill:#ffb74d,stroke:#f57c00,stroke-width:2px,color:#000
 ```
 
 ### Components
@@ -107,10 +115,19 @@ Input → Validator → Rule Engine → Result
 
 ### Architecture
 
-```
-Input → Feature Extraction → Pattern Matcher → Anomaly Score
-              ↓                    ↓
-         Pattern DB          Statistical Models
+```mermaid
+flowchart LR
+    I[Input]:::input --> FE[Feature Extraction]:::process
+    FE --> PM[Pattern Matcher]:::process
+    PM --> AS[Anomaly Score]:::output
+    
+    PDB[Pattern DB]:::data --> FE
+    SM[Statistical Models]:::data --> PM
+    
+    classDef input fill:#81c784,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef process fill:#64b5f6,stroke:#1565c0,stroke-width:2px,color:#000
+    classDef output fill:#ce93d8,stroke:#6a1b9a,stroke-width:2px,color:#000
+    classDef data fill:#fff176,stroke:#f9a825,stroke-width:2px,color:#000
 ```
 
 ### Components
@@ -131,10 +148,21 @@ Input → Feature Extraction → Pattern Matcher → Anomaly Score
 
 ### Architecture
 
-```
-Training Data → Model Training → Trained Model
-                                      ↓
-Input Data → Feature Engineering → Prediction → Anomaly Score
+```mermaid
+flowchart TB
+    TD[Training Data]:::train --> MT[Model Training]:::process
+    MT --> TM[Trained Model]:::model
+    
+    ID[Input Data]:::input --> FE[Feature Engineering]:::process
+    FE --> P[Prediction]:::process
+    TM --> P
+    P --> AS[Anomaly Score]:::output
+    
+    classDef train fill:#a5d6a7,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef input fill:#81c784,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef process fill:#64b5f6,stroke:#1565c0,stroke-width:2px,color:#000
+    classDef model fill:#ffcc80,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef output fill:#ce93d8,stroke:#6a1b9a,stroke-width:2px,color:#000
 ```
 
 ### Components
@@ -170,10 +198,20 @@ with gpu_context():
 
 ### Architecture
 
-```
-Input → Context Building → LLM Inference → Interpretation
-              ↓                 ↓
-         Prompt Template    Model API
+```mermaid
+flowchart LR
+    I[Input]:::input --> CB[Context Building]:::process
+    CB --> LI[LLM Inference]:::process
+    LI --> INT[Interpretation]:::output
+    
+    PT[Prompt Template]:::template --> CB
+    MA[Model API]:::api --> LI
+    
+    classDef input fill:#81c784,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef process fill:#64b5f6,stroke:#1565c0,stroke-width:2px,color:#000
+    classDef output fill:#ce93d8,stroke:#6a1b9a,stroke-width:2px,color:#000
+    classDef template fill:#e1bee7,stroke:#6a1b9a,stroke-width:2px,color:#000
+    classDef api fill:#ffccbc,stroke:#d84315,stroke-width:2px,color:#000
 ```
 
 ### Components

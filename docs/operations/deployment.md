@@ -82,6 +82,8 @@ Run detection jobs in Kubernetes as batch workloads.
 #### Batch Job Configuration
 
 ```yaml
+# Note: This is an example configuration. 
+# Docker image creation is not yet implemented in the codebase.
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -96,7 +98,7 @@ spec:
     spec:
       containers:
       - name: detection
-        image: detection-system:latest
+        image: detection-system:latest  # Image needs to be built
         command: ["python", "main.py", "single-demo"]
         args:
           - "--data-file=/data/input.csv"

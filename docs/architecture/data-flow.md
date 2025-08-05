@@ -236,10 +236,19 @@ The system supports multiple output formats:
 
 ### Configuration Sources
 
-```
-Brand Config → Field Config → Model Config → Runtime Config
-      ↓             ↓              ↓              ↓
-   [Rules]      [Mappings]     [Params]      [Options]
+```mermaid
+flowchart TB
+    BC[Brand Config]:::config --> FC[Field Config]:::config
+    FC --> MC[Model Config]:::config
+    MC --> RC[Runtime Config]:::config
+    
+    BC --> R[Rules]:::data
+    FC --> M[Mappings]:::data
+    MC --> P[Params]:::data
+    RC --> O[Options]:::data
+    
+    classDef config fill:#ffeb3b,stroke:#f57f17,stroke-width:2px,color:#000
+    classDef data fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
 ```
 
 ### Configuration Loading
@@ -262,10 +271,21 @@ runtime_config = parse_args()
 
 ### Error Propagation
 
-```
-Component Error → Error Handler → Logger → Error Report
-       ↓              ↓             ↓          ↓
-   [Exception]    [Recovery]    [Record]   [Output]
+```mermaid
+flowchart TB
+    CE[Component Error]:::error --> EH[Error Handler]:::handler
+    EH --> L[Logger]:::handler
+    L --> ER[Error Report]:::output
+    
+    CE --> E[Exception]:::detail
+    EH --> R[Recovery]:::detail
+    L --> RC[Record]:::detail
+    ER --> O[Output]:::detail
+    
+    classDef error fill:#ff5252,stroke:#c62828,stroke-width:2px,color:#fff
+    classDef handler fill:#ffa726,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef output fill:#66bb6a,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef detail fill:#e0e0e0,stroke:#616161,stroke-width:2px,color:#000
 ```
 
 ### Error Types
