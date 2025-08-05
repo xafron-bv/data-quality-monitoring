@@ -26,14 +26,12 @@ Clear boundaries between layers ensure maintainability and testability.
 ```mermaid
 graph TB
     subgraph "User Interface"
-        style "User Interface" fill:#e3f2fd,stroke:#0d47a1,stroke-width:2px
         UI1[CLI Tools]:::ui
         UI2[HTML Viewer]:::ui
         UI3[API Endpoints]:::ui
     end
     
     subgraph "Entry Points"
-        style "Entry Points" fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
         EP1[single_sample_demo]:::entry
         EP2[multi_sample_evaluation]:::entry
         EP3[ml_curve_generator]:::entry
@@ -41,14 +39,12 @@ graph TB
     end
     
     subgraph "Orchestration"
-        style "Orchestration" fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
         O1[ComprehensiveFieldDetector]:::orchestrator
         O2[ConsolidatedReporter]:::orchestrator
         O3[ConfusionMatrixAnalyzer]:::orchestrator
     end
     
     subgraph "Detection Engine"
-        style "Detection Engine" fill:#fff8e1,stroke:#f57f17,stroke-width:2px
         DE1[Validation Engine]:::validator
         DE2[Pattern Detector]:::detector
         DE3[ML Detector]:::ml
@@ -56,7 +52,6 @@ graph TB
     end
     
     subgraph "Core Services"
-        style "Core Services" fill:#fce4ec,stroke:#880e4f,stroke-width:2px
         CS1[Field Mapper]:::service
         CS2[Brand Config]:::service
         CS3[Error Injector]:::service
@@ -64,7 +59,6 @@ graph TB
     end
     
     subgraph "Data Storage"
-        style "Data Storage" fill:#eceff1,stroke:#263238,stroke-width:2px
         DS1[(CSV Data)]:::storage
         DS2[(JSON Configs)]:::storage
         DS3[(ML Models)]:::storage
@@ -118,7 +112,6 @@ Implements the core detection algorithms:
 ```mermaid
 graph LR
     subgraph "Detection Methods"
-        style "Detection Methods" fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
         V[Validation<br/>100% Confidence]:::validator
         P[Pattern-Based<br/>70-80% Confidence]:::pattern
         M[ML-Based<br/>Configurable]:::ml

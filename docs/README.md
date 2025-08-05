@@ -32,28 +32,24 @@ The system follows a modular, plugin-based architecture with clear separation of
 ```mermaid
 graph TB
     subgraph "Entry Points Layer"
-        style "Entry Points Layer" fill:#e1f5fe,stroke:#01579b,stroke-width:2px
         A1[Demo Scripts]:::entrypoint
         A2[Evaluation Tools]:::entrypoint
         A3[Comparison Utilities]:::entrypoint
     end
     
     subgraph "Orchestration Layer"
-        style "Orchestration Layer" fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
         B1[ComprehensiveFieldDetector]:::orchestrator
         B2[Evaluator]:::orchestrator
         B3[Comparator]:::orchestrator
     end
     
     subgraph "Detection Methods Layer"
-        style "Detection Methods Layer" fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
         C1[Validation<br/>Rule-based]:::validator
         C2[Pattern-Based<br/>Anomaly]:::detector
         C3[ML/LLM-Based<br/>Semantic]:::ml
     end
     
     subgraph "Core Services Layer"
-        style "Core Services Layer" fill:#fff3e0,stroke:#e65100,stroke-width:2px
         D1[FieldMapper]:::service
         D2[BrandConfig]:::service
         D3[ErrorInjector]:::service
@@ -61,7 +57,6 @@ graph TB
     end
     
     subgraph "Data Layer"
-        style "Data Layer" fill:#f5f5f5,stroke:#424242,stroke-width:2px
         E1[CSV Files]:::data
         E2[JSON Configs]:::data
         E3[Model Files]:::data
