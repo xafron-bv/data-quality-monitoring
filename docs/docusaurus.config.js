@@ -96,6 +96,11 @@ const config = {
             label: 'Documentation',
           },
           {
+            href: '/pdf/xafron-documentation.pdf',
+            label: '📄 Download PDF',
+            position: 'left',
+          },
+          {
             href: 'https://github.com/xafron/xafron',
             label: 'GitHub',
             position: 'right',
