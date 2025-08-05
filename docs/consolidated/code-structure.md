@@ -217,7 +217,7 @@ class ValidationError:
 
 ### PatternBasedDetector
 
-Detects anomalies using statistical patterns and rules.
+Detects anomalies using JSON-configured patterns and known value rules.
 
 **Location:** `anomaly_detectors/pattern_based/pattern_based_detector.py`
 

@@ -2,439 +2,547 @@
 
 ## Overview
 
-The Data Quality Detection System employs a multi-layered approach to anomaly detection, combining deterministic rule-based validation with probabilistic machine learning methods. This document explains the theoretical foundation behind each detection method and how they work together to provide comprehensive data quality monitoring.
+The Data Quality Detection System employs a multi-layered approach to anomaly detection, combining deterministic rule-based validation with advanced machine learning methods. This document explains the theoretical foundation behind each detection method and how they work together to provide comprehensive data quality monitoring.
 
 ## Detection Philosophy
 
-Our approach is based on the principle that different types of data quality issues require different detection strategies:
+Our approach is based on the principle that different types of data quality issues require different detection strategies with progressive confidence levels:
 
-1. **Deterministic Errors**: Format violations, business rule breaches → Rule-based validation
-2. **Statistical Anomalies**: Outliers, unusual patterns → Pattern-based detection
-3. **Semantic Anomalies**: Contextual inconsistencies → ML-based detection
-4. **Complex Logic Errors**: Natural language understanding → LLM-based detection
+1. **Deterministic Errors**: Format violations, business rule breaches → Rule-based validation (100% confidence)
+2. **Pattern Anomalies**: Known pattern mismatches, invalid formats → JSON-configured pattern detection (70-80% confidence)
+3. **Semantic Anomalies**: Contextual inconsistencies, meaning deviations → ML centroid-based detection (60-75% confidence)
+4. **Complex Linguistic Errors**: Language model violations → LLM probability-based detection (50-70% confidence)
+
+## Core Innovation: Progressive Detection Architecture
+
+```mermaid
+graph TD
+    A[Input Value] --> B{Validation Rules}
+    B -->|Pass| C{Pattern Rules}
+    B -->|Fail| CERTAIN[🚨 CERTAIN ANOMALY<br/>100% Confidence]
+    
+    C -->|Match Known| VALID[✅ VALID VALUE]
+    C -->|No Match| D{ML Centroid Similarity}
+    
+    D -->|High Similarity<br/>>threshold| LIKELY_VALID[✅ LIKELY VALID<br/>75% Confidence]
+    D -->|Low Similarity<br/><threshold| E{LLM Language Probability}
+    
+    E -->|High Probability| MAYBE_VALID[⚠️ UNCERTAIN<br/>60% Confidence]
+    E -->|Low Probability| LIKELY_ANOMALY[🚨 LIKELY ANOMALY<br/>80% Confidence]
+```
 
 ## Detection Method Comparison
 
-```mermaid
-graph LR
-    subgraph "Detection Methods"
-        V[Validation<br/>Rule-Based]
-        P[Pattern-Based<br/>Anomaly Detection]
-        M[ML-Based<br/>Semantic Detection]
-        L[LLM-Based<br/>Context-Aware]
-    end
-    
-    subgraph "Characteristics"
-        V --> V1[100% Confidence<br/>No Training<br/>Very Fast]
-        P --> P1[70-80% Confidence<br/>No Training<br/>Fast]
-        M --> M1[Configurable Confidence<br/>Requires Training<br/>Medium Speed]
-        L --> L1[Configurable Confidence<br/>Requires Training<br/>Slower]
-    end
-```
-
-### Method Summary
-
-| Method | Confidence | Training Required | Speed | Best Use Cases |
-|--------|------------|------------------|--------|----------------|
-| **Validation** | 100% | No | Very Fast (~1ms/record) | Format errors, business rules, required fields |
-| **Pattern-Based** | 70-80% | No | Fast (~5ms/record) | Known patterns, outliers, statistical anomalies |
-| **ML-Based** | Configurable | Yes | Medium (~20ms/record) | Semantic similarity, contextual errors |
-| **LLM-Based** | Configurable | Yes | Slower (~100ms/record) | Complex logic, natural language understanding |
+| Method | Confidence | Training Required | Speed | Theoretical Basis | Best Use Cases |
+|--------|------------|------------------|--------|------------------|----------------|
+| **Validation** | 100% | No | Very Fast (~1ms/record) | Boolean Logic | Format errors, business rules |
+| **Pattern-Based** | 70-80% | No | Fast (~5ms/record) | Rule-Based Matching | Known patterns, regex validation |
+| **ML-Based** | 60-75% | Yes | Medium (~20ms/record) | Embedding Similarity | Semantic consistency |
+| **LLM-Based** | 50-70% | Yes | Slower (~100ms/record) | Language Probability | Complex linguistic patterns |
 
 ## 1. Rule-Based Validation
 
 ### Theoretical Foundation
 
-Rule-based validation is grounded in formal logic and domain expertise. It provides deterministic, explainable results based on predefined constraints.
+Rule-based validation is grounded in formal logic and domain expertise. It provides deterministic, explainable results based on predefined constraints using sophisticated multi-layered validation logic.
 
-### How It Works
+### Implementation Architecture
 
 ```mermaid
 flowchart LR
-    ID[Input Data]:::input --> FV[Field Validator]:::process
-    FV --> VR[Validation Rules]:::process
-    VR --> ES[Error/Success]:::output
-    
-    FT[Field Type]:::config --> FV
-    RE[Rule Engine]:::engine --> VR
+    ID[Input Value]:::input --> TV[Tokenization]:::process
+    TV --> BR[Basic Rules]:::process
+    BR --> FR[Format Rules]:::process
+    FR --> DR[Domain Rules]:::process
+    DR --> RR[Referential Rules]:::process
+    RR --> ES[Error/Success]:::output
     
     classDef input fill:#81c784,stroke:#388e3c,stroke-width:2px,color:#000
     classDef process fill:#64b5f6,stroke:#1565c0,stroke-width:2px,color:#000
     classDef output fill:#ce93d8,stroke:#6a1b9a,stroke-width:2px,color:#000
-    classDef config fill:#ffeb3b,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef engine fill:#ffb74d,stroke:#f57c00,stroke-width:2px,color:#000
 ```
 
-### Rule Categories
+### Multi-Layered Validation Process
 
-#### Format Rules
-Validate data structure and syntax:
 ```python
-# Example: Email validation
-pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-if not re.match(pattern, value):
-    return ValidationError("Invalid email format")
-```
-
-#### Domain Rules
-Enforce business logic constraints:
-```python
-# Example: Material percentage validation
-if sum(material_percentages) != 100:
-    return ValidationError("Material percentages must sum to 100%")
-```
-
-#### Referential Rules
-Check relationships between fields:
-```python
-# Example: Category-specific validation
-if category == "Shoes" and size_type == "Letter":
-    return ValidationError("Shoes should use numeric sizes")
+class Validator(ValidatorInterface):
+    def _validate_entry(self, value):
+        # Layer 1: Basic checks (null, empty, whitespace)
+        if pd.isna(value) or not isinstance(value, str):
+            return ValidationError("MISSING_VALUE", 1.0)
+            
+        # Layer 2: Tokenization and character validation
+        tokens = self._tokenize(value)
+        if invalid_chars := self._find_invalid_chars(tokens):
+            return ValidationError("INVALID_CHARACTERS", 0.8)
+            
+        # Layer 3: Format pattern validation
+        if not self._matches_format(value):
+            return ValidationError("INVALID_FORMAT", 0.9)
+            
+        # Layer 4: Domain-specific business rules
+        if business_rule_violation := self._check_business_rules(tokens):
+            return ValidationError(business_rule_violation, 0.9)
+            
+        # Layer 5: Semantic consistency checks
+        if semantic_error := self._check_semantic_consistency(tokens):
+            return ValidationError(semantic_error, 0.7)
+            
+        return None  # Valid
 ```
 
 ### Advantages
-- **100% Confidence**: No false positives for defined rules
-- **Fast Execution**: No model loading or complex computations
-- **Explainable**: Clear reason for each error
-- **No Training Required**: Works immediately
+- **100% Confidence**: No false positives for well-defined rules
+- **Fast Execution**: Deterministic logic with minimal computation
+- **Explainable**: Clear mapping from rule violation to error
+- **No Training Required**: Domain expertise encoded directly
 
 ### Limitations
-- Cannot detect unknown patterns
-- Requires explicit rule definition
-- May miss subtle anomalies
-- High maintenance for complex domains
+- Cannot detect unknown patterns or subtle semantic errors
+- Requires explicit rule definition for all edge cases
+- High maintenance for complex, evolving domains
 
-## 2. Pattern-Based Anomaly Detection
+## 2. Pattern-Based Detection
 
 ### Theoretical Foundation
 
-Pattern-based detection uses statistical analysis and pattern matching to identify deviations from expected norms. It's based on the principle that anomalies are statistically rare events.
+Pattern-based detection uses JSON-configured rule matching and known value lookup rather than statistical analysis. It's based on explicit pattern definitions and format validation rules.
 
-### Statistical Methods
+### Implementation Architecture
 
-#### Frequency Analysis
 ```python
-# Identify rare values
-value_counts = df[column].value_counts()
-frequency_threshold = 0.01  # 1% threshold
-rare_values = value_counts[value_counts / len(df) < frequency_threshold]
-```
-
-#### Pattern Matching
-```python
-# Define expected patterns
-patterns = [
-    r'^\d{3}-\d{3}-\d{4}$',  # Phone number
-    r'^[A-Z]{2}\d{4}$'       # Product code
-]
-# Flag values not matching any pattern
-```
-
-#### Statistical Outliers
-- **Z-Score Method**: Values beyond 3 standard deviations
-- **IQR Method**: Values outside Q1-1.5×IQR to Q3+1.5×IQR
-- **Isolation Forest**: Anomaly detection algorithm
-
-### Implementation Approach
-
-```mermaid
-graph TD
-    A[Input Data] --> B[Extract Patterns]
-    B --> C[Statistical Analysis]
-    C --> D{Anomaly Score}
-    D -->|High| E[Flag as Anomaly]
-    D -->|Low| F[Mark as Normal]
+class PatternBasedDetector:
+    def __init__(self, field_name):
+        self.known_values = set()      # From JSON config
+        self.format_patterns = []      # Regex patterns
+        self.validation_rules = []     # Custom rules
+        self._load_rules_from_json(field_name)
     
-    G[Historical Data] --> H[Learn Patterns]
-    H --> C
+    def detect_anomaly(self, value):
+        # 1. Known value lookup (O(1))
+        if value.lower() in self.known_values:
+            return None  # Valid
+            
+        # 2. Format pattern validation (O(n) patterns)
+        for pattern in self.format_patterns:
+            if not re.match(pattern['regex'], value):
+                return AnomalyError(
+                    "INVALID_FORMAT", 
+                    confidence=pattern['confidence'],
+                    message=pattern['message']
+                )
+        
+        # 3. Custom validation rules
+        for rule in self.validation_rules:
+            if rule.violates(value):
+                return AnomalyError(rule['error_type'], rule['confidence'])
+                
+        return None  # Passed all checks
+```
+
+### Configuration-Driven Approach
+
+```json
+{
+  "field_name": "material",
+  "known_values": ["cotton", "polyester", "wool", "silk"],
+  "format_patterns": [
+    {
+      "name": "basic_format",
+      "regex": "^[a-zA-Z\\s\\-%]+$",
+      "message": "Invalid characters in material",
+      "confidence": 0.8
+    }
+  ],
+  "validation_rules": [
+    {
+      "name": "not_empty",
+      "type": "length_check",
+      "min_length": 1,
+      "confidence": 1.0
+    }
+  ]
+}
 ```
 
 ### Advantages
-- No training required
-- Fast execution
-- Works with limited data
-- Good for known patterns
+- **No Training Required**: Uses predefined rules and value sets
+- **Fast Detection**: O(1) lookup for known values, O(n) for patterns
+- **Configurable**: Rules updated via JSON without code changes
+- **Good Coverage**: Effective for domains with known valid patterns
 
 ### Limitations
-- May miss semantic anomalies
-- Sensitive to threshold selection
-- Limited context understanding
-- Can produce false positives
+- Cannot understand semantic meaning or context
+- Limited to explicitly defined patterns
+- May miss novel but valid variations
 
 ## 3. ML-Based Semantic Detection
 
 ### Theoretical Foundation
 
-ML-based detection uses deep learning, specifically sentence transformers, to understand semantic meaning and context. It's based on the principle that similar items should have similar vector representations in embedding space.
+**Core Innovation: Centroid-Based Similarity Detection**
 
-### Embedding Theory
+Our ML approach is built on the insight that valid data forms semantic clusters in embedding space. Instead of complex outlier detection, we compute a single "centroid of normality" and measure similarity to this reference point.
 
-```mermaid
-graph TD
-    A[Text Input] --> B[Tokenization]
-    B --> C[Transformer Model]
-    C --> D[Embeddings]
-    D --> E[Similarity Calculation]
-    E --> F{Anomaly Score}
-    F -->|Low Similarity| G[Anomaly]
-    F -->|High Similarity| H[Normal]
+### Mathematical Model
+
+**1. Embedding Generation**
+```
+f: Text → ℝᵈ where d ∈ {384, 768}
+Each text value is encoded into a dense vector representation
 ```
 
-### Mathematical Foundation
+**2. Reference Centroid Computation**
+```
+c_ref = (1/n) Σᵢ₌₁ⁿ f(xᵢ)
+where {xᵢ} are all clean training samples
+```
 
-#### Cosine Similarity
+**3. Anomaly Detection via Cosine Similarity**
 ```
-similarity(A, B) = (A · B) / (||A|| × ||B||)
+similarity(v) = (f(v) · c_ref) / (||f(v)|| × ||c_ref||)
+anomaly = similarity(v) < threshold
 ```
+
+### Training Methodology: Triplet Learning
+
+**Triplet Loss Function**
+```
+L(a,p,n) = max(0, d(a,p) - d(a,n) + margin)
 
 Where:
-- A, B are embedding vectors
-- · represents dot product
-- ||·|| represents vector magnitude
-
-#### Anomaly Score
+- a (anchor): Clean text sample (e.g., "cotton")
+- p (positive): Another clean text (e.g., "wool")  
+- n (negative): Error-injected text (e.g., "cott0n")
+- d(x,y): Distance = 1 - cosine_similarity(x,y)
 ```
-anomaly_score = 1 - max(similarity(item, known_good_items))
+
+**Training Process**
+```python
+def train_ml_detector(clean_texts, field_name):
+    # 1. Generate triplets with error injection
+    triplets = []
+    for anchor in clean_texts:
+        positive = random.choice(clean_texts)
+        negative = inject_error(anchor, error_rules)
+        triplets.append((anchor, positive, negative))
+    
+    # 2. Fine-tune sentence transformer
+    model = SentenceTransformer(base_model)
+    train_loss = TripletLoss(model, margin=0.5)
+    model.fit(triplets, epochs=3)
+    
+    # 3. Compute reference centroid
+    embeddings = model.encode(clean_texts)
+    centroid = np.mean(embeddings, axis=0)
+    
+    # 4. Save model and centroid
+    model.save(f'models/{field_name}/')
+    np.save(f'models/{field_name}/centroid.npy', centroid)
+```
+
+**Detection Process (Production)**
+```python
+def detect_anomaly(model, centroid, value, threshold=0.7):
+    # 1. Encode input value
+    embedding = model.encode([value])
+    
+    # 2. Single similarity computation
+    similarity = cosine_similarity(embedding, centroid.reshape(1, -1))[0][0]
+    
+    # 3. Threshold decision
+    if similarity < threshold:
+        return AnomalyError("ML_SEMANTIC_ANOMALY", 
+                          probability=1-similarity)
+    return None
+```
+
+### Why This Approach Was Chosen
+
+**Theoretical Advantages:**
+- **Manifold Hypothesis**: Valid data lies on lower-dimensional manifold
+- **Cluster Assumption**: Semantically similar values cluster together
+- **Centroid Efficiency**: Single reference point enables O(1) detection
+- **Transfer Learning**: Leverages pre-trained language understanding
+
+**Practical Benefits:**
+- **Fast Inference**: One similarity computation vs. multiple comparisons
+- **Semantic Understanding**: Handles synonyms and variations
+- **Robust Training**: Triplet loss ensures semantic clustering
+- **Scalable**: Training complexity independent of detection complexity
+
+### Limitations
+- Requires representative training data
+- Black-box nature limits explainability
+- May struggle with highly diverse valid values
+
+## 4. LLM-Based Language Modeling Detection
+
+### Theoretical Foundation
+
+**Core Principle: Domain-Specific Language Probability**
+
+The LLM approach fine-tunes language models on field-specific data to learn probability distributions over valid text sequences. Anomalies are detected by their low probability under the learned model.
+
+### Mathematical Model
+
+**1. Masked Language Modeling**
+```
+P(wᵢ | w₁, ..., wᵢ₋₁, wᵢ₊₁, ..., wₙ)
+Model learns to predict masked tokens in context
+```
+
+**2. Sequence Probability Scoring**
+```
+anomaly_score = -(1/n) Σᵢ₌₁ⁿ log P(wᵢ | context)
+Higher scores indicate more anomalous sequences
+```
+
+**3. Threshold Decision**
+```
+anomaly = anomaly_score > threshold
 ```
 
 ### Training Process
 
-1. **Data Collection**: Gather clean, representative samples
-2. **Embedding Generation**: Convert text to vectors using pre-trained models
-3. **Clustering**: Group similar items together
-4. **Threshold Learning**: Determine optimal similarity thresholds
-
-### Model Architecture
-
-We use sentence transformers based on BERT architecture:
-- **Input**: Text sequences up to 512 tokens
-- **Model**: Pre-trained transformer (e.g., 'all-MiniLM-L6-v2')
-- **Output**: 384-dimensional embeddings
-
-### Advantages
-- Understands semantic meaning
-- Handles variations and synonyms
-- Can detect subtle anomalies
-- Transfer learning from pre-trained models
-
-### Limitations
-- Requires training data
-- Computationally intensive
-- Black-box nature
-- May miss rule violations
-
-## 4. LLM-Based Contextual Detection
-
-### Theoretical Foundation
-
-LLM-based detection leverages large language models' ability to understand complex context and reasoning. It uses few-shot learning and prompt engineering to identify anomalies that require sophisticated understanding.
-
-### Prompt Engineering
-
+**Masked Language Model Fine-tuning**
 ```python
-prompt = f"""
-Analyze this product data for anomalies:
-Field: {field_name}
-Value: {value}
-Context: {context}
-
-Consider:
-1. Semantic consistency
-2. Business logic
-3. Domain knowledge
-
-Is this value anomalous? Explain why.
-"""
+def train_llm_detector(clean_texts, field_name):
+    # 1. Create masked dataset
+    dataset = []
+    for text in clean_texts:
+        tokens = tokenizer(text)
+        # Randomly mask 15% of tokens
+        masked_tokens = mask_random_tokens(tokens, mask_prob=0.15)
+        dataset.append({
+            'input_ids': masked_tokens,
+            'labels': tokens  # Original tokens as targets
+        })
+    
+    # 2. Fine-tune pre-trained model
+    model = AutoModelForMaskedLM.from_pretrained('distilbert-base-uncased')
+    trainer = Trainer(
+        model=model,
+        train_dataset=dataset,
+        args=TrainingArguments(epochs=3, batch_size=8)
+    )
+    trainer.train()
+    
+    # 3. Save field-specific model
+    model.save_pretrained(f'models/{field_name}_llm/')
+    tokenizer.save_pretrained(f'models/{field_name}_llm/')
 ```
 
-### Few-Shot Learning
-
-Provide examples to guide the model:
+**Detection Process**
 ```python
-examples = [
-    {"value": "100% Cotton", "label": "normal"},
-    {"value": "200% Cotton", "label": "anomaly"},
-    {"value": "Cotton 100%", "label": "normal"}
-]
+def calculate_anomaly_score(model, tokenizer, text):
+    # 1. Tokenize input
+    inputs = tokenizer(text, return_tensors='pt')
+    
+    # 2. Get token probabilities
+    with torch.no_grad():
+        outputs = model(**inputs)
+        logits = outputs.logits
+        probs = torch.softmax(logits, dim=-1)
+    
+    # 3. Compute average negative log probability
+    token_ids = inputs['input_ids'][0]
+    total_neg_log_prob = 0.0
+    count = 0
+    
+    for i, token_id in enumerate(token_ids):
+        if token_id not in [tokenizer.pad_token_id, tokenizer.cls_token_id]:
+            prob = probs[0, i, token_id].item()
+            total_neg_log_prob += -torch.log(torch.tensor(prob)).item()
+            count += 1
+    
+    return total_neg_log_prob / count if count > 0 else 10.0
 ```
 
-### Context Integration
+### Advanced Features
 
-LLMs can consider multiple fields simultaneously:
-- Temporal context (season vs. description)
-- Cross-field validation (size vs. category)
-- Business logic (price vs. material quality)
+**1. Dynamic Context Encoding**
+```python
+class DynamicAwareEncoder(nn.Module):
+    def forward(self, text_embeddings, temporal_info, categorical_info):
+        # Fuse text with temporal and categorical context
+        temporal_emb = self.temporal_encoder(temporal_info)
+        categorical_emb = self.categorical_encoder(categorical_info)
+        return self.fusion_layer([text_embeddings, temporal_emb, categorical_emb])
+```
+
+**2. Prototype-Based Reprogramming**
+- K-means clustering to identify semantic prototypes
+- Adjust scores based on prototype similarity
+- Dynamic threshold adaptation
+
+**3. Few-Shot Learning Capability**
+- In-context learning with examples
+- Meta-learning for quick adaptation
 
 ### Advantages
-- Sophisticated reasoning
-- Natural language understanding
-- Handles complex logic
-- No specific training required
+- **Deep Linguistic Understanding**: Captures complex language patterns
+- **Context Awareness**: Considers broader context beyond single fields  
+- **Adaptability**: Can incorporate temporal and categorical information
+- **Transfer Learning**: Benefits from massive pre-training
 
 ### Limitations
-- Slow processing speed
-- High computational cost
-- Potential hallucinations
-- Requires careful prompt design
+- **Computational Cost**: Slow processing (~100ms/record)
+- **Resource Requirements**: High memory and GPU usage
+- **Complexity**: Requires careful training and hyperparameter tuning
 
-## Confidence Levels and Thresholds
+## Confidence Levels and Ensemble Strategy
 
-### Confidence Spectrum
+### Confidence Hierarchy
 
 ```mermaid
 graph TD
     subgraph "Confidence Spectrum"
-        A[100% - Validation<br/>Definite Errors]
-        B[70-80% - Pattern<br/>Likely Anomalies]
-        C[60-75% - ML<br/>Semantic Anomalies]
-        D[50-70% - LLM<br/>Context Anomalies]
+        A[100% - Validation<br/>Deterministic Rules]
+        B[70-80% - Pattern<br/>Known Value/Format Match]
+        C[60-75% - ML<br/>Semantic Similarity]
+        D[50-70% - LLM<br/>Language Probability]
     end
     
     A --> E[High Precision<br/>Low Recall]
     D --> F[Lower Precision<br/>Higher Recall]
 ```
 
-### Threshold Selection
+### Combination Strategies
 
-Each method uses configurable thresholds:
-
+**1. Priority-Based (Cascade)**
 ```python
-# Validation: Binary (pass/fail)
-validation_threshold = 0.0  # Always deterministic
-
-# Pattern: Probability-based
-pattern_threshold = 0.7  # 70% confidence
-
-# ML: Similarity-based
-ml_threshold = 0.75  # 75% similarity required
-
-# LLM: Confidence score
-llm_threshold = 0.6  # 60% confidence
+def detect_with_priority(value):
+    # Check methods in confidence order
+    if validation_error := validate(value):
+        return validation_error  # 100% confidence
+    elif pattern_anomaly := detect_pattern(value):
+        return pattern_anomaly   # 70-80% confidence
+    elif ml_anomaly := detect_ml(value):
+        return ml_anomaly        # 60-75% confidence
+    elif llm_anomaly := detect_llm(value):
+        return llm_anomaly       # 50-70% confidence
+    return None  # No anomalies detected
 ```
 
-## Combination Strategies
-
-### 1. Priority-Based Combination
-
-Methods are prioritized by confidence level:
-
+**2. Weighted Ensemble**
 ```python
-def priority_combination(results):
-    if results['validation']:
-        return results['validation']  # Highest priority
-    elif results['pattern']:
-        return results['pattern']
-    elif results['ml']:
-        return results['ml']
-    else:
-        return results['llm']
-```
-
-### 2. Weighted Average Combination
-
-Results are combined using learned weights:
-
-```python
-def weighted_combination(results, weights):
-    score = 0
-    for method, result in results.items():
-        score += weights[method] * result.confidence
-    return score > threshold
-```
-
-### Weight Learning
-
-Weights are learned from historical performance:
-```python
-weights = {
-    'validation': 1.0,    # Perfect precision
-    'pattern': 0.85,      # High precision
-    'ml': 0.75,          # Good balance
-    'llm': 0.65          # Higher recall
-}
+def detect_with_ensemble(value, weights):
+    scores = {
+        'validation': get_validation_score(value),
+        'pattern': get_pattern_score(value),
+        'ml': get_ml_score(value),
+        'llm': get_llm_score(value)
+    }
+    
+    final_score = sum(weights[method] * score 
+                     for method, score in scores.items())
+    return final_score > threshold
 ```
 
 ## Performance Optimization
 
-### Cascade Strategy
+### Computational Complexity Analysis
 
-Process methods in order of speed/confidence:
+| Method | Training | Inference | Memory | Scalability |
+|--------|----------|-----------|---------|-------------|
+| Validation | N/A | O(1) | Low | Excellent |
+| Pattern | N/A | O(p) patterns | Low | Excellent |
+| ML | O(n²) triplets | O(1) similarity | Medium | Good |
+| LLM | O(n·k) tokens | O(k) tokens | High | Limited |
 
+### Optimization Strategies
+
+**1. Cascade Processing**
 ```mermaid
 graph LR
-    A[Input] --> B{Validation}
+    A[Input] --> B{Fast Validation}
     B -->|Error| Z[Return Error]
-    B -->|Pass| C{Pattern}
+    B -->|Pass| C{Pattern Check}
     C -->|Anomaly| Z
-    C -->|Normal| D{Need ML?}
-    D -->|Yes| E[ML Detection]
+    C -->|Normal| D{Need Deep Analysis?}
+    D -->|Yes| E[ML + LLM]
     D -->|No| F[Return Normal]
 ```
 
-### Batch Processing
-
-Optimize for throughput:
-- Validation: Process row-by-row
-- Pattern: Vectorized operations
-- ML: Batch embeddings (GPU)
-- LLM: Batch prompts
-
-### Caching Strategy
-
+**2. Batch Processing**
 ```python
-# Cache embeddings for ML
-embedding_cache = LRUCache(maxsize=10000)
-
-# Cache LLM responses
-llm_cache = TTLCache(maxsize=1000, ttl=3600)
+# Optimize ML detection with batch encoding
+def batch_ml_detect(values, model, centroid):
+    embeddings = model.encode(values, batch_size=32)  # GPU batch
+    similarities = cosine_similarity(embeddings, centroid.reshape(1, -1))
+    return similarities < threshold
 ```
 
-## Choosing the Right Method
+**3. Caching Strategy**
+```python
+from functools import lru_cache
+
+@lru_cache(maxsize=10000)
+def cached_ml_embedding(value):
+    return model.encode([value])
+
+@lru_cache(maxsize=1000)  
+def cached_llm_score(value):
+    return calculate_anomaly_score(llm_model, tokenizer, value)
+```
+
+## Field-Specific Recommendations
 
 ### Decision Framework
 
+| Field Type | Recommended Methods | Theoretical Rationale |
+|------------|-------------------|----------------------|
+| **Structured** (EAN, dates) | Validation + Pattern | Deterministic rules sufficient |
+| **Semi-Structured** (color codes) | Pattern + ML | Known patterns with semantic variations |
+| **Semantic** (materials) | ML + LLM | Requires deep semantic understanding |
+| **Natural Language** (descriptions) | ML + LLM | Complex linguistic patterns |
+| **Categorical** (sizes, seasons) | Validation + Pattern | Limited valid sets with clear rules |
+
+### Performance Profiles
+
 ```mermaid
-graph TD
-    A[Start] --> B{Known Rules?}
-    B -->|Yes| C[Use Validation]
-    B -->|No| D{Have Patterns?}
-    D -->|Yes| E[Use Pattern-Based]
-    D -->|No| F{Need Context?}
-    F -->|Yes| G{Speed Critical?}
-    G -->|Yes| H[Use ML]
-    G -->|No| I[Use LLM]
-    F -->|No| J[Use Statistical]
+graph LR
+    subgraph "Speed vs Accuracy Trade-off"
+        A[Validation<br/>~1ms/record<br/>100% accuracy]
+        B[Pattern<br/>~5ms/record<br/>75% accuracy]
+        C[ML<br/>~20ms/record<br/>Variable accuracy]
+        D[LLM<br/>~100ms/record<br/>High accuracy]
+    end
+    
+    A --> Fast[Fast & Precise]
+    B --> Balanced[Balanced Performance]
+    C --> Semantic[Semantic Understanding]
+    D --> Contextual[Deep Context Analysis]
 ```
-
-### Use Case Recommendations
-
-| Use Case | Recommended Methods | Rationale |
-|----------|-------------------|-----------|
-| **High-Speed Screening** | Validation + Pattern | Fast with good coverage |
-| **Comprehensive Analysis** | All methods | Maximum detection capability |
-| **Production Monitoring** | Validation + Weighted ML | Balance of speed and accuracy |
-| **Development/Testing** | All methods + injection | Evaluate system performance |
 
 ## Future Directions
 
 ### Research Areas
-1. **Active Learning**: Improve models from user feedback
-2. **Ensemble Methods**: Better combination strategies
-3. **Explainable AI**: Make ML decisions interpretable
-4. **Real-time Adaptation**: Online learning from data streams
+1. **Online Learning**: Continuous model improvement from user feedback
+2. **Federated Learning**: Collaborative learning across different datasets
+3. **Explainable ML**: Making centroid-based decisions interpretable
+4. **Multi-modal Detection**: Combining text, numeric, and categorical features
 
 ### Planned Enhancements
-1. **Graph Neural Networks**: For relational anomalies
-2. **Attention Mechanisms**: Better context understanding
-3. **Multi-modal Detection**: Combine text, numeric, and categorical
-4. **Automated Threshold Tuning**: Self-optimizing thresholds
+1. **Adaptive Thresholds**: Self-tuning based on performance feedback
+2. **Graph Neural Networks**: For relational anomaly detection
+3. **Attention Visualization**: Understanding what models focus on
+4. **Real-time Learning**: Incremental updates to models
 
 ## Summary
 
-The multi-method approach provides:
-- **Comprehensive Coverage**: Different methods catch different anomalies
-- **Flexible Confidence**: Adjust thresholds based on use case
-- **Scalable Performance**: Choose methods based on requirements
-- **Future-Proof**: Easy to add new detection methods
+The multi-method theoretical approach provides:
 
-Each method has its place in the detection pipeline, and the combination of all methods provides the most robust data quality monitoring solution.
+- **Comprehensive Coverage**: Each method targets different anomaly types
+- **Progressive Confidence**: From deterministic rules to probabilistic ML
+- **Scalable Performance**: Choose methods based on speed/accuracy requirements
+- **Robust Architecture**: Ensemble methods improve overall reliability
+
+**Key Innovations:**
+1. **Centroid-based ML**: Fast, semantically meaningful anomaly detection
+2. **Domain-specific LLM**: Language models fine-tuned for specific fields
+3. **Progressive confidence**: Layered detection with increasing sophistication
+4. **JSON-configurable patterns**: Flexible rule management without code changes
+
+This theoretical foundation enables robust, explainable, and efficient data quality monitoring across diverse domains and use cases.

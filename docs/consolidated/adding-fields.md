@@ -611,7 +611,7 @@ The new_field represents a unique product identifier in format XX9999.
 
 ## Detection Methods
 - **Validation**: Format and business rules
-- **Pattern**: Statistical anomalies
+- **Pattern**: Known value matching and format rules
 - **ML**: Semantic similarity (if configured)
 ```
 

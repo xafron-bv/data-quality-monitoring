@@ -7,7 +7,7 @@ This document describes the architecture of different anomaly detection methods 
 The system implements a multi-layered approach to anomaly detection:
 
 1. **Rule-Based Validation** - Fast, deterministic checks
-2. **Pattern-Based Detection** - Statistical and pattern matching
+2. **Pattern-Based Detection** - JSON-configured rule and pattern matching
 3. **ML-Based Detection** - Machine learning models
 4. **LLM-Based Detection** - Large language model analysis
 
@@ -140,9 +140,9 @@ flowchart LR
 ### Techniques
 
 - Regular expression matching
-- Statistical outlier detection
-- Frequency analysis
-- Template matching
+- Known value lookup
+- JSON-configured pattern rules
+- Format validation
 
 ## ML-Based Detection
 
@@ -152,10 +152,12 @@ flowchart LR
 flowchart TB
     TD[Training Data]:::train --> MT[Model Training]:::process
     MT --> TM[Trained Model]:::model
+    MT --> RC[Reference Centroid]:::model
     
     ID[Input Data]:::input --> FE[Feature Engineering]:::process
-    FE --> P[Prediction]:::process
+    FE --> P[Similarity Calculation]:::process
     TM --> P
+    RC --> P
     P --> AS[Anomaly Score]:::output
     
     classDef train fill:#a5d6a7,stroke:#388e3c,stroke-width:2px,color:#000
@@ -177,8 +179,9 @@ flowchart TB
 The ML-based detection uses:
 
 - **Sentence Transformers**: For text embedding and similarity
-- **Cosine Similarity**: For anomaly scoring
-- **Triplet Loss Training**: For learning representations
+- **Reference Centroids**: Pre-computed centers of normality for each field
+- **Cosine Similarity**: For anomaly scoring against centroids
+- **Triplet Loss Training**: For learning semantic representations
 - **Field-specific Models**: Different transformer models per field type
 
 ### GPU Acceleration
@@ -200,33 +203,34 @@ with gpu_context():
 
 ```mermaid
 flowchart LR
-    I[Input]:::input --> CB[Context Building]:::process
-    CB --> LI[LLM Inference]:::process
-    LI --> INT[Interpretation]:::output
+    I[Input Text]:::input --> T[Tokenization]:::process
+    T --> LM[Language Model]:::model
+    LM --> PS[Probability Scoring]:::process
+    PS --> AS[Anomaly Score]:::output
     
-    PT[Prompt Template]:::template --> CB
-    MA[Model API]:::api --> LI
+    TD[Training Data]:::train --> FT[Fine-tuning]:::process
+    FT --> LM
     
     classDef input fill:#81c784,stroke:#388e3c,stroke-width:2px,color:#000
     classDef process fill:#64b5f6,stroke:#1565c0,stroke-width:2px,color:#000
     classDef output fill:#ce93d8,stroke:#6a1b9a,stroke-width:2px,color:#000
-    classDef template fill:#e1bee7,stroke:#6a1b9a,stroke-width:2px,color:#000
-    classDef api fill:#ffccbc,stroke:#d84315,stroke-width:2px,color:#000
+    classDef train fill:#a5d6a7,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef model fill:#ffcc80,stroke:#ef6c00,stroke-width:2px,color:#000
 ```
 
 ### Components
 
-- **Prompt Manager**: Templates and context
-- **Model Interface**: LLM API abstraction
-- **Response Parser**: Extracts structured results
-- **Context Cache**: Reduces API calls
+- **Fine-tuned Language Models**: Field-specific masked language models
+- **Tokenizer**: Text preprocessing and token probability calculation
+- **Probability Scorer**: Converts token probabilities to anomaly scores
+- **Dynamic Context Encoder**: Optional contextual information integration
 
 ### Features
 
-- Natural language understanding
-- Complex pattern recognition
-- Contextual analysis
-- Explanation generation
+- Domain-specific language modeling
+- Token probability-based anomaly scoring
+- Fine-tuned understanding of field patterns
+- Optional temporal and categorical context
 
 ## Integration Patterns
 
@@ -236,7 +240,7 @@ The system supports multiple integration approaches:
 
 Detection methods can be run in sequence, with early exit on first detection:
 - Fast rule-based checks first
-- Pattern-based analysis for statistical anomalies
+- Pattern-based analysis using JSON configuration rules
 - ML models for complex patterns
 - LLM for difficult cases (if enabled)
 
