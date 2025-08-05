@@ -16,3 +16,9 @@ llm_results/
 # Model directories
 models/
 core
+
+# Documentation build artifacts
+docs/build/
+docs/.docusaurus/
+docs/node_modules/
+.npm/
