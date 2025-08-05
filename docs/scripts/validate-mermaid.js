@@ -93,6 +93,15 @@ function validateDiagram(diagram) {
       errors.push(`Unbalanced brackets: ${openBrackets} opening, ${closeBrackets} closing`);
     }
     
+    // Check for invalid style commands with quoted subgraph names
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      // Match style commands with quoted names
+      if (trimmedLine.match(/^style\s+"[^"]+"\s+/)) {
+        errors.push(`Line ${index + 1}: Invalid style syntax - cannot use quoted names with style command. Use: style subgraphId fill:...`);
+      }
+    });
+    
     // Check for common syntax errors
     if (diagram.content.includes('→')) {
       errors.push('Contains Unicode arrow (→). Use --> instead');
@@ -121,8 +130,9 @@ function validateDiagram(diagram) {
 function validateAllDiagrams() {
   console.log(`${colors.blue}🔍 Validating Mermaid diagrams in documentation...${colors.reset}\n`);
   
-  const docsDir = path.resolve(__dirname, '..');
-  const markdownFiles = findMarkdownFiles(docsDir);
+  // Get directory from command line argument or default to docs
+  const targetDir = process.argv[2] || path.resolve(__dirname, '..');
+  const markdownFiles = findMarkdownFiles(targetDir);
   
   let totalDiagrams = 0;
   let totalErrors = 0;
@@ -139,7 +149,7 @@ function validateAllDiagrams() {
       if (errors.length > 0) {
         totalErrors += errors.length;
         errorDetails.push({
-          file: path.relative(docsDir, diagram.file),
+          file: path.relative(targetDir, diagram.file),
           line: diagram.line,
           errors: errors
         });
@@ -172,8 +182,9 @@ function validateAllDiagrams() {
 function checkForASCIIArt() {
   console.log(`${colors.blue}🔍 Checking for ASCII art diagrams...${colors.reset}\n`);
   
-  const docsDir = path.resolve(__dirname, '..');
-  const markdownFiles = findMarkdownFiles(docsDir);
+  // Get directory from command line argument or default to docs
+  const targetDir = process.argv[2] || path.resolve(__dirname, '..');
+  const markdownFiles = findMarkdownFiles(targetDir);
   
   const asciiPatterns = [
     /[│├└─┌┐┘┤┬┴┼━┃┏┓┗┛┣┫┳┻╋]/,  // Box drawing characters
@@ -208,7 +219,7 @@ function checkForASCIIArt() {
           
           if (!insideCodeBlock) {
             findings.push({
-              file: path.relative(docsDir, file),
+              file: path.relative(targetDir, file),
               line: index + 1,
               content: line.trim()
             });
