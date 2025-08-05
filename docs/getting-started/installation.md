@@ -74,10 +74,14 @@ pip install -r requirements-dev.txt
 ```
 
 This includes:
-- `pytest`: Testing framework
-- `flake8`: Code linting
-- `black`: Code formatting
 - `pre-commit`: Git hooks for code quality
+- `flake8` and extensions: Comprehensive code linting
+- `black`: Code formatting
+- `isort`: Import sorting
+- `mypy`: Type checking
+- `pytest`: Testing framework
+- `bandit`: Security scanning
+- `sphinx`: Documentation generation
 
 ### 5. Install Pre-commit Hooks (Optional)
 
@@ -136,10 +140,11 @@ For LLM detection, models are downloaded on demand:
 Create or modify brand configuration files:
 
 ```bash
-# Copy the template
-cp brand_configs/template.json brand_configs/your_brand.json
+# Create a new brand configuration based on the example
+cp brand_configs/esqualo.json brand_configs/your_brand.json
 
 # Edit with your brand's field mappings
+vim brand_configs/your_brand.json
 ```
 
 ## Verification

@@ -110,15 +110,15 @@ const config = {
             items: [
               {
                 label: 'Getting Started',
-                to: '/getting-started',
+                to: '/getting-started/installation',
               },
               {
                 label: 'Architecture',
-                to: '/architecture',
+                to: '/architecture/overview',
               },
               {
                 label: 'API Reference',
-                to: '/api',
+                to: '/api/interfaces',
               },
             ],
           },
