@@ -255,6 +255,6 @@ Create a weight performance log:
 
 ## Next Steps
 
-- [Advanced Configuration](../configuration/advanced-settings.md)
-- [Custom Detection Methods](../development/custom-detectors.md)
-- [Performance Monitoring](../operations/monitoring.md)
+- [Brand Configuration](../configuration/brand-config.md)
+- [Adding New Fields](../development/new-fields.md)
+- [Deployment Guide](../operations/deployment.md)

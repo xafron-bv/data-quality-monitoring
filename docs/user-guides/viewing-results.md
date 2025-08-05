@@ -100,7 +100,7 @@ Compare detection methods to understand their effectiveness:
 ### False Positives
 
 Signs of potential false positives:
-- Very low confidence scores (<0.3)
+- Very low confidence scores (&lt;0.3)
 - Only flagged by one method
 - Common values being flagged
 - Inconsistent detection patterns
@@ -108,7 +108,7 @@ Signs of potential false positives:
 ### True Positives
 
 Signs of likely true positives:
-- High confidence scores (>0.8)
+- High confidence scores (&gt;0.8)
 - Flagged by multiple methods
 - Clear rule violations
 - Consistent patterns across similar records
@@ -168,4 +168,4 @@ issues_by_field.to_csv('high_confidence_issues.csv')
 
 - [Evaluating Detection Performance](evaluating-performance.md)
 - [Optimizing Detection Weights](optimizing-weights.md)
-- [Creating Custom Reports](../development/custom-reporting.md)
+- [Adding New Fields](../development/new-fields.md)

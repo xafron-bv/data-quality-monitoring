@@ -235,5 +235,5 @@ false_positives.to_csv('false_positives_review.csv', index=False)
 ## Next Steps
 
 - [Optimizing Detection Weights](optimizing-weights.md)
-- [Advanced Configuration](../configuration/advanced-settings.md)
-- [Custom Evaluation Metrics](../development/custom-metrics.md)
+- [Brand Configuration](../configuration/brand-config.md)
+- [Adding New Fields](../development/new-fields.md)

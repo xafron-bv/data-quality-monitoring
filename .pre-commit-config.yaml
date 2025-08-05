@@ -48,6 +48,3 @@ default_language_version:
 
 # Exclude directories
 exclude: '^(venv|\.venv|build|dist|\.git|__pycache__|\.mypy_cache|\.pytest_cache|\.cursor)/'
-
-# Run on Python files by default
-files: '\.py$'
