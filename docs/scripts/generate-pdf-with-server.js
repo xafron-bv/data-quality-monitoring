@@ -33,7 +33,7 @@ async function generatePDF() {
   
   try {
     // Generate PDF using docs-to-pdf with explicit Docusaurus v2 parameters
-    const command = `npx docs-to-pdf --initialDocURLs="http://localhost:3001/" --contentSelector="article" --paginationSelector="a.pagination-nav__link.pagination-nav__link--next" --excludeSelectors=".margin-vert--xl a,[class^='tocCollapsible'],.breadcrumbs,.theme-edit-this-page" --outputPDFFilename="xafron-documentation.pdf" --coverTitle="Xafron Documentation" --coverSub="Data Quality Detection System<br/>Version ${new Date().getFullYear()}" --disableTOC=false --pdfMargin="20,20,20,20"`;
+    const command = `npx docs-to-pdf --initialDocURLs="http://localhost:3001/" --contentSelector="article" --paginationSelector="a.pagination-nav__link.pagination-nav__link--next" --excludeSelectors=".margin-vert--xl a,[class^='tocCollapsible'],.breadcrumbs,.theme-edit-this-page" --outputPDFFilename="xafron-documentation.pdf" --coverTitle="Xafron Documentation" --coverSub="Data Quality Detection System<br/>Version ${new Date().getFullYear()}" --pdfMargin="20,20,20,20"`;
     
     console.log('Generating PDF...');
     console.log('Command:', command);
