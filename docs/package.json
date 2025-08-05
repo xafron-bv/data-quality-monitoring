@@ -5,7 +5,7 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build": "npm run validate-mermaid && docusaurus build",
+    "build": "npm run validate-mermaid && docusaurus build && npm run generate-pdf",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
@@ -13,7 +13,9 @@
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
     "validate-mermaid": "node scripts/validate-mermaid.js",
-    "prebuild": "npm run validate-mermaid"
+    "prebuild": "npm run validate-mermaid",
+    "generate-pdf": "node scripts/generate-pdf-placeholder.js",
+    "postbuild": "npm run generate-pdf"
   },
   "dependencies": {
     "@docusaurus/core": "^3.0.1",
@@ -27,7 +29,10 @@
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.0.1",
-    "@docusaurus/types": "^3.0.1"
+    "@docusaurus/types": "^3.0.1",
+    "docusaurus-prince-pdf": "^1.2.1",
+    "puppeteer": "^24.15.0",
+    "serve": "^14.2.4"
   },
   "browserslist": {
     "production": [
