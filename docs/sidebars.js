@@ -20,15 +20,15 @@ const sidebars = {
       type: "category",
       label: "Consolidated Documentation",
       items: [
-        "consolidated/01-introduction-overview",
-        "consolidated/02-installation-setup",
-        "consolidated/03-command-line-usage",
-        "consolidated/04-architecture-design",
-        "consolidated/05-theoretical-approach",
-        "consolidated/06-code-structure",
-        "consolidated/07-adding-fields",
-        "consolidated/08-adding-brands",
-        "consolidated/09-operations"
+        "consolidated/introduction-overview",
+        "consolidated/installation-setup",
+        "consolidated/command-line-usage",
+        "consolidated/architecture-design",
+        "consolidated/theoretical-approach",
+        "consolidated/code-structure",
+        "consolidated/adding-fields",
+        "consolidated/adding-brands",
+        "consolidated/operations"
       ]
     },
     {
