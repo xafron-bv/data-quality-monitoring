@@ -2,6 +2,17 @@
 
 This guide covers the fundamental usage patterns and workflows for the Data Quality Detection System.
 
+## Available Commands
+
+The system provides six main commands through `main.py`:
+
+- **single-demo**: Run detection on a single CSV file with comprehensive reporting
+- **multi-eval**: Evaluate detection performance with systematic testing
+- **ml-train**: Train ML models for anomaly detection
+- **llm-train**: Train language models for semantic detection
+- **analyze-column**: Deep analysis of a specific data column
+- **ml-curves**: Generate performance curves to find optimal thresholds
+
 ## Core Concepts
 
 ### Detection Workflow
@@ -25,77 +36,32 @@ flowchart LR
 
 ## Command Structure
 
-### Using Detection Methods
-
-By default, if no detection methods are explicitly enabled, all available methods will run. Use the `--enable` flags to selectively enable specific methods:
+The basic command structure is:
 
 ```bash
-# Run only validation
-python main.py single-demo \
-    --data-file your_data.csv \
-    --enable-validation
-
-# Run validation and pattern detection
-python main.py single-demo \
-    --data-file your_data.csv \
-    --enable-validation \
-    --enable-pattern
-
-# Run all methods explicitly
-python main.py single-demo \
-    --data-file your_data.csv \
-    --enable-validation \
-    --enable-pattern \
-    --enable-ml \
-    --enable-llm
+python main.py <command> [options]
 ```
 
-### Basic Detection Run
-
-Simplest form - runs all available detection methods:
+For example, to run detection on your data:
 
 ```bash
 python main.py single-demo --data-file your_data.csv
 ```
 
-With custom output directory:
+For detailed options and configurations, see the [Running Detection Guide](../user-guides/running-detection.md).
+
+## Error Injection for Testing
+
+The system can inject synthetic errors to evaluate detection performance:
 
 ```bash
-python main.py single-demo \
-    --data-file your_data.csv \
-    --output-dir results/my_analysis
-```
-
-## Error Injection
-
-The system can inject synthetic errors to test detection capabilities.
-
-### Injection Intensity
-
-Control how many errors are injected:
-
-```bash
-# Light injection (20% of cells)
+# Test with 20% synthetic errors
 python main.py single-demo \
     --data-file clean_data.csv \
     --injection-intensity 0.2
-
-# Heavy injection (50% of cells)
-python main.py single-demo \
-    --data-file clean_data.csv \
-    --injection-intensity 0.5 \
-    --max-issues-per-row 3
 ```
 
-### No Injection (Production Mode)
-
-For real data analysis without synthetic errors:
-
-```bash
-python main.py single-demo \
-    --data-file production_data.csv \
-    --injection-intensity 0.0
-```
+For production use without synthetic errors, set `--injection-intensity 0.0`.
 
 ## Detection Methods
 
@@ -320,9 +286,3 @@ python main.py single-demo \
 - Fine-tune thresholds based on your data
 - Train custom ML models for your fields
 
-## Next Steps
-
-1. **Multi-Sample Evaluation**: Use `multi-eval` for batch processing
-2. **Model Training**: Train ML models with `ml-train`
-3. **Field Analysis**: Use `analyze-column` to understand your data
-4. **Custom Configuration**: Set up brand-specific rules

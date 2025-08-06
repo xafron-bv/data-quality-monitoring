@@ -1,17 +1,33 @@
 # Detection Methods Architecture
 
-This document describes the architecture of different anomaly detection methods implemented in the system.
+This document provides a comprehensive overview of the detection methods, their theoretical foundations, and implementation details.
 
 ## Overview
 
-The system implements a multi-layered approach to anomaly detection:
+The Data Quality Detection System employs a multi-layered approach to anomaly detection, combining deterministic rule-based validation with advanced machine learning methods. Each detection method addresses different types of data quality issues:
 
-1. **Rule-Based Validation** - Fast, deterministic checks
-2. **Pattern-Based Detection** - JSON-configured rule and pattern matching
-3. **ML-Based Detection** - Machine learning models
-4. **LLM-Based Detection** - Large language model analysis
+1. **Rule-Based Validation** - Fast, deterministic checks for format violations and business rules
+2. **Pattern-Based Detection** - JSON-configured pattern matching for known formats
+3. **ML-Based Detection** - Machine learning models for semantic anomalies
+4. **LLM-Based Detection** - Large language models for complex linguistic patterns
 
-Each method has its strengths and is suitable for different types of anomalies.
+## Detection Philosophy
+
+Our approach uses progressive confidence levels based on the type of anomaly:
+
+- **Deterministic Errors**: Format violations, business rule breaches → Rule-based (100% confidence)
+- **Pattern Anomalies**: Known pattern mismatches → Pattern detection (70-80% confidence)
+- **Semantic Anomalies**: Contextual inconsistencies → ML detection (60-75% confidence)
+- **Complex Linguistic Errors**: Language violations → LLM detection (50-70% confidence)
+
+## Method Comparison
+
+| Method | Confidence | Training Required | Speed | Best Use Cases |
+|--------|------------|------------------|--------|----------------|
+| **Validation** | 100% | No | ~1ms/record | Format errors, business rules |
+| **Pattern-Based** | 70-80% | No | ~5ms/record | Known patterns, regex validation |
+| **ML-Based** | 60-75% | Yes | ~20ms/record | Semantic consistency |
+| **LLM-Based** | 50-70% | Yes | ~100ms/record | Complex linguistic patterns |
 
 ## Architecture Principles
 
@@ -316,6 +332,103 @@ Each method supports configurable thresholds:
   }
 }
 ```
+
+## Theoretical Foundations
+
+### Rule-Based Validation
+
+**Theory**: Grounded in formal logic and domain expertise, providing deterministic results based on predefined constraints.
+
+**Key Concepts**:
+- Boolean logic for constraint checking
+- Domain-specific business rules
+- Format validation using regular expressions
+- Hierarchical rule application
+
+**Example Rules**:
+- Material must contain percentage and fiber name
+- Color names must be from approved list
+- Sizes must follow standard format (S, M, L, XL)
+
+### Pattern-Based Detection
+
+**Theory**: Statistical pattern recognition combined with rule-based matching to identify anomalies that deviate from expected patterns.
+
+**Key Concepts**:
+- Frequency analysis for rare values
+- Pattern matching using regex
+- Statistical outlier detection
+- Known value whitelisting
+
+**Mathematical Foundation**:
+- Z-score for statistical outliers: `z = (x - μ) / σ`
+- Frequency threshold: Values appearing < 1% are flagged
+- Pattern confidence: Based on match percentage
+
+### ML-Based Detection
+
+**Theory**: Uses deep learning embeddings to capture semantic meaning and identify anomalies through vector similarity.
+
+**Key Concepts**:
+- Sentence transformers for text embedding
+- Centroid-based anomaly detection
+- Cosine similarity for semantic comparison
+- Triplet loss for model training
+
+**Mathematical Foundation**:
+- Embedding generation: `e = transformer(text)`
+- Centroid calculation: `c = mean(embeddings)`
+- Anomaly score: `score = 1 - cosine_similarity(e, c)`
+- Threshold: Typically 0.7-0.8 based on validation
+
+### LLM-Based Detection
+
+**Theory**: Leverages large language models to understand context and identify complex linguistic anomalies.
+
+**Key Concepts**:
+- Contextual understanding using transformers
+- Probability-based anomaly scoring
+- Few-shot learning for adaptation
+- Instruction-following for specific checks
+
+**Mathematical Foundation**:
+- Log probability: `log P(text|context)`
+- Perplexity: `exp(-1/n * Σ log P(xi|x<i))`
+- Anomaly threshold: Based on probability distribution
+
+## Progressive Detection Flow
+
+```
+Input → Validation (100% confidence)
+  ↓ Pass
+Pattern Detection (80% confidence)
+  ↓ Uncertain
+ML Detection (75% confidence)
+  ↓ Still uncertain
+LLM Detection (70% confidence)
+  ↓
+Final Decision with Weighted Confidence
+```
+
+## Best Practices
+
+### Method Selection
+- Use validation for critical business rules
+- Apply pattern detection for known formats
+- Enable ML for semantic consistency
+- Reserve LLM for complex cases
+
+### Performance Optimization
+- Run methods in parallel when possible
+- Cache ML model embeddings
+- Batch LLM requests
+- Use GPU acceleration for ML/LLM
+
+### Accuracy Tuning
+- Start with conservative thresholds
+- Use evaluation mode to measure performance
+- Generate optimized weights from results
+- Adjust thresholds based on false positive rates
 
 ## Best Practices
 

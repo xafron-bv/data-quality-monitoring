@@ -51,11 +51,15 @@ For large datasets, use these strategies:
 
 ### 1. Sample Processing
 
+To process a sample of your data, first create a subset:
+
 ```bash
+# Create a sample file
+head -n 1000 large_data.csv > sample_data.csv
+
+# Run detection on the sample
 python main.py single-demo \
-    --data-file large_data.csv \
-    --sample-size 1000 \
-    --random-seed 42
+    --data-file sample_data.csv
 ```
 
 ### 2. Core Fields Only
@@ -68,11 +72,7 @@ python main.py single-demo \
 
 ### 3. Specific Fields
 
-```bash
-python main.py single-demo \
-    --data-file large_data.csv \
-    --fields material color_name category
-```
+Note: The single-demo command processes all configured fields. To process specific fields only, you can modify your brand configuration or use the multi-eval command for field-specific evaluation.
 
 ## Output Options
 
@@ -84,14 +84,13 @@ python main.py single-demo \
     --output-dir results/2024-01-detection
 ```
 
-### Control Output Formats
+### Output Files
 
-```bash
-python main.py single-demo \
-    --data-file your_data.csv \
-    --save-predictions \     # Save detailed predictions
-    --no-html               # Skip HTML viewer generation
-```
+The single-demo command automatically generates:
+- JSON reports (report.json, viewer_report.json)
+- CSV summaries (anomaly_summary.csv)
+- Result files with detection information
+- Confusion matrix visualizations (if evaluation mode)
 
 ## Using Weighted Combination
 
@@ -111,17 +110,18 @@ Test detection performance with synthetic errors:
 ```bash
 python main.py single-demo \
     --data-file clean_data.csv \
-    --injection-intensity 0.2 \    # Inject errors in 20% of data
-    --injection-seed 42
+    --injection-intensity 0.2    # Inject errors in 20% of data
 ```
+
+Note: Error injection is randomized. The exact errors will vary between runs.
 
 ## Viewing Results
 
 After detection completes:
 
-1. **HTML Viewer**: Open `data_quality_viewer.html` in your browser
-2. **CSV Results**: Import `*_predictions.csv` into Excel or similar
-3. **JSON Report**: Detailed metrics in `detection_report.json`
+1. **HTML Viewer**: Open `single_sample_multi_field_demo/data_quality_viewer.html` in your browser
+2. **CSV Results**: Review the generated CSV files in your output directory
+3. **JSON Report**: Detailed metrics in the report.json file
 
 ## Example Workflows
 
@@ -131,8 +131,7 @@ After detection completes:
 # Fast check with pattern detection only
 python main.py single-demo \
     --data-file daily_upload.csv \
-    --enable-pattern \
-    --sample-size 500
+    --enable-pattern
 ```
 
 ### Full Production Run
@@ -158,8 +157,7 @@ python main.py single-demo \
     --data-file test_data.csv \
     --injection-intensity 0.3 \
     --enable-validation \
-    --enable-pattern \
-    --sample-size 100
+    --enable-pattern
 ```
 
 ## Troubleshooting
@@ -167,7 +165,7 @@ python main.py single-demo \
 ### Out of Memory Errors
 
 - Use `--core-fields-only`
-- Reduce `--sample-size`
+- Create a smaller sample file first
 - Disable ML/LLM detection
 - Process in batches
 
@@ -175,16 +173,10 @@ python main.py single-demo \
 
 - Enable GPU if available
 - Use `--enable-pattern` only for quick checks
-- Reduce number of fields with `--fields`
+- Use `--core-fields-only` to process fewer fields
 
 ### No Detections Found
 
 - Check field mappings in brand configuration
 - Lower detection thresholds
 - Verify data format matches expectations
-
-## Next Steps
-
-- [Evaluating Detection Performance](evaluating-performance.md)
-- [Optimizing Detection Weights](optimizing-weights.md)
-- [Viewing and Interpreting Results](viewing-results.md)
