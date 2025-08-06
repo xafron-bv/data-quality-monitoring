@@ -78,14 +78,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-apt-
 
-      # Cache Docusaurus build artifacts
+      # Cache Docusaurus build artifacts (excluding build output)
       - name: Cache Docusaurus build
         uses: actions/cache@v4
         with:
           path: |
             docs/.docusaurus
             docs/node_modules/.cache
-            docs/build
           key: ${{ runner.os }}-docusaurus-build-${{ hashFiles('docs/**/*.md', 'docs/**/*.mdx', 'docs/docusaurus.config.js', 'docs/sidebars.js') }}
           restore-keys: |
             ${{ runner.os }}-docusaurus-build-
