@@ -31,40 +31,18 @@ The system is designed to be field-agnostic and brand-independent, making it ada
 - CUDA-capable GPU (optional, for faster ML/LLM detection)
 - 8GB+ RAM recommended
 
-### Setup
+### Quick Installation
 
-1. Clone the repository:
 ```bash
+# Clone and setup
 git clone <repository-url>
-cd <project-directory>  # The actual directory name will depend on your repository
-```
-
-2. Create a virtual environment:
-```bash
+cd <project-directory>
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install dependencies:
-```bash
 pip install -r requirements.txt
 ```
 
-4. (Optional) Install development dependencies and pre-commit hooks:
-```bash
-# Install development tools (linting, formatting, etc.)
-pip install -r requirements-dev.txt
-
-# Install pre-commit hooks for code quality checks
-pre-commit install
-```
-
-This will set up automatic code quality checks that run before each commit, catching issues like:
-- Import errors and missing modules
-- Syntax errors
-- Basic code style issues
-
-To run the checks manually: `pre-commit run --all-files`
+For detailed installation instructions, GPU setup, and troubleshooting, see [Installation Guide](docs/getting-started/installation.md).
 
 5. Configure brand settings:
 ```bash
@@ -89,117 +67,30 @@ python main.py single-demo \
     --enable-llm
 ```
 
-### Basic Usage
-
-1. **Analyze your data**:
-```bash
-python main.py analyze-column your_data.csv product_name
-```
-
-2. **Run detection**:
-```bash
-python main.py single-demo \
-    --data-file your_data.csv \
-    --injection-intensity 0.2 \
-    --output-dir results
-```
-
-3. **View results**:
-- Open `single_sample_multi_field_demo/data_quality_viewer.html` in your browser
-- Upload the generated CSV and JSON files from the results directory
-
-## Configuration
-
-### Brand Configuration
-
-Create or edit brand configuration files in the `brand_configs/` directory (e.g., `brand_configs/esqualo.json`) to map your data columns to standard fields:
-
-```json
-{
-    "brand_name": "your_brand",
-    "field_mappings": {
-        "material": "Material_Column",
-        "color_name": "Color_Description",
-        "category": "Product_Category"
-    },
-    "default_data_path": "data/your_data.csv"
-}
-```
-
-### Detection Thresholds
-
-Adjust detection sensitivity:
+### Quick Start
 
 ```bash
-python main.py single-demo \
-    --data-file your_data.csv \
-    --validation-threshold 0.0 \
-    --anomaly-threshold 0.7 \
-    --ml-threshold 0.7 \
-    --llm-threshold 0.6
+# Run your first detection
+python main.py single-demo --data-file your_data.csv
+
+# View results in the web interface
+# Open single_sample_multi_field_demo/data_quality_viewer.html
 ```
 
-## Adding New Fields
+For detailed guides, see the [Documentation](docs/).
 
-### 1. Rule-Based Validation
+## Documentation
 
-Create a new validator:
-```bash
-mkdir validators/new_field
-# Create validators/new_field/validate.py
-# Create validators/new_field/error_messages.json
-```
+For comprehensive guides on configuration, usage, and development:
 
-### 2. Pattern-Based Detection
+📚 **[View Full Documentation](docs/)**
 
-Add pattern rules:
-```bash
-# Create anomaly_detectors/pattern_based/rules/new_field.json
-```
-
-### 3. ML-Based Detection
-
-Train a model:
-```bash
-python main.py ml-train your_data.csv --fields "new_field"
-```
-
-## Advanced Usage
-
-### Performance Optimization
-
-Generate optimized weights based on evaluation results:
-```bash
-python single_sample_multi_field_demo/generate_detection_weights.py \
-    -i results/report.json \
-    -o detection_weights.json
-```
-
-Use weighted combination:
-```bash
-python main.py single-demo \
-    --data-file your_data.csv \
-    --use-weighted-combination \
-    --weights-file detection_weights.json
-```
-
-### Batch Evaluation
-
-For systematic performance evaluation:
-```bash
-python main.py multi-eval \
-    --input your_data.csv \
-    --sample-size 1000
-```
-
-### ML Model Analysis
-
-Analyze ML model performance:
-```bash
-python main.py ml-curves your_data.csv \
-    --fields material \
-    --output-dir ml_analysis
-```
+- [Installation Guide](docs/getting-started/installation.md)
+- [Quick Start Tutorial](docs/getting-started/quick-start.md)  
+- [Basic Usage Guide](docs/getting-started/basic-usage.md)
+- [Configuration Reference](docs/reference/configuration.md)
+- [CLI Reference](docs/reference/cli.md)
+- [Development Guide](docs/development/adding-fields.md)
 
 ## Architecture
 
