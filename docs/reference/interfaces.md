@@ -364,9 +364,3 @@ class CustomDetector(AnomalyDetectorInterface):
 3. **Documentation**: Document custom implementations thoroughly
 4. **Testing**: Write unit tests for interface implementations
 5. **Performance**: Implement bulk methods for efficiency
-
-## Next Steps
-
-- Learn about [Configuration](../configuration/brand-config.md)
-- Read about [Adding New Fields](../development/new-fields.md)
-- Explore [Detection Methods](../detection-methods/overview.md)

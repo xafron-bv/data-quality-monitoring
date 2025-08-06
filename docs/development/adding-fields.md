@@ -497,9 +497,3 @@ Before deploying a new field:
 - [ ] Documentation updated
 - [ ] Performance acceptable
 - [ ] Code reviewed
-
-## Next Steps
-
-- Learn about creating validators in detail (documentation coming soon)
-- Understand training models for ML detection (documentation coming soon)
-- Explore testing strategies (documentation coming soon)

@@ -180,9 +180,3 @@ python main.py single-demo \
 - Check field mappings in brand configuration
 - Lower detection thresholds
 - Verify data format matches expectations
-
-## Next Steps
-
-- [Evaluating Detection Performance](evaluating-performance.md)
-- [Optimizing Detection Weights](optimizing-weights.md)
-- [Viewing and Interpreting Results](viewing-results.md)
