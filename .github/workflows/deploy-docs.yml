@@ -45,11 +45,57 @@ jobs:
           cache: 'npm'
           cache-dependency-path: docs/package-lock.json
 
+      # Cache npm dependencies with more specific key
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            docs/node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('docs/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      # Cache Chrome and apt packages
+      - name: Cache Chrome installation
+        uses: actions/cache@v4
+        id: chrome-cache
+        with:
+          path: |
+            /usr/bin/google-chrome-stable
+            /opt/google/chrome
+          key: ${{ runner.os }}-chrome-stable-${{ hashFiles('.github/workflows/deploy-docs.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-chrome-stable-
+
+      # Cache apt packages
+      - name: Cache apt packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-${{ hashFiles('.github/workflows/deploy-docs.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-
+
+      # Cache Docusaurus build artifacts
+      - name: Cache Docusaurus build
+        uses: actions/cache@v4
+        with:
+          path: |
+            docs/.docusaurus
+            docs/node_modules/.cache
+            docs/build
+          key: ${{ runner.os }}-docusaurus-build-${{ hashFiles('docs/**/*.md', 'docs/**/*.mdx', 'docs/docusaurus.config.js', 'docs/sidebars.js') }}
+          restore-keys: |
+            ${{ runner.os }}-docusaurus-build-
+
       - name: Install dependencies
         run: npm ci
         working-directory: ./docs
 
       - name: Install Chrome dependencies for PDF generation
+        if: steps.chrome-cache.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
