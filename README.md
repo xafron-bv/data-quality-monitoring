@@ -1,246 +1,55 @@
 # Data Quality Detection System
 
-A comprehensive, multi-method data quality monitoring system for detecting errors and anomalies in structured data, with a focus on fashion/retail product catalogs.
+A comprehensive, multi-method data quality monitoring system for detecting errors and anomalies in structured data.
 
 ## Overview
 
-This system combines multiple detection approaches to identify data quality issues:
+This system combines multiple detection approaches to identify data quality issues with varying confidence levels:
 
 - **Validation (Rule-Based)**: High-confidence error detection using business rules
-- **Pattern-Based Anomaly Detection**: Medium-confidence detection using pattern matching
+- **Pattern-Based Detection**: Medium-confidence detection using pattern matching
 - **ML-Based Detection**: Semantic similarity analysis using sentence transformers
 - **LLM-Based Detection**: Advanced semantic understanding with language models
-
-The system is designed to be field-agnostic and brand-independent, making it adaptable to various data domains.
 
 ## Key Features
 
 - 🎯 **Multi-Method Detection**: Combines rule-based, pattern-based, and ML approaches
-- 📊 **Comprehensive Evaluation**: Built-in metrics and confusion matrix analysis
-- 🔧 **Configurable**: Field mappings and detection thresholds are customizable
-- 💾 **Memory Efficient**: Sequential processing and model caching
-- 📈 **Performance Optimization**: Weighted combination based on historical performance
-- 🌐 **Brand Agnostic**: Supports multiple brands through configuration
-- 📱 **Visual Interface**: HTML5 viewer for interactive result exploration
-
-## Installation
-
-### Prerequisites
-
-- Python 3.8 or higher
-- CUDA-capable GPU (optional, for faster ML/LLM detection)
-- 8GB+ RAM recommended
-
-### Setup
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd detection-system
-```
-
-2. Create a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-4. (Optional) Install development dependencies and pre-commit hooks:
-```bash
-# Install development tools (linting, formatting, etc.)
-pip install -r requirements-dev.txt
-
-# Install pre-commit hooks for code quality checks
-pre-commit install
-```
-
-This will set up automatic code quality checks that run before each commit, catching issues like:
-- Import errors and missing modules
-- Syntax errors
-- Basic code style issues
-
-To run the checks manually: `pre-commit run --all-files`
-
-5. Configure brand settings:
-```bash
-# Create or edit brand configuration files in brand_configs/
-# Example: brand_configs/esqualo.json for Esqualo brand
-# Each brand should have its own JSON file in this directory
-```
+- 📊 **Comprehensive Evaluation**: Built-in metrics and performance analysis
+- 🔧 **Highly Configurable**: Customizable field mappings and detection thresholds
+- 📈 **Performance Optimization**: Weighted combination based on historical data
+- 📱 **Visual Interface**: Interactive HTML viewer for result exploration
 
 ## Quick Start
 
-### Running the Demo
-
-The easiest way to see the system in action:
-
 ```bash
-# Basic demo with all detection methods
-python main.py single-demo \
-    --data-file your_data.csv \
-    --enable-validation \
-    --enable-pattern \
-    --enable-ml
+# Install
+git clone <repository-url>
+cd <project-directory>
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+
+# Run detection
+python main.py single-demo --data-file your_data.csv
+
+# View results
+# Open single_sample_multi_field_demo/data_quality_viewer.html
 ```
 
-### Basic Usage
+## Documentation
 
-1. **Analyze your data**:
-```bash
-python main.py analyze-column your_data.csv product_name
-```
+📚 **[View Full Documentation](docs/)**
 
-2. **Run detection**:
-```bash
-python main.py single-demo \
-    --data-file your_data.csv \
-    --injection-intensity 0.2 \
-    --output-dir results
-```
-
-3. **View results**:
-- Open `data_quality_viewer.html` in your browser
-- Upload the generated CSV and JSON files from the results directory
-
-## Configuration
-
-### Brand Configuration
-
-Edit `brand_config.json` to map your data columns to standard fields:
-
-```json
-{
-    "brand_name": "your_brand",
-    "field_mappings": {
-        "material": "Material_Column",
-        "color_name": "Color_Description",
-        "category": "Product_Category"
-    },
-    "default_data_path": "data/your_data.csv"
-}
-```
-
-### Detection Thresholds
-
-Adjust detection sensitivity:
-
-```bash
-python main.py single-demo \
-    --data-file your_data.csv \
-    --validation-threshold 0.0 \
-    --anomaly-threshold 0.7 \
-    --ml-threshold 0.7 \
-    --llm-threshold 0.6
-```
-
-## Adding New Fields
-
-### 1. Rule-Based Validation
-
-Create a new validator:
-```bash
-mkdir validators/new_field
-# Create validators/new_field/validate.py
-# Create validators/new_field/error_messages.json
-```
-
-### 2. Pattern-Based Detection
-
-Add pattern rules:
-```bash
-# Create anomaly_detectors/pattern_based/rules/new_field.json
-```
-
-### 3. ML-Based Detection
-
-Train a model:
-```bash
-python main.py ml-train your_data.csv --fields new_field
-```
-
-## Advanced Usage
-
-### Performance Optimization
-
-Generate optimized weights based on evaluation results:
-```bash
-python single_sample_multi_field_demo/generate_detection_weights.py \
-    -i results/report.json \
-    -o detection_weights.json
-```
-
-Use weighted combination:
-```bash
-python main.py single-demo \
-    --data-file your_data.csv \
-    --use-weighted-combination \
-    --weights-file detection_weights.json
-```
-
-### Batch Evaluation
-
-For systematic performance evaluation:
-```bash
-python main.py multi-eval \
-    --input your_data.csv \
-    --sample-size 1000
-```
-
-### ML Model Analysis
-
-Analyze ML model performance:
-```bash
-python main.py ml-curves your_data.csv \
-    --fields material \
-    --output-dir ml_analysis
-```
-
-## Architecture
-
-The system follows a modular, layered architecture:
-
-- **Entry Points**: User-facing scripts for different use cases
-- **Orchestration**: Coordinates detection methods and manages workflow
-- **Detection Methods**: Independent implementations of each detection approach
-- **Core Services**: Shared utilities for configuration, mapping, and reporting
-- **Data Layer**: Handles data I/O and storage
-
-## Performance Considerations
-
-- **Memory Usage**: The system processes fields sequentially to minimize memory footprint
-- **GPU Acceleration**: ML and LLM detection can utilize GPU if available
-- **Caching**: Models are cached to avoid redundant loading
-- **Batch Processing**: Configurable batch sizes for optimal performance
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Out of Memory**: 
-   - Use `--core-fields-only` flag
-   - Reduce batch size
-   - Disable ML/LLM detection
-
-2. **Slow Performance**:
-   - Enable GPU acceleration
-   - Use parallel processing
-   - Optimize detection thresholds
-
-3. **Missing Fields**:
-   - Check field mappings in brand_config.json
-   - Verify column names in your data
+The comprehensive documentation includes:
+- Installation and setup guides
+- Usage tutorials and examples
+- Configuration reference
+- Architecture documentation
+- Development guides
 
 ## Contributing
 
-1. Follow the existing code structure
-2. Add tests for new functionality
-3. Update documentation
-4. Submit pull requests with clear descriptions
+We welcome contributions! Please see our [Contributing Guide](docs/development/contributing.md) for details.
 
 ## License
 

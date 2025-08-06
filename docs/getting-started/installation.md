@@ -26,7 +26,7 @@ Before installing the system, ensure you have the following prerequisites:
 
 ```bash
 git clone <repository-url>
-cd <project-directory>
+cd <project-directory>  # The actual directory name will depend on your repository
 ```
 
 ### 2. Create a Virtual Environment
@@ -43,6 +43,10 @@ source venv/bin/activate
 
 # On Windows:
 venv\Scripts\activate
+
+# Alternative: Using conda
+conda create -n data-quality python=3.8
+conda activate data-quality
 ```
 
 ### 3. Install Core Dependencies
@@ -89,6 +93,12 @@ To ensure code quality on every commit:
 
 ```bash
 pre-commit install
+```
+
+This sets up automatic code quality checks that run before each commit. To run the checks manually:
+
+```bash
+pre-commit run --all-files
 ```
 
 ## GPU Support Setup
@@ -147,6 +157,20 @@ cp brand_configs/esqualo.json brand_configs/your_brand.json
 vim brand_configs/your_brand.json
 ```
 
+### 2. Environment Variables (Optional)
+
+You can set environment variables to control system behavior:
+
+```bash
+# GPU configuration
+export CUDA_VISIBLE_DEVICES=0
+
+# For persistent settings, add to your shell profile (.bashrc, .zshrc, etc.)
+echo 'export CUDA_VISIBLE_DEVICES=0' >> ~/.bashrc
+```
+
+Note: The system doesn't currently use a .env file. Environment variables must be set in your shell or system environment.
+
 ## Verification
 
 Verify your installation by running a simple detection demo:
@@ -181,8 +205,3 @@ python main.py single-demo --help
 - Review error logs in the output directory
 - Submit issues on the project repository
 
-## Next Steps
-
-- Follow the [Quick Start Guide](quick-start.md) to run your first detection
-- Learn about [Basic Usage](basic-usage.md) patterns
-- Explore [Configuration Options](../configuration/brand-config.md)

@@ -1,109 +1,65 @@
 # Data Quality Detection System Documentation
 
-Welcome to the technical reference documentation for the Data Quality Detection System - a comprehensive, multi-method data quality monitoring solution for detecting errors and anomalies in structured data.
+Welcome to the comprehensive documentation for the Data Quality Detection System.
 
-## What is the Data Quality Detection System?
+## 📚 Documentation Structure
 
-The Data Quality Detection System is an advanced data quality monitoring framework that combines multiple detection approaches to identify data quality issues with varying levels of confidence. Originally designed for fashion/retail product catalogs, the system is field-agnostic and can be adapted to various data domains.
+### Getting Started
+- **[Installation Guide](getting-started/installation.md)** - System requirements and setup instructions
+- **[Quick Start Tutorial](getting-started/quick-start.md)** - Run your first detection in minutes
+- **[Basic Usage Guide](getting-started/basic-usage.md)** - Common workflows and commands
 
-## Key Features
+### User Guides
+- **[Running Detection](user-guides/running-detection.md)** - Detailed guide for running data quality checks
+- **[Analyzing Results](user-guides/analyzing-results.md)** - Understanding and interpreting detection output
+- **[Performance Optimization](user-guides/optimization.md)** - Tuning detection accuracy and speed
 
-- 🎯 **Multi-Method Detection**: Combines rule-based validation, pattern matching, machine learning, and language models
-- 📊 **Comprehensive Evaluation**: Built-in metrics, confusion matrix analysis, and performance tracking
-- 🔧 **Highly Configurable**: Customizable field mappings, detection thresholds, and brand configurations
-- 💾 **Memory Efficient**: Sequential processing, model caching, and optimized resource usage
-- 📈 **Performance Optimized**: Weighted combination based on historical performance data
-- 🌐 **Brand Agnostic**: Supports multiple brands through configuration files
-- 📱 **Visual Interface**: Interactive HTML5 viewer for result exploration
+### Reference Documentation
+- **[CLI Reference](reference/cli.md)** - Complete command-line interface documentation
+- **[Configuration Reference](reference/configuration.md)** - Brand configs, thresholds, and settings
+- **[API Interfaces](reference/interfaces.md)** - Core interfaces for extending the system
 
-## Detection Methods
+### Architecture & Design
+- **[System Overview](architecture/overview.md)** - High-level architecture and design principles
+- **[Detection Methods](architecture/detection-methods.md)** - Deep dive into detection algorithms
 
-The system employs four complementary detection approaches:
+### Development
+- **[Adding New Fields](development/adding-fields.md)** - Extend the system with custom field types
+- **[Contributing Guide](development/contributing.md)** - Development setup and contribution process
 
-1. **Validation (Rule-Based)**: High-confidence error detection using business rules
-2. **Pattern-Based Anomaly Detection**: Medium-confidence detection using pattern matching
-3. **ML-Based Detection**: Semantic similarity analysis using sentence transformers
-4. **LLM-Based Detection**: Advanced semantic understanding with language models
+### Deployment
+- **[Deployment Examples](deployment/examples.md)** - Production deployment configurations
 
-## System Architecture
+## 🚀 Quick Links
 
-The system follows a modular, plugin-based architecture with clear separation of concerns:
+- **First time?** Start with the [Installation Guide](getting-started/installation.md) and [Quick Start Tutorial](getting-started/quick-start.md)
+- **Need help with commands?** Check the [CLI Reference](reference/cli.md)
+- **Customizing for your data?** See [Configuration Reference](reference/configuration.md)
+- **Want to contribute?** Read our [Contributing Guide](development/contributing.md)
 
-```mermaid
-graph TB
-    subgraph "Entry Points Layer"
-        A1[Demo Scripts]:::entrypoint
-        A2[Evaluation Tools]:::entrypoint
-        A3[Comparison Utilities]:::entrypoint
-    end
-    
-    subgraph "Orchestration Layer"
-        B1[ComprehensiveFieldDetector]:::orchestrator
-        B2[Evaluator]:::orchestrator
-        B3[Comparator]:::orchestrator
-    end
-    
-    subgraph "Detection Methods Layer"
-        C1[Validation<br/>Rule-based]:::validator
-        C2[Pattern-Based<br/>Anomaly]:::detector
-        C3[ML/LLM-Based<br/>Semantic]:::ml
-    end
-    
-    subgraph "Core Services Layer"
-        D1[FieldMapper]:::service
-        D2[BrandConfig]:::service
-        D3[ErrorInjector]:::service
-        D4[Reporters]:::service
-    end
-    
-    subgraph "Data Layer"
-        E1[CSV Files]:::data
-        E2[JSON Configs]:::data
-        E3[Model Files]:::data
-    end
-    
-    A1 & A2 & A3 --> B1 & B2 & B3
-    B1 & B2 & B3 --> C1 & C2 & C3
-    C1 & C2 & C3 --> D1 & D2 & D3 & D4
-    D1 & D2 & D3 & D4 --> E1 & E2 & E3
-    
-    classDef entrypoint fill:#81c784,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef orchestrator fill:#9575cd,stroke:#4527a0,stroke-width:2px,color:#fff
-    classDef validator fill:#4fc3f7,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef detector fill:#ffb74d,stroke:#e65100,stroke-width:2px,color:#000
-    classDef ml fill:#f06292,stroke:#ad1457,stroke-width:2px,color:#fff
-    classDef service fill:#ffd54f,stroke:#f57f17,stroke-width:2px,color:#000
-    classDef data fill:#90a4ae,stroke:#37474f,stroke-width:2px,color:#000
-```
+## 📖 Learning Path
 
-## Use Cases
+1. **Setup**: [Installation](getting-started/installation.md) → [Quick Start](getting-started/quick-start.md)
+2. **Usage**: [Basic Usage](getting-started/basic-usage.md) → [Running Detection](user-guides/running-detection.md)
+3. **Analysis**: [Analyzing Results](user-guides/analyzing-results.md) → [Optimization](user-guides/optimization.md)
+4. **Customization**: [Configuration](reference/configuration.md) → [Adding Fields](development/adding-fields.md)
 
-- **Data Quality Monitoring**: Continuous monitoring of data quality in production systems
-- **Data Validation**: Pre-processing validation before data ingestion
-- **Anomaly Detection**: Identifying unusual patterns and outliers in datasets
-- **Compliance Checking**: Ensuring data meets business rules and standards
-- **Data Cleansing**: Identifying and categorizing data issues for correction
+## 🔍 Key Concepts
 
-## Documentation Structure
+- **Detection Methods**: Validation, Pattern-based, ML-based, and LLM-based anomaly detection
+- **Field Mapping**: Configurable mapping between your data columns and standard fields
+- **Weighted Combination**: Optimized blending of multiple detection methods
+- **Error Injection**: Synthetic error generation for testing and evaluation
 
-This documentation is organized into the following sections:
+## 📊 System Capabilities
 
-- **Getting Started**: Installation, setup, and basic usage
-- **Architecture**: System design, components, and data flow
-- **Detection Methods**: Detailed guides for each detection approach
-- **API Reference**: Complete API documentation for all interfaces
-- **Configuration**: How to configure the system for your needs
-- **User Guides**: Step-by-step guides for common tasks
-- **Development**: Adding new fields, creating validators, and extending the system
-- **Operations**: Deployment, monitoring, and troubleshooting
+- ✅ Multi-method anomaly detection
+- ✅ Configurable detection thresholds
+- ✅ Performance evaluation and optimization
+- ✅ Interactive result visualization
+- ✅ Extensible architecture
+- ✅ GPU acceleration support
 
-## Quick Navigation
+---
 
-- [Installation Guide](getting-started/installation.md) - Get the system up and running
-- [Quick Start Tutorial](getting-started/quick-start.md) - Run your first detection
-- [API Reference](api/interfaces.md) - Explore the programming interfaces
-- [Configuration Guide](configuration/brand-config.md) - Customize for your data
-
-## Support and Contribution
-
-The Data Quality Detection System is designed to be extensible and customizable. Whether you're adding new fields, creating custom validators, or implementing new detection methods, this documentation provides comprehensive guidance.
+For the latest updates and source code, visit the [project repository](../).

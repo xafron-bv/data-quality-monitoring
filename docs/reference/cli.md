@@ -202,8 +202,7 @@ python main.py analyze-column CSV_FILE [FIELD_NAME]
 - `CSV_FILE`: Path to the CSV file to analyze
 - `FIELD_NAME`: Name of the field to analyze (default: color_name)
 
-**Optional:**
-- `--brand`: Brand name (deprecated - uses static config)
+Note: Brand configuration is managed through the brand_configs directory, not command-line arguments.
 
 #### Examples
 
@@ -232,7 +231,6 @@ python main.py ml-curves DATA_FILE [options]
 - `--fields FIELD [FIELD ...]`: Specific fields to generate curves for (default: all available)
 - `--output-dir PATH`: Output directory for curves (default: detection_curves)
 - `--thresholds FLOAT [FLOAT ...]`: Specific thresholds to test (default: ML=0.1-0.95, LLM=-0.5-0.1)
-- `--brand`: Brand name (deprecated - uses static config)
 
 #### Examples
 
@@ -253,45 +251,47 @@ python main.py ml-curves data/products.csv \
 
 ## Global Options
 
-These options are available for all commands:
+Note: The current implementation has limited global options. Most configuration is done through command-specific arguments or configuration files.
 
-### Logging and Debug
-- `--verbose`, `-v`: Increase verbosity (can be repeated)
-- `--quiet`, `-q`: Decrease verbosity
-- `--debug`: Enable debug mode
-- `--log-file PATH`: Save logs to file
+## Practical Examples
 
-### Configuration
-- `--config PATH`: Path to configuration file
-- `--brand BRAND`: Brand name for configuration
-- `--env ENV`: Environment (dev/staging/prod)
+### Detection Workflow
 
-### Performance
-- `--parallel`: Enable parallel processing
-- `--num-workers INT`: Number of parallel workers
-- `--memory-limit GB`: Memory limit in GB
+```bash
+# 1. Analyze your data first
+python main.py analyze-column products.csv material
+
+# 2. Run detection with appropriate methods
+python main.py single-demo --data-file products.csv --enable-validation --enable-pattern
+
+# 3. Evaluate performance
+python main.py multi-eval products.csv --field material --num-samples 50
+
+# 4. Generate optimized weights
+python single_sample_multi_field_demo/generate_detection_weights.py -i results/report.json -o weights.json
+
+# 5. Use optimized configuration
+python main.py single-demo --data-file products.csv --use-weighted-combination --weights-file weights.json
+```
+
+### Training Custom Models
+
+```bash
+# Train ML models for specific fields
+python main.py ml-train training_data.csv --fields "material color_name"
+
+# Train with hyperparameter optimization
+python main.py ml-train training_data.csv --use-hp-search --hp-trials 20
+
+# Generate performance curves
+python main.py ml-curves test_data.csv --fields material --output-dir curves
+```
 
 ## Configuration Files
 
 ### Command Arguments from File
 
-Save frequently used arguments in JSON files:
-
-```json
-// single_demo_args.json
-{
-    "data_file": "data/products.csv",
-    "enable_validation": true,
-    "enable_ml": true,
-    "ml_threshold": 0.75,
-    "output_dir": "results/daily"
-}
-```
-
-Use with:
-```bash
-python main.py single-demo --args-file single_demo_args.json
-```
+Note: The --args-file option is not currently implemented. To reuse command configurations, consider using shell scripts or aliases.
 
 ## Output Formats
 
@@ -422,9 +422,3 @@ python main.py single-demo \
     --verbose \
     --log-file debug.log
 ```
-
-## Next Steps
-
-- Review configuration file formats (documentation coming soon)
-- Understand error codes in detail (documentation coming soon)
-- Explore [API Reference](../api/interfaces.md) for programmatic usage
