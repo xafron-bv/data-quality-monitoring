@@ -2,6 +2,8 @@
 
 This guide covers deployment options and best practices for the Data Quality Detection System in production environments.
 
+**Important Note**: This documentation includes example configurations for various deployment scenarios. However, the current implementation is a batch processing tool that runs via command line. Features such as Docker images, API endpoints, and web services shown in examples below are not implemented in the current codebase. These examples are provided as reference for potential future implementations or custom deployments.
+
 ## Deployment Architecture
 
 The Data Quality Detection System is designed as a batch processing tool that can be integrated into data pipelines or run on-demand.

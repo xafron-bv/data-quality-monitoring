@@ -202,8 +202,7 @@ python main.py analyze-column CSV_FILE [FIELD_NAME]
 - `CSV_FILE`: Path to the CSV file to analyze
 - `FIELD_NAME`: Name of the field to analyze (default: color_name)
 
-**Optional:**
-- `--brand`: Brand name (deprecated - uses static config)
+Note: Brand configuration is managed through the brand_configs directory, not command-line arguments.
 
 #### Examples
 
@@ -232,7 +231,6 @@ python main.py ml-curves DATA_FILE [options]
 - `--fields FIELD [FIELD ...]`: Specific fields to generate curves for (default: all available)
 - `--output-dir PATH`: Output directory for curves (default: detection_curves)
 - `--thresholds FLOAT [FLOAT ...]`: Specific thresholds to test (default: ML=0.1-0.95, LLM=-0.5-0.1)
-- `--brand`: Brand name (deprecated - uses static config)
 
 #### Examples
 
@@ -253,45 +251,13 @@ python main.py ml-curves data/products.csv \
 
 ## Global Options
 
-These options are available for all commands:
-
-### Logging and Debug
-- `--verbose`, `-v`: Increase verbosity (can be repeated)
-- `--quiet`, `-q`: Decrease verbosity
-- `--debug`: Enable debug mode
-- `--log-file PATH`: Save logs to file
-
-### Configuration
-- `--config PATH`: Path to configuration file
-- `--brand BRAND`: Brand name for configuration
-- `--env ENV`: Environment (dev/staging/prod)
-
-### Performance
-- `--parallel`: Enable parallel processing
-- `--num-workers INT`: Number of parallel workers
-- `--memory-limit GB`: Memory limit in GB
+Note: The current implementation has limited global options. Most configuration is done through command-specific arguments or configuration files.
 
 ## Configuration Files
 
 ### Command Arguments from File
 
-Save frequently used arguments in JSON files:
-
-```json
-// single_demo_args.json
-{
-    "data_file": "data/products.csv",
-    "enable_validation": true,
-    "enable_ml": true,
-    "ml_threshold": 0.75,
-    "output_dir": "results/daily"
-}
-```
-
-Use with:
-```bash
-python main.py single-demo --args-file single_demo_args.json
-```
+Note: The --args-file option is not currently implemented. To reuse command configurations, consider using shell scripts or aliases.
 
 ## Output Formats
 

@@ -4,19 +4,23 @@ This guide explains how to view and interpret the results from data quality dete
 
 ## Result Files Overview
 
-After running detection, you'll find several output files:
+After running detection, you'll find several output files in your output directory:
 
-- `data_quality_viewer.html` - Interactive web viewer
-- `*_predictions.csv` - Detailed predictions for each record
-- `detection_report.json` - Summary metrics and statistics
-- `*_detailed_report.json` - Field-by-field analysis (if enabled)
+- `report.json` - Comprehensive detection results
+- `viewer_report.json` - Formatted for the web viewer
+- `anomaly_summary.csv` - Summary of all detected anomalies
+- `sample_with_errors.csv` - Data with injected errors (if using evaluation mode)
+- `sample_with_results.csv` - Original data with detection results
+- `confusion_matrix/` - Performance visualization images
 
 ## Using the HTML Viewer
 
 The interactive HTML viewer is the easiest way to explore results:
 
-1. Open `data_quality_viewer.html` in a modern web browser
-2. Upload the generated CSV and JSON files when prompted
+1. Open `single_sample_multi_field_demo/data_quality_viewer.html` in a modern web browser
+2. Upload the generated CSV and JSON files from your output directory:
+   - Upload the CSV file (anomaly_summary.csv or sample_with_results.csv)
+   - Upload the JSON report (viewer_report.json)
 3. Use the interface to:
    - Filter by detection confidence
    - Sort by different criteria
@@ -31,15 +35,17 @@ The interactive HTML viewer is the easiest way to explore results:
 - **Search**: Find specific records or values
 - **Export**: Download filtered results as CSV
 
-## Understanding the Predictions CSV
+## Understanding the CSV Output
 
-The predictions CSV contains one row per record with columns for:
+The anomaly_summary.csv contains detected anomalies with columns for:
 
-- Original data fields
-- `detection_result` - Combined detection outcome
-- `confidence_score` - Overall confidence (0-1)
-- `detection_methods` - Which methods flagged the record
-- Method-specific scores and explanations
+- `row_index` - Row number in original data
+- `column_name` - Field where anomaly was detected
+- `detection_method` - Which method found the anomaly
+- `error_type` - Type of issue detected
+- `confidence` - Detection confidence (0-1)
+- `details` - Additional information
+- `error_data` - The problematic value
 
 ### Interpreting Confidence Scores
 
@@ -51,32 +57,19 @@ The predictions CSV contains one row per record with columns for:
 
 ## Reading the Detection Report
 
-The JSON report provides summary statistics:
+The report.json file contains comprehensive results including:
 
-```json
-{
-  "summary": {
-    "total_records": 1000,
-    "total_detections": 150,
-    "detection_rate": 0.15,
-    "average_confidence": 0.72
-  },
-  "by_field": {
-    "material": {
-      "detections": 45,
-      "detection_rate": 0.045,
-      "top_issues": ["Invalid material code", "Unusual pattern"]
-    }
-  },
-  "by_method": {
-    "validation": {
-      "detections": 80,
-      "precision": 0.95,
-      "average_confidence": 0.98
-    }
-  }
-}
-```
+- Detection summary statistics
+- Performance metrics (if evaluation mode)
+- Field-by-field breakdown
+- Method-specific results
+- Confusion matrix data (if applicable)
+
+Key sections to review:
+- `summary`: Overall detection statistics
+- `metrics`: Performance metrics like precision, recall, F1
+- `by_field`: Results broken down by field
+- `by_method`: Results broken down by detection method
 
 ## Analyzing Results by Field
 
@@ -123,10 +116,14 @@ Create a summary report:
 # Generate executive summary
 python -c "
 import json
-with open('detection_report.json', 'r') as f:
+with open('report.json', 'r') as f:
     report = json.load(f)
-    print(f\"Detection Rate: {report['summary']['detection_rate']:.1%}\")
-    print(f\"High Confidence Issues: {report['summary']['high_confidence_count']}\")
+    summary = report.get('summary', {})
+    print(f\"Total Anomalies: {summary.get('total_anomalies', 0)}\")
+    if 'metrics' in report:
+        metrics = report['metrics']
+        print(f\"Precision: {metrics.get('precision', 0):.2f}\")
+        print(f\"Recall: {metrics.get('recall', 0):.2f}\")
 "
 ```
 
@@ -137,14 +134,14 @@ Export detailed analysis:
 ```python
 import pandas as pd
 
-# Load predictions
-df = pd.read_csv('predictions.csv')
+# Load anomaly summary
+df = pd.read_csv('anomaly_summary.csv')
 
 # Filter high-confidence issues
-high_conf = df[df['confidence_score'] > 0.8]
+high_conf = df[df['confidence'] > 0.8]
 
-# Group by field and issue type
-issues_by_field = high_conf.groupby(['field', 'detection_reason']).size()
+# Group by field and error type
+issues_by_field = high_conf.groupby(['column_name', 'error_type']).size()
 
 # Export for further analysis
 issues_by_field.to_csv('high_confidence_issues.csv')

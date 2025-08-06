@@ -12,7 +12,7 @@ The single-demo entrypoint is perfect when you want to quickly check data qualit
 
 ### What It Does
 
-This entrypoint takes your CSV file and runs it through multiple detection methods - validation rules, pattern detection, machine learning models, and optionally, language models. It generates a JSON report that you can view using the interactive HTML viewer (data_quality_viewer.html) to explore the results visually.
+This entrypoint takes your CSV file and runs it through multiple detection methods - validation rules, pattern detection, machine learning models, and optionally, language models. It generates a JSON report that you can view using the interactive HTML viewer (single_sample_multi_field_demo/data_quality_viewer.html) to explore the results visually.
 
 ### How It Works
 
@@ -45,7 +45,7 @@ Or perhaps you want validation and ML detection, but skip the others:
 python main.py single-demo --data-file your_data.csv --enable-validation --enable-ml
 ```
 
-The beauty is that you get immediate visual feedback. Open data_quality_viewer.html in your browser, upload the generated JSON report, and you can filter by field, detection method, or confidence level. It's particularly useful when you're exploring a new dataset or debugging specific data quality issues.
+The beauty is that you get immediate visual feedback. Open single_sample_multi_field_demo/data_quality_viewer.html in your browser, upload the generated JSON report, and you can filter by field, detection method, or confidence level. It's particularly useful when you're exploring a new dataset or debugging specific data quality issues.
 
 ## Multi-Eval: Performance Testing at Scale
 

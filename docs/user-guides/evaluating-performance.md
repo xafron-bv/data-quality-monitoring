@@ -19,33 +19,34 @@ The system tracks several key metrics:
 Use the multi-eval command for systematic evaluation:
 
 ```bash
-python main.py multi-eval \
-    --input your_data.csv \
-    --sample-size 1000 \
+python main.py multi-eval your_data.csv \
+    --field material \
+    --num-samples 100 \
     --output-dir evaluation_results
 ```
 
-### Evaluation with Known Errors
+### Field-Specific Evaluation
 
-If you have labeled data with known errors:
+Evaluate specific fields with different detectors:
 
 ```bash
-python main.py multi-eval \
-    --input labeled_data.csv \
-    --ground-truth-column is_error \
-    --sample-size 1000
+python main.py multi-eval your_data.csv \
+    --field color_name \
+    --ml-detector \
+    --run all \
+    --num-samples 50
 ```
 
 ### Synthetic Error Evaluation
 
-Test with injected errors to measure performance:
+The multi-eval command automatically injects errors for evaluation:
 
 ```bash
-python main.py multi-eval \
-    --input clean_data.csv \
-    --injection-intensity 0.2 \
-    --injection-seed 42 \
-    --sample-size 1000
+python main.py multi-eval clean_data.csv \
+    --field material \
+    --error-probability 0.2 \
+    --max-errors 3 \
+    --num-samples 100
 ```
 
 ## Interpreting Evaluation Results
@@ -117,14 +118,13 @@ Create a monitoring script:
 # monitor_detection.sh
 
 DATE=$(date +%Y%m%d)
-python main.py multi-eval \
-    --input daily_data.csv \
-    --sample-size 500 \
-    --output-dir monitoring/$DATE \
-    --save-detailed-report
+python main.py multi-eval daily_data.csv \
+    --field material \
+    --num-samples 50 \
+    --output-dir monitoring/$DATE
 
-# Track metrics over time
-python analyze_trends.py monitoring/
+# Analyze results over time using standard tools
+# or custom scripts to parse the JSON output files
 ```
 
 ### Key Metrics to Track
@@ -145,12 +145,13 @@ python analyze_trends.py monitoring/
 
 ```bash
 # Run benchmark evaluation
-python main.py multi-eval \
-    --input benchmark_data.csv \
-    --ground-truth-column manually_labeled \
+python main.py multi-eval benchmark_data.csv \
+    --field material \
     --output-dir benchmark_results \
-    --save-predictions
+    --num-samples 100
 ```
+
+Note: The current implementation doesn't support ground truth labels. Evaluation is done by injecting synthetic errors and measuring detection performance.
 
 ### Compare Configurations
 
@@ -158,15 +159,15 @@ Test different threshold settings:
 
 ```bash
 # Conservative configuration
-python main.py multi-eval \
-    --input benchmark_data.csv \
+python main.py multi-eval benchmark_data.csv \
+    --field material \
     --validation-threshold 0.0 \
     --anomaly-threshold 0.8 \
     --output-dir results/conservative
 
 # Aggressive configuration  
-python main.py multi-eval \
-    --input benchmark_data.csv \
+python main.py multi-eval benchmark_data.csv \
+    --field material \
     --validation-threshold 0.3 \
     --anomaly-threshold 0.5 \
     --output-dir results/aggressive

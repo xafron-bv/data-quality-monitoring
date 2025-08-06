@@ -61,7 +61,7 @@ Check your output directory:
 - `confusion_matrix/` - Performance visualizations
 
 ### Web Viewer
-1. Open `data_quality_viewer.html` in your browser
+1. Open `single_sample_multi_field_demo/data_quality_viewer.html` in your browser
 2. Upload the generated CSV and JSON files
 3. Explore interactive visualizations
 

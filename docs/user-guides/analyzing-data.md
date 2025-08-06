@@ -65,15 +65,16 @@ cat brand_configs/your_brand.json | jq '.field_mappings'
 
 ## Step 5: Run Initial Detection
 
-Start with a small sample to test your configuration:
+Start with your data to test your configuration:
 
 ```bash
 python main.py single-demo \
     --data-file your_data.csv \
-    --sample-size 100 \
     --enable-validation \
     --enable-pattern
 ```
+
+Note: To test on a smaller sample, consider creating a subset of your data file first using standard tools like `head -n 100 your_data.csv > sample_data.csv`.
 
 ## Next Steps
 
