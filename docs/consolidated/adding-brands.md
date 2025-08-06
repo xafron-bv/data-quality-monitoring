@@ -122,53 +122,29 @@ Update your configuration with field mappings:
 }
 ```
 
-### 3.2 Handle Complex Mappings
+### 3.2 Field Mapping Notes
 
-For fields that need transformation:
+Currently, the system only supports direct column name mappings:
 
 ```json
 {
     "field_mappings": {
-        // Direct mapping
+        // Direct mapping only - no transformations
         "material": "Material_Description",
-        
-        // Mapping with transformation rules
-        "color_name": {
-            "column": "Product_Color",
-            "transform": "lowercase",
-            "split_delimiter": "/"
-        },
-        
-        // Composite fields
-        "category": {
-            "columns": ["Category_L1", "Category_L2", "Category_L3"],
-            "join_delimiter": " > "
-        }
+        "color_name": "Product_Color",
+        "category": "Category_Name"
     }
 }
 ```
 
-### 3.3 Custom Field Types
+Note: Complex transformations, composite fields, and field-level processing are not currently supported.
 
-For non-standard fields specific to your brand:
+### 3.3 Additional Fields
 
-```json
-{
-    "custom_fields": {
-        "product_code": {
-            "column": "SKU",
-            "type": "string",
-            "pattern": "^[A-Z]{3}-\\d{6}$",
-            "required": true
-        },
-        "supplier_ref": {
-            "column": "Supplier_Reference",
-            "type": "string",
-            "validators": ["not_empty", "unique"]
-        }
-    }
-}
-```
+To process additional fields beyond the standard ones, you need to:
+1. Add the field mapping to `field_mappings`
+2. Include it in `enabled_fields`
+3. Create validators and detection rules separately (see Adding New Fields guide)
 
 ## Step 4: Configure Detection Settings
 
@@ -208,19 +184,7 @@ Configure detection sensitivity:
         "llm": 0.65            // 65% for LLM detection
     },
     
-    // Field-specific thresholds
-    "field_thresholds": {
-        "material": {
-            "validation": 0.0,
-            "anomaly": 0.8,
-            "ml": 0.85
-        },
-        "color_name": {
-            "validation": 0.0,
-            "anomaly": 0.7,
-            "ml": 0.75
-        }
-    }
+
 }
 ```
 
@@ -320,15 +284,11 @@ Implement brand-specific business logic:
 
 ## Step 6: Complete Configuration Example
 
-Here's a complete brand configuration:
+Here's a complete brand configuration based on the actual supported features:
 
 ```json
 {
     "brand_name": "fashion_brand",
-    "description": "Fashion Brand Product Catalog Configuration",
-    "version": "2.0",
-    "last_updated": "2024-01-15",
-    "updated_by": "data_team",
     
     "field_mappings": {
         "material": "Fabric_Composition",
@@ -356,72 +316,31 @@ Here's a complete brand configuration:
     },
     
     "default_data_path": "data/fashion_brand_catalog.csv",
-    "training_data_path": "data/fashion_brand_clean.csv",
-    
-    "custom_validation_rules": {
-        "material": {
-            "percentage_sum": 100,
-            "allowed_materials": [
-                "Cotton", "Polyester", "Wool", "Silk", 
-                "Linen", "Viscose", "Elastane", "Nylon"
-            ]
-        },
-        "color_name": {
-            "standardize": true,
-            "color_mapping": {
-                "Off White": "Ivory",
-                "Ecru": "Beige"
-            }
-        }
-    },
-    
-    "quality_checks": {
-        "completeness_threshold": 0.95,
-        "required_fields": ["material", "color_name", "size"],
-        "unique_fields": ["product_id", "sku"]
-    }
+    "training_data_path": "data/fashion_brand_clean.csv"
 }
 ```
+
+Note: Additional features like custom validation rules, quality checks, and field-specific configurations shown in some examples are not currently implemented in the system.
 
 ## Step 7: Testing Your Configuration
 
 ### 7.1 Validate Configuration
 
-Create a validation script:
+To validate your configuration, you can:
 
-```python
-# scripts/validate_brand_config.py
-import json
-import pandas as pd
-from common.field_mapping import FieldMapper
+1. Check that all mapped columns exist in your data:
+```bash
+# List all columns in your data
+python main.py analyze-column your_data.csv
+```
 
-def validate_brand_config(brand_name):
-    # Load configuration
-    with open(f'brand_configs/{brand_name}.json', 'r') as f:
-        config = json.load(f)
-    
-    # Load sample data
-    data_path = config.get('default_data_path')
-    df = pd.read_csv(data_path, nrows=100)
-    
-    # Check field mappings
-    mapper = FieldMapper(config)
-    missing_columns = []
-    
-    for field, column in config['field_mappings'].items():
-        if column not in df.columns:
-            missing_columns.append(f"{field} -> {column}")
-    
-    if missing_columns:
-        print(f"Missing columns: {missing_columns}")
-    else:
-        print("All field mappings valid!")
-    
-    # Test detection
-    print("\nTesting detection with sample data...")
-    # Run basic detection test
-
-validate_brand_config('your_brand')
+2. Test with a small sample to ensure mappings work:
+```bash
+# Test with sample data
+python main.py single-demo \
+    --data-file your_data.csv \
+    --output-dir test_results \
+    --sample-size 100
 ```
 
 ### 7.2 Run Test Detection
@@ -444,122 +363,42 @@ cat test_results/report.json | jq '.summary'
 
 ### 7.3 Iterative Refinement
 
-```bash
-# Analyze detection results
-python scripts/analyze_results.py test_results/report.json
+After testing, you may need to:
 
-# Common adjustments:
-# 1. Update field mappings if columns not found
-# 2. Adjust thresholds if too many false positives
-# 3. Add custom rules for brand-specific patterns
-# 4. Update validation rules based on errors
-```
+1. Update field mappings if columns weren't found
+2. Adjust thresholds if too many false positives occur
+3. Create new validators for brand-specific fields (see Adding New Fields guide)
+4. Fine-tune detection parameters based on results
 
 ## Step 8: Multi-Brand Setup
 
-### 8.1 Environment-Specific Configurations
-
-Create environment overlays:
-
-```json
-// brand_configs/your_brand_dev.json
-{
-    "extends": "your_brand.json",
-    "environment": "development",
-    "custom_thresholds": {
-        "ml": 0.7  // Lower threshold for dev
-    },
-    "debug": true
-}
-
-// brand_configs/your_brand_prod.json
-{
-    "extends": "your_brand.json",
-    "environment": "production",
-    "custom_thresholds": {
-        "ml": 0.85  // Higher threshold for prod
-    },
-    "parallel_processing": true
-}
-```
-
-### 8.2 Brand Comparison
-
-Set up multiple brands:
+To support multiple brands, simply create separate configuration files:
 
 ```bash
-# Directory structure
 brand_configs/
-├── global/
-│   ├── shared_rules.json
-│   └── material_database.json
-├── brand_a/
-│   ├── config.json
-│   └── custom_rules.json
-├── brand_b/
-│   ├── config.json
-│   └── custom_rules.json
-└── config_loader.py
+├── brand_a.json
+├── brand_b.json
+└── brand_c.json
 ```
 
-## Step 9: Advanced Configuration
+Each brand configuration is independent and can have its own:
+- Field mappings
+- Enabled fields
+- Custom thresholds
+- Data paths
 
-### 9.1 Dynamic Field Discovery
+Note: The system currently uses static brand configuration. Environment-specific configurations and configuration inheritance are not supported.
 
-For flexible schemas:
+## Step 9: Working with Custom Fields
 
-```json
-{
-    "dynamic_fields": {
-        "enabled": true,
-        "field_pattern": "^attr_.*",
-        "detection_methods": ["pattern", "ml"],
-        "auto_threshold": 0.7
-    }
-}
-```
+If your brand has fields beyond the standard ones supported by the system, you'll need to:
 
-### 9.2 Conditional Rules
+1. Add the field mapping to your brand configuration
+2. Create a custom validator (see Adding New Fields guide)
+3. Add pattern-based rules if applicable
+4. Consider training ML models for the field
 
-Complex business logic:
-
-```json
-{
-    "conditional_rules": [
-        {
-            "name": "seasonal_color_check",
-            "condition": {
-                "season": ["FW23", "FW24"]
-            },
-            "apply_rules": {
-                "color_name": {
-                    "preferred": ["Black", "Navy", "Grey", "Brown"],
-                    "warning_if_not": true
-                }
-            }
-        }
-    ]
-}
-```
-
-### 9.3 Integration Hooks
-
-For external systems:
-
-```json
-{
-    "integrations": {
-        "pre_processing": {
-            "webhook": "https://api.brand.com/validate",
-            "timeout": 30
-        },
-        "post_detection": {
-            "notification": "email://data-team@brand.com",
-            "threshold": "critical_errors > 0"
-        }
-    }
-}
-```
+The system is designed to be extensible, but adding new fields requires development work beyond just configuration.
 
 ## Best Practices
 
@@ -613,49 +452,24 @@ For external systems:
 
 3. **Missing Detections**
    ```json
-   // Lower thresholds or add specific rules
+   // Lower thresholds globally
    {
-       "field_thresholds": {
-           "problem_field": {
-               "anomaly": 0.65,  // Lower threshold
-               "ml": 0.70
-           }
+       "custom_thresholds": {
+           "anomaly": 0.65,  // Lower from 0.75
+           "ml": 0.70       // Lower from 0.80
        }
    }
    ```
 
 ### Debug Mode
 
-Enable detailed logging:
+To enable debug output, use the `--debug` flag when running commands:
 
-```json
-{
-    "debug_settings": {
-        "enabled": true,
-        "log_level": "DEBUG",
-        "trace_mappings": true,
-        "save_intermediate": true,
-        "explain_detections": true
-    }
-}
+```bash
+python main.py single-demo --data-file your_data.csv --debug
 ```
 
-## Migration Guide
 
-### From Version 1.x to 2.x
-
-```python
-# Migration script
-def migrate_config_v1_to_v2(old_config):
-    new_config = {
-        "version": "2.0",
-        "brand_name": old_config["brand"],
-        "field_mappings": old_config["mappings"],
-        "enabled_fields": list(old_config["mappings"].keys()),
-        "custom_thresholds": old_config.get("thresholds", {})
-    }
-    return new_config
-```
 
 ## Next Steps
 

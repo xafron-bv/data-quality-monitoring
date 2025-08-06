@@ -290,27 +290,9 @@ Create `anomaly_detectors/pattern_based/rules/new_field.json`:
 }
 ```
 
-### 3.2 Configure Statistical Detection
+### 3.2 Statistical Detection Note
 
-Add statistical checks for the field:
-
-```python
-# In anomaly_detectors/pattern_based/statistical_rules.py
-
-FIELD_STATISTICAL_RULES = {
-    'new_field': {
-        'outlier_detection': {
-            'method': 'isolation_forest',
-            'contamination': 0.01,
-            'features': ['length', 'digit_ratio', 'uniqueness']
-        },
-        'distribution_check': {
-            'expected_distribution': 'uniform',
-            'confidence_if_skewed': 0.7
-        }
-    }
-}
-```
+Statistical detection is handled automatically by the pattern-based detector when it processes the field. No additional configuration is needed beyond the JSON rules file.
 
 ## Step 4: Configure ML Detection (Optional)
 
@@ -349,33 +331,9 @@ def prepare_training_data():
 prepare_training_data()
 ```
 
-### 4.2 Configure ML Model
+### 4.2 ML Model Configuration
 
-Add to `anomaly_detectors/ml_based/model_config.py`:
-
-```python
-FIELD_CONFIGS = {
-    # ... existing fields ...
-    
-    'new_field': {
-        'model_name': 'sentence-transformers/all-MiniLM-L6-v2',
-        'max_length': 128,
-        'training_params': {
-            'epochs': 10,
-            'batch_size': 32,
-            'learning_rate': 2e-5,
-            'warmup_steps': 100
-        },
-        'similarity_threshold': 0.75,
-        'min_training_samples': 100,
-        'preprocessing': {
-            'lowercase': False,  # Keep case for this field
-            'remove_special': True,
-            'normalize_whitespace': True
-        }
-    }
-}
-```
+The ML-based detection uses default model configurations. Field-specific configuration is handled through the training process and command-line parameters rather than configuration files.
 
 ### 4.3 Train and Test
 
@@ -418,144 +376,70 @@ Edit `brand_configs/your_brand.json`:
         "new_field"  // Add new field
     ],
     
-    "field_specific_config": {
-        "new_field": {
-            "required": true,
-            "unique": true,
-            "validation_threshold": 0.0,
-            "anomaly_threshold": 0.8,
-            "ml_threshold": 0.75
-        }
-    }
+
 }
 ```
 
-### 5.2 Update System Constants
+### 5.2 System Configuration Note
 
-Add to `common/constants.py`:
-
-```python
-# Add to field type constants
-FIELD_TYPES = {
-    # ... existing fields ...
-    'new_field': {
-        'display_name': 'Product Code',
-        'data_type': 'string',
-        'validation_enabled': True,
-        'pattern_detection_enabled': True,
-        'ml_detection_enabled': True,
-        'llm_detection_enabled': False  # Enable if needed
-    }
-}
-```
+The system will automatically recognize the new field once it's added to the brand configuration and the corresponding validator and pattern rules are in place. No additional system-wide configuration files need to be updated.
 
 ## Step 6: Testing
 
-### 6.1 Unit Tests
+### 6.1 Manual Testing
 
-Create `tests/test_new_field.py`:
+To test your new field validator, create a simple test script:
 
 ```python
-import pytest
+# test_new_field.py
 from validators.new_field.validate import Validator
-from anomaly_detectors.pattern_based.pattern_based_detector import PatternBasedDetector
 
-class TestNewFieldValidator:
-    def setup_method(self):
-        self.validator = Validator()
-    
-    def test_valid_values(self):
-        """Test that valid values pass validation."""
-        valid_values = ['AB1234', 'CD5678', 'EF9012', 'GH3456']
-        for value in valid_values:
-            error = self.validator._validate_entry(value)
-            assert error is None, f"Valid value {value} failed validation"
-    
-    def test_empty_values(self):
-        """Test that empty values are caught."""
-        empty_values = ['', None, 'nan', 'NULL', '   ']
-        for value in empty_values:
-            error = self.validator._validate_entry(value)
-            assert error is not None
-            assert error.error_type == 'EMPTY_VALUE'
-    
-    def test_invalid_format(self):
-        """Test that invalid formats are caught."""
-        invalid_values = [
-            'ABC123',      # Too short
-            'A12345',      # Wrong pattern
-            'ab1234',      # Lowercase
-            'AB12345',     # Too long
-            '123456',      # No letters
-            'ABCDEF'       # No digits
-        ]
-        for value in invalid_values:
-            error = self.validator._validate_entry(value)
-            assert error is not None
-            assert error.error_type in ['INVALID_FORMAT', 'INVALID_LENGTH']
-    
-    def test_test_data_detection(self):
-        """Test that test data is flagged."""
-        test_values = ['TEST00', 'DEMO99', 'SAMPLE']
-        for value in test_values:
-            error = self.validator._validate_entry(value)
-            assert error is not None
-            assert error.error_type == 'TEST_DATA'
+# Create validator instance
+validator = Validator()
 
-class TestNewFieldPatternDetection:
-    def setup_method(self):
-        rules_config = {'field_type': 'new_field'}
-        self.detector = PatternBasedDetector(rules_config)
-    
-    def test_pattern_detection(self):
-        """Test pattern-based anomaly detection."""
-        # Test suspicious patterns
-        suspicious_values = ['AB0000', 'CD1111', 'EF9999']
-        for value in suspicious_values:
-            anomaly = self.detector._detect_anomaly(value)
-            assert anomaly is not None
-            assert anomaly.probability >= 0.7
+# Test valid values
+valid_values = ['AB1234', 'CD5678', 'EF9012', 'GH3456']
+print("Testing valid values:")
+for value in valid_values:
+    error = validator._validate_entry(value)
+    print(f"  {value}: {'PASS' if error is None else 'FAIL'}")
+
+# Test invalid values
+invalid_values = ['', 'ABC123', 'ab1234', 'TEST00', '123456']
+print("\nTesting invalid values:")
+for value in invalid_values:
+    error = validator._validate_entry(value)
+    print(f"  {value}: {error.error_type if error else 'Unexpected PASS'}")
 ```
 
-### 6.2 Integration Tests
+Note: The project doesn't currently have a formal test framework. Consider implementing pytest or unittest for automated testing.
 
-Create an integration test script:
+### 6.2 Integration Testing
 
-```python
-# tests/integration/test_new_field_integration.py
-import pandas as pd
-from single_sample_multi_field_demo.comprehensive_detector import ComprehensiveFieldDetector
+Test the field with the complete detection system:
 
-def test_new_field_integration():
-    # Create test data
-    test_data = pd.DataFrame({
-        'Product_Code': [
-            'AB1234',  # Valid
-            'CD5678',  # Valid
-            '',        # Empty
-            'TEST00',  # Test data
-            'XY9999',  # Invalid prefix
-            'ab1234',  # Invalid case
-            'ABC123'   # Invalid format
-        ]
-    })
-    
-    # Configure detector
-    config = {
-        'brand': 'your_brand',
-        'enable_validation': True,
-        'enable_pattern': True,
-        'enable_ml': False
-    }
-    
-    detector = ComprehensiveFieldDetector(config)
-    results = detector.detect_anomalies(test_data, ['new_field'])
-    
-    # Verify results
-    assert len(results['new_field']['validation_errors']) >= 5
-    assert len(results['new_field']['pattern_anomalies']) >= 2
-    
-test_new_field_integration()
+```bash
+# Create a test CSV file with your new field
+cat > test_new_field.csv << EOF
+Product_Code,Material,Color
+AB1234,Cotton,Blue
+CD5678,Polyester,Red
+,Silk,Green
+TEST00,Wool,Black
+XY9999,Cotton,White
+ab1234,Linen,Gray
+ABC123,Cotton,Navy
+EOF
+
+# Run detection
+python main.py single-demo \
+    --data-file test_new_field.csv \
+    --enable-validation \
+    --enable-pattern \
+    --output-dir test_results/new_field
+
+# Check results
+cat test_results/new_field/report.json | grep new_field
 ```
 
 ### 6.3 End-to-End Testing

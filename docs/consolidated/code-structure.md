@@ -7,7 +7,7 @@ The Data Quality Detection System follows a well-organized, modular code structu
 ## Project Structure
 
 ```
-detection-system/
+project_root/
 ├── main.py                           # Main entry point with CLI commands
 ├── single_sample_multi_field_demo/   # Demo and evaluation modules
 │   ├── comprehensive_detector.py     # Main detection orchestrator
@@ -16,7 +16,7 @@ detection-system/
 │   └── confusion_matrix_analyzer.py  # Performance analysis
 ├── multi_sample_evaluation/          # Batch evaluation utilities
 │   ├── evaluator.py                 # Evaluation orchestrator
-│   └── error_messages.json          # Error type definitions
+│   └── unified_detection_interface.py # Unified detection interface
 ├── validators/                       # Rule-based validators
 │   ├── validator_interface.py       # Base interface
 │   ├── validation_error.py          # Error class
@@ -34,12 +34,13 @@ detection-system/
 │   └── llm_based/                   # LLM detection
 ├── common/                          # Shared utilities
 │   ├── brand_config.py              # Brand configuration
-│   ├── field_mapping.py             # Field name mapping
-│   ├── constants.py                 # System constants
-│   └── debug.py                     # Debug utilities
+│   ├── field_mapper.py              # Field name mapping
+│   ├── debug_config.py              # Debug utilities
+│   └── error_injection.py           # Error injection utilities
+├── brand_configs/                   # Brand configuration files
+│   └── esqualo.json                # Example brand config
 └── data/                           # Data and models
-    ├── models/                      # Trained models
-    └── configs/                     # Configuration files
+    └── models/                      # Trained models
 ```
 
 ## Core Interfaces
@@ -557,42 +558,66 @@ The central CLI interface that routes to different commands.
 
 ```python
 import argparse
-from single_sample_multi_field_demo.run_demo import run_single_demo
-from multi_sample_evaluation.run_evaluation import run_multi_eval
-from ml_curve_generator.generate_curves import generate_ml_curves
-from analyze_column.analyze_column import analyze_column_data
+import sys
+import os
+
+# Add current directory to path to enable imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Import entry functions from all entrypoints
+from single_sample_multi_field_demo.single_sample_multi_field_demo import main as single_demo_main
+from multi_sample_evaluation.multi_sample_evaluation import main as multi_eval_main
+from ml_curve_generator.ml_curve_generator import entry as ml_curves_entry
+from analyze_column.analyze_column import entry as analyze_column_entry
+from anomaly_detectors.ml_based.main import entry as ml_index_entry
+from anomaly_detectors.llm_based.llm_model_training import entry as llm_train_entry
+
+# Define entrypoint configurations
+ENTRYPOINTS = {
+    'single-demo': {
+        'entry': single_demo_main,
+        'uses_argparse': True  # This entry point parses args internally
+    },
+    'multi-eval': {
+        'entry': multi_eval_main,
+        'uses_argparse': True
+    },
+    'ml-train': {
+        'entry': ml_index_entry,
+        'uses_argparse': False
+    },
+    'llm-train': {
+        'entry': llm_train_entry,
+        'uses_argparse': False
+    },
+    'analyze-column': {
+        'entry': analyze_column_entry,
+        'uses_argparse': False
+    },
+    'ml-curves': {
+        'entry': ml_curves_entry,
+        'uses_argparse': False
+    }
+}
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Data Quality Detection System"
+        description="Main entrypoint for anomaly detection project"
     )
     
-    subparsers = parser.add_subparsers(dest='command', help='Commands')
+    subparsers = parser.add_subparsers(dest='command', help='Command to run')
     
-    # Single demo command
-    demo_parser = subparsers.add_parser(
-        'single-demo',
-        help='Run single sample demonstration'
-    )
-    demo_parser.add_argument('--data-file', required=True)
-    demo_parser.add_argument('--output-dir', default='demo_results')
-    # ... more arguments
-    
-    # Multi-eval command
-    eval_parser = subparsers.add_parser(
-        'multi-eval',
-        help='Run multi-sample evaluation'
-    )
-    eval_parser.add_argument('--field', required=True)
-    # ... more arguments
+    # Create subparsers for each command
+    for cmd_name in ENTRYPOINTS:
+        cmd_parser = subparsers.add_parser(cmd_name, add_help=False)
+        cmd_parser.add_argument('args', nargs='*', help=f'Arguments for {cmd_name}')
     
     args = parser.parse_args()
     
-    if args.command == 'single-demo':
-        run_single_demo(args)
-    elif args.command == 'multi-eval':
-        run_multi_eval(args)
-    # ... more command handlers
+    if args.command:
+        run_entrypoint(args.command, args.args)
+    else:
+        parser.print_help()
 
 if __name__ == "__main__":
     main()

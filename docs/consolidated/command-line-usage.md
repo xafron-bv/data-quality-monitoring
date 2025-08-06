@@ -389,8 +389,10 @@ python main.py multi-eval \
     --num-samples 100 \
     --output-dir ci_results || exit 1
 
-# Check if performance meets threshold
-python scripts/check_metrics.py ci_results/metrics.json --min-f1 0.85 || exit 1
+# Check if performance meets threshold (implement your own check)
+# Example: Extract F1 score from report and compare
+F1_SCORE=$(jq '.performance_metrics.overall_f1' ci_results/report.json)
+python -c "import sys; sys.exit(0 if $F1_SCORE >= 0.85 else 1)" || exit 1
 ```
 
 ### Monitoring Script
@@ -426,8 +428,7 @@ fi
 # For large datasets
 python main.py single-demo --data-file large_data.csv \
     --core-fields-only \         # Process fewer fields
-    --batch-size 32 \            # Smaller batches
-    --sample-size 10000          # Process sample only
+    --batch-size 32              # Smaller batches
 ```
 
 ### Speed Optimization
@@ -477,8 +478,7 @@ pip install -r requirements.txt
 # Solution: Reduce load
 python main.py single-demo --data-file data.csv \
     --core-fields-only \
-    --batch-size 16 \
-    --sample-size 5000
+    --batch-size 16
 ```
 
 ### 3. Slow Performance

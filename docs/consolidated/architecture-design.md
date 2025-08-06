@@ -28,7 +28,6 @@ graph TB
     subgraph "User Interface"
         UI1[CLI Tools]:::ui
         UI2[HTML Viewer]:::ui
-        UI3[API Endpoints]:::ui
     end
     
     subgraph "Entry Points"
