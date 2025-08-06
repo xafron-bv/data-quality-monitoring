@@ -36,7 +36,7 @@ The system is designed to be field-agnostic and brand-independent, making it ada
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd detection-system
+cd <project-directory>  # The actual directory name will depend on your repository
 ```
 
 2. Create a virtual environment:
@@ -85,7 +85,8 @@ python main.py single-demo \
     --data-file your_data.csv \
     --enable-validation \
     --enable-pattern \
-    --enable-ml
+    --enable-ml \
+    --enable-llm
 ```
 
 ### Basic Usage
@@ -104,7 +105,7 @@ python main.py single-demo \
 ```
 
 3. **View results**:
-- Open `data_quality_viewer.html` in your browser
+- Open `single_sample_multi_field_demo/data_quality_viewer.html` in your browser
 - Upload the generated CSV and JSON files from the results directory
 
 ## Configuration
@@ -160,7 +161,7 @@ Add pattern rules:
 
 Train a model:
 ```bash
-python main.py ml-train your_data.csv --fields new_field
+python main.py ml-train your_data.csv --fields "new_field"
 ```
 
 ## Advanced Usage
@@ -238,8 +239,8 @@ The system follows a modular, layered architecture:
 ## Contributing
 
 1. Follow the existing code structure
-2. Add tests for new functionality
-3. Update documentation
+2. Update documentation for any changes
+3. Run pre-commit hooks before committing: `pre-commit run --all-files`
 4. Submit pull requests with clear descriptions
 
 ## License

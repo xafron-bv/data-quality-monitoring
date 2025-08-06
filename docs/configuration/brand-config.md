@@ -222,64 +222,24 @@ python main.py single-demo \
 
 ## Multi-Brand Setup
 
-### Directory Structure
+To support multiple brands, create separate configuration files in the `brand_configs/` directory:
 
 ```
 brand_configs/
-├── brands/
-│   ├── brand_a/
-│   │   ├── config.json
-│   │   ├── rules/
-│   │   └── models/
-│   └── brand_b/
-│       ├── config.json
-│       ├── rules/
-│       └── models/
-└── global_config.json
+├── esqualo.json      # Esqualo brand config
+├── brand_a.json      # Brand A config
+└── brand_b.json      # Brand B config
 ```
 
-### Global Configuration
-
-`global_config.json`:
-```json
-{
-    "active_brands": ["brand_a", "brand_b"],
-    "default_brand": "brand_a",
-    "shared_models": true,
-    "brand_isolation": false
-}
-```
+Each brand has its own configuration file with the same structure.
 
 ## Environment-Specific Configuration
 
-### Development
+While the system doesn't currently support environment-specific configuration files, you can achieve similar results by:
 
-```json
-{
-    "environment": "development",
-    "debug": true,
-    "sample_size": 1000,
-    "error_injection": {
-        "enabled": true,
-        "intensity": 0.2
-    }
-}
-```
-
-### Production
-
-```json
-{
-    "environment": "production",
-    "debug": false,
-    "batch_size": 10000,
-    "parallel_processing": true,
-    "monitoring": {
-        "enabled": true,
-        "metrics_endpoint": "http://metrics.example.com"
-    }
-}
-```
+1. Using different brand configuration files for different environments
+2. Passing different command-line arguments based on environment
+3. Setting appropriate thresholds and options at runtime
 
 ## Dynamic Configuration
 
@@ -357,7 +317,7 @@ def validate_config(config):
 
 1. **Field Not Found**
    - Check field mappings match CSV column names exactly
-   - Use `--list-columns` to see available columns
+   - Use `python main.py analyze-column your_data.csv` to see available columns
 
 2. **Configuration Not Loading**
    - Verify JSON syntax

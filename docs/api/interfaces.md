@@ -24,7 +24,7 @@ classDiagram
     
     class ReporterInterface {
         <<interface>>
-        +generate_report(errors, original_df)
+        +generate_report(validation_errors, original_df)
     }
 ```
 
