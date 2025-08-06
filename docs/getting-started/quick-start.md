@@ -13,7 +13,7 @@ Welcome to the Data Quality Monitoring System! This guide will help you get star
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd data-quality-monitoring
+cd <project-directory>  # The actual directory name will depend on your repository
 ```
 
 2. Install dependencies:

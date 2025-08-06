@@ -111,7 +111,7 @@ python main.py single-demo \
 
 ### Brand Configuration
 
-Edit `brand_config.json` to map your data columns to standard fields:
+Create or edit brand configuration files in the `brand_configs/` directory (e.g., `brand_configs/esqualo.json`) to map your data columns to standard fields:
 
 ```json
 {
@@ -232,7 +232,7 @@ The system follows a modular, layered architecture:
    - Optimize detection thresholds
 
 3. **Missing Fields**:
-   - Check field mappings in brand_config.json
+   - Check field mappings in your brand configuration file (e.g., `brand_configs/esqualo.json`)
    - Verify column names in your data
 
 ## Contributing

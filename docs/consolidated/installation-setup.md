@@ -22,7 +22,7 @@ Before installing the Data Quality Detection System, ensure you have the followi
 
 ```bash
 git clone <repository-url>
-cd data-quality-detection-system
+cd <project-directory>  # The actual directory name will depend on your repository
 ```
 
 ### 2. Create a Virtual Environment
@@ -298,7 +298,7 @@ python main.py single-demo \
 #### 3. Missing Fields
 **Symptoms**: "Field not found" errors
 **Solutions**:
-- Check field mappings in brand_config.json
+- Check field mappings in your brand configuration file (e.g., `brand_configs/esqualo.json`)
 - Verify column names in your data
 - Use `analyze-column` to inspect data
 

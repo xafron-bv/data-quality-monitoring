@@ -26,7 +26,7 @@ Before installing the system, ensure you have the following prerequisites:
 
 ```bash
 git clone <repository-url>
-cd <project-directory>
+cd <project-directory>  # The actual directory name will depend on your repository
 ```
 
 ### 2. Create a Virtual Environment
