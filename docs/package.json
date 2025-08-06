@@ -30,8 +30,7 @@
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.0.1",
     "@docusaurus/types": "^3.0.1",
-    "docs-to-pdf": "^0.6.2",
-    "jsdom": "^24.0.0"
+    "docs-to-pdf": "^0.6.2"
   },
   "browserslist": {
     "production": [
