@@ -51,13 +51,12 @@ graph TB
     subgraph "Entry Points Layer"
         A1[Demo Scripts]:::entrypoint
         A2[Evaluation Tools]:::entrypoint
-        A3[Comparison Utilities]:::entrypoint
+        A3[Analysis Tools]:::entrypoint
     end
     
     subgraph "Orchestration Layer"
         B1[ComprehensiveFieldDetector]:::orchestrator
         B2[Evaluator]:::orchestrator
-        B3[Comparator]:::orchestrator
     end
     
     subgraph "Detection Methods Layer"
@@ -79,8 +78,8 @@ graph TB
         E3[Model Files]:::data
     end
     
-    A1 & A2 & A3 --> B1 & B2 & B3
-    B1 & B2 & B3 --> C1 & C2 & C3
+    A1 & A2 & A3 --> B1 & B2
+    B1 & B2 --> C1 & C2 & C3
     C1 & C2 & C3 --> D1 & D2 & D3 & D4
     D1 & D2 & D3 & D4 --> E1 & E2 & E3
     
@@ -139,7 +138,7 @@ The Data Quality Detection System is suitable for various scenarios:
 ## Project Structure
 
 ```
-detection-system/
+project_root/
 ├── main.py                           # Main entry point with all commands
 ├── single_sample_multi_field_demo/   # Demo and evaluation tools
 ├── multi_sample_evaluation/          # Batch evaluation utilities

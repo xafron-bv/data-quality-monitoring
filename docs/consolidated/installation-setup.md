@@ -131,7 +131,7 @@ Check your output directory:
 - `confusion_matrix/` - Performance visualizations
 
 #### Web Viewer
-1. Open `data_quality_viewer.html` in your browser
+1. Open `single_sample_multi_field_demo/data_quality_viewer.html` in your browser
 2. Upload the generated CSV and JSON files
 3. Explore interactive visualizations
 
@@ -146,7 +146,7 @@ Create or edit brand configuration files:
 mkdir -p brand_configs
 
 # Copy example configuration
-cp brand_configs/example.json brand_configs/your_brand.json
+cp brand_configs/esqualo.json brand_configs/your_brand.json
 
 # Edit configuration
 nano brand_configs/your_brand.json
@@ -167,19 +167,17 @@ Example configuration:
 
 ### 2. Environment Variables (Optional)
 
-Create a `.env` file for environment-specific settings:
+You can set environment variables to control system behavior:
 
 ```bash
-# Model cache directory
-MODEL_CACHE_DIR=/path/to/model/cache
-
 # GPU configuration
-CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=0
 
-# Memory limits
-MAX_WORKERS=4
-BATCH_SIZE=32
+# For persistent settings, add to your shell profile (.bashrc, .zshrc, etc.)
+echo 'export CUDA_VISIBLE_DEVICES=0' >> ~/.bashrc
 ```
+
+Note: The system doesn't currently use a .env file. Environment variables must be set in your shell or system environment.
 
 ### 3. Model Setup
 

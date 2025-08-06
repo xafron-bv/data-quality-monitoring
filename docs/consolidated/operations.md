@@ -4,6 +4,8 @@
 
 This guide covers deployment options, monitoring, and operational best practices for the Data Quality Detection System in production environments. The system is designed as a batch processing tool that can be integrated into data pipelines or run on-demand.
 
+**Note**: This documentation includes both current capabilities and future/example implementations. Some features mentioned (such as Docker deployment, Prometheus monitoring, health checks, and various automation scripts) are not currently implemented in the codebase but are provided as examples for production deployment planning.
+
 ## Deployment Architecture
 
 ```mermaid
@@ -64,7 +66,7 @@ Simple deployment for small to medium-scale usage.
 ```bash
 # 1. Clone repository
 git clone <repository-url>
-cd data-quality-detection
+cd <project-directory>
 
 # 2. Create virtual environment
 python3.8 -m venv venv
@@ -74,11 +76,11 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # 4. Configure brand settings
-cp brand_configs/example.json brand_configs/your_brand.json
+cp brand_configs/esqualo.json brand_configs/your_brand.json
 # Edit brand_configs/your_brand.json
 
-# 5. Download/prepare models (if using ML)
-python scripts/download_models.py
+# 5. Train models (if using ML)
+python main.py ml-train --data-file training_data.csv
 
 # 6. Run detection
 python main.py single-demo --data-file your_data.csv
@@ -86,63 +88,17 @@ python main.py single-demo --data-file your_data.csv
 
 ### 2. Container Deployment
 
-Deploy using Docker for consistency and portability.
+Note: The project doesn't currently include Docker configuration files. To deploy using containers, you would need to create your own Dockerfile based on the requirements.
 
-#### Dockerfile Example
+Example Dockerfile structure:
+- Base image: python:3.8
+- Install system dependencies
+- Copy and install Python requirements
+- Copy application code
+- Set appropriate environment variables
+- Define entrypoint as `python main.py`
 
-```dockerfile
-FROM python:3.8-slim
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-# Set working directory
-WORKDIR /app
-
-# Copy requirements
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
-COPY . .
-
-# Create necessary directories
-RUN mkdir -p /app/results /app/logs /app/data
-
-# Set environment variables
-ENV PYTHONPATH=/app
-ENV DETECTION_OUTPUT_DIR=/app/results
-
-# Entry point
-ENTRYPOINT ["python", "main.py"]
-```
-
-#### Docker Compose Setup
-
-```yaml
-version: '3.8'
-
-services:
-  detection-system:
-    build: .
-    volumes:
-      - ./data:/app/data
-      - ./results:/app/results
-      - ./brand_configs:/app/brand_configs
-      - ./models:/app/models
-    environment:
-      - CUDA_VISIBLE_DEVICES=0
-      - DETECTION_LOG_LEVEL=INFO
-    deploy:
-      resources:
-        limits:
-          memory: 16G
-        reservations:
-          devices:
-            - capabilities: [gpu]
-```
+For GPU support, use NVIDIA's CUDA-enabled Python images and ensure the container runtime supports GPU access.
 
 ### 3. Kubernetes Batch Processing
 
