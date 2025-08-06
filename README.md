@@ -129,10 +129,10 @@ The system follows a modular, layered architecture:
 
 ## Contributing
 
-1. Follow the existing code structure
-2. Update documentation for any changes
-3. Run pre-commit hooks before committing: `pre-commit run --all-files`
-4. Submit pull requests with clear descriptions
+We welcome contributions! Please see our [Contributing Guide](docs/development/contributing.md) for details on:
+- Development setup
+- Code quality standards
+- Submission process
 
 ## License
 

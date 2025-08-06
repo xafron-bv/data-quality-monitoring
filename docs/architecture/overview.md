@@ -274,8 +274,61 @@ The system includes several performance optimizations:
 - **Parallel Processing**: Multi-threading for independent operations
 - **GPU Acceleration**: CUDA support for ML operations
 
-## Next Steps
+## Data Flow
 
-- Understand [Detection Methods](../detection-methods/overview.md) implementation
-- Explore the [API Reference](../api/interfaces.md)
-- Learn about [Configuration](../configuration/brand-config.md)
+The system follows a pipeline architecture for processing data:
+
+### Processing Pipeline
+
+1. **Input Stage**: Load data from CSV files or DataFrames
+2. **Preprocessing**: Map columns to standard fields using brand configuration
+3. **Validation**: Apply rule-based validators to each field
+4. **Detection**: Run pattern-based, ML, and LLM detection methods
+5. **Aggregation**: Combine results from all methods
+6. **Reporting**: Generate reports in multiple formats (JSON, CSV, HTML)
+
+### Parallel Processing
+
+The system optimizes performance through parallelization:
+- Fields are processed sequentially to manage memory
+- Detection methods run in parallel for each field
+- Results are aggregated after all methods complete
+
+## Component Details
+
+### Validators
+
+Field-specific validators implement rule-based checks:
+- Material composition validation
+- Color name standardization
+- Size format verification
+- Category hierarchy validation
+- Care instruction compliance
+
+Each validator implements the `ValidatorInterface` for consistency.
+
+### Anomaly Detectors
+
+Three types of anomaly detection:
+
+1. **Pattern-Based**: Uses regex patterns and known value lists
+2. **ML-Based**: Employs sentence transformers for semantic similarity
+3. **LLM-Based**: Leverages language models for context understanding
+
+All detectors implement the `AnomalyDetectorInterface`.
+
+### Orchestration
+
+The `ComprehensiveFieldDetector` coordinates the detection process:
+- Manages field mapping and configuration
+- Runs detection methods in parallel
+- Aggregates and weights results
+- Handles error injection for testing
+
+### Reporting
+
+Multiple output formats are supported:
+- JSON reports with detailed metrics
+- CSV summaries for spreadsheet analysis
+- HTML viewer for interactive exploration
+- Confusion matrices for performance visualization

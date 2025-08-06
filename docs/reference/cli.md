@@ -253,6 +253,40 @@ python main.py ml-curves data/products.csv \
 
 Note: The current implementation has limited global options. Most configuration is done through command-specific arguments or configuration files.
 
+## Practical Examples
+
+### Detection Workflow
+
+```bash
+# 1. Analyze your data first
+python main.py analyze-column products.csv material
+
+# 2. Run detection with appropriate methods
+python main.py single-demo --data-file products.csv --enable-validation --enable-pattern
+
+# 3. Evaluate performance
+python main.py multi-eval products.csv --field material --num-samples 50
+
+# 4. Generate optimized weights
+python single_sample_multi_field_demo/generate_detection_weights.py -i results/report.json -o weights.json
+
+# 5. Use optimized configuration
+python main.py single-demo --data-file products.csv --use-weighted-combination --weights-file weights.json
+```
+
+### Training Custom Models
+
+```bash
+# Train ML models for specific fields
+python main.py ml-train training_data.csv --fields "material color_name"
+
+# Train with hyperparameter optimization
+python main.py ml-train training_data.csv --use-hp-search --hp-trials 20
+
+# Generate performance curves
+python main.py ml-curves test_data.csv --fields material --output-dir curves
+```
+
 ## Configuration Files
 
 ### Command Arguments from File
