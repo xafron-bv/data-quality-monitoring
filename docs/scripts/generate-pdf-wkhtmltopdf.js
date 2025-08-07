@@ -67,21 +67,13 @@ async function generatePDF() {
     console.error('Error generating PDF:', error);
     console.error('This might be due to missing wkhtmltopdf or ghostscript dependencies');
     
-    // Create a placeholder file to prevent 404 errors
-    const staticPdfDir = path.join(__dirname, '..', 'static', 'pdf');
-    if (!fs.existsSync(staticPdfDir)) {
-      fs.mkdirSync(staticPdfDir, { recursive: true });
-    }
+    // Don't create a placeholder file - fail the build instead
+    console.error('\nPDF generation failed! Please ensure wkhtmltopdf and ghostscript are installed.');
+    console.error('On Ubuntu/Debian: sudo apt-get install wkhtmltopdf ghostscript');
+    console.error('On macOS: brew install wkhtmltopdf ghostscript');
     
-    const placeholderPath = path.join(staticPdfDir, 'xafron-documentation.pdf');
-    const placeholderContent = `PDF generation failed during build.
-Please check the build logs for more details.
-Visit the online documentation at: https://docs.xafron.nl/
-
-Note: This requires wkhtmltopdf and ghostscript to be installed on the system.`;
-    
-    fs.writeFileSync(placeholderPath, placeholderContent);
-    console.log('Created placeholder file at:', placeholderPath);
+    // Exit with error code to fail the build
+    process.exit(1);
   } finally {
     // Kill the server
     try {
