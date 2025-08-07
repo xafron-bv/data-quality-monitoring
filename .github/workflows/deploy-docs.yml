@@ -56,12 +56,28 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-docusaurus-build-
 
+      # Cache wkhtmltopdf installation
+      - name: Cache wkhtmltopdf
+        uses: actions/cache@v4
+        id: wkhtmltopdf-cache
+        with:
+          path: |
+            /usr/bin/wkhtmltopdf
+            /usr/bin/wkhtmltoimage
+            /usr/lib/x86_64-linux-gnu/libwkhtmltox*
+            /usr/share/doc/wkhtmltopdf
+            /usr/share/man/man1/wkhtmlto*
+          key: ${{ runner.os }}-wkhtmltopdf-${{ hashFiles('.github/workflows/deploy-docs.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-wkhtmltopdf-
+
       - name: Install dependencies
         run: npm ci
         working-directory: ./docs
 
       # Install wkhtmltopdf for PDF generation
       - name: Install wkhtmltopdf
+        if: steps.wkhtmltopdf-cache.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y wkhtmltopdf
