@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer');
+const { execSync } = require('child_process');
 
 function generateComprehensivePDF() {
   console.log('Generating comprehensive PDF with all documentation...');
@@ -107,6 +108,13 @@ function generateComprehensivePDF() {
       
       // Copy to build directory
       const buildPdfPath = path.join(__dirname, '..', 'build', 'pdf', 'xafron-documentation.pdf');
+      const buildPdfDir = path.dirname(buildPdfPath);
+      
+      // Ensure build/pdf directory exists
+      if (!fs.existsSync(buildPdfDir)) {
+        fs.mkdirSync(buildPdfDir, { recursive: true });
+      }
+      
       fs.copyFileSync(outputPath, buildPdfPath);
       console.log(`PDF copied to build directory: ${buildPdfPath}`);
     })
@@ -119,6 +127,47 @@ function generateComprehensivePDF() {
 }
 
 function convertMarkdownToHTML(markdown) {
+  // First, handle mermaid diagrams
+  let diagramCounter = 0;
+  const tempDir = path.join(__dirname, '..', 'temp-mermaid');
+  
+  // Create temp directory for mermaid diagrams
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+  }
+  
+  // Replace mermaid code blocks with images
+  markdown = markdown.replace(/```mermaid\n([\s\S]*?)```/g, (match, diagram) => {
+    diagramCounter++;
+    const diagramFile = path.join(tempDir, `diagram-${diagramCounter}.mmd`);
+    const svgFile = path.join(tempDir, `diagram-${diagramCounter}.svg`);
+    
+    try {
+      // Write diagram to file
+      fs.writeFileSync(diagramFile, diagram.trim());
+      
+      // Generate SVG using mermaid-cli
+      console.log(`Rendering mermaid diagram ${diagramCounter}...`);
+      execSync(`npx mmdc -i "${diagramFile}" -o "${svgFile}" -b transparent`, {
+        stdio: 'pipe'
+      });
+      
+      // Read the generated SVG
+      if (fs.existsSync(svgFile)) {
+        const svgContent = fs.readFileSync(svgFile, 'utf8');
+        // Return the SVG embedded in the HTML
+        return `<div class="mermaid-diagram">${svgContent}</div>`;
+      } else {
+        console.warn(`Failed to generate SVG for diagram ${diagramCounter}`);
+        return `<pre class="mermaid-fallback">${diagram}</pre>`;
+      }
+    } catch (error) {
+      console.error(`Error rendering mermaid diagram ${diagramCounter}:`, error.message);
+      // Fallback to showing the diagram source
+      return `<pre class="mermaid-fallback">${diagram}</pre>`;
+    }
+  });
+  
   // Simple markdown to HTML converter
   let html = markdown
     // Headers
@@ -138,6 +187,11 @@ function convertMarkdownToHTML(markdown) {
     // Line breaks
     .replace(/\n\n/g, '</p><p>')
     .replace(/\n/g, '<br>');
+  
+  // Clean up temp directory
+  if (fs.existsSync(tempDir)) {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
   
   // Wrap in HTML structure
   return `<!DOCTYPE html>
@@ -197,6 +251,22 @@ function convertMarkdownToHTML(markdown) {
         }
         li {
             margin-bottom: 5px;
+        }
+        .mermaid-diagram {
+            margin: 20px 0;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+        .mermaid-diagram svg {
+            max-width: 100%;
+            height: auto;
+        }
+        .mermaid-fallback {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 11px;
         }
         @page {
             margin: 2cm;

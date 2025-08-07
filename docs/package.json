@@ -32,6 +32,7 @@
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.0.1",
     "@docusaurus/types": "^3.0.1",
+    "@mermaid-js/mermaid-cli": "^11.9.0",
     "docusaurus-wkhtmltopdf": "^1.1.4"
   },
   "browserslist": {
