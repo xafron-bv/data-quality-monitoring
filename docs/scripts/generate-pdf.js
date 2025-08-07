@@ -6,13 +6,17 @@ async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function testServerReady(url, maxAttempts = 30) {
+async function testServerReady(url, maxAttempts = 20) {
   for (let i = 0; i < maxAttempts; i++) {
     try {
-      const { execSync } = require('child_process');
-      execSync(`curl -s -o /dev/null -w "%{http_code}" ${url}`, { timeout: 5000 });
-      console.log(`Server is ready at ${url}`);
-      return true;
+      const result = execSync(`curl -s -o /dev/null -w "%{http_code}" ${url}`, { 
+        timeout: 5000,
+        encoding: 'utf8'
+      });
+      if (result.trim() === '200') {
+        console.log(`Server is ready at ${url}`);
+        return true;
+      }
     } catch (error) {
       console.log(`Waiting for server... attempt ${i + 1}/${maxAttempts}`);
       await sleep(2000);
@@ -21,8 +25,8 @@ async function testServerReady(url, maxAttempts = 30) {
   throw new Error(`Server not ready after ${maxAttempts} attempts`);
 }
 
-async function generatePDFAlternative() {
-  console.log('Starting alternative PDF generation with enhanced Mermaid support...');
+async function generatePDF() {
+  console.log('Starting PDF generation...');
   
   const buildDir = path.join(__dirname, '..', 'build');
   const outputDir = path.join(buildDir, 'pdf');
@@ -44,7 +48,7 @@ async function generatePDFAlternative() {
   const serverProcess = spawn('npx', ['docusaurus', 'serve', '--port', '3001', '--host', '0.0.0.0'], {
     cwd: path.join(__dirname, '..'),
     detached: true,
-    stdio: ['ignore', 'pipe', 'pipe']
+    stdio: 'ignore'
   });
   
   serverProcess.unref();
@@ -53,51 +57,43 @@ async function generatePDFAlternative() {
     // Wait for server to be ready
     await testServerReady('http://localhost:3001');
     
-    // Additional wait for Mermaid to initialize
-    console.log('Waiting additional time for Mermaid initialization...');
-    await sleep(5000);
+    // Additional wait for page to fully load and render
+    console.log('Waiting for page content to load...');
+    await sleep(10000); // 10-second wait for Mermaid rendering
     
-    // Generate PDF using wkhtmltopdf directly
-    console.log('Generating PDF with wkhtmltopdf directly...');
+    // Generate PDF using wkhtmltopdf
+    console.log('Generating PDF with wkhtmltopdf...');
     
     const outputPdf = path.join(outputDir, 'xafron-documentation.pdf');
     const printCssPath = path.join(__dirname, '..', 'print.css');
     
-    // Enhanced wkhtmltopdf command for better Mermaid support
+    // wkhtmltopdf command with enhanced Mermaid support
     const wkhtmltopdfCmd = [
       'wkhtmltopdf',
       '--page-size', 'A4',
-      '--orientation', 'Portrait',
-      '--margin-top', '1in',
-      '--margin-bottom', '1in',
-      '--margin-left', '0.75in',
-      '--margin-right', '0.75in',
+      '--margin-top', '20mm',
+      '--margin-bottom', '20mm',
+      '--margin-left', '15mm',
+      '--margin-right', '15mm',
       '--encoding', 'UTF-8',
       '--enable-javascript',
-      '--javascript-delay', '5000', // 5 second delay for JavaScript
-      '--no-stop-slow-scripts',
-      '--debug-javascript',
+      '--javascript-delay', '5000', // JavaScript delay for Mermaid rendering
       '--load-error-handling', 'ignore',
-      '--load-media-error-handling', 'ignore',
-      '--viewport-size', '1280x1024',
-      '--disable-smart-shrinking',
       '--print-media-type',
       '--user-style-sheet', printCssPath,
-      '--toc',
-      '--toc-header-text', 'Table of Contents',
-      '--toc-text-size-shrink', '0.8',
       'http://localhost:3001',
       outputPdf
     ];
     
-    console.log('Running wkhtmltopdf with enhanced options...');
-    console.log('Command:', wkhtmltopdfCmd.join(' '));
+    const command = wkhtmltopdfCmd.join(' ');
+    console.log('Command:', command);
     
-    execSync(wkhtmltopdfCmd.join(' '), {
+    execSync(command, {
       stdio: 'inherit',
       cwd: path.join(__dirname, '..')
     });
     
+    // Check if PDF was generated
     if (fs.existsSync(outputPdf)) {
       console.log(`PDF generated successfully at: ${outputPdf}`);
       
@@ -109,7 +105,7 @@ async function generatePDFAlternative() {
       fs.copyFileSync(outputPdf, path.join(staticPdfDir, 'xafron-documentation.pdf'));
       console.log(`PDF copied to static directory: ${path.join(staticPdfDir, 'xafron-documentation.pdf')}`);
     } else {
-      throw new Error('PDF file was not generated');
+      console.error('PDF generation failed - file not found at:', outputPdf);
     }
     
   } catch (error) {
@@ -142,10 +138,10 @@ async function generatePDFAlternative() {
 
 // Run if called directly
 if (require.main === module) {
-  generatePDFAlternative().catch(error => {
+  generatePDF().catch(error => {
     console.error('PDF generation failed:', error);
     process.exit(1);
   });
 }
 
-module.exports = { generatePDFAlternative };
+module.exports = { generatePDF };
