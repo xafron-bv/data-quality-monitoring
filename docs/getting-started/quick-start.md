@@ -10,55 +10,60 @@ Before starting, ensure you have completed the [Installation Guide](installation
 
 The easiest way to start is with the single sample demo:
 
-```bash
-python main.py single-demo \
-    --data-file data/sample_data.csv \
-    --output-dir results/quick_start
+```python
+# run_demo.py
+import subprocess
+subprocess.run([
+    "python", "main.py", "single-demo",
+    "--data-file", "data/sample_data.csv",
+    "--output-dir", "results/quick_start",
+    "--enable-validation", "--enable-pattern", "--enable-ml",
+])
 ```
 
 This will:
 1. Load your data
 2. Inject synthetic anomalies for testing
-3. Run all detection methods
-4. Generate comprehensive reports
+3. Run enabled detection methods
+4. Generate reports and visualizations
 
 ## Understanding the Output
 
-### Console Output
-You'll see real-time progress:
-```
-🔍 Processing sample: quick_start_sample
-📊 Total fields to check: 15
-━━━━━━━━━━━━━━━━━━━━ 100% 15/15
-✅ Detection complete!
-```
-
 ### Generated Files
-Check your output directory:
-- `report.json` - Detailed detection results
-- `viewer_report.json` - Formatted for the web viewer
-- `anomaly_summary.csv` - Summary of all detections
-- `confusion_matrix/` - Performance visualizations
+Check your output directory. You should see files like:
+- `<sample>_viewer_report.json` (for the HTML viewer)
+- `<sample>_unified_report.json` (for metrics and weights generation)
+- `<sample>_overall_confusion_matrix.png`
+- `<sample>_per_field_confusion_matrix.png`
+- `<sample>_detection_type_confusion_matrix.png`
+- `<sample>_performance_comparison.png`
+- `<sample>_summary_visualization.png`
+
+Note: `<sample>` defaults to names used by the demo, e.g. `demo_analysis` or `confusion_matrix_analysis`.
 
 ### Web Viewer
 1. Open `single_sample_multi_field_demo/data_quality_viewer.html` in your browser
-2. Upload the generated CSV and JSON files
-3. Explore interactive visualizations
+2. Upload the generated CSV sample (e.g., `results/quick_start/demo_sample.csv`)
+3. Upload the JSON file `<sample>_viewer_report.json` from your output directory
+4. Explore interactive visualizations
 
 ## Try Different Detection Methods
 
-Now that you've seen the basic demo, try running with specific detection methods:
+Now that you've seen the basic demo, try running with specific detection methods by adjusting the flags you pass in Python:
 
-```bash
-# Fast validation only
-python main.py single-demo \
-    --data-file data/sample_data.csv \
-    --enable-validation
+```python
+import subprocess
+subprocess.run([
+    "python", "main.py", "single-demo",
+    "--data-file", "data/sample_data.csv",
+    "--enable-validation",
+])
 
-# Or try pattern-based detection
-python main.py single-demo \
-    --data-file data/sample_data.csv \
-    --enable-pattern
+subprocess.run([
+    "python", "main.py", "single-demo",
+    "--data-file", "data/sample_data.csv",
+    "--enable-pattern",
+])
 ```
 
 ## What's Next?

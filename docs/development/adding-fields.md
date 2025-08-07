@@ -29,34 +29,22 @@ flowchart TD
 
 ## Step 1: Analyze the Field
 
-Before implementing, understand your field's characteristics:
+Understand your field's characteristics:
 
-```bash
+```python
 # Analyze field data distribution
-python analyze_column/analyze_column.py data/sample.csv new_field_name
+import subprocess
+subprocess.run(["python", "analyze_column/analyze_column.py", "data/sample.csv", "new_field_name"]) 
 
 # Or use the main entry point
-python main.py analyze-column data/sample.csv new_field_name
-
-# Output includes:
-# - Unique values count
-# - Top values and frequencies
-# - Pattern analysis
-# - Sample values
+subprocess.run(["python", "main.py", "analyze-column", "data/sample.csv", "new_field_name"]) 
 ```
 
 ## Step 2: Create a Validator
 
 Validators provide high-confidence error detection through business rules.
 
-### 2.1 Create Directory Structure
-
-```bash
-mkdir -p validators/new_field
-cd validators/new_field
-```
-
-### 2.2 Implement Validator Class
+### 2.1 Implement Validator Class
 
 Create `validators/new_field/validate.py`:
 
@@ -68,173 +56,45 @@ import re
 class Validator(ValidatorInterface):
     def __init__(self):
         self.field_type = "new_field"
-        # Define patterns and rules
         self.valid_pattern = re.compile(r'^[A-Z]{2}\d{4}$')
         self.min_length = 6
         self.max_length = 50
         
     def _validate_entry(self, value):
-        """Validate a single value."""
-        # Convert to string for validation
         str_value = str(value).strip()
-        
-        # Check for empty values
         if not str_value or str_value.lower() in ['nan', 'none', 'null']:
-            return ValidationError(
-                error_type="EMPTY_VALUE",
-                probability=1.0
-            )
-        
-        # Check length constraints
+            return ValidationError(error_type="EMPTY_VALUE", probability=1.0)
         if len(str_value) < self.min_length:
-            return ValidationError(
-                error_type="TOO_SHORT",
-                probability=1.0
-            )
-        
+            return ValidationError(error_type="TOO_SHORT", probability=1.0)
         if len(str_value) > self.max_length:
-            return ValidationError(
-                error_type="TOO_LONG",
-                probability=1.0
-            )
-        
-        # Check format pattern
+            return ValidationError(error_type="TOO_LONG", probability=1.0)
         if not self.valid_pattern.match(str_value):
-            return ValidationError(
-                error_type="INVALID_FORMAT",
-                probability=1.0
-            )
-        
-        # Add custom business logic
-        if self._violates_business_rule(str_value):
-            return ValidationError(
-                error_type="BUSINESS_RULE_VIOLATION",
-                probability=1.0
-            )
-        
+            return ValidationError(error_type="INVALID_FORMAT", probability=1.0)
         return None
-    
-    def _violates_business_rule(self, value):
-        """Implement custom business logic."""
-        # Example: Check against forbidden values
-        forbidden = ['XX0000', 'TEST01']
-        return value in forbidden
 ```
 
-### 2.3 Create Error Messages
+### 2.2 Create Error Messages
 
-Create `validators/new_field/error_messages.json`:
-
-```json
-{
-    "EMPTY_VALUE": {
-        "message": "Value cannot be empty",
-        "description": "This field is required and must contain a valid value",
-        "severity": "ERROR",
-        "examples": ["", " ", "null", "NaN"]
-    },
-    "TOO_SHORT": {
-        "message": "Value is too short",
-        "description": "Value must be at least {min_length} characters long",
-        "severity": "ERROR",
-        "examples": ["AB1", "X"]
-    },
-    "TOO_LONG": {
-        "message": "Value exceeds maximum length",
-        "description": "Value must not exceed {max_length} characters",
-        "severity": "WARNING",
-        "examples": ["Very long string that exceeds the maximum allowed length..."]
-    },
-    "INVALID_FORMAT": {
-        "message": "Invalid format",
-        "description": "Value must match pattern: 2 uppercase letters followed by 4 digits",
-        "severity": "ERROR",
-        "examples": ["abc123", "12ABCD", "AB12345"]
-    },
-    "BUSINESS_RULE_VIOLATION": {
-        "message": "Business rule violation",
-        "description": "Value violates business constraints",
-        "severity": "ERROR",
-        "examples": ["XX0000", "TEST01"]
-    }
-}
-```
+Create `validators/new_field/error_messages.json` with concise messages your reporter can render.
 
 ## Step 3: Define Pattern-Based Rules
 
 Pattern-based detection identifies anomalies using statistical and rule-based approaches.
 
-### 3.1 Create Pattern Rules
-
 Create `anomaly_detectors/pattern_based/rules/new_field.json`:
 
 ```json
 {
-    "field_name": "new_field",
-    "description": "Pattern rules for new field validation",
-    "version": "1.0",
-    
-    "known_values": [
-        "AB1234", "CD5678", "EF9012",
-        "GH3456", "IJ7890", "KL2345"
-    ],
-    
-    "format_patterns": [
-        {
-            "name": "standard_format",
-            "pattern": "^[A-Z]{2}\\d{4}$",
-            "confidence": 0.8,
-            "message": "Does not match standard format"
-        },
-        {
-            "name": "legacy_format",
-            "pattern": "^\\d{2}[A-Z]{4}$",
-            "confidence": 0.7,
-            "message": "Matches legacy format (deprecated)"
-        }
-    ],
-    
-    "statistical_rules": {
-        "length": {
-            "min": 6,
-            "max": 10,
-            "typical": 6
-        },
-        "character_distribution": {
-            "letters": 0.33,
-            "digits": 0.67,
-            "special": 0.0
-        }
-    },
-    
-    "validation_rules": [
-        {
-            "name": "not_empty",
-            "type": "not_empty",
-            "message": "Value cannot be empty"
-        },
-        {
-            "name": "no_special_chars",
-            "type": "regex",
-            "pattern": "^[A-Za-z0-9]+$",
-            "message": "Contains special characters"
-        }
-    ],
-    
-    "anomaly_patterns": [
-        {
-            "name": "suspicious_pattern",
-            "pattern": "(00000|11111|99999)",
-            "confidence": 0.9,
-            "message": "Contains suspicious repeated digits"
-        },
-        {
-            "name": "test_data",
-            "pattern": "(TEST|DEMO|SAMPLE)",
-            "confidence": 0.95,
-            "message": "Appears to be test data"
-        }
-    ]
+  "field_name": "new_field",
+  "description": "Pattern rules for new field validation",
+  "known_values": ["AB1234", "CD5678", "EF9012"],
+  "format_patterns": [
+    {"name": "standard_format", "pattern": "^[A-Z]{2}\\d{4}$", "confidence": 0.8, "message": "Does not match standard format"}
+  ],
+  "validation_rules": [
+    {"name": "not_empty", "type": "not_empty", "message": "Value cannot be empty"},
+    {"name": "no_special_chars", "type": "regex", "pattern": "^[A-Za-z0-9]+$", "message": "Contains special characters"}
+  ]
 }
 ```
 
@@ -242,258 +102,82 @@ Create `anomaly_detectors/pattern_based/rules/new_field.json`:
 
 For semantic understanding, train an ML model.
 
-### 4.1 Prepare Training Data
-
-Create a clean dataset with valid examples:
-
 ```python
+# Example: derive clean training data
 import pandas as pd
 
-# Load and filter clean data
 data = pd.read_csv('data/full_dataset.csv')
 clean_data = data[data['quality_flag'] == 'clean']
-
-# Extract field values
 field_values = clean_data['new_field'].dropna().unique()
-
-# Save training data
-pd.DataFrame({'new_field': field_values}).to_csv(
-    'data/new_field_training.csv', 
-    index=False
-)
+pd.DataFrame({'new_field': field_values}).to_csv('data/new_field_training.csv', index=False)
 ```
 
-### 4.2 Model Training Configuration
-
-ML models for new fields are trained using the ml-train command. The system will automatically use appropriate settings based on the field type and available data.
-
-### 4.3 Train the Model
-
-ML models are typically pre-trained or use transfer learning. To configure and test ML detection for your new field:
-
-```bash
-# Run hyperparameter search for the new field
-python main.py ml-train \
-    --use-hp-search \
-    --fields new_field \
-    --hp-trials 15
-
-# Test anomaly detection
-python main.py ml-train \
-    --check-anomalies new_field \
-    --threshold 0.75
-```
+Run recall-focused training or anomaly check via CLI (see `ml-train` reference).
 
 ## Step 5: Configure Field Mapping
 
 Update brand configuration to include the new field.
 
-### 5.1 Update Brand Config
-
-Edit `brand_configs/your_brand.json`:
-
-```json
-{
-    "field_mappings": {
-        // ... existing mappings ...
-        "new_field": "Your_Column_Name"
-    },
-    
-    "enabled_fields": [
-        // ... existing fields ...
-        "new_field"
-    ]
-}
+```python
+from common.brand_config import load_brand_config
+config = load_brand_config('your_brand')
+print(config.get_column_name('new_field'))
 ```
 
-### 5.2 Register the Field
-
-The new field will be automatically recognized once it's added to the brand configuration and the corresponding validator is created in the `validators/new_field/` directory.
+The field is recognized once it's in brand config and the validator/rules exist.
 
 ## Step 6: Test Implementation
 
 ### 6.1 Manual Testing
 
-Create a test script to verify your validator:
-
 ```python
-# test_new_field.py
 from validators.new_field.validate import Validator
-
-# Create validator instance
 validator = Validator()
-
-# Test valid values
-valid_values = ['AB1234', 'CD5678', 'EF9012']
-print("Testing valid values:")
-for value in valid_values:
-    error = validator._validate_entry(value)
-    print(f"  {value}: {'PASS' if error is None else 'FAIL'}")
-
-# Test invalid values
-invalid_values = ['', 'abc123', '123ABC', 'ABCDEF', 'XX0000']
-print("\nTesting invalid values:")
-for value in invalid_values:
-    error = validator._validate_entry(value)
-    if error:
-        print(f"  {value}: {error.error_type}")
-    else:
-        print(f"  {value}: Unexpected PASS")
+for value in ['AB1234', 'CD5678', 'EF9012']:
+    assert validator._validate_entry(value) is None
+for value in ['', 'abc123', '123ABC']:
+    err = validator._validate_entry(value)
+    print(value, getattr(err, 'error_type', None))
 ```
-
-Note: The project doesn't currently have a formal test framework. Consider implementing pytest or unittest for automated testing.
 
 ### 6.2 Integration Tests
 
-Test with the complete system:
-
-```bash
-# Test with sample data
-python main.py single-demo \
-    --data-file test_data/new_field_test.csv \
-    --enable-validation \
-    --enable-pattern \
-    --enable-ml \
-    --output-dir test_results/new_field
-
-# Review results in test_results/new_field/
+```python
+import subprocess
+subprocess.run([
+  "python", "main.py", "single-demo",
+  "--data-file", "test_data/new_field_test.csv",
+  "--enable-validation", "--enable-pattern", "--enable-ml",
+  "--output-dir", "test_results/new_field",
+])
 ```
 
 ### 6.3 Performance Testing
 
-```bash
-# Test with larger dataset
-python main.py multi-eval \
-    --input data/full_dataset.csv \
-    --field new_field \
-    --num-samples 100 \
-    --output-dir evaluation_results/new_field
+```python
+import subprocess
+subprocess.run([
+  "python", "main.py", "multi-eval",
+  "data/full_dataset.csv", "--field", "new_field",
+  "--num-samples", "100",
+  "--output-dir", "evaluation_results/new_field",
+])
 ```
 
-## Step 7: Documentation
+## Documentation
 
-### 7.1 Update Field Documentation
-
-Create `docs/fields/new_field.md`:
-
-```markdown
-# New Field
-
-## Description
-Brief description of what this field represents.
-
-## Format
-- Pattern: `^[A-Z]{2}\d{4}$`
-- Length: 6 characters
-- Example: `AB1234`
-
-## Validation Rules
-1. Cannot be empty
-2. Must match format pattern
-3. Cannot contain special characters
-4. Business rule constraints
-
-## Common Issues
-- Invalid format: Use 2 uppercase letters + 4 digits
-- Test data: Remove TEST, DEMO, SAMPLE values
-- Legacy format: Update from old format `12ABCD`
-```
-
-### 7.2 Update API Documentation
-
-Add field to API examples and configuration guides.
+Create a short `docs/fields/new_field.md` describing the field, format, and rules.
 
 ## Best Practices
 
-### 1. Start Simple
-Begin with basic validation rules and gradually add complexity:
-```python
-# Phase 1: Basic validation (empty, format)
-# Phase 2: Business rules
-# Phase 3: Pattern-based rules and known values
-# Phase 4: ML-based detection
-```
-
-### 2. Use Existing Patterns
-Look for similar fields to reuse patterns:
-```python
-# If similar to existing field
-from validators.similar_field.validate import Validator as BaseValidator
-
-class Validator(BaseValidator):
-    def __init__(self):
-        super().__init__()
-        self.field_type = "new_field"
-        # Override specific attributes
-```
-
-### 3. Collect Real Data
-Use actual data for pattern discovery:
-```bash
-# Analyze real data patterns using the analyze-column command
-python main.py analyze-column data/your_data.csv new_field
-```
-
-### 4. Progressive Thresholds
-Start with conservative thresholds:
-```json
-{
-    "thresholds": {
-        "validation": 0.0,    // 100% confidence
-        "pattern": 0.8,       // Start high
-        "ml": 0.8,           // Start high
-        "llm": 0.7           // Adjust based on results
-    }
-}
-```
-
-### 5. Monitor and Iterate
-Track field performance by reviewing the detection results and adjusting thresholds based on false positive/negative rates. Use the evaluation reports generated by multi-eval to understand performance metrics.
+1. Start Simple: Basic validation first
+2. Use Existing Patterns: Reuse similar field logic where possible
+3. Collect Real Data: Analyze patterns with `analyze-column`
+4. Progressive Thresholds: Start conservative; tune with evaluation
+5. Monitor and Iterate: Adjust based on false positive/negative rates
 
 ## Troubleshooting
 
-### Common Issues
-
-1. **Import Errors**
-   ```python
-   # Ensure __init__.py exists
-   touch validators/new_field/__init__.py
-   ```
-
-2. **Pattern Not Matching**
-   ```python
-   # Test patterns independently
-   import re
-   pattern = re.compile(r'^[A-Z]{2}\d{4}$')
-   print(pattern.match('AB1234'))  # Should return match object
-   ```
-
-3. **ML Model Not Loading**
-   ```bash
-   # Check model path
-   ls -la models/new_field/
-   # Verify model files exist
-   ```
-
-4. **Field Not Detected**
-   ```bash
-   # Check field mapping
-   python -c "from common.brand_config import BrandConfig; \
-             config = BrandConfig('your_brand'); \
-             print(config.get_field_mapping('new_field'))"
-   ```
-
-## Checklist
-
-Before deploying a new field:
-
-- [ ] Validator implemented and tested
-- [ ] Error messages defined
-- [ ] Pattern rules created
-- [ ] ML model trained (if applicable)
-- [ ] Field mapping configured
-- [ ] Unit tests passing
-- [ ] Integration tests passing
-- [ ] Documentation updated
-- [ ] Performance acceptable
-- [ ] Code reviewed
+1. Import Errors: Ensure `__init__.py` exists in `validators/new_field/`
+2. Pattern Not Matching: Test regex in isolation
+3. Field Not Detected: Verify field mapping via `load_brand_config`
