@@ -5,19 +5,43 @@ This directory contains the generated PDF version of the documentation.
 ## How it works
 
 1. During the build process (`npm run build`), the `postbuild` script runs
-2. This executes `scripts/generate-pdf-with-server.js`
-3. The script starts a local Docusaurus server and uses `docs-to-pdf` to generate a PDF
-4. The PDF is placed in both `build/pdf/` and copied to `static/pdf/`
+2. This executes `scripts/generate-comprehensive-pdf.js`
+3. The script combines all markdown documentation files into a single comprehensive PDF
+4. The PDF is generated using Puppeteer and includes all documentation content
+5. The PDF is placed in `static/pdf/xafron-documentation.pdf` and copied to `build/pdf/`
 
-## Troubleshooting
+## PDF Content
 
-If the PDF generation fails (which can happen in CI environments due to missing browser dependencies), a placeholder file will be created instead.
+The generated PDF contains all documentation sections:
+- Getting Started (Installation, Basic Usage, Quick Start)
+- Architecture (Overview, Detection Methods)
+- User Guides (Running Detection, Analyzing Results, Optimization)
+- Reference (CLI, Configuration, Interfaces)
+- Development (Adding Fields, Contributing)
+- Deployment (Examples)
+
+## File Size
+
+The comprehensive PDF is approximately 1.4MB and contains all documentation content.
+
+## Access
 
 The PDF should be accessible at: `/pdf/xafron-documentation.pdf`
 
 ## Requirements
 
 PDF generation requires:
-- Chrome/Chromium browser
-- Various system libraries (automatically installed in GitHub Actions)
-- The `docs-to-pdf` npm package (listed in devDependencies)
+- Node.js with the `puppeteer` npm package (listed in dependencies)
+- Chrome/Chromium browser (automatically installed with Puppeteer)
+
+## Features
+
+- Professional formatting with proper headers and styling
+- Page numbers and headers/footers
+- Code syntax highlighting
+- Proper page breaks between sections
+- All documentation content included
+
+## Note
+
+This is a comprehensive PDF version containing all documentation. For the interactive version with search, navigation, and diagrams, please visit the online documentation at https://docs.xafron.nl
