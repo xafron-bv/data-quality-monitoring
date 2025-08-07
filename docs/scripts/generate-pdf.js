@@ -6,7 +6,7 @@ async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function testServerReady(url, maxAttempts = 20) {
+async function testServerReady(url, maxAttempts = 10) {
   for (let i = 0; i < maxAttempts; i++) {
     try {
       const result = execSync(`curl -s -o /dev/null -w "%{http_code}" ${url}`, { 
@@ -26,41 +26,45 @@ async function testServerReady(url, maxAttempts = 20) {
 }
 
 function getAllDocumentationPages() {
-  // Extract all page paths from the sidebar configuration
+  // Dynamically extract all page paths from the sidebar configuration
   const sidebarPath = path.join(__dirname, '..', 'sidebars.js');
-  const sidebarContent = fs.readFileSync(sidebarPath, 'utf8');
   
-  // Parse the sidebar to extract all page paths
-  const pages = [
-    "README", // Homepage
-    // Getting Started
-    "getting-started/",
-    "getting-started/installation",
-    "getting-started/basic-usage", 
-    "getting-started/quick-start",
-    // Architecture
-    "architecture/overview",
-    "architecture/detection-methods",
-    // User Guides
-    "user-guides/running-detection",
-    "user-guides/analyzing-results",
-    "user-guides/optimization",
-    // Reference
-    "reference/cli",
-    "reference/configuration",
-    "reference/interfaces",
-    // Development
-    "development/adding-fields",
-    "development/contributing",
-    // Deployment
-    "deployment/examples"
-  ];
-  
-  return pages;
+  try {
+    // Import the sidebar configuration
+    delete require.cache[require.resolve(sidebarPath)];
+    const sidebarModule = require(sidebarPath);
+    const sidebars = sidebarModule.default || sidebarModule;
+    
+    const pages = [];
+    
+    function extractPages(items) {
+      for (const item of items) {
+        if (typeof item === 'string') {
+          pages.push(item);
+        } else if (item.type === 'category' && item.items) {
+          extractPages(item.items);
+        }
+      }
+    }
+    
+    // Extract pages from the main sidebar
+    if (sidebars.tutorialSidebar) {
+      extractPages(sidebars.tutorialSidebar);
+    }
+    
+    console.log(`Dynamically found ${pages.length} pages from sidebar configuration`);
+    return pages;
+    
+  } catch (error) {
+    console.warn('Could not parse sidebar configuration, using fallback pages');
+    
+    // Minimal fallback
+    return ['README'];
+  }
 }
 
-async function generatePDF() {
-  console.log('Starting comprehensive PDF generation...');
+async function generateCompletePDF() {
+  console.log('Starting complete PDF generation...');
   
   const buildDir = path.join(__dirname, '..', 'build');
   const outputDir = path.join(buildDir, 'pdf');
@@ -70,77 +74,73 @@ async function generatePDF() {
     fs.mkdirSync(outputDir, { recursive: true });
   }
   
-  // Kill any existing servers
   try {
-    execSync('pkill -f "docusaurus serve" || true', { stdio: 'ignore' });
-  } catch (e) {
-    // Ignore errors
-  }
-  
-  // Start the docusaurus server
-  console.log('Starting Docusaurus server...');
-  const serverProcess = spawn('npx', ['docusaurus', 'serve', '--port', '3001', '--host', '0.0.0.0'], {
-    cwd: path.join(__dirname, '..'),
-    detached: true,
-    stdio: 'ignore'
-  });
-  
-  serverProcess.unref();
-  
-  try {
-    // Wait for server to be ready
+    // Test if server is already running
     await testServerReady('http://localhost:3001');
     
     // Additional wait for page to fully load and render
     console.log('Waiting for page content to load...');
-    await sleep(10000); // 10-second wait for Mermaid rendering
+    await sleep(8000); // 8-second wait for Mermaid rendering
     
     // Get all documentation pages
     const pages = getAllDocumentationPages();
     console.log(`Found ${pages.length} pages to include in PDF`);
     
-    // Generate PDF using wkhtmltopdf with all pages
-    console.log('Generating comprehensive PDF with wkhtmltopdf...');
+    // Create URLs for valid pages only
+    const baseUrl = 'http://localhost:3001';
+    const validUrls = [];
     
+    for (const page of pages) {
+      let url;
+      if (page === 'README') {
+        url = baseUrl + '/';
+      } else {
+        url = baseUrl + '/' + page;
+      }
+      
+      // Test if the URL exists
+      try {
+        const testResult = execSync(`curl -s -o /dev/null -w "%{http_code}" "${url}"`, { 
+          encoding: 'utf8',
+          timeout: 5000 
+        });
+        if (testResult.trim() === '200') {
+          validUrls.push(url);
+          console.log(`  ✓ ${url}`);
+        } else {
+          console.log(`  ✗ Skipping ${url} (HTTP ${testResult.trim()})`);
+        }
+      } catch (error) {
+        console.log(`  ✗ Skipping ${url} (connection error)`);
+      }
+    }
+    
+    console.log(`\nGenerating PDF from ${validUrls.length} valid pages...`);
+    
+    // Generate PDF using simple wkhtmltopdf approach
     const outputPdf = path.join(outputDir, 'xafron-documentation.pdf');
     const printCssPath = path.join(__dirname, '..', 'print.css');
     
-    // Create URLs for all pages
-    const baseUrl = 'http://localhost:3001';
-    const pageUrls = pages.map(page => {
-      if (page === 'README') return baseUrl + '/';
-      return baseUrl + '/' + page;
-    });
-    
-    console.log('Pages to include:');
-    pageUrls.forEach((url, index) => {
-      console.log(`  ${index + 1}. ${url}`);
-    });
-    
-    // wkhtmltopdf command with all pages
+    // Simple wkhtmltopdf command that works reliably
     const wkhtmltopdfCmd = [
       'wkhtmltopdf',
       '--page-size', 'A4',
       '--margin-top', '20mm',
-      '--margin-bottom', '20mm',
+      '--margin-bottom', '20mm', 
       '--margin-left', '15mm',
       '--margin-right', '15mm',
       '--encoding', 'UTF-8',
       '--enable-javascript',
-      '--javascript-delay', '5000', // JavaScript delay for Mermaid rendering
+      '--javascript-delay', '5000',
       '--load-error-handling', 'ignore',
       '--print-media-type',
       '--user-style-sheet', printCssPath,
-      '--footer-center', '[page] of [topage]', // Add page numbers
-      '--footer-font-size', '8',
-      'toc', // Add table of contents
-      '--toc-header-text', 'Table of Contents',
-      ...pageUrls, // Add all page URLs
+      ...validUrls,
       outputPdf
     ];
     
     const command = wkhtmltopdfCmd.join(' ');
-    console.log('Command:', command);
+    console.log('Executing PDF generation...');
     
     execSync(command, {
       stdio: 'inherit',
@@ -150,8 +150,10 @@ async function generatePDF() {
     // Check if PDF was generated
     if (fs.existsSync(outputPdf)) {
       const stats = fs.statSync(outputPdf);
-      console.log(`PDF generated successfully at: ${outputPdf}`);
-      console.log(`File size: ${(stats.size / 1024).toFixed(1)} KB`);
+      console.log(`\n✅ PDF generated successfully!`);
+      console.log(`   Location: ${outputPdf}`);
+      console.log(`   Size: ${(stats.size / 1024).toFixed(1)} KB`);
+      console.log(`   Pages included: ${validUrls.length}`);
       
       // Also copy to static directory
       const staticPdfDir = path.join(__dirname, '..', 'static', 'pdf');
@@ -159,45 +161,23 @@ async function generatePDF() {
         fs.mkdirSync(staticPdfDir, { recursive: true });
       }
       fs.copyFileSync(outputPdf, path.join(staticPdfDir, 'xafron-documentation.pdf'));
-      console.log(`PDF copied to static directory: ${path.join(staticPdfDir, 'xafron-documentation.pdf')}`);
+      console.log(`   Copied to: ${path.join(staticPdfDir, 'xafron-documentation.pdf')}`);
     } else {
-      console.error('PDF generation failed - file not found at:', outputPdf);
+      console.error('❌ PDF generation failed - file not found');
     }
     
   } catch (error) {
-    console.error('Error generating PDF:', error);
-    
-    // Provide diagnostic information
-    console.error('\nDiagnostic Information:');
-    try {
-      console.error('wkhtmltopdf version:', execSync('wkhtmltopdf --version', { encoding: 'utf8' }));
-    } catch (e) {
-      console.error('wkhtmltopdf not found or not working');
-    }
-    
-    try {
-      console.error('Server status:', execSync('curl -s -I http://localhost:3001', { encoding: 'utf8' }));
-    } catch (e) {
-      console.error('Server not accessible');
-    }
-    
+    console.error('❌ Error generating PDF:', error.message);
     throw error;
-  } finally {
-    // Kill the server
-    try {
-      execSync('pkill -f "docusaurus serve"', { stdio: 'ignore' });
-    } catch (e) {
-      // Server might have already stopped
-    }
   }
 }
 
 // Run if called directly
 if (require.main === module) {
-  generatePDF().catch(error => {
-    console.error('PDF generation failed:', error);
+  generateCompletePDF().catch(error => {
+    console.error('PDF generation failed:', error.message);
     process.exit(1);
   });
 }
 
-module.exports = { generatePDF };
+module.exports = { generatePDF: generateCompletePDF };
