@@ -15,7 +15,7 @@
     "validate-mermaid": "node scripts/validate-mermaid.js",
     "prebuild": "npm run validate-mermaid",
     "postbuild": "echo 'Starting PDF generation...' && npm run generate-pdf",
-    "generate-pdf": "node scripts/generate-pdf-with-server.js"
+    "generate-pdf": "node scripts/generate-pdf-wkhtmltopdf.js"
   },
   "dependencies": {
     "@docusaurus/core": "^3.0.1",
