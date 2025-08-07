@@ -1,0 +1,114 @@
+[
+  {
+    "file": "/workspace/docs/architecture/detection-methods.md",
+    "content": "flowchart LR\n    I[Input]:::input --> V[Validator]:::process\n    V --> RE[Rule Engine]:::process\n    RE --> R[Result]:::output\n    \n    FR[Field Rules]:::rules --> V\n    \n    classDef input fill:#81c784,stroke:#388e3c,stroke-width:2px,color:#000\n    classDef process fill:#64b5f6,stroke:#1565c0,stroke-width:2px,color:#000\n    classDef output fill:#ce93d8,stroke:#6a1b9a,stroke-width:2px,color:#000\n    classDef rules fill:#ffb74d,stroke:#f57c00,stroke-width:2px,color:#000",
+    "index": 0,
+    "id": "detection-methods_1",
+    "svgPath": "/workspace/docs/static/mermaid-svg/detection-methods_1.svg",
+    "svgUrl": "/mermaid-svg/detection-methods_1.svg"
+  },
+  {
+    "file": "/workspace/docs/architecture/detection-methods.md",
+    "content": "flowchart LR\n    I[Input]:::input --> FE[Feature Extraction]:::process\n    FE --> PM[Pattern Matcher]:::process\n    PM --> AS[Anomaly Score]:::output\n    \n    PDB[Pattern DB]:::data --> FE\n    SM[Statistical Models]:::data --> PM\n    \n    classDef input fill:#81c784,stroke:#388e3c,stroke-width:2px,color:#000\n    classDef process fill:#64b5f6,stroke:#1565c0,stroke-width:2px,color:#000\n    classDef output fill:#ce93d8,stroke:#6a1b9a,stroke-width:2px,color:#000\n    classDef data fill:#fff176,stroke:#f9a825,stroke-width:2px,color:#000",
+    "index": 1,
+    "id": "detection-methods_2",
+    "svgPath": "/workspace/docs/static/mermaid-svg/detection-methods_2.svg",
+    "svgUrl": "/mermaid-svg/detection-methods_2.svg"
+  },
+  {
+    "file": "/workspace/docs/architecture/detection-methods.md",
+    "content": "flowchart TB\n    TD[Training Data]:::train --> MT[Model Training]:::process\n    MT --> TM[Trained Model]:::model\n    MT --> RC[Reference Centroid]:::model\n    \n    ID[Input Data]:::input --> FE[Feature Engineering]:::process\n    FE --> P[Similarity Calculation]:::process\n    TM --> P\n    RC --> P\n    P --> AS[Anomaly Score]:::output\n    \n    classDef train fill:#a5d6a7,stroke:#388e3c,stroke-width:2px,color:#000\n    classDef input fill:#81c784,stroke:#388e3c,stroke-width:2px,color:#000\n    classDef process fill:#64b5f6,stroke:#1565c0,stroke-width:2px,color:#000\n    classDef model fill:#ffcc80,stroke:#ef6c00,stroke-width:2px,color:#000\n    classDef output fill:#ce93d8,stroke:#6a1b9a,stroke-width:2px,color:#000",
+    "index": 2,
+    "id": "detection-methods_3",
+    "svgPath": "/workspace/docs/static/mermaid-svg/detection-methods_3.svg",
+    "svgUrl": "/mermaid-svg/detection-methods_3.svg"
+  },
+  {
+    "file": "/workspace/docs/architecture/detection-methods.md",
+    "content": "flowchart LR\n    I[Input Text]:::input --> T[Tokenization]:::process\n    T --> LM[Language Model]:::model\n    LM --> PS[Probability Scoring]:::process\n    PS --> AS[Anomaly Score]:::output\n    \n    TD[Training Data]:::train --> FT[Fine-tuning]:::process\n    FT --> LM\n    \n    classDef input fill:#81c784,stroke:#388e3c,stroke-width:2px,color:#000\n    classDef process fill:#64b5f6,stroke:#1565c0,stroke-width:2px,color:#000\n    classDef output fill:#ce93d8,stroke:#6a1b9a,stroke-width:2px,color:#000\n    classDef train fill:#a5d6a7,stroke:#388e3c,stroke-width:2px,color:#000\n    classDef model fill:#ffcc80,stroke:#ef6c00,stroke-width:2px,color:#000",
+    "index": 3,
+    "id": "detection-methods_4",
+    "svgPath": "/workspace/docs/static/mermaid-svg/detection-methods_4.svg",
+    "svgUrl": "/mermaid-svg/detection-methods_4.svg"
+  },
+  {
+    "file": "/workspace/docs/architecture/overview.md",
+    "content": "graph TB\n    subgraph \"User Interface\"\n        UI1[CLI Tools]:::ui\n        UI2[HTML Viewer]:::ui\n    end\n    \n    subgraph \"Entry Points\"\n        EP1[single_sample_demo]:::entry\n        EP2[multi_sample_evaluation]:::entry\n        EP3[ml_curve_generator]:::entry\n        EP4[analyze_column]:::entry\n    end\n    \n    subgraph \"Orchestration\"\n        O1[ComprehensiveFieldDetector]:::orchestrator\n        O2[ConsolidatedReporter]:::orchestrator\n        O3[ConfusionMatrixAnalyzer]:::orchestrator\n    end\n    \n    subgraph \"Detection Engine\"\n        DE1[Validation Engine]:::validator\n        DE2[Pattern Detector]:::detector\n        DE3[ML Detector]:::ml\n        DE4[LLM Detector]:::llm\n    end\n    \n    subgraph \"Core Services\"\n        CS1[Field Mapper]:::service\n        CS2[Brand Config]:::service\n        CS3[Error Injector]:::service\n        CS4[Model Cache]:::service\n    end\n    \n    subgraph \"Data Storage\"\n        DS1[(CSV Data)]:::storage\n        DS2[(JSON Configs)]:::storage\n        DS3[(ML Models)]:::storage\n        DS4[(Detection Results)]:::storage\n    end\n    \n    UI1 --> EP1 & EP2 & EP3 & EP4\n    EP1 & EP2 --> O1\n    O1 --> DE1 & DE2 & DE3 & DE4\n    DE1 & DE2 & DE3 & DE4 --> CS1 & CS2 & CS3 & CS4\n    CS1 & CS2 & CS3 & CS4 --> DS1 & DS2 & DS3\n    O1 --> O2 & O3\n    O2 & O3 --> DS4\n    UI2 --> DS4\n    \n    classDef ui fill:#64b5f6,stroke:#1565c0,stroke-width:2px,color:#000\n    classDef entry fill:#81c784,stroke:#388e3c,stroke-width:2px,color:#000\n    classDef orchestrator fill:#ba68c8,stroke:#6a1b9a,stroke-width:2px,color:#fff\n    classDef validator fill:#4fc3f7,stroke:#0288d1,stroke-width:2px,color:#000\n    classDef detector fill:#ffb74d,stroke:#f57c00,stroke-width:2px,color:#000\n    classDef ml fill:#ff8a65,stroke:#d84315,stroke-width:2px,color:#000\n    classDef llm fill:#f06292,stroke:#c2185b,stroke-width:2px,color:#fff\n    classDef service fill:#fff176,stroke:#f9a825,stroke-width:2px,color:#000\n    classDef storage fill:#b0bec5,stroke:#455a64,stroke-width:2px,color:#000",
+    "index": 0,
+    "id": "overview_1",
+    "svgPath": "/workspace/docs/static/mermaid-svg/overview_1.svg",
+    "svgUrl": "/mermaid-svg/overview_1.svg"
+  },
+  {
+    "file": "/workspace/docs/architecture/overview.md",
+    "content": "graph LR\n    subgraph \"Detection Methods\"\n        V[Validation<br/>100% Confidence]:::validator\n        P[Pattern-Based<br/>70-80% Confidence]:::pattern\n        M[ML-Based<br/>Configurable]:::ml\n        L[LLM-Based<br/>Configurable]:::llm\n    end\n    \n    V --> VR[Rule Engine]:::engine\n    P --> PR[Pattern Matcher]:::engine\n    M --> MR[Similarity Engine]:::engine\n    L --> LR[Language Model]:::engine\n    \n    classDef validator fill:#4fc3f7,stroke:#0288d1,stroke-width:2px,color:#000\n    classDef pattern fill:#ffb74d,stroke:#f57c00,stroke-width:2px,color:#000\n    classDef ml fill:#ff8a65,stroke:#d84315,stroke-width:2px,color:#000\n    classDef llm fill:#f06292,stroke:#c2185b,stroke-width:2px,color:#fff\n    classDef engine fill:#b39ddb,stroke:#512da8,stroke-width:2px,color:#000",
+    "index": 1,
+    "id": "overview_2",
+    "svgPath": "/workspace/docs/static/mermaid-svg/overview_2.svg",
+    "svgUrl": "/mermaid-svg/overview_2.svg"
+  },
+  {
+    "file": "/workspace/docs/architecture/overview.md",
+    "content": "sequenceDiagram\n    participant User\n    participant CLI\n    participant Orchestrator\n    participant Detector\n    participant Reporter\n    participant Storage\n    \n    User->>CLI: Run detection command\n    CLI->>Orchestrator: Initialize with config\n    Orchestrator->>Storage: Load data\n    \n    loop For each field\n        Orchestrator->>Detector: Detect anomalies\n        Detector->>Storage: Load model/rules\n        Detector-->>Orchestrator: Return results\n    end\n    \n    Orchestrator->>Reporter: Generate report\n    Reporter->>Storage: Save results\n    Reporter-->>User: Display summary",
+    "index": 2,
+    "id": "overview_3",
+    "svgPath": "/workspace/docs/static/mermaid-svg/overview_3.svg",
+    "svgUrl": "/mermaid-svg/overview_3.svg"
+  },
+  {
+    "file": "/workspace/docs/architecture/overview.md",
+    "content": "flowchart TD\n    A[Input Data] --> B{Field Mapping}\n    B --> C[Field Selection]\n    C --> D{Detection Method}\n    \n    D --> E[Validation]\n    D --> F[Pattern Detection]\n    D --> G[ML Detection]\n    D --> H[LLM Detection]\n    \n    E & F & G & H --> I[Result Aggregation]\n    I --> J{Combination Strategy}\n    \n    J --> K[Priority-Based]\n    J --> L[Weighted Average]\n    \n    K & L --> M[Final Results]\n    M --> N[Report Generation]\n    N --> O[Output Files]",
+    "index": 3,
+    "id": "overview_4",
+    "svgPath": "/workspace/docs/static/mermaid-svg/overview_4.svg",
+    "svgUrl": "/mermaid-svg/overview_4.svg"
+  },
+  {
+    "file": "/workspace/docs/architecture/overview.md",
+    "content": "graph LR\n    A[First Request] --> B{Model in Cache?}\n    B -->|No| C[Load Model]\n    C --> D[Add to Cache]\n    D --> E[Use Model]\n    B -->|Yes| E\n    E --> F[Return Results]",
+    "index": 4,
+    "id": "overview_5",
+    "svgPath": "/workspace/docs/static/mermaid-svg/overview_5.svg",
+    "svgUrl": "/mermaid-svg/overview_5.svg"
+  },
+  {
+    "file": "/workspace/docs/architecture/overview.md",
+    "content": "graph TB\n    subgraph \"Security Layers\"\n        S1[Input Validation]\n        S2[Access Control]\n        S3[Data Sanitization]\n        S4[Output Filtering]\n    end\n    \n    I[Input] --> S1\n    S1 --> S2\n    S2 --> P[Processing]\n    P --> S3\n    S3 --> S4\n    S4 --> O[Output]",
+    "index": 5,
+    "id": "overview_6",
+    "svgPath": "/workspace/docs/static/mermaid-svg/overview_6.svg",
+    "svgUrl": "/mermaid-svg/overview_6.svg"
+  },
+  {
+    "file": "/workspace/docs/development/adding-fields.md",
+    "content": "flowchart TD\n    A[New Field Request] --> B[Analyze Field Data]\n    B --> C[Create Validator]\n    B --> D[Define Patterns]\n    B --> E[Train ML Model]\n    \n    C --> F[Test Validation]\n    D --> G[Test Pattern Detection]\n    E --> H[Test ML Detection]\n    \n    F & G & H --> I[Configure Field Mapping]\n    I --> J[Integration Testing]\n    J --> K[Deploy Field Support]",
+    "index": 0,
+    "id": "adding-fields_1",
+    "svgPath": "/workspace/docs/static/mermaid-svg/adding-fields_1.svg",
+    "svgUrl": "/mermaid-svg/adding-fields_1.svg"
+  },
+  {
+    "file": "/workspace/docs/getting-started/basic-usage.md",
+    "content": "flowchart LR\n    A[Input Data] --> B[Field Mapping]\n    B --> C[Detection Methods]\n    C --> D[Result Aggregation]\n    D --> E[Report Generation]\n    E --> F[Output Files]",
+    "index": 0,
+    "id": "basic-usage_1",
+    "svgPath": "/workspace/docs/static/mermaid-svg/basic-usage_1.svg",
+    "svgUrl": "/mermaid-svg/basic-usage_1.svg"
+  },
+  {
+    "file": "/workspace/docs/reference/cli.md",
+    "content": "graph TD\n    A[main.py] --> B[single-demo]\n    A --> C[multi-eval]\n    A --> D[ml-train]\n    A --> E[llm-train]\n    A --> F[analyze-column]\n    A --> G[ml-curves]",
+    "index": 0,
+    "id": "cli_1",
+    "svgPath": "/workspace/docs/static/mermaid-svg/cli_1.svg",
+    "svgUrl": "/mermaid-svg/cli_1.svg"
+  },
+  {
+    "file": "/workspace/docs/reference/interfaces.md",
+    "content": "classDiagram\n    class AnomalyDetectorInterface {\n        <<interface>>\n        +_detect_anomaly(value, context)\n        +learn_patterns(df, column_name)\n        +get_detector_args()\n        +bulk_detect(df, column_name, batch_size, max_workers)\n    }\n    \n    class ValidatorInterface {\n        <<interface>>\n        +_validate_entry(value)\n        +bulk_validate(df, column_name)\n    }\n    \n    class ReporterInterface {\n        <<interface>>\n        +generate_report(validation_errors, original_df)\n    }",
+    "index": 0,
+    "id": "interfaces_1",
+    "svgPath": "/workspace/docs/static/mermaid-svg/interfaces_1.svg",
+    "svgUrl": "/mermaid-svg/interfaces_1.svg"
+  }
+]

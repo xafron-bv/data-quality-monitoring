@@ -26,11 +26,9 @@ async function testServerReady(url, maxAttempts = 10) {
 }
 
 function getAllDocumentationPages() {
-  // Dynamically extract all page paths from the sidebar configuration
   const sidebarPath = path.join(__dirname, '..', 'sidebars.js');
   
   try {
-    // Import the sidebar configuration
     delete require.cache[require.resolve(sidebarPath)];
     const sidebarModule = require(sidebarPath);
     const sidebars = sidebarModule.default || sidebarModule;
@@ -47,7 +45,6 @@ function getAllDocumentationPages() {
       }
     }
     
-    // Extract pages from the main sidebar
     if (sidebars.tutorialSidebar) {
       extractPages(sidebars.tutorialSidebar);
     }
@@ -57,36 +54,26 @@ function getAllDocumentationPages() {
     
   } catch (error) {
     console.warn('Could not parse sidebar configuration, using fallback pages');
-    
-    // Minimal fallback
     return ['README'];
   }
 }
 
-async function generateCompletePDF() {
-  console.log('Starting complete PDF generation...');
+async function generatePDFWithBrowser() {
+  console.log('Starting browser-based PDF generation with Mermaid support...');
   
   const buildDir = path.join(__dirname, '..', 'build');
   const outputDir = path.join(buildDir, 'pdf');
   
-  // Ensure output directory exists
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
   
   try {
-    // Test if server is already running
     await testServerReady('http://localhost:3001');
     
-    // Additional wait for page to fully load and render
-    console.log('Waiting for page content to load...');
-    await sleep(5000); // Initial wait
-    
-    // Get all documentation pages
+    console.log('Getting all documentation pages...');
     const pages = getAllDocumentationPages();
-    console.log(`Found ${pages.length} pages to include in PDF`);
     
-    // Create URLs for valid pages only
     const baseUrl = 'http://localhost:3001';
     const validUrls = [];
     
@@ -98,7 +85,6 @@ async function generateCompletePDF() {
         url = baseUrl + '/' + page;
       }
       
-      // Test if the URL exists
       try {
         const testResult = execSync(`curl -s -o /dev/null -w "%{http_code}" "${url}"`, { 
           encoding: 'utf8',
@@ -115,49 +101,140 @@ async function generateCompletePDF() {
       }
     }
     
-    console.log(`\nGenerating PDF from ${validUrls.length} valid pages...`);
+    console.log(`\nGenerating PDF from ${validUrls.length} valid pages using Chrome...`);
     
-    // Generate PDF using simple wkhtmltopdf approach
     const outputPdf = path.join(outputDir, 'xafron-documentation.pdf');
-    const printCssPath = path.join(__dirname, '..', 'print.css');
     
-    console.log('📊 Note: Using pre-rendered SVG diagrams (see static/mermaid-svg/)');
-    
-    // Simple wkhtmltopdf command - JavaScript disabled since we use pre-rendered SVGs
-    const wkhtmltopdfCmd = [
-      'wkhtmltopdf',
-      '--page-size', 'A4',
-      '--margin-top', '20mm',
-      '--margin-bottom', '20mm', 
-      '--margin-left', '15mm',
-      '--margin-right', '15mm',
-      '--encoding', 'UTF-8',
-      '--disable-javascript', // Disabled - using pre-rendered SVGs instead
-      '--load-error-handling', 'ignore',
-      '--load-media-error-handling', 'ignore', 
-      '--print-media-type',
-      '--user-style-sheet', printCssPath,
-      ...validUrls,
-      outputPdf
+    // Check if Chrome/Chromium is available
+    let chromeCmd = null;
+    const chromePaths = [
+      'google-chrome',
+      'google-chrome-stable', 
+      'chromium-browser',
+      'chromium',
+      '/usr/bin/google-chrome',
+      '/usr/bin/chromium-browser'
     ];
     
-    const command = wkhtmltopdfCmd.join(' ');
-    console.log('Executing PDF generation...');
+    for (const cmd of chromePaths) {
+      try {
+        execSync(`which ${cmd}`, { stdio: 'ignore' });
+        chromeCmd = cmd;
+        break;
+      } catch (e) {
+        // Try next
+      }
+    }
     
-    execSync(command, {
+    if (!chromeCmd) {
+      console.log('Chrome/Chromium not found. Installing chromium-browser...');
+      execSync('sudo apt-get update && sudo apt-get install -y chromium-browser', { stdio: 'inherit' });
+      chromeCmd = 'chromium-browser';
+    }
+    
+    console.log(`Using Chrome: ${chromeCmd}`);
+    
+    // Create a temporary HTML file that loads all pages with proper Mermaid rendering
+    const tempHtmlPath = path.join(outputDir, 'combined-docs.html');
+    const printCssPath = path.join(__dirname, '..', 'print.css');
+    
+    // Read print CSS
+    const printCss = fs.readFileSync(printCssPath, 'utf8');
+    
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Xafron Documentation</title>
+    <style>
+        ${printCss}
+        
+        /* Additional styles for combined PDF */
+        .page-break {
+            page-break-before: always;
+        }
+        
+        .iframe-container {
+            width: 100%;
+            min-height: 100vh;
+            border: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        iframe {
+            width: 100%;
+            min-height: 100vh;
+            border: none;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'neutral',
+            securityLevel: 'loose'
+        });
+        
+        // Wait for all iframes to load and Mermaid to render
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                console.log('Page fully loaded with Mermaid rendered');
+                window.mermaidReady = true;
+            }, 5000);
+        });
+    </script>
+</head>
+<body>
+    <h1>Xafron Documentation</h1>
+    ${validUrls.map((url, index) => `
+        ${index > 0 ? '<div class="page-break"></div>' : ''}
+        <div class="iframe-container">
+            <iframe src="${url}" onload="console.log('Loaded: ${url}')"></iframe>
+        </div>
+    `).join('\\n')}
+</body>
+</html>`;
+    
+    fs.writeFileSync(tempHtmlPath, htmlContent);
+    
+    // Generate PDF with Chrome
+    const chromeArgs = [
+      '--headless',
+      '--disable-gpu',
+      '--no-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-extensions',
+      '--disable-plugins',
+      '--virtual-time-budget=30000', // Wait 30 seconds for content to load
+      '--run-all-compositor-stages-before-draw',
+      '--print-to-pdf=' + outputPdf,
+      '--print-to-pdf-no-header',
+      `file://${tempHtmlPath}`
+    ];
+    
+    console.log('Generating PDF with Chrome...');
+    console.log(`Command: ${chromeCmd} ${chromeArgs.join(' ')}`);
+    
+    execSync(`${chromeCmd} ${chromeArgs.join(' ')}`, {
       stdio: 'inherit',
-      cwd: path.join(__dirname, '..')
+      timeout: 60000 // 60 second timeout
     });
     
-    // Check if PDF was generated
+    // Clean up temporary file
+    fs.unlinkSync(tempHtmlPath);
+    
     if (fs.existsSync(outputPdf)) {
       const stats = fs.statSync(outputPdf);
-      console.log(`\n✅ PDF generated successfully!`);
+      console.log(`\n✅ PDF generated successfully with Chrome!`);
       console.log(`   Location: ${outputPdf}`);
       console.log(`   Size: ${(stats.size / 1024).toFixed(1)} KB`);
       console.log(`   Pages included: ${validUrls.length}`);
       
-      // Also copy to static directory
+      // Copy to static directory
       const staticPdfDir = path.join(__dirname, '..', 'static', 'pdf');
       if (!fs.existsSync(staticPdfDir)) {
         fs.mkdirSync(staticPdfDir, { recursive: true });
@@ -174,12 +251,11 @@ async function generateCompletePDF() {
   }
 }
 
-// Run if called directly
 if (require.main === module) {
-  generateCompletePDF().catch(error => {
+  generatePDFWithBrowser().catch(error => {
     console.error('PDF generation failed:', error.message);
     process.exit(1);
   });
 }
 
-module.exports = { generatePDF: generateCompletePDF };
+module.exports = { generatePDFWithBrowser };
