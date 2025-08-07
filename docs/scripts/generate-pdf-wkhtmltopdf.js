@@ -66,7 +66,17 @@ async function generatePDF() {
     // Generate PDF using docusaurus-wkhtmltopdf
     console.log('Generating PDF with docusaurus-wkhtmltopdf...');
     
-    const command = 'npx docusaurus-wkhtmltopdf -u http://localhost:3001 --dest . --output xafron-documentation.pdf --toc --wkhtmltopdf-args "--user-style-sheet print.css"';
+    const wkArgs = [
+      '--user-style-sheet print.css',
+      '--enable-internal-links',
+      '--enable-javascript',
+      '--javascript-delay 3000',
+      '--no-stop-slow-scripts',
+      '--print-media-type',
+      '--load-error-handling ignore'
+    ].join(' ');
+
+    const command = `npx docusaurus-wkhtmltopdf -u http://localhost:3001 --dest . --output xafron-documentation.pdf --toc --wkhtmltopdf-args "${wkArgs}"`;
     
     console.log('Command:', command);
     
