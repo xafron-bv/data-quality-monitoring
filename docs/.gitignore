@@ -13,6 +13,13 @@ build/
 *.pdf
 static/pdf/*.pdf
 
+# Installation packages and binaries
+*.deb
+*.rpm
+*.msi
+*.exe
+wkhtmltox*
+
 # Misc
 .DS_Store
 .env.local
@@ -30,6 +37,8 @@ static/pdf/*.pdf
 # Temporary files
 *.tmp
 *.temp
+localhost.txt
+pdf/localhost.txt
 
 # OS generated files
 Thumbs.db
