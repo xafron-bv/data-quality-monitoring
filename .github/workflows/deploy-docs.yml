@@ -45,40 +45,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: docs/package-lock.json
 
-      # Cache npm dependencies with more specific key
-      - name: Cache npm dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.npm
-            docs/node_modules
-          key: ${{ runner.os }}-npm-${{ hashFiles('docs/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
-
-      # Cache Chrome and apt packages
-      - name: Cache Chrome installation
-        uses: actions/cache@v4
-        id: chrome-cache
-        with:
-          path: |
-            /usr/bin/google-chrome-stable
-            /opt/google/chrome
-          key: ${{ runner.os }}-chrome-stable-${{ hashFiles('.github/workflows/deploy-docs.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-chrome-stable-
-
-      # Cache apt packages
-      - name: Cache apt packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            /var/cache/apt/archives
-          key: ${{ runner.os }}-apt-${{ hashFiles('.github/workflows/deploy-docs.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-apt-
-
-      # Cache Docusaurus build artifacts (excluding build output)
+      # Cache Docusaurus build artifacts
       - name: Cache Docusaurus build
         uses: actions/cache@v4
         with:
@@ -89,26 +56,31 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-docusaurus-build-
 
+      # Cache wkhtmltopdf installation
+      - name: Cache wkhtmltopdf
+        uses: actions/cache@v4
+        id: wkhtmltopdf-cache
+        with:
+          path: |
+            /usr/bin/wkhtmltopdf
+            /usr/bin/wkhtmltoimage
+            /usr/lib/x86_64-linux-gnu/libwkhtmltox*
+            /usr/share/doc/wkhtmltopdf
+            /usr/share/man/man1/wkhtmlto*
+          key: ${{ runner.os }}-wkhtmltopdf-${{ hashFiles('.github/workflows/deploy-docs.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-wkhtmltopdf-
+
       - name: Install dependencies
         run: npm ci
         working-directory: ./docs
 
-      - name: Install Chrome dependencies for PDF generation
-        if: steps.chrome-cache.outputs.cache-hit != 'true'
+      # Install wkhtmltopdf for PDF generation
+      - name: Install wkhtmltopdf
+        if: steps.wkhtmltopdf-cache.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            wget \
-            gnupg \
-            ca-certificates
-          
-          # Add Google Chrome repository
-          wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-          
-          # Update and install Chrome
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
+          sudo apt-get install -y wkhtmltopdf
         env:
           DEBIAN_FRONTEND: noninteractive
 
@@ -119,10 +91,6 @@ jobs:
       - name: Build website
         run: npm run build
         working-directory: ./docs
-        env:
-          # Puppeteer configuration for CI
-          PUPPETEER_ARGS: "--no-sandbox,--disable-setuid-sandbox,--disable-dev-shm-usage,--disable-accelerated-2d-canvas,--no-first-run,--no-zygote,--disable-gpu"
-          PUPPETEER_EXECUTABLE_PATH: "/usr/bin/google-chrome-stable"
 
       - name: Setup Pages
         if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
