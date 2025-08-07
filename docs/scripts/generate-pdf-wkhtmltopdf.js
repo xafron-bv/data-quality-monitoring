@@ -6,6 +6,20 @@ async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+async function testServerReady(url, maxAttempts = 20) {
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      execSync(`curl -s -o /dev/null -w "%{http_code}" ${url}`, { timeout: 5000 });
+      console.log(`Server is ready at ${url}`);
+      return true;
+    } catch (error) {
+      console.log(`Waiting for server... attempt ${i + 1}/${maxAttempts}`);
+      await sleep(2000);
+    }
+  }
+  throw new Error(`Server not ready after ${maxAttempts} attempts`);
+}
+
 async function generatePDF() {
   console.log('Starting PDF generation with wkhtmltopdf...');
   
@@ -27,25 +41,40 @@ async function generatePDF() {
   
   serverProcess.unref();
   
-  // Wait for server to start and Mermaid to initialize
-  console.log('Waiting for server to start and Mermaid to initialize...');
-  await sleep(8000); // Increased wait time for Mermaid
+  // Wait for server to start
+  console.log('Waiting for server to start...');
+  await sleep(3000);
+  
+  // Test server connectivity
+  await testServerReady('http://localhost:3001');
   
   try {
-    // Generate PDF using docusaurus-wkhtmltopdf with enhanced JavaScript handling
-    console.log('Generating PDF with enhanced Mermaid support...');
+    // Generate PDF using direct wkhtmltopdf with Mermaid detection
+    console.log('Generating PDF with Mermaid detection...');
     
-    // Enhanced wkhtmltopdf arguments for Mermaid rendering
-    const wkhtmltopdfArgs = [
-      '--user-style-sheet print.css',
+    const outputPdf = path.join(__dirname, '..', 'xafron-documentation.pdf');
+    const printCssPath = path.join(__dirname, '..', 'print.css');
+    const mermaidScriptPath = path.join(__dirname, 'mermaid-wait.js');
+    
+    // Enhanced wkhtmltopdf command for proper Mermaid detection  
+    const wkhtmltopdfCmd = [
+      'wkhtmltopdf',
+      '--page-size', 'A4',
+      '--encoding', 'UTF-8',
       '--enable-javascript',
-      '--javascript-delay 5000', // Wait 5 seconds for JavaScript to complete
-      '--load-error-handling ignore',
+      '--debug-javascript',
+      '--load-error-handling', 'ignore',
       '--no-stop-slow-scripts',
-      '--viewport-size 1280x1024'
-    ].join(' ');
+      '--javascript-delay', '8000', // 8 second delay for Mermaid rendering
+      '--window-status', 'mermaid-ready', // Wait for this window status
+      '--print-media-type',
+      '--user-style-sheet', printCssPath,
+      '--run-script', mermaidScriptPath,
+      'http://localhost:3001',
+      outputPdf
+    ];
     
-    const command = `npx docusaurus-wkhtmltopdf -u http://localhost:3001 --output xafron-documentation.pdf --compress --toc --wkhtmltopdf-args "${wkhtmltopdfArgs}"`;
+    const command = wkhtmltopdfCmd.join(' ');
     
     console.log('Command:', command);
     
@@ -54,13 +83,16 @@ async function generatePDF() {
       cwd: path.join(__dirname, '..')
     });
     
-    // Move the generated PDF to the correct location
-    const generatedPdf = path.join(__dirname, '..', 'xafron-documentation.pdf');
-    const targetPdf = path.join(outputDir, 'xafron-documentation.pdf');
-    
-    if (fs.existsSync(generatedPdf)) {
-      fs.renameSync(generatedPdf, targetPdf);
-      console.log(`PDF generated successfully at: ${targetPdf}`);
+    // Check if PDF was generated
+    if (fs.existsSync(outputPdf)) {
+      console.log(`PDF generated successfully at: ${outputPdf}`);
+      
+      // Move to build directory
+      const targetPdf = path.join(outputDir, 'xafron-documentation.pdf');
+      if (outputPdf !== targetPdf) {
+        fs.copyFileSync(outputPdf, targetPdf);
+        console.log(`PDF copied to build directory: ${targetPdf}`);
+      }
       
       // Also copy to static directory
       const staticPdfDir = path.join(__dirname, '..', 'static', 'pdf');
@@ -70,7 +102,7 @@ async function generatePDF() {
       fs.copyFileSync(targetPdf, path.join(staticPdfDir, 'xafron-documentation.pdf'));
       console.log(`PDF copied to static directory: ${path.join(staticPdfDir, 'xafron-documentation.pdf')}`);
     } else {
-      console.error('PDF generation failed - file not found at:', generatedPdf);
+      console.error('PDF generation failed - file not found at:', outputPdf);
     }
     
   } catch (error) {
