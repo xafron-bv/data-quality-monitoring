@@ -6,9 +6,8 @@ This document provides a concise reference for all command-line interfaces in th
 
 The system provides a unified entry point through `main.py`:
 
-```python
-import subprocess
-subprocess.run(["python", "main.py", "<command>"]) 
+```bash
+python main.py <command>
 ```
 
 ### Available Commands
@@ -25,9 +24,8 @@ subprocess.run(["python", "main.py", "<command>"])
 ### single-demo
 Run single sample demonstration with comprehensive detection.
 
-```python
-import subprocess
-subprocess.run(["python", "main.py", "single-demo", "--help"]) 
+```bash
+python main.py single-demo --help
 ```
 
 #### Required
@@ -80,14 +78,8 @@ subprocess.run(["python", "main.py", "single-demo", "--help"])
 ### multi-eval
 Run evaluation across multiple samples for performance analysis.
 
-```python
-import subprocess
-subprocess.run([
-  "python", "main.py", "multi-eval",
-  "data/source.csv", "--field", "material",
-  "--num-samples", "50",
-  "--output-dir", "evaluation_results",
-])
+```bash
+python main.py multi-eval data/source.csv --field material --num-samples 50 --output-dir evaluation_results
 ```
 
 #### Arguments
@@ -112,12 +104,8 @@ subprocess.run([
 ### ml-train
 Train ML-based anomaly detection models or run anomaly checks.
 
-```python
-import subprocess
-subprocess.run([
-  "python", "main.py", "ml-train", "data.csv",
-  "--use-hp-search", "--fields", "material color_name",
-])
+```bash
+python main.py ml-train data.csv --use-hp-search --fields "material color_name"
 ```
 
 Key options:
@@ -129,9 +117,8 @@ Key options:
 ### analyze-column
 Analyze a specific column in a CSV file.
 
-```python
-import subprocess
-subprocess.run(["python", "main.py", "analyze-column", "data/products.csv", "material"]) 
+```bash
+python main.py analyze-column data/products.csv material
 ```
 
 Key options:
@@ -140,13 +127,8 @@ Key options:
 ### ml-curves
 Generate precision-recall and ROC curves for ML-based and LLM-based anomaly detection.
 
-```python
-import subprocess
-subprocess.run([
-  "python", "main.py", "ml-curves", "data/products.csv",
-  "--detection-type", "ml",
-  "--fields", "material color_name",
-])
+```bash
+python main.py ml-curves data/products.csv --detection-type ml --fields "material color_name"
 ```
 
 Key options:

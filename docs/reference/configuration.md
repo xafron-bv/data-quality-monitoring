@@ -128,10 +128,9 @@ output_dir/
    print(config.get_column_name('material'))
    ```
 4. Run detection:
-   ```python
-   import subprocess
-   subprocess.run(["python", "main.py", "single-demo", "--data-file", "your_data.csv"]) 
-   ```
+   ```bash
+python main.py single-demo --data-file your_data.csv
+```
 
 ## Best Practices
 

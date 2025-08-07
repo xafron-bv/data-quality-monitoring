@@ -14,26 +14,14 @@ This guide covers evaluating detection performance and optimizing the system for
 
 #### Basic Evaluation
 
-```python
-import subprocess
-subprocess.run([
-  "python", "main.py", "multi-eval",
-  "your_data.csv", "--field", "material",
-  "--num-samples", "100",
-  "--output-dir", "evaluation_results",
-])
+```bash
+python main.py multi-eval your_data.csv --field material --num-samples 100 --output-dir evaluation_results
 ```
 
 #### Field-Specific Evaluation
 
-```python
-import subprocess
-subprocess.run([
-  "python", "main.py", "multi-eval",
-  "your_data.csv", "--field", "color_name",
-  "--ml-detector", "--run", "all",
-  "--num-samples", "50",
-])
+```bash
+python main.py multi-eval your_data.csv --field color_name --ml-detector --run all --num-samples 50
 ```
 
 ## Weighted Combination Optimization
@@ -42,13 +30,8 @@ subprocess.run([
 
 After a single-demo run, use the unified report to generate optimized weights:
 
-```python
-import subprocess
-subprocess.run([
-  "python", "single_sample_multi_field_demo/generate_detection_weights.py",
-  "-i", "results/demo_analysis_unified_report.json",
-  "-o", "detection_weights.json",
-])
+```bash
+python single_sample_multi_field_demo/generate_detection_weights.py -i results/demo_analysis_unified_report.json -o detection_weights.json
 ```
 
 ### Weight Report Structure
@@ -64,43 +47,24 @@ subprocess.run([
 
 ### Using Optimized Weights
 
-```python
-import subprocess
-subprocess.run([
-  "python", "main.py", "single-demo",
-  "--data-file", "your_data.csv",
-  "--use-weighted-combination",
-  "--weights-file", "detection_weights.json",
-])
+```bash
+python main.py single-demo --data-file your_data.csv --use-weighted-combination --weights-file detection_weights.json
 ```
 
 ## Threshold Optimization
 
 Use ML curves to find the best thresholds:
 
-```python
-import subprocess
-subprocess.run([
-  "python", "main.py", "ml-curves", "your_data.csv",
-  "--fields", "material color_name",
-  "--output-dir", "threshold_analysis",
-])
+```bash
+python main.py ml-curves your_data.csv --fields "material color_name" --output-dir threshold_analysis
 ```
 
 This generates precision-recall curves and recommends thresholds.
 
 Apply optimized thresholds:
 
-```python
-import subprocess
-subprocess.run([
-  "python", "main.py", "single-demo",
-  "--data-file", "your_data.csv",
-  "--validation-threshold", "0.0",
-  "--anomaly-threshold", "0.75",
-  "--ml-threshold", "0.82",
-  "--llm-threshold", "0.65",
-])
+```bash
+python main.py single-demo --data-file your_data.csv --validation-threshold 0.0 --anomaly-threshold 0.75 --ml-threshold 0.82 --llm-threshold 0.65
 ```
 
 ## Tuning Strategies
