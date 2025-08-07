@@ -4,26 +4,43 @@ This document explains the PDF generation approach used for the Xafron documenta
 
 ## Overview
 
-The PDF generation system uses Puppeteer to render the Docusaurus site and generate high-quality PDFs. This approach provides better control over styling and formatting compared to the previous `docs-to-pdf` package.
+The PDF generation system uses **wkhtmltopdf** to render the Docusaurus site and generate high-quality PDFs. This approach is based on the [docusaurus-wkhtmltopdf](https://github.com/nuxnik/docusaurus-wkhtmltopdf) project, which provides an open-source alternative to closed-source PDF generators.
 
 ## How It Works
 
 1. **Server Startup**: The script starts a local Docusaurus server on port 3001
-2. **Page Discovery**: It checks which documentation pages exist and are accessible
-3. **Individual PDF Generation**: Each page is rendered and converted to a separate PDF
+2. **Site Crawling**: The docusaurus-wkhtmltopdf tool crawls the site to discover all documentation pages
+3. **HTML to PDF Conversion**: Each page is converted to PDF using wkhtmltopdf
 4. **PDF Merging**: All individual PDFs are merged into a single comprehensive document
-5. **Cleanup**: Temporary files are removed and the final PDF is placed in the static directory
+5. **Compression**: The final PDF is compressed using Ghostscript (optional)
+6. **Table of Contents**: A table of contents is automatically generated
 
 ## Files
 
-- `scripts/generate-pdf-advanced.js` - Main PDF generation script
-- `scripts/generate-pdf.js` - Simple single-page PDF generation (backup)
+- `scripts/generate-pdf-wkhtmltopdf.js` - Main PDF generation script
+- `print.css` - Custom CSS for PDF styling
+- `scripts/generate-pdf-advanced.js` - Previous Puppeteer implementation (backup)
 - `scripts/generate-pdf-with-server.js` - Old implementation using docs-to-pdf
 
 ## Dependencies
 
-- `puppeteer` - For browser automation and PDF generation
-- `pdf-lib` - For merging multiple PDFs into one document
+- `docusaurus-wkhtmltopdf` - The main PDF generation tool
+- `wkhtmltopdf` - HTML to PDF converter (system dependency)
+- `ghostscript` - PDF compression tool (optional, system dependency)
+
+## System Requirements
+
+### Required
+- **wkhtmltopdf**: HTML to PDF converter
+  - Ubuntu/Debian: `sudo apt-get install wkhtmltopdf`
+  - macOS: `brew install wkhtmltopdf`
+  - Windows: Download from [wkhtmltopdf.org](https://wkhtmltopdf.org/)
+
+### Optional
+- **Ghostscript**: For PDF compression
+  - Ubuntu/Debian: `sudo apt-get install ghostscript`
+  - macOS: `brew install ghostscript`
+  - Windows: Download from [ghostscript.com](https://www.ghostscript.com/)
 
 ## Usage
 
@@ -50,52 +67,56 @@ npm run generate-pdf
 
 ### Pages Included
 
-The script automatically includes the following pages (if they exist):
-
-- Home page (`/`)
-- Getting Started guides
-- Architecture documentation
-- User guides
-- API reference
-- Configuration documentation
-- Deployment guides
-- Development setup
+The tool automatically discovers and includes all accessible documentation pages by crawling the site structure.
 
 ### Styling
 
-The PDF uses custom CSS for print media that:
+The PDF uses custom CSS (`print.css`) that:
 
 - Hides navigation elements (navbar, sidebar, pagination)
 - Ensures proper formatting for code blocks and tables
 - Makes links visible and removes URL suffixes
 - Prevents page breaks in inappropriate places
 - Optimizes images and content layout
+- Provides consistent typography and spacing
 
 ### PDF Settings
 
 - Format: A4
-- Margins: 20mm on all sides
-- Background: Printed
-- Headers/Footers: Page numbers and titles
-- Quality: High resolution
+- Compression: Enabled (if Ghostscript is available)
+- Table of Contents: Automatically generated
+- Custom CSS: Applied via `print.css`
+
+## Features
+
+### Automatic Features
+- **Site Crawling**: Automatically discovers all documentation pages
+- **Table of Contents**: Generates a clickable TOC
+- **PDF Compression**: Reduces file size (requires Ghostscript)
+- **Custom Styling**: Applies print-optimized CSS
+
+### Customization Options
+- **Target Specific Sections**: Can focus on specific documentation areas
+- **Custom Output Filename**: Configurable output file name
+- **Custom Working Directory**: Configurable output location
+- **Additional wkhtmltopdf Options**: Pass custom arguments to wkhtmltopdf
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Server not starting**: Check if port 3001 is available
-2. **Pages not found**: Verify that the documentation pages exist
-3. **PDF generation fails**: Check browser dependencies in CI environment
-4. **Memory issues**: The script includes memory optimization flags for Puppeteer
+1. **wkhtmltopdf not found**: Install wkhtmltopdf on your system
+2. **Ghostscript not found**: Install ghostscript for compression (optional)
+3. **Server not starting**: Check if port 3001 is available
+4. **PDF generation fails**: Check system dependencies and permissions
 
 ### CI/CD Environment
 
-For CI/CD environments, the script includes:
+For CI/CD environments, you can use the Docker image:
 
-- Sandbox disabling for containerized environments
-- GPU acceleration disabling
-- Memory optimization flags
-- Graceful fallback to placeholder file if generation fails
+```bash
+docker run --rm -v /tmp/pdf:/d2p/pdf nuxnik/docusaurus-to-pdf -u http://localhost:3001 --compress --toc
+```
 
 ### Debugging
 
@@ -103,57 +124,46 @@ To debug PDF generation issues:
 
 1. Check the console output for page discovery results
 2. Verify that the Docusaurus server starts successfully
-3. Ensure all required pages are accessible
-4. Check for any JavaScript errors in the browser console
+3. Ensure wkhtmltopdf is installed and accessible
+4. Check for any system dependency issues
 
 ## Customization
 
-### Adding New Pages
-
-To include additional pages, modify the `pages` array in `generate-pdf-advanced.js`:
-
-```javascript
-const pages = [
-  { url: '/your-new-page', title: 'Your New Page' },
-  // ... existing pages
-];
-```
-
 ### Modifying Styling
 
-To change PDF styling, modify the CSS in the `addStyleTag` call:
+To change PDF styling, edit the `print.css` file:
 
-```javascript
-await page.addStyleTag({
-  content: `
-    @media print {
-      /* Your custom styles here */
-    }
-  `
-});
+```css
+/* Your custom print styles here */
+@media print {
+  /* Custom styles */
+}
 ```
 
-### Changing PDF Settings
+### Adding Custom wkhtmltopdf Options
 
-To modify PDF generation settings, update the `page.pdf()` options:
+To add custom wkhtmltopdf arguments, modify the script:
 
 ```javascript
-const pdfBuffer = await page.pdf({
-  format: 'A4',
-  printBackground: true,
-  margin: { top: '20mm', right: '20mm', bottom: '20mm', left: '20mm' },
-  // ... other options
-});
+const command = 'npx docusaurus-wkhtmltopdf -u http://localhost:3001 --output xafron-documentation.pdf --compress --toc --wkhtmltopdf-args "--your-custom-option"';
+```
+
+### Targeting Specific Sections
+
+To generate PDFs for specific sections only:
+
+```bash
+npx docusaurus-wkhtmltopdf -u http://localhost:3001/getting-started --output getting-started.pdf
 ```
 
 ## Performance
 
 The PDF generation process typically takes 30-60 seconds depending on:
 
-- Number of pages included
+- Number of pages discovered
 - Content complexity
 - System resources
-- Network speed (for external resources)
+- Whether compression is enabled
 
 ## Output
 
@@ -162,7 +172,17 @@ The final PDF is saved to:
 - `static/pdf/xafron-documentation.pdf` (static assets)
 
 The PDF includes:
-- All accessible documentation pages
+- All discovered documentation pages
+- Automatic table of contents
 - Proper page numbering
-- Consistent styling
-- Optimized layout for printing
+- Consistent styling optimized for printing
+- Compressed file size (if Ghostscript is available)
+
+## Advantages of This Approach
+
+1. **Open Source**: Uses open-source tools (wkhtmltopdf, Ghostscript)
+2. **Mature**: Based on well-established tools
+3. **Flexible**: Highly configurable with custom CSS and options
+4. **Efficient**: Fast generation and good compression
+5. **Reliable**: Stable and well-tested approach
+6. **Docker Support**: Complete containerized solution available

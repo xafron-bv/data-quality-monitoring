@@ -1,0 +1,195 @@
+/* Custom print styles for PDF generation */
+
+/* Hide navigation and sidebar elements */
+.navbar,
+.theme-doc-sidebar-container,
+.pagination-nav,
+.theme-edit-this-page,
+.breadcrumbs,
+[class^='tocCollapsible'],
+.theme-doc-toc-desktop,
+.theme-doc-toc-mobile {
+  display: none !important;
+}
+
+/* Ensure content is properly formatted */
+article {
+  margin: 0 !important;
+  padding: 20px !important;
+  max-width: none !important;
+}
+
+/* Make links visible */
+a {
+  color: #0066cc !important;
+  text-decoration: underline !important;
+}
+
+/* Remove link URLs from being printed */
+a[href]:after {
+  content: none !important;
+}
+
+/* Ensure code blocks are readable */
+pre {
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  background-color: #f6f8fa !important;
+  border: 1px solid #e1e4e8 !important;
+  border-radius: 6px !important;
+  padding: 16px !important;
+  margin: 16px 0 !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+code {
+  background-color: #f6f8fa !important;
+  border: 1px solid #e1e4e8 !important;
+  border-radius: 3px !important;
+  padding: 2px 4px !important;
+  font-size: 12px !important;
+}
+
+/* Ensure tables are properly formatted */
+table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  margin: 16px 0 !important;
+}
+
+th, td {
+  border: 1px solid #d0d7de !important;
+  padding: 8px !important;
+  text-align: left !important;
+  vertical-align: top !important;
+}
+
+th {
+  background-color: #f6f8fa !important;
+  font-weight: bold !important;
+}
+
+/* Ensure images are properly sized */
+img {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  margin: 16px auto !important;
+}
+
+/* Page breaks */
+h1, h2, h3 {
+  page-break-after: avoid !important;
+  margin-top: 20px !important;
+  margin-bottom: 10px !important;
+}
+
+h1 {
+  font-size: 24px !important;
+  border-bottom: 2px solid #e1e4e8 !important;
+  padding-bottom: 8px !important;
+}
+
+h2 {
+  font-size: 20px !important;
+  border-bottom: 1px solid #e1e4e8 !important;
+  padding-bottom: 6px !important;
+}
+
+h3 {
+  font-size: 18px !important;
+}
+
+pre, table, img {
+  page-break-inside: avoid !important;
+}
+
+/* Lists */
+ul, ol {
+  margin: 16px 0 !important;
+  padding-left: 20px !important;
+}
+
+li {
+  margin: 4px 0 !important;
+}
+
+/* Blockquotes */
+blockquote {
+  border-left: 4px solid #e1e4e8 !important;
+  padding-left: 16px !important;
+  margin: 16px 0 !important;
+  font-style: italic !important;
+  color: #586069 !important;
+}
+
+/* Admonitions */
+.theme-admonition {
+  border: 1px solid #e1e4e8 !important;
+  border-radius: 6px !important;
+  padding: 16px !important;
+  margin: 16px 0 !important;
+  background-color: #f6f8fa !important;
+}
+
+.theme-admonition-note {
+  border-left: 4px solid #0366d6 !important;
+}
+
+.theme-admonition-tip {
+  border-left: 4px solid #28a745 !important;
+}
+
+.theme-admonition-caution {
+  border-left: 4px solid #f6a434 !important;
+}
+
+.theme-admonition-warning {
+  border-left: 4px solid #d73a49 !important;
+}
+
+.theme-admonition-danger {
+  border-left: 4px solid #d73a49 !important;
+  background-color: #ffeef0 !important;
+}
+
+/* Mermaid diagrams */
+.mermaid {
+  text-align: center !important;
+  margin: 20px 0 !important;
+}
+
+/* Ensure proper spacing */
+p {
+  margin: 12px 0 !important;
+  line-height: 1.6 !important;
+}
+
+/* Remove any background colors that might interfere */
+* {
+  background-color: white !important;
+}
+
+/* Ensure proper font sizes */
+body {
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+
+/* Remove any shadows or effects */
+* {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* Ensure proper margins for the main content */
+.main-wrapper {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Remove any fixed positioning */
+* {
+  position: static !important;
+}

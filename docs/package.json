@@ -15,7 +15,7 @@
     "validate-mermaid": "node scripts/validate-mermaid.js",
     "prebuild": "npm run validate-mermaid",
     "postbuild": "echo 'Starting PDF generation...' && npm run generate-pdf",
-    "generate-pdf": "node scripts/generate-pdf-advanced.js"
+    "generate-pdf": "node scripts/generate-pdf-wkhtmltopdf.js"
   },
   "dependencies": {
     "@docusaurus/core": "^3.0.1",
@@ -30,8 +30,7 @@
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.0.1",
     "@docusaurus/types": "^3.0.1",
-    "puppeteer": "^21.0.0",
-    "pdf-lib": "^1.17.1"
+    "docusaurus-wkhtmltopdf": "^1.1.4"
   },
   "browserslist": {
     "production": [
