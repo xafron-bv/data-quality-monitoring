@@ -123,7 +123,7 @@ const config = {
               },
               {
                 label: 'API Reference',
-                to: '/api/interfaces',
+                to: '/reference/interfaces',
               },
             ],
           },
