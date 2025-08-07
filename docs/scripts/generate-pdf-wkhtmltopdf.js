@@ -59,6 +59,19 @@ async function generatePDF() {
       }
       fs.copyFileSync(targetPdf, path.join(staticPdfDir, 'xafron-documentation.pdf'));
       console.log(`PDF copied to static directory: ${path.join(staticPdfDir, 'xafron-documentation.pdf')}`);
+      
+      // Clean up temporary files created by docusaurus-wkhtmltopdf
+      const tempFiles = [
+        path.join(__dirname, '..', 'pdf', 'localhost.txt'),
+        path.join(__dirname, '..', 'localhost.txt')
+      ];
+      
+      tempFiles.forEach(tempFile => {
+        if (fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+          console.log(`Cleaned up temporary file: ${tempFile}`);
+        }
+      });
     } else {
       console.error('PDF generation failed - file not found at:', generatedPdf);
     }
@@ -85,6 +98,23 @@ async function generatePDF() {
     } catch (e) {
       // Server might have already stopped
     }
+    
+    // Clean up any remaining temporary files created by docusaurus-wkhtmltopdf
+    const tempFiles = [
+      path.join(__dirname, '..', 'pdf', 'localhost.txt'),
+      path.join(__dirname, '..', 'localhost.txt')
+    ];
+    
+    tempFiles.forEach(tempFile => {
+      try {
+        if (fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+          console.log(`Cleaned up temporary file: ${tempFile}`);
+        }
+      } catch (e) {
+        // Ignore cleanup errors
+      }
+    });
   }
 }
 
