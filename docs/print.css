@@ -158,6 +158,35 @@ blockquote {
 .mermaid {
   text-align: center !important;
   margin: 20px 0 !important;
+  page-break-inside: avoid !important;
+}
+
+.mermaid svg {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  margin: 0 auto !important;
+}
+
+/* Ensure mermaid text is visible */
+.mermaid text {
+  fill: #000 !important;
+  stroke: none !important;
+}
+
+/* Ensure mermaid lines are visible */
+.mermaid path,
+.mermaid line {
+  stroke: #333 !important;
+}
+
+/* Ensure mermaid shapes have proper fill */
+.mermaid rect,
+.mermaid circle,
+.mermaid ellipse,
+.mermaid polygon {
+  fill: #f9f9f9 !important;
+  stroke: #333 !important;
 }
 
 /* Ensure proper spacing */
