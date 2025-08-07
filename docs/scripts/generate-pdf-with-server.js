@@ -33,7 +33,35 @@ async function generatePDF() {
   
   try {
     // Generate PDF using docs-to-pdf with explicit Docusaurus v2 parameters
-    const command = `npx docs-to-pdf --initialDocURLs="http://localhost:3001/" --contentSelector="article" --paginationSelector="a.pagination-nav__link.pagination-nav__link--next" --excludeSelectors=".margin-vert--xl a,[class^='tocCollapsible'],.breadcrumbs,.theme-edit-this-page" --outputPDFFilename="xafron-documentation.pdf" --coverTitle="Xafron Documentation" --coverSub="Data Quality Detection System<br/>Version ${new Date().getFullYear()}" --pdfMargin="20,20,20,20"`;
+    // Add CSS to handle links in PDF - making them relative or removing localhost references
+    const cssStyle = `
+      @media print {
+        /* Convert localhost links to relative links for PDF */
+        a[href^="http://localhost:3001"] {
+          color: #0066cc !important;
+          text-decoration: underline !important;
+        }
+        
+        /* Hide navigation links that don't work in PDF */
+        .navbar, .theme-doc-sidebar-container, .pagination-nav {
+          display: none !important;
+        }
+        
+        /* Ensure content links are visible */
+        article a {
+          color: #0066cc !important;
+          text-decoration: underline !important;
+        }
+        
+        /* Remove link URLs from being printed after the link text */
+        a[href]:after {
+          content: none !important;
+        }
+      }
+    `.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+    
+    // Use --baseUrl to convert localhost links to relative links in the PDF
+    const command = `npx docs-to-pdf --initialDocURLs="http://localhost:3001/" --contentSelector="article" --paginationSelector="a.pagination-nav__link.pagination-nav__link--next" --excludeSelectors=".margin-vert--xl a,[class^='tocCollapsible'],.breadcrumbs,.theme-edit-this-page" --outputPDFFilename="xafron-documentation.pdf" --coverTitle="Xafron Documentation" --coverSub="Data Quality Detection System<br/>Version ${new Date().getFullYear()}" --pdfMargin="20,20,20,20" --cssStyle="${cssStyle}" --baseUrl="/"`;
     
     console.log('Generating PDF...');
     console.log('Command:', command);
