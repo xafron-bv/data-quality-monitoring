@@ -25,8 +25,42 @@ async function testServerReady(url, maxAttempts = 20) {
   throw new Error(`Server not ready after ${maxAttempts} attempts`);
 }
 
+function getAllDocumentationPages() {
+  // Extract all page paths from the sidebar configuration
+  const sidebarPath = path.join(__dirname, '..', 'sidebars.js');
+  const sidebarContent = fs.readFileSync(sidebarPath, 'utf8');
+  
+  // Parse the sidebar to extract all page paths
+  const pages = [
+    "README", // Homepage
+    // Getting Started
+    "getting-started/",
+    "getting-started/installation",
+    "getting-started/basic-usage", 
+    "getting-started/quick-start",
+    // Architecture
+    "architecture/overview",
+    "architecture/detection-methods",
+    // User Guides
+    "user-guides/running-detection",
+    "user-guides/analyzing-results",
+    "user-guides/optimization",
+    // Reference
+    "reference/cli",
+    "reference/configuration",
+    "reference/interfaces",
+    // Development
+    "development/adding-fields",
+    "development/contributing",
+    // Deployment
+    "deployment/examples"
+  ];
+  
+  return pages;
+}
+
 async function generatePDF() {
-  console.log('Starting PDF generation...');
+  console.log('Starting comprehensive PDF generation...');
   
   const buildDir = path.join(__dirname, '..', 'build');
   const outputDir = path.join(buildDir, 'pdf');
@@ -61,13 +95,29 @@ async function generatePDF() {
     console.log('Waiting for page content to load...');
     await sleep(10000); // 10-second wait for Mermaid rendering
     
-    // Generate PDF using wkhtmltopdf
-    console.log('Generating PDF with wkhtmltopdf...');
+    // Get all documentation pages
+    const pages = getAllDocumentationPages();
+    console.log(`Found ${pages.length} pages to include in PDF`);
+    
+    // Generate PDF using wkhtmltopdf with all pages
+    console.log('Generating comprehensive PDF with wkhtmltopdf...');
     
     const outputPdf = path.join(outputDir, 'xafron-documentation.pdf');
     const printCssPath = path.join(__dirname, '..', 'print.css');
     
-    // wkhtmltopdf command with enhanced Mermaid support
+    // Create URLs for all pages
+    const baseUrl = 'http://localhost:3001';
+    const pageUrls = pages.map(page => {
+      if (page === 'README') return baseUrl + '/';
+      return baseUrl + '/' + page;
+    });
+    
+    console.log('Pages to include:');
+    pageUrls.forEach((url, index) => {
+      console.log(`  ${index + 1}. ${url}`);
+    });
+    
+    // wkhtmltopdf command with all pages
     const wkhtmltopdfCmd = [
       'wkhtmltopdf',
       '--page-size', 'A4',
@@ -81,7 +131,11 @@ async function generatePDF() {
       '--load-error-handling', 'ignore',
       '--print-media-type',
       '--user-style-sheet', printCssPath,
-      'http://localhost:3001',
+      '--footer-center', '[page] of [topage]', // Add page numbers
+      '--footer-font-size', '8',
+      'toc', // Add table of contents
+      '--toc-header-text', 'Table of Contents',
+      ...pageUrls, // Add all page URLs
       outputPdf
     ];
     
@@ -95,7 +149,9 @@ async function generatePDF() {
     
     // Check if PDF was generated
     if (fs.existsSync(outputPdf)) {
+      const stats = fs.statSync(outputPdf);
       console.log(`PDF generated successfully at: ${outputPdf}`);
+      console.log(`File size: ${(stats.size / 1024).toFixed(1)} KB`);
       
       // Also copy to static directory
       const staticPdfDir = path.join(__dirname, '..', 'static', 'pdf');
