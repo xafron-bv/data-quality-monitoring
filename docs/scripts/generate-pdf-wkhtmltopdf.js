@@ -70,7 +70,7 @@ async function generatePDF() {
       '--user-style-sheet print.css',
       '--enable-internal-links',
       '--enable-javascript',
-      '--javascript-delay 3000',
+      '--javascript-delay 5000',
       '--no-stop-slow-scripts',
       '--print-media-type',
       '--load-error-handling ignore'
