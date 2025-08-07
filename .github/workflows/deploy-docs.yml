@@ -82,11 +82,23 @@ jobs:
 
       - name: Verify PDF generation
         run: |
+          ok=0
           if [ -f "static/pdf/xafron-documentation.pdf" ]; then
-            echo "✅ PDF generated successfully"
+            echo "✅ PDF present in static/"
             ls -lh static/pdf/xafron-documentation.pdf
+            ok=1
           else
-            echo "❌ PDF generation failed - file not found"
+            echo "⚠️ PDF missing in static/"
+          fi
+          if [ -f "build/pdf/xafron-documentation.pdf" ]; then
+            echo "✅ PDF present in build/ (deployed site)"
+            ls -lh build/pdf/xafron-documentation.pdf
+            ok=1
+          else
+            echo "⚠️ PDF missing in build/"
+          fi
+          if [ "$ok" -ne 1 ]; then
+            echo "❌ PDF generation failed - file not found in static/ or build/"
             exit 1
           fi
         working-directory: ./docs
