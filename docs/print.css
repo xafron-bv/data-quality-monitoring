@@ -154,11 +154,16 @@ blockquote {
   background-color: #ffeef0 !important;
 }
 
-/* Mermaid diagrams */
+/* Mermaid diagrams - Enhanced for PDF rendering */
 .mermaid {
   text-align: center !important;
   margin: 20px 0 !important;
   page-break-inside: avoid !important;
+  /* Ensure container is visible and stable */
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  min-height: 50px !important;
 }
 
 .mermaid svg {
@@ -166,27 +171,56 @@ blockquote {
   height: auto !important;
   display: block !important;
   margin: 0 auto !important;
+  /* Ensure SVG is fully rendered */
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
-/* Ensure mermaid text is visible */
+/* Ensure mermaid text is visible with proper contrast */
 .mermaid text {
-  fill: #000 !important;
+  fill: #000000 !important;
   stroke: none !important;
+  font-family: "Helvetica", "Arial", sans-serif !important;
+  font-size: 12px !important;
 }
 
-/* Ensure mermaid lines are visible */
+/* Ensure mermaid lines are visible with proper thickness */
 .mermaid path,
 .mermaid line {
-  stroke: #333 !important;
+  stroke: #333333 !important;
+  stroke-width: 1.5px !important;
+  fill: none !important;
 }
 
-/* Ensure mermaid shapes have proper fill */
+/* Ensure mermaid shapes have proper fill and stroke */
 .mermaid rect,
 .mermaid circle,
 .mermaid ellipse,
 .mermaid polygon {
-  fill: #f9f9f9 !important;
-  stroke: #333 !important;
+  fill: #ffffff !important;
+  stroke: #333333 !important;
+  stroke-width: 1.5px !important;
+}
+
+/* Fix for flowchart specific elements */
+.mermaid .node rect,
+.mermaid .node circle,
+.mermaid .node ellipse,
+.mermaid .node polygon {
+  fill: #ffffff !important;
+  stroke: #333333 !important;
+  stroke-width: 2px !important;
+}
+
+/* Ensure arrowheads are visible */
+.mermaid marker path {
+  fill: #333333 !important;
+  stroke: #333333 !important;
+}
+
+/* Fix for any background issues */
+.mermaid .background {
+  fill: transparent !important;
 }
 
 /* Ensure proper spacing */
