@@ -41,8 +41,6 @@ async function renderMermaidToSvg(mermaidCode) {
 async function processHtmlFile(filePath, outputImagesDir) {
   let html = await fs.promises.readFile(filePath, 'utf8');
 
-  // Rewrite anchor links from root-relative to absolute production domain
-  html = html.replace(/(<a[^>]*\shref=")\//g, '$1https://docs.xafron.nl/');
 
   // Replace Mermaid blocks with static SVG images
   const mermaidDivRegex = /<div class="mermaid">([\s\S]*?)<\/div>/g;
