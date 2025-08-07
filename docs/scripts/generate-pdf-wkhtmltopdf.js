@@ -20,8 +20,47 @@ async function waitForServer(url, timeoutMs = 60000, intervalMs = 1000) {
   return false;
 }
 
+async function generateWithCrawler(docsRoot) {
+  console.log('Generating PDF with docusaurus-wkhtmltopdf...');
+  const wkArgs = [
+    '--user-style-sheet print.css',
+    '--enable-internal-links',
+    '--enable-javascript',
+    '--javascript-delay 5000',
+    '--no-stop-slow-scripts',
+    '--print-media-type',
+    '--load-error-handling ignore'
+  ].join(' ');
+  const command = `npx docusaurus-wkhtmltopdf -u http://localhost:3001 --dest . --output xafron-documentation.pdf --toc --wkhtmltopdf-args "${wkArgs}"`;
+  console.log('Command:', command);
+  execSync(command, { stdio: 'inherit', cwd: docsRoot });
+}
+
+async function generateFromCombined(docsRoot) {
+  console.log('Generating PDF from combined.html...');
+  const combinedPath = path.join(docsRoot, 'build', 'combined.html');
+  if (!fs.existsSync(combinedPath)) {
+    throw new Error('combined.html not found');
+  }
+  const outPath = path.join(docsRoot, 'xafron-documentation.pdf');
+  const wkhtmlcmd = [
+    'wkhtmltopdf',
+    '--enable-internal-links',
+    '--enable-javascript',
+    '--javascript-delay', '5000',
+    '--no-stop-slow-scripts',
+    '--print-media-type',
+    '--load-error-handling', 'ignore',
+    'build/combined.html',
+    'xafron-documentation.pdf'
+  ];
+  console.log('Command:', wkhtmlcmd.join(' '));
+  execSync(wkhtmlcmd.join(' '), { stdio: 'inherit', cwd: docsRoot });
+  return outPath;
+}
+
 async function generatePDF() {
-  console.log('Starting PDF generation with wkhtmltopdf...');
+  console.log('Starting PDF generation...');
   
   const docsRoot = path.join(__dirname, '..');
   const buildDir = path.join(docsRoot, 'build');
@@ -43,102 +82,75 @@ async function generatePDF() {
   } catch (_) {
     // ignore if not installed; will rely on system wkhtmltopdf
   }
-  
-  // Start the docusaurus server
-  console.log('Starting Docusaurus server...');
-  const serverProcess = spawn('npx', ['docusaurus', 'serve', '--port', '3001'], {
-    cwd: docsRoot,
-    detached: true,
-    stdio: 'ignore'
-  });
-  
-  serverProcess.unref();
-  
-  // Wait for server to start (poll HTTP rather than fixed sleep)
-  console.log('Waiting for server to start...');
-  const serverReady = await waitForServer('http://localhost:3001');
-  if (!serverReady) {
-    console.error('Docusaurus server did not become ready in time.');
-    process.exit(1);
-  }
-  
+
+  // Build combined single HTML
   try {
-    // Generate PDF using docusaurus-wkhtmltopdf
-    console.log('Generating PDF with docusaurus-wkhtmltopdf...');
-    
-    const wkArgs = [
-      '--user-style-sheet print.css',
-      '--enable-internal-links',
-      '--enable-javascript',
-      '--javascript-delay 5000',
-      '--no-stop-slow-scripts',
-      '--print-media-type',
-      '--load-error-handling ignore'
-    ].join(' ');
+    const { buildCombinedHtml } = require('./generate-combined-for-pdf');
+    await buildCombinedHtml();
+  } catch (e) {
+    console.warn('Failed to generate combined HTML:', e.message);
+  }
 
-    const command = `npx docusaurus-wkhtmltopdf -u http://localhost:3001 --dest . --output xafron-documentation.pdf --toc --wkhtmltopdf-args "${wkArgs}"`;
-    
-    console.log('Command:', command);
-    
-    execSync(command, {
-      stdio: 'inherit',
-      cwd: docsRoot
+  // Try combined first; fall back to crawler
+  let sourcePdf = null;
+  try {
+    sourcePdf = await generateFromCombined(docsRoot);
+  } catch (e) {
+    console.warn('Combined generation failed; falling back to crawler. Reason:', e.message);
+
+    // Start the Docusaurus server for crawler fallback
+    console.log('Starting Docusaurus server...');
+    const serverProcess = spawn('npx', ['docusaurus', 'serve', '--port', '3001'], {
+      cwd: docsRoot,
+      detached: true,
+      stdio: 'ignore'
     });
-    
-    // Determine where the generated PDF landed
-    const candidatePaths = [
-      path.join(docsRoot, 'xafron-documentation.pdf'),
-      path.join(docsRoot, 'pdf', 'xafron-documentation.pdf'),
-    ];
-
-    let sourcePdf = null;
-    for (const p of candidatePaths) {
-      if (fs.existsSync(p)) {
-        sourcePdf = p;
-        break;
-      }
-    }
-
-    if (sourcePdf) {
-      const targetPdf = path.join(outputDir, 'xafron-documentation.pdf');
-      fs.copyFileSync(sourcePdf, targetPdf);
-      console.log(`PDF generated successfully at: ${targetPdf}`);
-      
-      // Also copy to static directory
-      const staticPdfDir = path.join(docsRoot, 'static', 'pdf');
-      if (!fs.existsSync(staticPdfDir)) {
-        fs.mkdirSync(staticPdfDir, { recursive: true });
-      }
-      const staticTarget = path.join(staticPdfDir, 'xafron-documentation.pdf');
-      fs.copyFileSync(sourcePdf, staticTarget);
-      console.log(`PDF copied to static directory: ${staticTarget}`);
-    } else {
-      console.error('PDF generation failed - file not found at any expected location:', candidatePaths.join(', '));
+    serverProcess.unref();
+    console.log('Waiting for server to start...');
+    const serverReady = await waitForServer('http://localhost:3001');
+    if (!serverReady) {
+      console.error('Docusaurus server did not become ready in time.');
       process.exit(1);
     }
-    
-  } catch (error) {
-    console.error('Error generating PDF:', error);
-    console.error('This might be due to missing wkhtmltopdf dependency');
-    
-    // Don't create a placeholder file - fail the build instead
-    console.error('\nPDF generation failed! Please ensure wkhtmltopdf is available.');
-    console.error('Optionally add devDependency: wkhtmltopdf-installer');
-    
-    // Exit with error code to fail the build
-    process.exit(1);
-  } finally {
-    // Kill the server
     try {
-      if (process.platform === 'win32') {
-        execSync('taskkill /F /IM node.exe /FI "COMMANDLINE like *docusaurus*serve*"', { stdio: 'ignore' });
-      } else {
-        execSync('pkill -f "docusaurus serve"', { stdio: 'ignore' });
+      await generateWithCrawler(docsRoot);
+      const candidates = [
+        path.join(docsRoot, 'xafron-documentation.pdf'),
+        path.join(docsRoot, 'pdf', 'xafron-documentation.pdf'),
+      ];
+      for (const p of candidates) {
+        if (fs.existsSync(p)) {
+          sourcePdf = p; break;
+        }
       }
-    } catch (e) {
-      // Server might have already stopped
+    } finally {
+      try {
+        if (process.platform === 'win32') {
+          execSync('taskkill /F /IM node.exe /FI "COMMANDLINE like *docusaurus*serve*"', { stdio: 'ignore' });
+        } else {
+          execSync('pkill -f "docusaurus serve"', { stdio: 'ignore' });
+        }
+      } catch (_) {}
     }
   }
+
+  if (!sourcePdf || !fs.existsSync(sourcePdf)) {
+    console.error('PDF generation failed.');
+    process.exit(1);
+  }
+
+  const targetPdf = path.join(outputDir, 'xafron-documentation.pdf');
+  fs.copyFileSync(sourcePdf, targetPdf);
+  console.log(`PDF generated successfully at: ${targetPdf}`);
+
+  // Also copy to static directory
+  const staticPdfDir = path.join(docsRoot, 'static', 'pdf');
+  if (!fs.existsSync(staticPdfDir)) {
+    fs.mkdirSync(staticPdfDir, { recursive: true });
+  }
+  const staticTarget = path.join(staticPdfDir, 'xafron-documentation.pdf');
+  fs.copyFileSync(sourcePdf, staticTarget);
+  console.log(`PDF copied to static directory: ${staticTarget}`);
 }
 
 // Run if called directly
