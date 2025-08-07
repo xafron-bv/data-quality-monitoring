@@ -9,6 +9,10 @@ build/
 # Generated files
 .cache-loader/
 
+# PDF files (generated during build)
+*.pdf
+static/pdf/*.pdf
+
 # Misc
 .DS_Store
 .env.local
