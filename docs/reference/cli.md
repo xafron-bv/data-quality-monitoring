@@ -12,15 +12,12 @@ python main.py [command] [options]
 
 ### Available Commands
 
-```mermaid
-graph TD
-    A[main.py] --> B[single-demo]
-    A --> C[multi-eval]
-    A --> D[ml-train]
-    A --> E[llm-train]
-    A --> F[analyze-column]
-    A --> G[ml-curves]
-```
+- single-demo
+- multi-eval
+- ml-train
+- llm-train
+- analyze-column
+- ml-curves
 
 ## Command Reference
 
@@ -45,7 +42,7 @@ python main.py single-demo [options]
 - `--enable-ml`: Enable ML-based detection
 - `--enable-llm`: Enable LLM-based detection
 
-Note: If no detection methods are explicitly enabled, all available methods run by default.
+Note: If no detection method flags are provided, methods are disabled by default. Enable them explicitly with flags.
 
 **Thresholds:**
 - `--validation-threshold FLOAT`: Validation threshold (default: 0.0)
