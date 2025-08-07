@@ -14,7 +14,7 @@
     "write-heading-ids": "docusaurus write-heading-ids",
     "validate-mermaid": "node scripts/validate-mermaid.js",
     "prebuild": "npm run validate-mermaid",
-    "postbuild": "echo 'Starting PDF generation...' && npm run generate-pdf",
+    "postbuild": "node scripts/prepare-build-for-pdf.js && echo 'Starting PDF generation...' && npm run generate-pdf",
     "generate-pdf": "node scripts/generate-pdf-wkhtmltopdf.js"
   },
   "dependencies": {
