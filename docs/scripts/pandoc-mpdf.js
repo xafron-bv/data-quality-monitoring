@@ -162,6 +162,17 @@ async function main() {
   await writeCombined(docsRoot, files, combinedMd);
   runPandoc(docsRoot, combinedMd, outPdf);
   console.log('PDF generated at:', outPdf);
+
+  // Also copy into the built site so it is deployed
+  const buildPdfDir = path.join(docsRoot, 'build', 'pdf');
+  const buildPdfPath = path.join(buildPdfDir, 'xafron-documentation.pdf');
+  try {
+    fs.mkdirSync(buildPdfDir, { recursive: true });
+    fs.copyFileSync(outPdf, buildPdfPath);
+    console.log('PDF copied to build output at:', buildPdfPath);
+  } catch (err) {
+    console.warn('Warning: failed to copy PDF into build directory:', err.message);
+  }
 }
 
 if (require.main === module) {
