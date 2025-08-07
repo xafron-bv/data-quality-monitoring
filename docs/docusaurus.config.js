@@ -5,6 +5,8 @@
 // See: https://docusaurus.io/docs/api/docusaurus-config
 
 import {themes as prismThemes} from 'prism-react-renderer';
+import rehypeRaw from 'rehype-raw';
+import { remarkKroki } from 'remark-kroki';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -63,6 +65,31 @@ const config = {
           // Remove this to remove the "edit this page" links.
           editUrl:
             'https://github.com/xafron/xafron-docs/tree/main/docs/',
+          remarkPlugins: [
+            [
+              remarkKroki,
+              {
+                server: 'https://kroki.io',
+                alias: ['mermaid'],
+                target: 'mdx3',
+                output: 'inline-svg'
+              }
+            ],
+          ],
+          rehypePlugins: [
+            [
+              rehypeRaw,
+              {
+                passThrough: [
+                  'mdxFlowExpression',
+                  'mdxJsxFlowElement',
+                  'mdxJsxTextElement',
+                  'mdxTextExpression',
+                  'mdxjsEsm'
+                ]
+              }
+            ]
+          ]
         },
         blog: false, // Disable the blog plugin
         theme: {

@@ -32,6 +32,8 @@
     "@docusaurus/types": "^3.0.1",
     "@mermaid-js/mermaid-cli": "^11.9.0",
     "docusaurus-wkhtmltopdf": "^1.1.4",
+    "rehype-raw": "^7.0.0",
+    "remark-kroki": "^0.3.7",
     "wkhtmltopdf-installer": "^0.3.2"
   },
   "browserslist": {
