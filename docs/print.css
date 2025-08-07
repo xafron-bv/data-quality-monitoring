@@ -159,6 +159,8 @@ blockquote {
   text-align: center !important;
   margin: 20px 0 !important;
   page-break-inside: avoid !important;
+  min-height: 50px !important;
+  background-color: white !important;
 }
 
 .mermaid svg {
@@ -166,18 +168,22 @@ blockquote {
   height: auto !important;
   display: block !important;
   margin: 0 auto !important;
+  background-color: white !important;
 }
 
 /* Ensure mermaid text is visible */
 .mermaid text {
   fill: #000 !important;
   stroke: none !important;
+  font-size: 14px !important;
+  font-family: Arial, sans-serif !important;
 }
 
 /* Ensure mermaid lines are visible */
 .mermaid path,
 .mermaid line {
   stroke: #333 !important;
+  stroke-width: 1.5px !important;
 }
 
 /* Ensure mermaid shapes have proper fill */
@@ -187,6 +193,42 @@ blockquote {
 .mermaid polygon {
   fill: #f9f9f9 !important;
   stroke: #333 !important;
+  stroke-width: 1.5px !important;
+}
+
+/* Specific mermaid node styling for better PDF rendering */
+.mermaid .node rect,
+.mermaid .node circle,
+.mermaid .node ellipse,
+.mermaid .node polygon {
+  fill: #fff !important;
+  stroke: #333 !important;
+  stroke-width: 1.5px !important;
+}
+
+/* Ensure mermaid flowchart elements are visible */
+.mermaid .flowchart-label {
+  fill: #000 !important;
+  font-size: 14px !important;
+  font-family: Arial, sans-serif !important;
+}
+
+/* Ensure sequence diagram elements are visible */
+.mermaid .actor {
+  fill: #eaeaea !important;
+  stroke: #333 !important;
+  stroke-width: 1.5px !important;
+}
+
+.mermaid .messageLine0,
+.mermaid .messageLine1 {
+  stroke: #333 !important;
+  stroke-width: 1.5px !important;
+}
+
+/* Hide any JavaScript error messages */
+.mermaid .error {
+  display: none !important;
 }
 
 /* Ensure proper spacing */

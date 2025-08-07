@@ -27,15 +27,15 @@ async function generatePDF() {
   
   serverProcess.unref();
   
-  // Wait for server to start
-  console.log('Waiting for server to start...');
-  await sleep(5000);
+  // Wait for server to start and Mermaid to initialize
+  console.log('Waiting for server to start and Mermaid to initialize...');
+  await sleep(8000);
   
   try {
     // Generate PDF using docusaurus-wkhtmltopdf
     console.log('Generating PDF with docusaurus-wkhtmltopdf...');
     
-    const command = 'npx docusaurus-wkhtmltopdf -u http://localhost:3001 --output xafron-documentation.pdf --compress --toc --wkhtmltopdf-args "--user-style-sheet print.css"';
+    const command = 'npx docusaurus-wkhtmltopdf -u http://localhost:3001 --output xafron-documentation.pdf --compress --toc --wkhtmltopdf-args "--user-style-sheet print.css --enable-javascript --javascript-delay 10000 --no-stop-slow-scripts --debug-javascript --load-error-handling ignore --load-media-error-handling ignore"';
     
     console.log('Command:', command);
     
