@@ -1,0 +1,79 @@
+{
+  "summary": {
+    "total_injections": 6,
+    "affected_rows": 5,
+    "fields_with_injections": {
+      "season": {
+        "total": 2,
+        "errors": 2,
+        "anomalies": 0
+      },
+      "category": {
+        "total": 3,
+        "errors": 1,
+        "anomalies": 2
+      },
+      "size": {
+        "total": 1,
+        "errors": 1,
+        "anomalies": 0
+      }
+    }
+  },
+  "detailed_injections": {
+    "season": [
+      {
+        "row_index": 0,
+        "original_value": "Spring 2024",
+        "corrupted_value": "Spring 2]024",
+        "injection_type": "error",
+        "rule_name": "season_random_noise",
+        "message": "Validation Error: season_random_noise"
+      },
+      {
+        "row_index": 18,
+        "original_value": "All Season",
+        "corrupted_value": "All Seaso<n",
+        "injection_type": "error",
+        "rule_name": "season_random_noise",
+        "message": "Validation Error: season_random_noise"
+      }
+    ],
+    "category": [
+      {
+        "row_index": 14,
+        "original_value": "tops",
+        "corrupted_value": "Toaster",
+        "injection_type": "anomaly",
+        "rule_name": "inject_kitchen_categories",
+        "message": "Semantic Anomaly: inject_kitchen_categories"
+      },
+      {
+        "row_index": 16,
+        "original_value": "shorts",
+        "corrupted_value": "<b>shorts</b>",
+        "injection_type": "error",
+        "rule_name": "add_html_tags",
+        "message": "Validation Error: add_html_tags"
+      },
+      {
+        "row_index": 19,
+        "original_value": "vests",
+        "corrupted_value": "Quantum Physics",
+        "injection_type": "anomaly",
+        "rule_name": "inject_abstract_categories",
+        "message": "Semantic Anomaly: inject_abstract_categories"
+      }
+    ],
+    "size": [
+      {
+        "row_index": 16,
+        "original_value": "M",
+        "corrupted_value": "SIZE: M",
+        "injection_type": "error",
+        "rule_name": "inject_invalid_size_prefix",
+        "message": "Validation Error: inject_invalid_size_prefix"
+      }
+    ]
+  }
+}

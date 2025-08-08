@@ -465,6 +465,8 @@ Example usage:
         brand_name=args.brand,
         output_dir=args.output_dir,
         injection_intensity=args.injection_intensity,
+        error_injection_prob=args.error_injection_prob,
+        anomaly_injection_prob=args.anomaly_injection_prob,
         max_issues_per_row=args.max_issues_per_row,
         core_fields_only=args.core_fields_only,
         enable_validation=args.enable_validation,

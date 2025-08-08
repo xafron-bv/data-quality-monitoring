@@ -73,6 +73,8 @@ def generate_comprehensive_sample(df: pd.DataFrame,
     Args:
         df: Source DataFrame
         injection_intensity: Probability of injecting issues in each cell (0.0-1.0)
+        error_injection_prob: Probability of injecting errors when both error and anomaly are available (0.0-1.0)
+        anomaly_injection_prob: Probability of injecting anomalies. Set to 0 for errors only (0.0-1.0)
         max_issues_per_row: Maximum number of fields to corrupt per row
         field_mapper: Optional field mapper
         error_rules_dir: Directory containing error injection rules
@@ -185,15 +187,25 @@ def generate_comprehensive_sample(df: pd.DataFrame,
             if pd.isna(original_value) or str(original_value).strip() == "":
                 continue
 
-            # Choose injection type (prefer errors for validation testing)
+            # Choose injection type based on provided probabilities
             available_injectors = field_injectors[field_name]
-            if "error" in available_injectors and "anomaly" in available_injectors:
-                # 70% chance for errors, 30% for anomalies (to ensure validation gets tested)
-                injection_type = "error" if random.random() < 0.7 else "anomaly"
+            
+            # If anomaly_injection_prob is 0, only inject errors
+            if anomaly_injection_prob == 0:
+                if "error" in available_injectors:
+                    injection_type = "error"
+                else:
+                    # Skip this field if no error injector available and anomalies disabled
+                    continue
+            elif "error" in available_injectors and "anomaly" in available_injectors:
+                # Use error_injection_prob to decide between error and anomaly
+                injection_type = "error" if random.random() < error_injection_prob else "anomaly"
             elif "error" in available_injectors:
                 injection_type = "error"
-            else:
+            elif "anomaly" in available_injectors:
                 injection_type = "anomaly"
+            else:
+                continue
 
             # Apply injection
             injector = available_injectors[injection_type]
