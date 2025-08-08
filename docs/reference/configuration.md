@@ -129,8 +129,8 @@ output_dir/
    ```
 4. Run detection:
    ```bash
-python main.py single-demo --data-file your_data.csv
-```
+   python main.py single-demo --data-file your_data.csv
+   ```
 
 ## Best Practices
 
