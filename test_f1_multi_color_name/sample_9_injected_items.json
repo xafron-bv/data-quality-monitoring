@@ -1,0 +1,28 @@
+[
+  {
+    "rule_name": "inject_non_color_words",
+    "error_rule": "inject_non_color_words",
+    "injection_type": "anomaly",
+    "rule_description": "Replace colors with non-color words that might appear in fashion",
+    "original_value": "Green",
+    "anomalous_value": "Elegant",
+    "injected_data": "Elegant",
+    "operation": "value_replacement",
+    "row_index": 3,
+    "column_name": "color_name",
+    "field_name": "color_name"
+  },
+  {
+    "rule_name": "inject_technical_color_names",
+    "error_rule": "inject_technical_color_names",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with technical/industrial color names",
+    "original_value": "White",
+    "anomalous_value": "Laboratory White",
+    "injected_data": "Laboratory White",
+    "operation": "value_replacement",
+    "row_index": 4,
+    "column_name": "color_name",
+    "field_name": "color_name"
+  }
+]

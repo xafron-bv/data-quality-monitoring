@@ -1,0 +1,12 @@
+[
+  {
+    "row_index": 2,
+    "original_data": "Black123",
+    "injected_data": "Black&123",
+    "error_rule": "random_text_noise",
+    "rule_operation": "random_noise",
+    "injection_type": "error",
+    "column_name": "color_name",
+    "field_name": "color_name"
+  }
+]

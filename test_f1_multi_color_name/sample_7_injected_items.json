@@ -1,0 +1,28 @@
+[
+  {
+    "rule_name": "inject_nature_unusual_colors",
+    "error_rule": "inject_nature_unusual_colors",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with unusual nature-based colors",
+    "original_value": "Purple",
+    "anomalous_value": "Swamp Water Green",
+    "injected_data": "Swamp Water Green",
+    "operation": "value_replacement",
+    "row_index": 6,
+    "column_name": "color_name",
+    "field_name": "color_name"
+  },
+  {
+    "rule_name": "inject_technical_color_names",
+    "error_rule": "inject_technical_color_names",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with technical/industrial color names",
+    "original_value": "Pink",
+    "anomalous_value": "RGB(255,0,0)",
+    "injected_data": "RGB(255,0,0)",
+    "operation": "value_replacement",
+    "row_index": 9,
+    "column_name": "color_name",
+    "field_name": "color_name"
+  }
+]

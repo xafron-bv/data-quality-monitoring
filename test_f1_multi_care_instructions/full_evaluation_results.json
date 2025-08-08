@@ -1,0 +1,771 @@
+{
+  "human_readable_summary": {
+    "overall_performance": {
+      "performance_level": "Needs Improvement",
+      "f1_score": 0,
+      "precision": 0,
+      "recall": 0,
+      "interpretation": {
+        "f1_score": "F1 score of 0.000 indicates needs improvement detection performance",
+        "precision": "Precision of 0.000 means 0.0% of flagged items are actual errors",
+        "recall": "Recall of 0.000 means 0.0% of actual errors were detected"
+      }
+    },
+    "detection_summary": {
+      "total_validation_errors": 30,
+      "total_anomalies_detected": 0,
+      "total_ml_issues_detected": 0,
+      "total_samples_evaluated": 11,
+      "error_types_found": [
+        "Care instructions contain leading or trailing whitespace.",
+        "Care instructions contain contradictory information"
+      ]
+    },
+    "detailed_metrics": {
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "accuracy_note": "True positives are correctly identified errors, false positives are incorrectly flagged valid data, false negatives are missed errors"
+    }
+  },
+  "cell_coordinates": {
+    "errors": [
+      {
+        "row_index": 1,
+        "column_name": "care_instructions",
+        "error_data": "Hand wash only. Do not bleach.",
+        "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 1,
+        "column_name": "care_instructions",
+        "error_data": "Hand wash only. Do not bleach.",
+        "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 1,
+        "column_name": "care_instructions",
+        "error_data": "Hand wash only. Do not bleach.",
+        "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 1,
+        "column_name": "care_instructions",
+        "error_data": "Hand wash only. Do not bleach.",
+        "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 1,
+        "column_name": "care_instructions",
+        "error_data": "Hand wash only. Do not bleach.",
+        "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 1,
+        "column_name": "care_instructions",
+        "error_data": "Hand wash only. Do not bleach.",
+        "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 1,
+        "column_name": "care_instructions",
+        "error_data": "Hand wash only. Do not bleach.",
+        "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 1,
+        "column_name": "care_instructions",
+        "error_data": "Hand wash only. Do not bleach.",
+        "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 1,
+        "column_name": "care_instructions",
+        "error_data": "Hand wash only. Do not bleach.",
+        "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 1,
+        "column_name": "care_instructions",
+        "error_data": "Hand wash only. Do not bleach.",
+        "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 4,
+        "column_name": "care_instructions",
+        "error_data": "DO NOT WASH!!! ",
+        "display_message": "Care instructions contain leading or trailing whitespace.",
+        "probability": 0.95,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 4,
+        "column_name": "care_instructions",
+        "error_data": "DO NOT WASH!!! ",
+        "display_message": "Care instructions contain leading or trailing whitespace.",
+        "probability": 0.95,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 4,
+        "column_name": "care_instructions",
+        "error_data": "DO NOT WASH!!! ",
+        "display_message": "Care instructions contain leading or trailing whitespace.",
+        "probability": 0.95,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 4,
+        "column_name": "care_instructions",
+        "error_data": "DO NOT WASH!!! ",
+        "display_message": "Care instructions contain leading or trailing whitespace.",
+        "probability": 0.95,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 4,
+        "column_name": "care_instructions",
+        "error_data": "DO NOT WASH!!! ",
+        "display_message": "Care instructions contain leading or trailing whitespace.",
+        "probability": 0.95,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 4,
+        "column_name": "care_instructions",
+        "error_data": "DO NOT WASH!!! ",
+        "display_message": "Care instructions contain leading or trailing whitespace.",
+        "probability": 0.95,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 4,
+        "column_name": "care_instructions",
+        "error_data": "DO NOT WASH!!! ",
+        "display_message": "Care instructions contain leading or trailing whitespace.",
+        "probability": 0.95,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 4,
+        "column_name": "care_instructions",
+        "error_data": "DO NOT WASH!!! ",
+        "display_message": "Care instructions contain leading or trailing whitespace.",
+        "probability": 0.95,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 4,
+        "column_name": "care_instructions",
+        "error_data": "DO NOT WASH!!! ",
+        "display_message": "Care instructions contain leading or trailing whitespace.",
+        "probability": 0.95,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 4,
+        "column_name": "care_instructions",
+        "error_data": "DO NOT WASH!!! ",
+        "display_message": "Care instructions contain leading or trailing whitespace.",
+        "probability": 0.95,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "care_instructions",
+        "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+        "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "care_instructions",
+        "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+        "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "care_instructions",
+        "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+        "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "care_instructions",
+        "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+        "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "care_instructions",
+        "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+        "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "care_instructions",
+        "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+        "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "care_instructions",
+        "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+        "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "care_instructions",
+        "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+        "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "care_instructions",
+        "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+        "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "care_instructions",
+        "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+        "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      }
+    ],
+    "anomalies": [],
+    "ml_issues": [],
+    "summary": {
+      "total_errors": 30,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_issues": 30,
+      "affected_rows": 3
+    }
+  },
+  "detailed_evaluation_results": [
+    {
+      "field_name": "care_instructions",
+      "row_count": 10,
+      "sample_id": 0,
+      "sample_path": "sample_0.csv",
+      "validation_results": [
+        {
+          "row_index": 1,
+          "error_data": "Hand wash only. Do not bleach.",
+          "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        },
+        {
+          "row_index": 4,
+          "error_data": "DO NOT WASH!!! ",
+          "display_message": "Care instructions contain leading or trailing whitespace.",
+          "column_name": "care_instructions",
+          "probability": 0.95,
+          "error_code": "WHITESPACE_ERROR"
+        },
+        {
+          "row_index": 5,
+          "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+          "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 3,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "care_instructions",
+      "row_count": 10,
+      "sample_id": 1,
+      "sample_path": "sample_1.csv",
+      "validation_results": [
+        {
+          "row_index": 1,
+          "error_data": "Hand wash only. Do not bleach.",
+          "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        },
+        {
+          "row_index": 4,
+          "error_data": "DO NOT WASH!!! ",
+          "display_message": "Care instructions contain leading or trailing whitespace.",
+          "column_name": "care_instructions",
+          "probability": 0.95,
+          "error_code": "WHITESPACE_ERROR"
+        },
+        {
+          "row_index": 5,
+          "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+          "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 3,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "care_instructions",
+      "row_count": 10,
+      "sample_id": 2,
+      "sample_path": "sample_2.csv",
+      "validation_results": [
+        {
+          "row_index": 1,
+          "error_data": "Hand wash only. Do not bleach.",
+          "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        },
+        {
+          "row_index": 4,
+          "error_data": "DO NOT WASH!!! ",
+          "display_message": "Care instructions contain leading or trailing whitespace.",
+          "column_name": "care_instructions",
+          "probability": 0.95,
+          "error_code": "WHITESPACE_ERROR"
+        },
+        {
+          "row_index": 5,
+          "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+          "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 3,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "care_instructions",
+      "row_count": 10,
+      "sample_id": 3,
+      "sample_path": "sample_3.csv",
+      "validation_results": [
+        {
+          "row_index": 1,
+          "error_data": "Hand wash only. Do not bleach.",
+          "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        },
+        {
+          "row_index": 4,
+          "error_data": "DO NOT WASH!!! ",
+          "display_message": "Care instructions contain leading or trailing whitespace.",
+          "column_name": "care_instructions",
+          "probability": 0.95,
+          "error_code": "WHITESPACE_ERROR"
+        },
+        {
+          "row_index": 5,
+          "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+          "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 3,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "care_instructions",
+      "row_count": 10,
+      "sample_id": 4,
+      "sample_path": "sample_4.csv",
+      "validation_results": [
+        {
+          "row_index": 1,
+          "error_data": "Hand wash only. Do not bleach.",
+          "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        },
+        {
+          "row_index": 4,
+          "error_data": "DO NOT WASH!!! ",
+          "display_message": "Care instructions contain leading or trailing whitespace.",
+          "column_name": "care_instructions",
+          "probability": 0.95,
+          "error_code": "WHITESPACE_ERROR"
+        },
+        {
+          "row_index": 5,
+          "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+          "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 3,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "care_instructions",
+      "row_count": 10,
+      "sample_id": 5,
+      "sample_path": "sample_5.csv",
+      "validation_results": [
+        {
+          "row_index": 1,
+          "error_data": "Hand wash only. Do not bleach.",
+          "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        },
+        {
+          "row_index": 4,
+          "error_data": "DO NOT WASH!!! ",
+          "display_message": "Care instructions contain leading or trailing whitespace.",
+          "column_name": "care_instructions",
+          "probability": 0.95,
+          "error_code": "WHITESPACE_ERROR"
+        },
+        {
+          "row_index": 5,
+          "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+          "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 3,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "care_instructions",
+      "row_count": 10,
+      "sample_id": 6,
+      "sample_path": "sample_6.csv",
+      "validation_results": [
+        {
+          "row_index": 1,
+          "error_data": "Hand wash only. Do not bleach.",
+          "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        },
+        {
+          "row_index": 4,
+          "error_data": "DO NOT WASH!!! ",
+          "display_message": "Care instructions contain leading or trailing whitespace.",
+          "column_name": "care_instructions",
+          "probability": 0.95,
+          "error_code": "WHITESPACE_ERROR"
+        },
+        {
+          "row_index": 5,
+          "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+          "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 3,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "care_instructions",
+      "row_count": 10,
+      "sample_id": 7,
+      "sample_path": "sample_7.csv",
+      "validation_results": [
+        {
+          "row_index": 1,
+          "error_data": "Hand wash only. Do not bleach.",
+          "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        },
+        {
+          "row_index": 4,
+          "error_data": "DO NOT WASH!!! ",
+          "display_message": "Care instructions contain leading or trailing whitespace.",
+          "column_name": "care_instructions",
+          "probability": 0.95,
+          "error_code": "WHITESPACE_ERROR"
+        },
+        {
+          "row_index": 5,
+          "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+          "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 3,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "care_instructions",
+      "row_count": 10,
+      "sample_id": 8,
+      "sample_path": "sample_8.csv",
+      "validation_results": [
+        {
+          "row_index": 1,
+          "error_data": "Hand wash only. Do not bleach.",
+          "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        },
+        {
+          "row_index": 4,
+          "error_data": "DO NOT WASH!!! ",
+          "display_message": "Care instructions contain leading or trailing whitespace.",
+          "column_name": "care_instructions",
+          "probability": 0.95,
+          "error_code": "WHITESPACE_ERROR"
+        },
+        {
+          "row_index": 5,
+          "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+          "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 3,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "care_instructions",
+      "row_count": 10,
+      "sample_id": 9,
+      "sample_path": "sample_9.csv",
+      "validation_results": [
+        {
+          "row_index": 1,
+          "error_data": "Hand wash only. Do not bleach.",
+          "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        },
+        {
+          "row_index": 4,
+          "error_data": "DO NOT WASH!!! ",
+          "display_message": "Care instructions contain leading or trailing whitespace.",
+          "column_name": "care_instructions",
+          "probability": 0.95,
+          "error_code": "WHITESPACE_ERROR"
+        },
+        {
+          "row_index": 5,
+          "error_data": "Wash at 30\u00b0C. Do not tumble dry.",
+          "display_message": "Care instructions contain contradictory information: 'Wash at 30\u00b0C. Do not tumble dry.'.",
+          "column_name": "care_instructions",
+          "probability": 0.9,
+          "error_code": "CONTRADICTORY_INSTRUCTIONS"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 3,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    }
+  ],
+  "execution_metrics": {
+    "total_execution_time_seconds": 0.030349016189575195,
+    "peak_memory_mb": 815.0,
+    "memory_increase_mb": 0.7109375,
+    "tracemalloc_peak_mb": 0.26557064056396484,
+    "detection_times": {
+      "validation": 0,
+      "anomaly": 0,
+      "ml": 0,
+      "llm": 0,
+      "total": 0.014806032180786133
+    },
+    "per_sample_avg_time": 0.0030349016189575194,
+    "timestamp": "2025-08-08T13:35:30.393647"
+  }
+}

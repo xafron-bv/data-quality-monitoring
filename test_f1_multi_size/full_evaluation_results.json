@@ -1,0 +1,601 @@
+{
+  "human_readable_summary": {
+    "overall_performance": {
+      "performance_level": "Needs Improvement",
+      "f1_score": 0,
+      "precision": 0,
+      "recall": 0,
+      "interpretation": {
+        "f1_score": "F1 score of 0.000 indicates needs improvement detection performance",
+        "precision": "Precision of 0.000 means 0.0% of flagged items are actual errors",
+        "recall": "Recall of 0.000 means 0.0% of actual errors were detected"
+      }
+    },
+    "detection_summary": {
+      "total_validation_errors": 20,
+      "total_anomalies_detected": 0,
+      "total_ml_issues_detected": 0,
+      "total_samples_evaluated": 11,
+      "error_types_found": [
+        "Size value is missing. All products must have a valid size.",
+        "Invalid numeric range format in size '30-32'."
+      ]
+    },
+    "detailed_metrics": {
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "accuracy_note": "True positives are correctly identified errors, false positives are incorrectly flagged valid data, false negatives are missed errors"
+    }
+  },
+  "cell_coordinates": {
+    "errors": [
+      {
+        "row_index": 5,
+        "column_name": "size",
+        "error_data": null,
+        "display_message": "Size value is missing. All products must have a valid size.",
+        "probability": 1.0,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "size",
+        "error_data": null,
+        "display_message": "Size value is missing. All products must have a valid size.",
+        "probability": 1.0,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "size",
+        "error_data": null,
+        "display_message": "Size value is missing. All products must have a valid size.",
+        "probability": 1.0,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "size",
+        "error_data": null,
+        "display_message": "Size value is missing. All products must have a valid size.",
+        "probability": 1.0,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "size",
+        "error_data": null,
+        "display_message": "Size value is missing. All products must have a valid size.",
+        "probability": 1.0,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "size",
+        "error_data": null,
+        "display_message": "Size value is missing. All products must have a valid size.",
+        "probability": 1.0,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "size",
+        "error_data": null,
+        "display_message": "Size value is missing. All products must have a valid size.",
+        "probability": 1.0,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "size",
+        "error_data": null,
+        "display_message": "Size value is missing. All products must have a valid size.",
+        "probability": 1.0,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "size",
+        "error_data": null,
+        "display_message": "Size value is missing. All products must have a valid size.",
+        "probability": 1.0,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 5,
+        "column_name": "size",
+        "error_data": null,
+        "display_message": "Size value is missing. All products must have a valid size.",
+        "probability": 1.0,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 8,
+        "column_name": "size",
+        "error_data": "30-32",
+        "display_message": "Invalid numeric range format in size '30-32'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 8,
+        "column_name": "size",
+        "error_data": "30-32",
+        "display_message": "Invalid numeric range format in size '30-32'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 8,
+        "column_name": "size",
+        "error_data": "30-32",
+        "display_message": "Invalid numeric range format in size '30-32'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 8,
+        "column_name": "size",
+        "error_data": "30-32",
+        "display_message": "Invalid numeric range format in size '30-32'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 8,
+        "column_name": "size",
+        "error_data": "30-32",
+        "display_message": "Invalid numeric range format in size '30-32'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 8,
+        "column_name": "size",
+        "error_data": "30-32",
+        "display_message": "Invalid numeric range format in size '30-32'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 8,
+        "column_name": "size",
+        "error_data": "30-32",
+        "display_message": "Invalid numeric range format in size '30-32'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 8,
+        "column_name": "size",
+        "error_data": "30-32",
+        "display_message": "Invalid numeric range format in size '30-32'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 8,
+        "column_name": "size",
+        "error_data": "30-32",
+        "display_message": "Invalid numeric range format in size '30-32'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 8,
+        "column_name": "size",
+        "error_data": "30-32",
+        "display_message": "Invalid numeric range format in size '30-32'.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      }
+    ],
+    "anomalies": [],
+    "ml_issues": [],
+    "summary": {
+      "total_errors": 20,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_issues": 20,
+      "affected_rows": 2
+    }
+  },
+  "detailed_evaluation_results": [
+    {
+      "field_name": "size",
+      "row_count": 10,
+      "sample_id": 0,
+      "sample_path": "sample_0.csv",
+      "validation_results": [
+        {
+          "row_index": 5,
+          "error_data": null,
+          "display_message": "Size value is missing. All products must have a valid size.",
+          "column_name": "size",
+          "probability": 1.0,
+          "error_code": "MISSING_VALUE"
+        },
+        {
+          "row_index": 8,
+          "error_data": "30-32",
+          "display_message": "Invalid numeric range format in size '30-32'.",
+          "column_name": "size",
+          "probability": 0.9,
+          "error_code": "NUMERIC_RANGE_ERROR"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 2,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "size",
+      "row_count": 10,
+      "sample_id": 1,
+      "sample_path": "sample_1.csv",
+      "validation_results": [
+        {
+          "row_index": 5,
+          "error_data": null,
+          "display_message": "Size value is missing. All products must have a valid size.",
+          "column_name": "size",
+          "probability": 1.0,
+          "error_code": "MISSING_VALUE"
+        },
+        {
+          "row_index": 8,
+          "error_data": "30-32",
+          "display_message": "Invalid numeric range format in size '30-32'.",
+          "column_name": "size",
+          "probability": 0.9,
+          "error_code": "NUMERIC_RANGE_ERROR"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 2,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "size",
+      "row_count": 10,
+      "sample_id": 2,
+      "sample_path": "sample_2.csv",
+      "validation_results": [
+        {
+          "row_index": 5,
+          "error_data": null,
+          "display_message": "Size value is missing. All products must have a valid size.",
+          "column_name": "size",
+          "probability": 1.0,
+          "error_code": "MISSING_VALUE"
+        },
+        {
+          "row_index": 8,
+          "error_data": "30-32",
+          "display_message": "Invalid numeric range format in size '30-32'.",
+          "column_name": "size",
+          "probability": 0.9,
+          "error_code": "NUMERIC_RANGE_ERROR"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 2,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "size",
+      "row_count": 10,
+      "sample_id": 3,
+      "sample_path": "sample_3.csv",
+      "validation_results": [
+        {
+          "row_index": 5,
+          "error_data": null,
+          "display_message": "Size value is missing. All products must have a valid size.",
+          "column_name": "size",
+          "probability": 1.0,
+          "error_code": "MISSING_VALUE"
+        },
+        {
+          "row_index": 8,
+          "error_data": "30-32",
+          "display_message": "Invalid numeric range format in size '30-32'.",
+          "column_name": "size",
+          "probability": 0.9,
+          "error_code": "NUMERIC_RANGE_ERROR"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 2,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "size",
+      "row_count": 10,
+      "sample_id": 4,
+      "sample_path": "sample_4.csv",
+      "validation_results": [
+        {
+          "row_index": 5,
+          "error_data": null,
+          "display_message": "Size value is missing. All products must have a valid size.",
+          "column_name": "size",
+          "probability": 1.0,
+          "error_code": "MISSING_VALUE"
+        },
+        {
+          "row_index": 8,
+          "error_data": "30-32",
+          "display_message": "Invalid numeric range format in size '30-32'.",
+          "column_name": "size",
+          "probability": 0.9,
+          "error_code": "NUMERIC_RANGE_ERROR"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 2,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "size",
+      "row_count": 10,
+      "sample_id": 5,
+      "sample_path": "sample_5.csv",
+      "validation_results": [
+        {
+          "row_index": 5,
+          "error_data": null,
+          "display_message": "Size value is missing. All products must have a valid size.",
+          "column_name": "size",
+          "probability": 1.0,
+          "error_code": "MISSING_VALUE"
+        },
+        {
+          "row_index": 8,
+          "error_data": "30-32",
+          "display_message": "Invalid numeric range format in size '30-32'.",
+          "column_name": "size",
+          "probability": 0.9,
+          "error_code": "NUMERIC_RANGE_ERROR"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 2,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "size",
+      "row_count": 10,
+      "sample_id": 6,
+      "sample_path": "sample_6.csv",
+      "validation_results": [
+        {
+          "row_index": 5,
+          "error_data": null,
+          "display_message": "Size value is missing. All products must have a valid size.",
+          "column_name": "size",
+          "probability": 1.0,
+          "error_code": "MISSING_VALUE"
+        },
+        {
+          "row_index": 8,
+          "error_data": "30-32",
+          "display_message": "Invalid numeric range format in size '30-32'.",
+          "column_name": "size",
+          "probability": 0.9,
+          "error_code": "NUMERIC_RANGE_ERROR"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 2,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "size",
+      "row_count": 10,
+      "sample_id": 7,
+      "sample_path": "sample_7.csv",
+      "validation_results": [
+        {
+          "row_index": 5,
+          "error_data": null,
+          "display_message": "Size value is missing. All products must have a valid size.",
+          "column_name": "size",
+          "probability": 1.0,
+          "error_code": "MISSING_VALUE"
+        },
+        {
+          "row_index": 8,
+          "error_data": "30-32",
+          "display_message": "Invalid numeric range format in size '30-32'.",
+          "column_name": "size",
+          "probability": 0.9,
+          "error_code": "NUMERIC_RANGE_ERROR"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 2,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "size",
+      "row_count": 10,
+      "sample_id": 8,
+      "sample_path": "sample_8.csv",
+      "validation_results": [
+        {
+          "row_index": 5,
+          "error_data": null,
+          "display_message": "Size value is missing. All products must have a valid size.",
+          "column_name": "size",
+          "probability": 1.0,
+          "error_code": "MISSING_VALUE"
+        },
+        {
+          "row_index": 8,
+          "error_data": "30-32",
+          "display_message": "Invalid numeric range format in size '30-32'.",
+          "column_name": "size",
+          "probability": 0.9,
+          "error_code": "NUMERIC_RANGE_ERROR"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 2,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "size",
+      "row_count": 10,
+      "sample_id": 9,
+      "sample_path": "sample_9.csv",
+      "validation_results": [
+        {
+          "row_index": 5,
+          "error_data": null,
+          "display_message": "Size value is missing. All products must have a valid size.",
+          "column_name": "size",
+          "probability": 1.0,
+          "error_code": "MISSING_VALUE"
+        },
+        {
+          "row_index": 8,
+          "error_data": "30-32",
+          "display_message": "Invalid numeric range format in size '30-32'.",
+          "column_name": "size",
+          "probability": 0.9,
+          "error_code": "NUMERIC_RANGE_ERROR"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 2,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    }
+  ],
+  "execution_metrics": {
+    "total_execution_time_seconds": 0.0289461612701416,
+    "peak_memory_mb": 814.93359375,
+    "memory_increase_mb": 1.1796875,
+    "tracemalloc_peak_mb": 0.2763652801513672,
+    "detection_times": {
+      "validation": 0,
+      "anomaly": 0,
+      "ml": 0,
+      "llm": 0,
+      "total": 0.010976314544677734
+    },
+    "per_sample_avg_time": 0.00289461612701416,
+    "timestamp": "2025-08-08T13:35:23.411664"
+  }
+}

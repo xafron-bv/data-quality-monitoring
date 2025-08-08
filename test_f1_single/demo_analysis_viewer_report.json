@@ -1,0 +1,251 @@
+{
+  "cell_coordinates": {
+    "errors": [
+      {
+        "row_index": 1,
+        "column_name": "category",
+        "display_message": "Category value is missing. All products must have a valid category.",
+        "probability": 1.0,
+        "error_data": null,
+        "severity": "error",
+        "type": "validation",
+        "error_code": "MISSING_VALUE"
+      },
+      {
+        "row_index": 4,
+        "column_name": "category",
+        "display_message": "Category '<b>jackets</b>' contains HTML tags which are not allowed.",
+        "probability": 0.98,
+        "error_data": "<b>jackets</b>",
+        "severity": "error",
+        "type": "validation",
+        "error_code": "HTML_TAGS"
+      },
+      {
+        "row_index": 0,
+        "column_name": "color_name",
+        "display_message": "Color name contains leading or trailing whitespace: '  Red  '.",
+        "probability": 0.95,
+        "error_data": "  Red  ",
+        "severity": "error",
+        "type": "validation",
+        "error_code": "WHITESPACE_ERROR"
+      },
+      {
+        "row_index": 0,
+        "column_name": "material",
+        "display_message": "Material composition missing percentage values: '100% Cotton'.",
+        "probability": 0.9,
+        "error_data": "100% Cotton",
+        "severity": "error",
+        "type": "validation",
+        "error_code": "MISSING_PERCENTAGE"
+      },
+      {
+        "row_index": 2,
+        "column_name": "material",
+        "display_message": "Material composition missing percentage values: '50% Wool 50% Acrylic'.",
+        "probability": 0.9,
+        "error_data": "50% Wool 50% Acrylic",
+        "severity": "error",
+        "type": "validation",
+        "error_code": "MISSING_PERCENTAGE"
+      },
+      {
+        "row_index": 3,
+        "column_name": "material",
+        "display_message": "Material composition missing percentage values: 'Cotton'.",
+        "probability": 0.9,
+        "error_data": "Cotton",
+        "severity": "error",
+        "type": "validation",
+        "error_code": "MISSING_PERCENTAGE"
+      },
+      {
+        "row_index": 4,
+        "column_name": "material",
+        "display_message": "Invalid percentage values in material: 'Silk 100%'.",
+        "probability": 0.95,
+        "error_data": "Silk 100%",
+        "severity": "error",
+        "type": "validation",
+        "error_code": "INVALID_PERCENTAGE"
+      },
+      {
+        "row_index": 5,
+        "column_name": "material",
+        "display_message": "Material information is missing. All products must have material composition.",
+        "probability": 1.0,
+        "error_data": null,
+        "severity": "error",
+        "type": "validation",
+        "error_code": "MISSING_VALUE"
+      },
+      {
+        "row_index": 7,
+        "column_name": "material",
+        "display_message": "Material composition missing percentage values: '100% Rayon'.",
+        "probability": 0.9,
+        "error_data": "100% Rayon",
+        "severity": "error",
+        "type": "validation",
+        "error_code": "MISSING_PERCENTAGE"
+      },
+      {
+        "row_index": 9,
+        "column_name": "material",
+        "display_message": "Invalid percentage values in material: 'Cashmere 100%'.",
+        "probability": 0.95,
+        "error_data": "Cashmere 100%",
+        "severity": "error",
+        "type": "validation",
+        "error_code": "INVALID_PERCENTAGE"
+      },
+      {
+        "row_index": 5,
+        "column_name": "size",
+        "display_message": "Size value is missing. All products must have a valid size.",
+        "probability": 1.0,
+        "error_data": null,
+        "severity": "error",
+        "type": "validation",
+        "error_code": "MISSING_VALUE"
+      },
+      {
+        "row_index": 8,
+        "column_name": "size",
+        "display_message": "Invalid numeric range format in size '30-32'.",
+        "probability": 0.9,
+        "error_data": "30-32",
+        "severity": "error",
+        "type": "validation",
+        "error_code": "NUMERIC_RANGE_ERROR"
+      },
+      {
+        "row_index": 1,
+        "column_name": "care_instructions",
+        "display_message": "Care instructions contain contradictory information: 'Hand wash only. Do not bleach.'.",
+        "probability": 0.9,
+        "error_data": "Hand wash only. Do not bleach.",
+        "severity": "error",
+        "type": "validation",
+        "error_code": "CONTRADICTORY_INSTRUCTIONS"
+      },
+      {
+        "row_index": 4,
+        "column_name": "care_instructions",
+        "display_message": "Care instructions contain leading or trailing whitespace.",
+        "probability": 0.95,
+        "error_data": "DO NOT WASH!!! ",
+        "severity": "error",
+        "type": "validation",
+        "error_code": "WHITESPACE_ERROR"
+      },
+      {
+        "row_index": 5,
+        "column_name": "care_instructions",
+        "display_message": "Care instructions contain contradictory information: 'Wash at 30°C. Do not tumble dry.'.",
+        "probability": 0.9,
+        "error_data": "Wash at 30°C. Do not tumble dry.",
+        "severity": "error",
+        "type": "validation",
+        "error_code": "CONTRADICTORY_INSTRUCTIONS"
+      },
+      {
+        "row_index": 5,
+        "column_name": "season",
+        "display_message": "Season contains invalid year: 'Spring 2019'. Year should be between 2020 and 2030.",
+        "probability": 0.85,
+        "error_data": "Spring 2019",
+        "severity": "error",
+        "type": "validation",
+        "error_code": "INVALID_YEAR"
+      }
+    ],
+    "anomalies": [],
+    "ml_issues": [],
+    "summary": {
+      "total_errors": 16,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_issues": 16,
+      "affected_rows": 9
+    }
+  },
+  "sample_info": {
+    "name": "demo_analysis",
+    "total_rows": 10
+  },
+  "field_summaries": {
+    "category": {
+      "column_name": "category",
+      "total_issues": 2,
+      "detection_summary": {
+        "validation_errors": 2,
+        "pattern_anomalies": 0,
+        "ml_anomalies": 0,
+        "llm_anomalies": 0
+      }
+    },
+    "color_name": {
+      "column_name": "color_name",
+      "total_issues": 1,
+      "detection_summary": {
+        "validation_errors": 1,
+        "pattern_anomalies": 0,
+        "ml_anomalies": 0,
+        "llm_anomalies": 0
+      }
+    },
+    "article_number": {
+      "column_name": "article_number",
+      "total_issues": 0,
+      "detection_summary": {
+        "validation_errors": 0,
+        "pattern_anomalies": 0,
+        "ml_anomalies": 0,
+        "llm_anomalies": 0
+      }
+    },
+    "material": {
+      "column_name": "material",
+      "total_issues": 7,
+      "detection_summary": {
+        "validation_errors": 7,
+        "pattern_anomalies": 0,
+        "ml_anomalies": 0,
+        "llm_anomalies": 0
+      }
+    },
+    "size": {
+      "column_name": "size",
+      "total_issues": 2,
+      "detection_summary": {
+        "validation_errors": 2,
+        "pattern_anomalies": 0,
+        "ml_anomalies": 0,
+        "llm_anomalies": 0
+      }
+    },
+    "care_instructions": {
+      "column_name": "care_instructions",
+      "total_issues": 3,
+      "detection_summary": {
+        "validation_errors": 3,
+        "pattern_anomalies": 0,
+        "ml_anomalies": 0,
+        "llm_anomalies": 0
+      }
+    },
+    "season": {
+      "column_name": "season",
+      "total_issues": 1,
+      "detection_summary": {
+        "validation_errors": 1,
+        "pattern_anomalies": 0,
+        "ml_anomalies": 0,
+        "llm_anomalies": 0
+      }
+    }
+  }
+}

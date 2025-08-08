@@ -1,0 +1,12 @@
+[
+  {
+    "row_index": 1,
+    "original_data": "Polyester 80% Cotton 20%",
+    "injected_data": "Polyester   80%   Cotton   20%",
+    "error_rule": "inject_multiple_spaces_error",
+    "rule_operation": "string_replace",
+    "injection_type": "error",
+    "column_name": "material",
+    "field_name": "material"
+  }
+]

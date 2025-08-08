@@ -1,0 +1,12 @@
+[
+  {
+    "row_index": 0,
+    "original_data": "dresses",
+    "injected_data": "dre,,e,",
+    "error_rule": "add_comma_separator",
+    "rule_operation": "string_replace",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  }
+]

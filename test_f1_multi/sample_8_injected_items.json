@@ -1,0 +1,12 @@
+[
+  {
+    "row_index": 8,
+    "original_data": "Wool 70% Polyester 30%",
+    "injected_data": "Wool Polyester 30%",
+    "error_rule": "inject_missing_composition_value_error",
+    "rule_operation": "regex_replace",
+    "injection_type": "error",
+    "column_name": "material",
+    "field_name": "material"
+  }
+]

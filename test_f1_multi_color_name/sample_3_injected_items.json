@@ -1,0 +1,28 @@
+[
+  {
+    "rule_name": "inject_technical_color_names",
+    "error_rule": "inject_technical_color_names",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with technical/industrial color names",
+    "original_value": "Navy Blue",
+    "anomalous_value": "CMYK 100/0/0/0",
+    "injected_data": "CMYK 100/0/0/0",
+    "operation": "value_replacement",
+    "row_index": 5,
+    "column_name": "color_name",
+    "field_name": "color_name"
+  },
+  {
+    "rule_name": "inject_emotion_colors",
+    "error_rule": "inject_emotion_colors",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with emotion-based color names",
+    "original_value": "Purple",
+    "anomalous_value": "Depression Blue",
+    "injected_data": "Depression Blue",
+    "operation": "value_replacement",
+    "row_index": 6,
+    "column_name": "color_name",
+    "field_name": "color_name"
+  }
+]

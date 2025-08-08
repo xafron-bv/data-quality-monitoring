@@ -1,0 +1,28 @@
+[
+  {
+    "rule_name": "inject_food_materials",
+    "error_rule": "inject_food_materials",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with food-based materials",
+    "original_value": NaN,
+    "anomalous_value": NaN,
+    "injected_data": NaN,
+    "operation": "value_replacement",
+    "row_index": 5,
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "rule_name": "inject_electronic_materials",
+    "error_rule": "inject_electronic_materials",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with electronic/tech materials",
+    "original_value": "100% Rayon",
+    "anomalous_value": "95% LED - 5% Resistor",
+    "injected_data": "95% LED - 5% Resistor",
+    "operation": "value_replacement",
+    "row_index": 7,
+    "column_name": "material",
+    "field_name": "material"
+  }
+]

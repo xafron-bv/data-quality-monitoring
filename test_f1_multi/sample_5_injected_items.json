@@ -1,0 +1,15 @@
+[
+  {
+    "rule_name": "inject_impossible_compositions",
+    "error_rule": "inject_impossible_compositions",
+    "injection_type": "anomaly",
+    "rule_description": "Create impossible percentage combinations",
+    "original_value": "Wool 70% Polyester 30%",
+    "anomalous_value": "100.5% Rayon",
+    "injected_data": "100.5% Rayon",
+    "operation": "value_replacement",
+    "row_index": 8,
+    "column_name": "material",
+    "field_name": "material"
+  }
+]
