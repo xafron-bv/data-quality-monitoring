@@ -58,7 +58,8 @@ class DataQualityDemo:
 
     def __init__(self, data_file: str, brand_name: str,
                  output_dir: str = "demo_results",
-                 injection_intensity=0.2, max_issues_per_row=2, core_fields_only=False,
+                 injection_intensity=0.2, error_injection_prob=0.7, anomaly_injection_prob=0.3,
+                 max_issues_per_row=2, core_fields_only=False,
                  enable_validation=True, enable_pattern=True, enable_ml=True, enable_llm=False,
                  llm_threshold=0.6, llm_few_shot_examples=False,
                  llm_temporal_column=None, llm_context_columns=None, use_weighted_combination=False,
@@ -70,6 +71,8 @@ class DataQualityDemo:
         self.brand_name = brand_name
         self.output_dir = output_dir
         self.injection_intensity = injection_intensity
+        self.error_injection_prob = error_injection_prob
+        self.anomaly_injection_prob = anomaly_injection_prob
         self.max_issues_per_row = max_issues_per_row
         self.core_fields_only = core_fields_only
         self.enable_validation = enable_validation
@@ -93,6 +96,8 @@ class DataQualityDemo:
         print(f"📊 Target dataset: {self.data_file}")
         print(f"📁 Output directory: {self.output_dir}")
         print(f"🎯 Injection intensity: {injection_intensity * 100:.1f}% of cells")
+        print(f"📝 Error injection probability: {error_injection_prob * 100:.1f}%")
+        print(f"🔍 Anomaly injection probability: {anomaly_injection_prob * 100:.1f}%")
         print(f"🔧 Max issues per row: {max_issues_per_row}")
         print(f"🤖 ML detection: {'ENABLED' if enable_ml else 'DISABLED'}")
         print(f"🧠 LLM detection: {'ENABLED' if enable_llm else 'DISABLED'}")
@@ -154,6 +159,8 @@ class DataQualityDemo:
             sample_df, injection_metadata = generate_comprehensive_sample(
                 df=self.df,
                 injection_intensity=self.injection_intensity,
+                error_injection_prob=self.error_injection_prob,
+                anomaly_injection_prob=self.anomaly_injection_prob,
                 max_issues_per_row=self.max_issues_per_row,
                 field_mapper=self.field_mapper
             )
@@ -369,6 +376,10 @@ Example usage:
                        help="Output directory for demo results (default: demo_results)")
     parser.add_argument("--injection-intensity", type=float, default=0.2,
                        help="Probability of injecting issues in each cell (0.0-1.0, default: 0.2)")
+    parser.add_argument("--error-injection-prob", type=float, default=0.7,
+                       help="Probability of injecting errors vs anomalies when both available (0.0-1.0, default: 0.7)")
+    parser.add_argument("--anomaly-injection-prob", type=float, default=0.3,
+                       help="Probability of injecting anomalies. Set to 0 for errors only (0.0-1.0, default: 0.3)")
     parser.add_argument("--max-issues-per-row", type=int, default=2,
                        help="Maximum number of fields to corrupt per row (default: 2)")
     parser.add_argument("--validation-threshold", type=float, default=0.0,

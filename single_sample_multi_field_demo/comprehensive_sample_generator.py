@@ -61,6 +61,8 @@ def get_available_injection_fields(field_mapper, error_rules_dir: str = os.path.
 
 def generate_comprehensive_sample(df: pd.DataFrame,
                                 injection_intensity: float = 0.2,
+                                error_injection_prob: float = 0.7,
+                                anomaly_injection_prob: float = 0.3,
                                 max_issues_per_row: int = 2,
                                 field_mapper: Optional[FieldMapper] = None,
                                 error_rules_dir: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'validators', 'error_injection_rules'),
