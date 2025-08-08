@@ -1,0 +1,51 @@
+[
+  {
+    "row_index": 4,
+    "original_data": "jackets",
+    "injected_data": "<b>jackets</b>",
+    "error_rule": "add_html_tags",
+    "rule_operation": "regex_replace",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "rule_name": "inject_automotive_categories",
+    "error_rule": "inject_automotive_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with automotive parts and accessories",
+    "original_value": "hoodies",
+    "anomalous_value": "Tires",
+    "injected_data": "Tires",
+    "operation": "value_replacement",
+    "row_index": 17,
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "rule_name": "inject_medical_categories",
+    "error_rule": "inject_medical_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with medical equipment and supplies",
+    "original_value": "Tires",
+    "anomalous_value": "Surgical Mask",
+    "injected_data": "Surgical Mask",
+    "operation": "value_replacement",
+    "row_index": 17,
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "rule_name": "inject_medical_categories",
+    "error_rule": "inject_medical_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with medical equipment and supplies",
+    "original_value": "Surgical Mask",
+    "anomalous_value": "Blood Pressure Monitor",
+    "injected_data": "Blood Pressure Monitor",
+    "operation": "value_replacement",
+    "row_index": 17,
+    "column_name": "category",
+    "field_name": "category"
+  }
+]

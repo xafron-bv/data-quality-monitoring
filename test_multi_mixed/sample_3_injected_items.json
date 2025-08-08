@@ -1,0 +1,15 @@
+[
+  {
+    "rule_name": "inject_office_categories",
+    "error_rule": "inject_office_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with office supplies and equipment",
+    "original_value": "shorts",
+    "anomalous_value": "Desk Lamp",
+    "injected_data": "Desk Lamp",
+    "operation": "value_replacement",
+    "row_index": 16,
+    "column_name": "category",
+    "field_name": "category"
+  }
+]

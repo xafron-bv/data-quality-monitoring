@@ -1,0 +1,12 @@
+[
+  {
+    "row_index": 12,
+    "original_data": "jeans",
+    "injected_data": "jean,",
+    "error_rule": "add_comma_separator",
+    "rule_operation": "string_replace",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  }
+]

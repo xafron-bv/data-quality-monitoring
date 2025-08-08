@@ -1,0 +1,54 @@
+[
+  {
+    "rule_name": "inject_office_categories",
+    "error_rule": "inject_office_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with office supplies and equipment",
+    "original_value": "blouses",
+    "anomalous_value": "Filing Cabinet",
+    "injected_data": "Filing Cabinet",
+    "operation": "value_replacement",
+    "row_index": 1,
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "rule_name": "inject_abstract_categories",
+    "error_rule": "inject_abstract_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with abstract or conceptual categories",
+    "original_value": "Filing Cabinet",
+    "anomalous_value": "The Universe",
+    "injected_data": "The Universe",
+    "operation": "value_replacement",
+    "row_index": 1,
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "rule_name": "inject_automotive_categories",
+    "error_rule": "inject_automotive_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with automotive parts and accessories",
+    "original_value": "blazers",
+    "anomalous_value": "Air Filter",
+    "injected_data": "Air Filter",
+    "operation": "value_replacement",
+    "row_index": 13,
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "rule_name": "inject_automotive_categories",
+    "error_rule": "inject_automotive_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with automotive parts and accessories",
+    "original_value": "Air Filter",
+    "anomalous_value": "Car Battery",
+    "injected_data": "Car Battery",
+    "operation": "value_replacement",
+    "row_index": 13,
+    "column_name": "category",
+    "field_name": "category"
+  }
+]

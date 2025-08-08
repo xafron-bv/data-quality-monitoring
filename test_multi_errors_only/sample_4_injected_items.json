@@ -1,0 +1,32 @@
+[
+  {
+    "row_index": 15,
+    "original_data": "coats",
+    "injected_data": "#coats",
+    "error_rule": "add_hashtag",
+    "rule_operation": "prepend",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "row_index": 14,
+    "original_data": "tops",
+    "injected_data": "tops*",
+    "error_rule": "add_special_characters",
+    "rule_operation": "append",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "row_index": 6,
+    "original_data": "skirts",
+    "injected_data": "skirts*",
+    "error_rule": "add_special_characters",
+    "rule_operation": "append",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  }
+]

@@ -1,0 +1,67 @@
+[
+  {
+    "rule_name": "inject_kitchen_categories",
+    "error_rule": "inject_kitchen_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace fashion categories with kitchen/cooking items",
+    "original_value": "sweaters",
+    "anomalous_value": "Toaster",
+    "injected_data": "Toaster",
+    "operation": "value_replacement",
+    "row_index": 5,
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "rule_name": "inject_automotive_categories",
+    "error_rule": "inject_automotive_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with automotive parts and accessories",
+    "original_value": "Toaster",
+    "anomalous_value": "Brake Pads",
+    "injected_data": "Brake Pads",
+    "operation": "value_replacement",
+    "row_index": 5,
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "rule_name": "inject_office_categories",
+    "error_rule": "inject_office_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with office supplies and equipment",
+    "original_value": "Brake Pads",
+    "anomalous_value": "Filing Cabinet",
+    "injected_data": "Filing Cabinet",
+    "operation": "value_replacement",
+    "row_index": 5,
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "rule_name": "inject_medical_categories",
+    "error_rule": "inject_medical_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with medical equipment and supplies",
+    "original_value": "hoodies",
+    "anomalous_value": "Blood Pressure Monitor",
+    "injected_data": "Blood Pressure Monitor",
+    "operation": "value_replacement",
+    "row_index": 17,
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "rule_name": "inject_medical_categories",
+    "error_rule": "inject_medical_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with medical equipment and supplies",
+    "original_value": "Blood Pressure Monitor",
+    "anomalous_value": "Bandages",
+    "injected_data": "Bandages",
+    "operation": "value_replacement",
+    "row_index": 17,
+    "column_name": "category",
+    "field_name": "category"
+  }
+]

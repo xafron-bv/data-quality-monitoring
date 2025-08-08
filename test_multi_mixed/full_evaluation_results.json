@@ -1,0 +1,1174 @@
+{
+  "human_readable_summary": {
+    "overall_performance": {
+      "performance_level": "Needs Improvement",
+      "f1_score": 0.082,
+      "precision": 1.0,
+      "recall": 0.043,
+      "interpretation": {
+        "f1_score": "F1 score of 0.082 indicates needs improvement detection performance",
+        "precision": "Precision of 1.000 means 100.0% of flagged items are actual errors",
+        "recall": "Recall of 0.043 means 4.3% of actual errors were detected"
+      }
+    },
+    "detection_summary": {
+      "total_validation_errors": 2,
+      "total_anomalies_detected": 0,
+      "total_ml_issues_detected": 0,
+      "total_samples_evaluated": 11,
+      "error_types_found": [
+        "Category 'dresse]' contains special characters. Only alphanumeric characters, spaces, hyphens, and underscores are allowed.",
+        "Category '<b>jackets</b>' contains HTML tags which are not allowed."
+      ]
+    },
+    "detailed_metrics": {
+      "true_positives": 2,
+      "false_positives": 0,
+      "false_negatives": 45,
+      "accuracy_note": "True positives are correctly identified errors, false positives are incorrectly flagged valid data, false negatives are missed errors"
+    }
+  },
+  "cell_coordinates": {
+    "errors": [
+      {
+        "row_index": 4,
+        "column_name": "category",
+        "error_data": "<b>jackets</b>",
+        "display_message": "Category '<b>jackets</b>' contains HTML tags which are not allowed.",
+        "probability": 0.98,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 10,
+        "column_name": "category",
+        "error_data": "dresse]",
+        "display_message": "Category 'dresse]' contains special characters. Only alphanumeric characters, spaces, hyphens, and underscores are allowed.",
+        "probability": 0.9,
+        "severity": "error",
+        "type": "validation"
+      }
+    ],
+    "anomalies": [],
+    "ml_issues": [],
+    "summary": {
+      "total_errors": 2,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_issues": 2,
+      "affected_rows": 2
+    }
+  },
+  "detailed_evaluation_results": [
+    {
+      "field_name": "category",
+      "row_count": 20,
+      "sample_id": 0,
+      "sample_path": "sample_0.csv",
+      "validation_results": [],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 0,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false,
+      "precision": 1.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "true_positives": [],
+      "false_positives": [],
+      "false_negatives": [
+        {
+          "row_index": 5,
+          "error_data": "Paper Shredder",
+          "injected_error": {
+            "rule_name": "inject_office_categories",
+            "error_rule": "inject_office_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with office supplies and equipment",
+            "original_value": "sweaters",
+            "anomalous_value": "Copy Machine",
+            "injected_data": "Copy Machine",
+            "operation": "value_replacement",
+            "row_index": 5,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 5,
+          "error_data": "Paper Shredder",
+          "injected_error": {
+            "rule_name": "inject_office_categories",
+            "error_rule": "inject_office_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with office supplies and equipment",
+            "original_value": "Copy Machine",
+            "anomalous_value": "Paper Shredder",
+            "injected_data": "Paper Shredder",
+            "operation": "value_replacement",
+            "row_index": 5,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 11,
+          "error_data": "Defibrillator",
+          "injected_error": {
+            "rule_name": "inject_abstract_categories",
+            "error_rule": "inject_abstract_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with abstract or conceptual categories",
+            "original_value": "shirts",
+            "anomalous_value": "Mathematics",
+            "injected_data": "Mathematics",
+            "operation": "value_replacement",
+            "row_index": 11,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 11,
+          "error_data": "Defibrillator",
+          "injected_error": {
+            "rule_name": "inject_medical_categories",
+            "error_rule": "inject_medical_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with medical equipment and supplies",
+            "original_value": "Mathematics",
+            "anomalous_value": "MRI Scanner",
+            "injected_data": "MRI Scanner",
+            "operation": "value_replacement",
+            "row_index": 11,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 11,
+          "error_data": "Defibrillator",
+          "injected_error": {
+            "rule_name": "inject_medical_categories",
+            "error_rule": "inject_medical_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with medical equipment and supplies",
+            "original_value": "MRI Scanner",
+            "anomalous_value": "Defibrillator",
+            "injected_data": "Defibrillator",
+            "operation": "value_replacement",
+            "row_index": 11,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        }
+      ],
+      "true_positive_count": 0,
+      "false_positive_count": 0,
+      "false_negative_count": 2,
+      "validation_performed": true
+    },
+    {
+      "field_name": "category",
+      "row_count": 20,
+      "sample_id": 1,
+      "sample_path": "sample_1.csv",
+      "validation_results": [
+        {
+          "row_index": 4,
+          "error_data": "<b>jackets</b>",
+          "display_message": "Category '<b>jackets</b>' contains HTML tags which are not allowed.",
+          "column_name": "category",
+          "probability": 0.98,
+          "error_code": "HTML_TAGS"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 1,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false,
+      "precision": 1.0,
+      "recall": 0.5,
+      "f1_score": 0.6666666666666666,
+      "true_positives": [
+        {
+          "row_index": 4,
+          "error_data": "<b>jackets</b>",
+          "display_message": "Category '<b>jackets</b>' contains HTML tags which are not allowed."
+        }
+      ],
+      "false_positives": [],
+      "false_negatives": [
+        {
+          "row_index": 17,
+          "error_data": "Blood Pressure Monitor",
+          "injected_error": {
+            "rule_name": "inject_automotive_categories",
+            "error_rule": "inject_automotive_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with automotive parts and accessories",
+            "original_value": "hoodies",
+            "anomalous_value": "Tires",
+            "injected_data": "Tires",
+            "operation": "value_replacement",
+            "row_index": 17,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 17,
+          "error_data": "Blood Pressure Monitor",
+          "injected_error": {
+            "rule_name": "inject_medical_categories",
+            "error_rule": "inject_medical_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with medical equipment and supplies",
+            "original_value": "Tires",
+            "anomalous_value": "Surgical Mask",
+            "injected_data": "Surgical Mask",
+            "operation": "value_replacement",
+            "row_index": 17,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 17,
+          "error_data": "Blood Pressure Monitor",
+          "injected_error": {
+            "rule_name": "inject_medical_categories",
+            "error_rule": "inject_medical_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with medical equipment and supplies",
+            "original_value": "Surgical Mask",
+            "anomalous_value": "Blood Pressure Monitor",
+            "injected_data": "Blood Pressure Monitor",
+            "operation": "value_replacement",
+            "row_index": 17,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        }
+      ],
+      "true_positive_count": 1,
+      "false_positive_count": 0,
+      "false_negative_count": 1,
+      "validation_performed": true
+    },
+    {
+      "field_name": "category",
+      "row_count": 20,
+      "sample_id": 2,
+      "sample_path": "sample_2.csv",
+      "validation_results": [
+        {
+          "row_index": 10,
+          "error_data": "dresse]",
+          "display_message": "Category 'dresse]' contains special characters. Only alphanumeric characters, spaces, hyphens, and underscores are allowed.",
+          "column_name": "category",
+          "probability": 0.9,
+          "error_code": "SPECIAL_CHARACTERS"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 1,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false,
+      "precision": 1.0,
+      "recall": 0.2,
+      "f1_score": 0.33333333333333337,
+      "true_positives": [
+        {
+          "row_index": 10,
+          "error_data": "dresse]",
+          "display_message": "Category 'dresse]' contains special characters. Only alphanumeric characters, spaces, hyphens, and underscores are allowed."
+        }
+      ],
+      "false_positives": [],
+      "false_negatives": [
+        {
+          "row_index": 8,
+          "error_data": "Philosophy",
+          "injected_error": {
+            "rule_name": "inject_abstract_categories",
+            "error_rule": "inject_abstract_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with abstract or conceptual categories",
+            "original_value": "trousers",
+            "anomalous_value": "Philosophy",
+            "injected_data": "Philosophy",
+            "operation": "value_replacement",
+            "row_index": 8,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 15,
+          "error_data": "Desk Lamp",
+          "injected_error": {
+            "rule_name": "inject_office_categories",
+            "error_rule": "inject_office_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with office supplies and equipment",
+            "original_value": "coats",
+            "anomalous_value": "Desk Lamp",
+            "injected_data": "Desk Lamp",
+            "operation": "value_replacement",
+            "row_index": 15,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 17,
+          "error_data": "Mathematics",
+          "injected_error": {
+            "rule_name": "inject_abstract_categories",
+            "error_rule": "inject_abstract_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with abstract or conceptual categories",
+            "original_value": "hoodies",
+            "anomalous_value": "Mathematics",
+            "injected_data": "Mathematics",
+            "operation": "value_replacement",
+            "row_index": 17,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 19,
+          "error_data": "Love",
+          "injected_error": {
+            "rule_name": "inject_abstract_categories",
+            "error_rule": "inject_abstract_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with abstract or conceptual categories",
+            "original_value": "vests",
+            "anomalous_value": "Democracy",
+            "injected_data": "Democracy",
+            "operation": "value_replacement",
+            "row_index": 19,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 19,
+          "error_data": "Love",
+          "injected_error": {
+            "rule_name": "inject_abstract_categories",
+            "error_rule": "inject_abstract_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with abstract or conceptual categories",
+            "original_value": "Democracy",
+            "anomalous_value": "Happiness",
+            "injected_data": "Happiness",
+            "operation": "value_replacement",
+            "row_index": 19,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 19,
+          "error_data": "Love",
+          "injected_error": {
+            "rule_name": "inject_abstract_categories",
+            "error_rule": "inject_abstract_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with abstract or conceptual categories",
+            "original_value": "Happiness",
+            "anomalous_value": "Love",
+            "injected_data": "Love",
+            "operation": "value_replacement",
+            "row_index": 19,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        }
+      ],
+      "true_positive_count": 1,
+      "false_positive_count": 0,
+      "false_negative_count": 4,
+      "validation_performed": true
+    },
+    {
+      "field_name": "category",
+      "row_count": 20,
+      "sample_id": 3,
+      "sample_path": "sample_3.csv",
+      "validation_results": [],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 0,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false,
+      "precision": 1.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "true_positives": [],
+      "false_positives": [],
+      "false_negatives": [
+        {
+          "row_index": 16,
+          "error_data": "Desk Lamp",
+          "injected_error": {
+            "rule_name": "inject_office_categories",
+            "error_rule": "inject_office_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with office supplies and equipment",
+            "original_value": "shorts",
+            "anomalous_value": "Desk Lamp",
+            "injected_data": "Desk Lamp",
+            "operation": "value_replacement",
+            "row_index": 16,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        }
+      ],
+      "true_positive_count": 0,
+      "false_positive_count": 0,
+      "false_negative_count": 1,
+      "validation_performed": true
+    },
+    {
+      "field_name": "category",
+      "row_count": 20,
+      "sample_id": 4,
+      "sample_path": "sample_4.csv",
+      "validation_results": [],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 0,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false,
+      "precision": 1.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "true_positives": [],
+      "false_positives": [],
+      "false_negatives": [
+        {
+          "row_index": 1,
+          "error_data": "The Universe",
+          "injected_error": {
+            "rule_name": "inject_office_categories",
+            "error_rule": "inject_office_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with office supplies and equipment",
+            "original_value": "blouses",
+            "anomalous_value": "Filing Cabinet",
+            "injected_data": "Filing Cabinet",
+            "operation": "value_replacement",
+            "row_index": 1,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 1,
+          "error_data": "The Universe",
+          "injected_error": {
+            "rule_name": "inject_abstract_categories",
+            "error_rule": "inject_abstract_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with abstract or conceptual categories",
+            "original_value": "Filing Cabinet",
+            "anomalous_value": "The Universe",
+            "injected_data": "The Universe",
+            "operation": "value_replacement",
+            "row_index": 1,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 13,
+          "error_data": "Car Battery",
+          "injected_error": {
+            "rule_name": "inject_automotive_categories",
+            "error_rule": "inject_automotive_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with automotive parts and accessories",
+            "original_value": "blazers",
+            "anomalous_value": "Air Filter",
+            "injected_data": "Air Filter",
+            "operation": "value_replacement",
+            "row_index": 13,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 13,
+          "error_data": "Car Battery",
+          "injected_error": {
+            "rule_name": "inject_automotive_categories",
+            "error_rule": "inject_automotive_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with automotive parts and accessories",
+            "original_value": "Air Filter",
+            "anomalous_value": "Car Battery",
+            "injected_data": "Car Battery",
+            "operation": "value_replacement",
+            "row_index": 13,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        }
+      ],
+      "true_positive_count": 0,
+      "false_positive_count": 0,
+      "false_negative_count": 2,
+      "validation_performed": true
+    },
+    {
+      "field_name": "category",
+      "row_count": 20,
+      "sample_id": 5,
+      "sample_path": "sample_5.csv",
+      "validation_results": [],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 0,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false,
+      "precision": 1.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "true_positives": [],
+      "false_positives": [],
+      "false_negatives": [
+        {
+          "row_index": 4,
+          "error_data": "Office Chair",
+          "injected_error": {
+            "rule_name": "inject_medical_categories",
+            "error_rule": "inject_medical_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with medical equipment and supplies",
+            "original_value": "jackets",
+            "anomalous_value": "Bandages",
+            "injected_data": "Bandages",
+            "operation": "value_replacement",
+            "row_index": 4,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 4,
+          "error_data": "Office Chair",
+          "injected_error": {
+            "rule_name": "inject_office_categories",
+            "error_rule": "inject_office_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with office supplies and equipment",
+            "original_value": "Bandages",
+            "anomalous_value": "Office Chair",
+            "injected_data": "Office Chair",
+            "operation": "value_replacement",
+            "row_index": 4,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 9,
+          "error_data": "Quantum Physics",
+          "injected_error": {
+            "rule_name": "inject_medical_categories",
+            "error_rule": "inject_medical_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with medical equipment and supplies",
+            "original_value": "cardigan",
+            "anomalous_value": "Bandages",
+            "injected_data": "Bandages",
+            "operation": "value_replacement",
+            "row_index": 9,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 9,
+          "error_data": "Quantum Physics",
+          "injected_error": {
+            "rule_name": "inject_automotive_categories",
+            "error_rule": "inject_automotive_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with automotive parts and accessories",
+            "original_value": "Bandages",
+            "anomalous_value": "Car Engine",
+            "injected_data": "Car Engine",
+            "operation": "value_replacement",
+            "row_index": 9,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 9,
+          "error_data": "Quantum Physics",
+          "injected_error": {
+            "rule_name": "inject_abstract_categories",
+            "error_rule": "inject_abstract_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with abstract or conceptual categories",
+            "original_value": "Car Engine",
+            "anomalous_value": "Quantum Physics",
+            "injected_data": "Quantum Physics",
+            "operation": "value_replacement",
+            "row_index": 9,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 11,
+          "error_data": "Blender",
+          "injected_error": {
+            "rule_name": "inject_kitchen_categories",
+            "error_rule": "inject_kitchen_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace fashion categories with kitchen/cooking items",
+            "original_value": "shirts",
+            "anomalous_value": "Food Processor",
+            "injected_data": "Food Processor",
+            "operation": "value_replacement",
+            "row_index": 11,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 11,
+          "error_data": "Blender",
+          "injected_error": {
+            "rule_name": "inject_kitchen_categories",
+            "error_rule": "inject_kitchen_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace fashion categories with kitchen/cooking items",
+            "original_value": "Food Processor",
+            "anomalous_value": "Blender",
+            "injected_data": "Blender",
+            "operation": "value_replacement",
+            "row_index": 11,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 15,
+          "error_data": "Love",
+          "injected_error": {
+            "rule_name": "inject_abstract_categories",
+            "error_rule": "inject_abstract_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with abstract or conceptual categories",
+            "original_value": "coats",
+            "anomalous_value": "Love",
+            "injected_data": "Love",
+            "operation": "value_replacement",
+            "row_index": 15,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        }
+      ],
+      "true_positive_count": 0,
+      "false_positive_count": 0,
+      "false_negative_count": 4,
+      "validation_performed": true
+    },
+    {
+      "field_name": "category",
+      "row_count": 20,
+      "sample_id": 6,
+      "sample_path": "sample_6.csv",
+      "validation_results": [],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 0,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false,
+      "precision": 1.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "true_positives": [],
+      "false_positives": [],
+      "false_negatives": [
+        {
+          "row_index": 1,
+          "error_data": "Copy Machine",
+          "injected_error": {
+            "rule_name": "inject_medical_categories",
+            "error_rule": "inject_medical_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with medical equipment and supplies",
+            "original_value": "blouses",
+            "anomalous_value": "Surgical Mask",
+            "injected_data": "Surgical Mask",
+            "operation": "value_replacement",
+            "row_index": 1,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 1,
+          "error_data": "Copy Machine",
+          "injected_error": {
+            "rule_name": "inject_kitchen_categories",
+            "error_rule": "inject_kitchen_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace fashion categories with kitchen/cooking items",
+            "original_value": "Surgical Mask",
+            "anomalous_value": "Coffee Machine",
+            "injected_data": "Coffee Machine",
+            "operation": "value_replacement",
+            "row_index": 1,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 1,
+          "error_data": "Copy Machine",
+          "injected_error": {
+            "rule_name": "inject_office_categories",
+            "error_rule": "inject_office_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with office supplies and equipment",
+            "original_value": "Coffee Machine",
+            "anomalous_value": "Copy Machine",
+            "injected_data": "Copy Machine",
+            "operation": "value_replacement",
+            "row_index": 1,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 2,
+          "error_data": "Rice Cooker",
+          "injected_error": {
+            "rule_name": "inject_automotive_categories",
+            "error_rule": "inject_automotive_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with automotive parts and accessories",
+            "original_value": "t-shirts",
+            "anomalous_value": "Car Engine",
+            "injected_data": "Car Engine",
+            "operation": "value_replacement",
+            "row_index": 2,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 2,
+          "error_data": "Rice Cooker",
+          "injected_error": {
+            "rule_name": "inject_office_categories",
+            "error_rule": "inject_office_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with office supplies and equipment",
+            "original_value": "Car Engine",
+            "anomalous_value": "Office Chair",
+            "injected_data": "Office Chair",
+            "operation": "value_replacement",
+            "row_index": 2,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 2,
+          "error_data": "Rice Cooker",
+          "injected_error": {
+            "rule_name": "inject_kitchen_categories",
+            "error_rule": "inject_kitchen_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace fashion categories with kitchen/cooking items",
+            "original_value": "Office Chair",
+            "anomalous_value": "Rice Cooker",
+            "injected_data": "Rice Cooker",
+            "operation": "value_replacement",
+            "row_index": 2,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 9,
+          "error_data": "Existential Crisis",
+          "injected_error": {
+            "rule_name": "inject_medical_categories",
+            "error_rule": "inject_medical_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with medical equipment and supplies",
+            "original_value": "cardigan",
+            "anomalous_value": "Thermometer",
+            "injected_data": "Thermometer",
+            "operation": "value_replacement",
+            "row_index": 9,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 9,
+          "error_data": "Existential Crisis",
+          "injected_error": {
+            "rule_name": "inject_abstract_categories",
+            "error_rule": "inject_abstract_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with abstract or conceptual categories",
+            "original_value": "Thermometer",
+            "anomalous_value": "Existential Crisis",
+            "injected_data": "Existential Crisis",
+            "operation": "value_replacement",
+            "row_index": 9,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        }
+      ],
+      "true_positive_count": 0,
+      "false_positive_count": 0,
+      "false_negative_count": 3,
+      "validation_performed": true
+    },
+    {
+      "field_name": "category",
+      "row_count": 20,
+      "sample_id": 7,
+      "sample_path": "sample_7.csv",
+      "validation_results": [],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 0,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false,
+      "precision": 1.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "true_positives": [],
+      "false_positives": [],
+      "false_negatives": [
+        {
+          "row_index": 13,
+          "error_data": "MRI Scanner",
+          "injected_error": {
+            "rule_name": "inject_medical_categories",
+            "error_rule": "inject_medical_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with medical equipment and supplies",
+            "original_value": "blazers",
+            "anomalous_value": "Defibrillator",
+            "injected_data": "Defibrillator",
+            "operation": "value_replacement",
+            "row_index": 13,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 13,
+          "error_data": "MRI Scanner",
+          "injected_error": {
+            "rule_name": "inject_medical_categories",
+            "error_rule": "inject_medical_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with medical equipment and supplies",
+            "original_value": "Defibrillator",
+            "anomalous_value": "Thermometer",
+            "injected_data": "Thermometer",
+            "operation": "value_replacement",
+            "row_index": 13,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 13,
+          "error_data": "MRI Scanner",
+          "injected_error": {
+            "rule_name": "inject_medical_categories",
+            "error_rule": "inject_medical_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with medical equipment and supplies",
+            "original_value": "Thermometer",
+            "anomalous_value": "MRI Scanner",
+            "injected_data": "MRI Scanner",
+            "operation": "value_replacement",
+            "row_index": 13,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        }
+      ],
+      "true_positive_count": 0,
+      "false_positive_count": 0,
+      "false_negative_count": 1,
+      "validation_performed": true
+    },
+    {
+      "field_name": "category",
+      "row_count": 20,
+      "sample_id": 8,
+      "sample_path": "sample_8.csv",
+      "validation_results": [],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 0,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false,
+      "precision": 1.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "true_positives": [],
+      "false_positives": [],
+      "false_negatives": [
+        {
+          "row_index": 5,
+          "error_data": "Filing Cabinet",
+          "injected_error": {
+            "rule_name": "inject_kitchen_categories",
+            "error_rule": "inject_kitchen_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace fashion categories with kitchen/cooking items",
+            "original_value": "sweaters",
+            "anomalous_value": "Toaster",
+            "injected_data": "Toaster",
+            "operation": "value_replacement",
+            "row_index": 5,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 5,
+          "error_data": "Filing Cabinet",
+          "injected_error": {
+            "rule_name": "inject_automotive_categories",
+            "error_rule": "inject_automotive_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with automotive parts and accessories",
+            "original_value": "Toaster",
+            "anomalous_value": "Brake Pads",
+            "injected_data": "Brake Pads",
+            "operation": "value_replacement",
+            "row_index": 5,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 5,
+          "error_data": "Filing Cabinet",
+          "injected_error": {
+            "rule_name": "inject_office_categories",
+            "error_rule": "inject_office_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with office supplies and equipment",
+            "original_value": "Brake Pads",
+            "anomalous_value": "Filing Cabinet",
+            "injected_data": "Filing Cabinet",
+            "operation": "value_replacement",
+            "row_index": 5,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 17,
+          "error_data": "Bandages",
+          "injected_error": {
+            "rule_name": "inject_medical_categories",
+            "error_rule": "inject_medical_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with medical equipment and supplies",
+            "original_value": "hoodies",
+            "anomalous_value": "Blood Pressure Monitor",
+            "injected_data": "Blood Pressure Monitor",
+            "operation": "value_replacement",
+            "row_index": 17,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 17,
+          "error_data": "Bandages",
+          "injected_error": {
+            "rule_name": "inject_medical_categories",
+            "error_rule": "inject_medical_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with medical equipment and supplies",
+            "original_value": "Blood Pressure Monitor",
+            "anomalous_value": "Bandages",
+            "injected_data": "Bandages",
+            "operation": "value_replacement",
+            "row_index": 17,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        }
+      ],
+      "true_positive_count": 0,
+      "false_positive_count": 0,
+      "false_negative_count": 2,
+      "validation_performed": true
+    },
+    {
+      "field_name": "category",
+      "row_count": 20,
+      "sample_id": 9,
+      "sample_path": "sample_9.csv",
+      "validation_results": [],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 0,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false,
+      "precision": 1.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "true_positives": [],
+      "false_positives": [],
+      "false_negatives": [
+        {
+          "row_index": 2,
+          "error_data": "Blood Pressure Monitor",
+          "injected_error": {
+            "rule_name": "inject_kitchen_categories",
+            "error_rule": "inject_kitchen_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace fashion categories with kitchen/cooking items",
+            "original_value": "t-shirts",
+            "anomalous_value": "Dishwasher",
+            "injected_data": "Dishwasher",
+            "operation": "value_replacement",
+            "row_index": 2,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        },
+        {
+          "row_index": 2,
+          "error_data": "Blood Pressure Monitor",
+          "injected_error": {
+            "rule_name": "inject_medical_categories",
+            "error_rule": "inject_medical_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with medical equipment and supplies",
+            "original_value": "Dishwasher",
+            "anomalous_value": "Blood Pressure Monitor",
+            "injected_data": "Blood Pressure Monitor",
+            "operation": "value_replacement",
+            "row_index": 2,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        }
+      ],
+      "true_positive_count": 0,
+      "false_positive_count": 0,
+      "false_negative_count": 1,
+      "validation_performed": true
+    }
+  ],
+  "execution_metrics": {
+    "total_execution_time_seconds": 0.04215073585510254,
+    "peak_memory_mb": 814.74609375,
+    "memory_increase_mb": 0.8515625,
+    "tracemalloc_peak_mb": 0.2948760986328125,
+    "detection_times": {
+      "validation": 0,
+      "anomaly": 0,
+      "ml": 0,
+      "llm": 0,
+      "total": 0.020341873168945312
+    },
+    "per_sample_avg_time": 0.004215073585510254,
+    "timestamp": "2025-08-08T14:01:14.314722"
+  }
+}

@@ -1,0 +1,41 @@
+[
+  {
+    "rule_name": "inject_abstract_categories",
+    "error_rule": "inject_abstract_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with abstract or conceptual categories",
+    "original_value": "blouses",
+    "anomalous_value": "Happiness",
+    "injected_data": "Happiness",
+    "operation": "value_replacement",
+    "row_index": 1,
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "rule_name": "inject_medical_categories",
+    "error_rule": "inject_medical_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with medical equipment and supplies",
+    "original_value": "Happiness",
+    "anomalous_value": "Surgical Mask",
+    "injected_data": "Surgical Mask",
+    "operation": "value_replacement",
+    "row_index": 1,
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "rule_name": "inject_automotive_categories",
+    "error_rule": "inject_automotive_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with automotive parts and accessories",
+    "original_value": "t-shirts",
+    "anomalous_value": "Steering Wheel",
+    "injected_data": "Steering Wheel",
+    "operation": "value_replacement",
+    "row_index": 2,
+    "column_name": "category",
+    "field_name": "category"
+  }
+]

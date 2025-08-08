@@ -1,0 +1,67 @@
+[
+  {
+    "rule_name": "inject_office_categories",
+    "error_rule": "inject_office_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with office supplies and equipment",
+    "original_value": "sweaters",
+    "anomalous_value": "Copy Machine",
+    "injected_data": "Copy Machine",
+    "operation": "value_replacement",
+    "row_index": 5,
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "rule_name": "inject_office_categories",
+    "error_rule": "inject_office_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with office supplies and equipment",
+    "original_value": "Copy Machine",
+    "anomalous_value": "Paper Shredder",
+    "injected_data": "Paper Shredder",
+    "operation": "value_replacement",
+    "row_index": 5,
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "rule_name": "inject_abstract_categories",
+    "error_rule": "inject_abstract_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with abstract or conceptual categories",
+    "original_value": "shirts",
+    "anomalous_value": "Mathematics",
+    "injected_data": "Mathematics",
+    "operation": "value_replacement",
+    "row_index": 11,
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "rule_name": "inject_medical_categories",
+    "error_rule": "inject_medical_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with medical equipment and supplies",
+    "original_value": "Mathematics",
+    "anomalous_value": "MRI Scanner",
+    "injected_data": "MRI Scanner",
+    "operation": "value_replacement",
+    "row_index": 11,
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "rule_name": "inject_medical_categories",
+    "error_rule": "inject_medical_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with medical equipment and supplies",
+    "original_value": "MRI Scanner",
+    "anomalous_value": "Defibrillator",
+    "injected_data": "Defibrillator",
+    "operation": "value_replacement",
+    "row_index": 11,
+    "column_name": "category",
+    "field_name": "category"
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "rule_name": "inject_office_categories",
+    "error_rule": "inject_office_categories",
+    "injection_type": "anomaly",
+    "rule_description": "Replace with office supplies and equipment",
+    "original_value": "blazers",
+    "anomalous_value": "Office Chair",
+    "injected_data": "Office Chair",
+    "operation": "value_replacement",
+    "row_index": 13,
+    "column_name": "category",
+    "field_name": "category"
+  }
+]
