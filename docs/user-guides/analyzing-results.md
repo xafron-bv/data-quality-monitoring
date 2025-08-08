@@ -20,9 +20,8 @@ print(len(df))  # row count
 
 Use the `analyze-column` command to understand field characteristics:
 
-```python
-import subprocess
-subprocess.run(["python", "main.py", "analyze-column", "your_data.csv", "column_name"]) 
+```bash
+python main.py analyze-column your_data.csv column_name
 ```
 
 This shows:

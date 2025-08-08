@@ -8,9 +8,8 @@ This document provides example configurations for deploying the Data Quality Det
 
 Run as a batch process from Python:
 
-```python
-import subprocess
-subprocess.run(["python", "main.py", "single-demo", "--data-file", "data.csv"]) 
+```bash
+python main.py single-demo --data-file data.csv
 ```
 
 ## Example 1: Simple Batch Orchestration (Python)

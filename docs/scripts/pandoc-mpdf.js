@@ -56,8 +56,8 @@ async function renderMermaidPngBase64(code) {
   return buf.toString('base64');
 }
 
-async function transformMarkdown(md, anchor, routeToAnchorMap) {
-  // Replace Mermaid code fences with embedded PNG data URIs
+async function transformMarkdown(md, anchor, routeToAnchorMap, imagesDir, imageCounterRef) {
+  // Replace Mermaid code fences with saved PNG images (LaTeX cannot embed data URIs)
   const fence = /```mermaid\n([\s\S]*?)```/g;
   let out = '';
   let lastIdx = 0;
@@ -67,8 +67,15 @@ async function transformMarkdown(md, anchor, routeToAnchorMap) {
     const code = m[1];
     try {
       const b64 = await renderMermaidPngBase64(code);
-      out += `\n\n![Mermaid](data:image/png;base64,${b64})\n\n`;
+      const imgIndex = (imageCounterRef.value = (imageCounterRef.value || 0) + 1);
+      const fileName = `mermaid_${imgIndex}.png`;
+      const filePath = path.join(imagesDir, fileName);
+      fs.writeFileSync(filePath, Buffer.from(b64, 'base64'));
+      // Reference using path relative to docsRoot (pandoc cwd), so prefix with 'build/images/'
+      const relForPandoc = path.posix.join('build', 'images', fileName);
+      out += `\n\n![Mermaid](${relForPandoc})\n\n`;
     } catch (e) {
+      // Fallback to keeping the original mermaid code fence
       out += `\n\n${'```'}mermaid\n${code}\n${'```'}\n\n`;
     }
     lastIdx = m.index + m[0].length;
@@ -118,11 +125,16 @@ async function writeCombined(root, files, outPath) {
     fileRouteAnchor.set(f, { route, anchor });
   }
 
+  // Ensure images directory exists next to combined.md
+  const imagesDir = path.join(path.dirname(outPath), 'images');
+  fs.mkdirSync(imagesDir, { recursive: true });
+  const imageCounterRef = { value: 0 };
+
   const parts = [];
   for (const f of files) {
     let md = fs.readFileSync(f, 'utf8');
     const { anchor } = fileRouteAnchor.get(f);
-    md = await transformMarkdown(md, anchor, routeToAnchorMap);
+    md = await transformMarkdown(md, anchor, routeToAnchorMap, imagesDir, imageCounterRef);
     parts.push(`\n\n<!-- ${path.relative(root, f)} -->\n\n${md}\n`);
   }
   fs.writeFileSync(outPath, parts.join('\n'), 'utf8');
@@ -136,6 +148,7 @@ function runPandoc(docsRoot, inputMd, outPdf) {
     '--toc', '--toc-depth=3',
     '--pdf-engine=xelatex',
     `--metadata=title:"Xafron Documentation"`,
+    '--resource-path=.:build',
     '--output', `'${outPdf}'`
   ].join(' ');
   console.log('Running:', cmd);

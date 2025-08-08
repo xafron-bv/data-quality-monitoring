@@ -38,16 +38,14 @@ flowchart LR
 
 The basic command structure is:
 
-```python
-import subprocess
-subprocess.run(["python", "main.py", "<command>", *"[options]".split()])
+```bash
+python main.py <command> [options]
 ```
 
 For example, to run detection on your data:
 
-```python
-import subprocess
-subprocess.run(["python", "main.py", "single-demo", "--data-file", "your_data.csv"]) 
+```bash
+python main.py single-demo --data-file your_data.csv
 ```
 
 For detailed options and configurations, see the [Running Detection Guide](../user-guides/running-detection.md).
@@ -56,13 +54,8 @@ For detailed options and configurations, see the [Running Detection Guide](../us
 
 The system can inject synthetic errors to evaluate detection performance:
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "clean_data.csv",
-    "--injection-intensity", "0.2",
-])
+```bash
+python main.py single-demo --data-file clean_data.csv --injection-intensity 0.2
 ```
 
 For production use without synthetic errors, set `--injection-intensity 0.0`.
@@ -77,14 +70,8 @@ Note: Detection methods are disabled by default unless you enable them explicitl
 - Speed: Fast
 
 Example:
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "your_data.csv",
-    "--enable-validation",
-    "--validation-threshold", "0.0",
-])
+```bash
+python main.py single-demo --data-file your_data.csv --enable-validation --validation-threshold 0.0
 ```
 
 ### 2. Pattern-Based Detection
@@ -93,14 +80,8 @@ subprocess.run([
 - Speed: Fast
 
 Example:
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "your_data.csv",
-    "--enable-pattern",
-    "--anomaly-threshold", "0.7",
-])
+```bash
+python main.py single-demo --data-file your_data.csv --enable-pattern --anomaly-threshold 0.7
 ```
 
 ### 3. ML-Based Detection
@@ -110,14 +91,8 @@ subprocess.run([
 - Requirement: Trained models
 
 Example:
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "your_data.csv",
-    "--enable-ml",
-    "--ml-threshold", "0.7",
-])
+```bash
+python main.py single-demo --data-file your_data.csv --enable-ml --ml-threshold 0.7
 ```
 
 ### 4. LLM-Based Detection
@@ -127,30 +102,16 @@ subprocess.run([
 - Requirement: Language models
 
 Example:
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "your_data.csv",
-    "--enable-llm",
-    "--llm-threshold", "0.6",
-])
+```bash
+python main.py single-demo --data-file your_data.csv --enable-llm --llm-threshold 0.6
 ```
 
 ## Threshold Configuration
 
 Adjust detection sensitivity per method:
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "your_data.csv",
-    "--validation-threshold", "0.0",
-    "--anomaly-threshold", "0.7",
-    "--ml-threshold", "0.8",
-    "--llm-threshold", "0.6",
-])
+```bash
+python main.py single-demo --data-file your_data.csv --validation-threshold 0.0 --anomaly-threshold 0.7 --ml-threshold 0.8 --llm-threshold 0.6
 ```
 
 ### Threshold Guidelines
@@ -166,13 +127,8 @@ subprocess.run([
 
 Process only essential fields to save memory:
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "your_data.csv",
-    "--core-fields-only",
-])
+```bash
+python main.py single-demo --data-file your_data.csv --core-fields-only
 ```
 
 Core fields typically include:
@@ -188,44 +144,24 @@ Core fields typically include:
 
 Use optimized weights for better accuracy:
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "your_data.csv",
-    "--use-weighted-combination",
-    "--weights-file", "detection_weights.json",
-])
+```bash
+python main.py single-demo --data-file your_data.csv --use-weighted-combination --weights-file detection_weights.json
 ```
 
 ### Generate Weights
 
 Create optimized weights based on performance:
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "your_data.csv",
-    "--injection-intensity", "0.2",
-    "--generate-weights",
-    "--weights-output-file", "custom_weights.json",
-])
+```bash
+python main.py single-demo --data-file your_data.csv --injection-intensity 0.2 --generate-weights --weights-output-file custom_weights.json
 ```
 
 ### LLM Context Enhancement
 
 Provide context for better LLM detection:
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "your_data.csv",
-    "--enable-llm",
-    "--llm-temporal-column", "date_created",
-    "--llm-context-columns", "category,brand,season",
-])
+```bash
+python main.py single-demo --data-file your_data.csv --enable-llm --llm-temporal-column date_created --llm-context-columns category,brand,season
 ```
 
 ## Output Files
@@ -247,59 +183,26 @@ output_dir/
 
 ### 1. Pre-Import Validation
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "import_batch.csv",
-    "--enable-validation",
-    "--validation-threshold", "0.0",
-    "--injection-intensity", "0.0",
-    "--output-dir", "validation_results",
-])
+```bash
+python main.py single-demo --data-file import_batch.csv --enable-validation --validation-threshold 0.0 --injection-intensity 0.0 --output-dir validation_results
 ```
 
 ### 2. Anomaly Detection
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "historical_data.csv",
-    "--enable-pattern", "--enable-ml",
-    "--anomaly-threshold", "0.8",
-    "--ml-threshold", "0.75",
-    "--injection-intensity", "0.0",
-])
+```bash
+python main.py single-demo --data-file historical_data.csv --enable-pattern --enable-ml --anomaly-threshold 0.8 --ml-threshold 0.75 --injection-intensity 0.0
 ```
 
 ### 3. Full System Test
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "test_data.csv",
-    "--injection-intensity", "0.3",
-    "--max-issues-per-row", "2",
-    "--generate-weights",
-    "--output-dir", "test_results",
-])
+```bash
+python main.py single-demo --data-file test_data.csv --injection-intensity 0.3 --max-issues-per-row 2 --generate-weights --output-dir test_results
 ```
 
 ### 4. Production Monitoring
 
-```python
-import subprocess, datetime
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "daily_data.csv",
-    "--injection-intensity", "0.0",
-    "--use-weighted-combination",
-    "--weights-file", "config/production_weights.json",
-    "--core-fields-only",
-    "--output-dir", f"monitoring/{datetime.datetime.now().strftime('%Y%m%d')}",
-])
+```bash
+python main.py single-demo --data-file daily_data.csv --injection-intensity 0.0 --use-weighted-combination --weights-file config/production_weights.json --core-fields-only --output-dir monitoring/$(date +%Y%m%d)
 ```
 
 ## Performance Tips
