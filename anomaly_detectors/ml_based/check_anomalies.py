@@ -17,7 +17,7 @@ from common.field_column_map import get_field_to_column_map
 # Global model cache to avoid reloading models
 _model_cache = {}
 
-def load_model_for_field(field_name, models_dir=None, use_gpu=True):
+def load_model_for_field(field_name, models_dir=None, use_gpu=True, variation=None):
     """
     Given a field name, load the corresponding model and return the model, column name, and reference centroid.
     Uses caching to avoid reloading the same model multiple times.
@@ -26,6 +26,7 @@ def load_model_for_field(field_name, models_dir=None, use_gpu=True):
         field_name: Name of the field to load model for
         models_dir: Directory containing the trained models
         use_gpu: Whether to use GPU acceleration if available
+        variation: Variation key to load variant-specific model directory (required)
 
     Returns:
         tuple: (model, column_name, reference_centroid)
@@ -34,10 +35,10 @@ def load_model_for_field(field_name, models_dir=None, use_gpu=True):
         FileNotFoundError: If reference centroid is not found
     """
     if models_dir is None:
-        models_dir = os.path.join(os.path.dirname(__file__), 'models')
+        models_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'models', 'ml')
 
     # Create cache key
-    cache_key = (field_name, models_dir, use_gpu)
+    cache_key = (field_name, models_dir, use_gpu, variation)
 
     # Check if model is already cached
     if cache_key in _model_cache:
@@ -47,9 +48,26 @@ def load_model_for_field(field_name, models_dir=None, use_gpu=True):
     if field_name not in field_to_column:
         raise ValueError(f"Field '{field_name}' not found in field-to-column map.")
     column_name = field_to_column[field_name]
-    model_dir = os.path.join(models_dir, 'trained', f'{field_name.replace(" ", "_").lower()}')
-    if not os.path.isdir(model_dir):
-        raise FileNotFoundError(f"Model directory not found for field '{field_name}' (column '{column_name}'): {model_dir}")
+
+    # Require variation
+    if not variation:
+        raise ValueError(f"Variation is required for field '{field_name}' when loading ML model")
+
+    trained_root = os.path.join(models_dir, 'trained')
+    default_dir = os.path.join(trained_root, f'{field_name.replace(" ", "_").lower()}')
+
+    # Prefer nested variant directory, then flat variant naming
+    variant_dir = os.path.join(default_dir, variation)
+    flat_variant = os.path.join(trained_root, f'{field_name.replace(" ", "_").lower()}__{variation}')
+
+    if os.path.isdir(variant_dir):
+        model_dir = variant_dir
+    elif os.path.isdir(flat_variant):
+        model_dir = flat_variant
+    else:
+        raise FileNotFoundError(
+            f"Model directory for field '{field_name}' variation '{variation}' not found (checked {variant_dir} and {flat_variant})"
+        )
 
     # Determine device to use
     device = get_optimal_device(use_gpu)

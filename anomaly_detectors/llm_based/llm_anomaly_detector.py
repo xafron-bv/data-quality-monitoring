@@ -268,7 +268,8 @@ class LLMAnomalyDetector:
         enable_prototype_reprogramming: bool = False,
         enable_in_context_learning: bool = False,
         temporal_column: Optional[str] = None,
-        context_columns: Optional[List[str]] = None
+        context_columns: Optional[List[str]] = None,
+        variation: Optional[str] = None
     ):
         self.field_name = field_name
         # Threshold is now positive - higher values are more anomalous
@@ -282,6 +283,7 @@ class LLMAnomalyDetector:
         self.language_model = None
         self.tokenizer = None
         self.model_path = None
+        self.variation = variation
 
         # Optional components
         self.enable_dynamic_encoding = enable_dynamic_encoding
@@ -311,7 +313,7 @@ class LLMAnomalyDetector:
 
     def _get_cache_key(self) -> str:
         """Generate cache key for model caching."""
-        return f"llm_model_{self.field_name}_{self.threshold}_{self.use_gpu}"
+        return f"llm_model_{self.field_name}_{self.variation}_{self.threshold}_{self.use_gpu}"
 
     def learn_patterns(self, df: pd.DataFrame, column_name: str) -> None:
         """
@@ -329,6 +331,10 @@ class LLMAnomalyDetector:
             print(f"❌ No field name specified for LLM detector")
             return
 
+        if not self.variation:
+            print(f"❌ Variation is required for LLM detector (field '{self.field_name}')")
+            return
+
         # Check class-level cache first
         cache_key = self._get_cache_key()
         if cache_key in LLMAnomalyDetector._model_cache:
@@ -339,19 +345,19 @@ class LLMAnomalyDetector:
             self.column_name = cached_data['column_name']
             self.is_initialized = True
             self.has_trained_model = True
-            print(f"📋 Using cached language model for field '{self.field_name}'")
+            print(f"📋 Using cached language model for field '{self.field_name}' (variation '{self.variation}')")
             return
 
-        # Load trained model
-        model_path = os.path.join(os.path.dirname(__file__), "models", f"{self.field_name}_model")
+        # Load trained model from variation-specific path
+        model_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "models", "llm", f"{self.field_name}_model", self.variation)
         if not os.path.exists(model_path):
-            print(f"❌ No trained model found for field '{self.field_name}' at {model_path}")
+            print(f"❌ No trained model found for field '{self.field_name}' variation '{self.variation}' at {model_path}")
             print(f"💡 Skipping LLM detection for this field")
             self.has_trained_model = False
             return
 
         try:
-            print(f"🤖 Loading trained language model for field '{self.field_name}' from {model_path}")
+            print(f"🤖 Loading trained language model for field '{self.field_name}' variation '{self.variation}' from {model_path}")
             self.tokenizer = AutoTokenizer.from_pretrained(model_path)
             self.language_model = AutoModelForMaskedLM.from_pretrained(model_path)
             self.language_model.to(self.device)
@@ -368,7 +374,7 @@ class LLMAnomalyDetector:
 
             self.is_initialized = True
             self.has_trained_model = True
-            print(f"✅ Language model loaded successfully for field '{self.field_name}'")
+            print(f"✅ Language model loaded successfully for field '{self.field_name}' (variation '{self.variation}')")
 
         except Exception as e:
             print(f"❌ Error loading language model for field '{self.field_name}': {e}")
@@ -788,7 +794,8 @@ def create_llm_detector_for_field(
     enable_prototype_reprogramming: bool = False,
     enable_in_context_learning: bool = False,
     temporal_column: Optional[str] = None,
-    context_columns: Optional[List[str]] = None
+    context_columns: Optional[List[str]] = None,
+    variation: Optional[str] = None
 ) -> LLMAnomalyDetector:
     """
     Factory function to create an LLM anomaly detector for a specific field.
@@ -814,5 +821,6 @@ def create_llm_detector_for_field(
         enable_prototype_reprogramming=enable_prototype_reprogramming,
         enable_in_context_learning=enable_in_context_learning,
         temporal_column=temporal_column,
-        context_columns=context_columns
+        context_columns=context_columns,
+        variation=variation
     )

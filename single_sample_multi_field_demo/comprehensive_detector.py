@@ -222,12 +222,17 @@ class ComprehensiveFieldDetector:
     def _has_validation_capability(self, field_name: str) -> bool:
         """Check if validation is available for a field."""
         # Check if JSON validation rules exist
-        import os
-        json_rules_path = os.path.join(
+        import os, glob
+        base_dir = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            'validators', 'rules', f'{field_name}.json'
+            'validators', 'rules'
         )
+        json_rules_path = os.path.join(base_dir, f'{field_name}.json')
         if os.path.exists(json_rules_path):
+            return True
+        # Check variation-specific directory
+        variant_dir = os.path.join(base_dir, field_name)
+        if os.path.isdir(variant_dir) and glob.glob(os.path.join(variant_dir, '*.json')):
             return True
             
         # Fall back to checking old system
@@ -240,6 +245,18 @@ class ComprehensiveFieldDetector:
 
     def _has_anomaly_capability(self, field_name: str) -> bool:
         """Check if pattern-based anomaly detection is available for a field."""
+        import os, glob
+        base_dir = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'anomaly_detectors', 'pattern_based', 'rules'
+        )
+        json_rules_path = os.path.join(base_dir, f'{field_name}.json')
+        if os.path.exists(json_rules_path):
+            return True
+        variant_dir = os.path.join(base_dir, field_name)
+        if os.path.isdir(variant_dir) and glob.glob(os.path.join(variant_dir, '*.json')):
+            return True
+        # Fall back to legacy python-based modules
         try:
             anomaly_detector_module_str = f"anomaly_detectors.pattern_based.{field_name}.detect:AnomalyDetector"
             load_module_class(anomaly_detector_module_str)
@@ -276,8 +293,11 @@ class ComprehensiveFieldDetector:
                 from validators.json_validator import JSONValidator
                 from validators.json_reporter import JSONReporter
                 
-                validator = JSONValidator(field_name)
-                reporter = JSONReporter(field_name)
+                variation = self.field_mapper.get_field_variation(field_name)
+                if not variation:
+                    raise ValueError(f"Variation not specified for field '{field_name}' (brand: {self.field_mapper.get_brand_name()})")
+                validator = JSONValidator(field_name, variation=variation)
+                reporter = JSONReporter(field_name, variation=variation)
                 
                 self._validator_cache[field_name] = (validator, reporter)
             except FileNotFoundError:
@@ -312,7 +332,10 @@ class ComprehensiveFieldDetector:
         if field_name not in self._anomaly_detector_cache:
             try:
                 # Use the new generic pattern-based detector
-                detector = PatternBasedDetector(field_name)
+                variation = self.field_mapper.get_field_variation(field_name)
+                if not variation:
+                    raise ValueError(f"Variation not specified for field '{field_name}' (brand: {self.field_mapper.get_brand_name()})")
+                detector = PatternBasedDetector(field_name, variation=variation)
                 reporter = AnomalyReporter(field_name)
 
                 self._anomaly_detector_cache[field_name] = (detector, reporter)
@@ -326,7 +349,10 @@ class ComprehensiveFieldDetector:
         """Get or create ML detector for a field."""
         # Don't cache ML detectors to save memory - create fresh each time
         try:
-            ml_detector = MLAnomalyDetector(field_name=field_name, threshold=self.ml_threshold)
+            variation = self.field_mapper.get_field_variation(field_name)
+            if not variation:
+                raise ValueError(f"Variation not specified for field '{field_name}' (brand: {self.field_mapper.get_brand_name()})")
+            ml_detector = MLAnomalyDetector(field_name=field_name, threshold=self.ml_threshold, variation=variation)
             return ml_detector
         except Exception as e:
             print(f"      ⚠️  Could not load ML detection for {field_name}: {e}")
@@ -336,7 +362,10 @@ class ComprehensiveFieldDetector:
         """Get or create LLM detector for a field."""
         # Don't cache LLM detectors to save memory - create fresh each time
         try:
-            llm_detector = LLMAnomalyDetector(field_name=field_name, threshold=self.llm_threshold)
+            variation = self.field_mapper.get_field_variation(field_name)
+            if not variation:
+                raise ValueError(f"Variation not specified for field '{field_name}' (brand: {self.field_mapper.get_brand_name()})")
+            llm_detector = LLMAnomalyDetector(field_name=field_name, threshold=self.llm_threshold, variation=variation)
             return llm_detector
         except Exception as e:
             print(f"      ⚠️  Could not load LLM detection for {field_name}: {e}")
@@ -406,6 +435,10 @@ class ComprehensiveFieldDetector:
             if ml_detector:
                 try:
                     # Initialize the ML detector
+                    # Pass variation if the detector supports it
+                    variation = self.field_mapper.get_field_variation(field_name)
+                    if hasattr(ml_detector, 'variation'):
+                        ml_detector.variation = variation
                     ml_detector.learn_patterns(df, column_name)
 
                     # Process each row individually with the ML detector

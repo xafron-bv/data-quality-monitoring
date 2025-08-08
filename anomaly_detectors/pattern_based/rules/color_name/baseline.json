@@ -1,0 +1,17 @@
+{
+  "field_name": "color_name",
+  "description": "Baseline pattern rules for color names",
+  "known_values": [],
+  "format_patterns": [
+    {
+      "name": "allowed_chars",
+      "pattern": "^[A-Za-z][A-Za-z0-9\s\-_/]*$",
+      "message": "Invalid characters in color name",
+      "probability": 0.8
+    }
+  ],
+  "validation_rules": [
+    { "name": "not_empty", "type": "not_empty", "message": "Must not be empty", "probability": 0.9 },
+    { "name": "min_length", "type": "min_length", "min_length": 2, "message": "Too short", "probability": 0.7 }
+  ]
+}

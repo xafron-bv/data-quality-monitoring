@@ -1,10 +1,21 @@
-# Pattern-Based Anomaly Detection
+# Pattern-Based Anomaly Detector
 
-Rule-based anomaly detection using configurable JSON patterns.
+This module provides a unified pattern-based anomaly detection system that loads field-specific rules from JSON configuration files rather than hardcoded logic.
 
-## Overview
+## Rules Structure (Variation Required)
 
-This module provides a flexible, configuration-driven approach to anomaly detection. Instead of hardcoding detection logic, rules are defined in JSON files that are automatically loaded for each field.
+- Rules per field and variation: `rules/{field}/{variation}.json`
+- There is no default variation; if a brand does not specify a variation for a field (via `brand_configs/{brand}.json` -> `field_variations`), the system raises an error.
+
+Example:
+
+```
+anomaly_detectors/pattern_based/
+└── rules/
+    └── season/
+        ├── year_first.json
+        └── name_first.json
+```
 
 ## Key Features
 
