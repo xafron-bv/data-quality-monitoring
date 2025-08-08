@@ -644,7 +644,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     parser.add_argument("--anomaly-threshold", type=float, default=0.7, help="Minimum confidence threshold for anomaly detection (default: 0.7).")
     parser.add_argument("--ml-threshold", type=float, default=0.7, help="Minimum confidence threshold for ML detection (default: 0.7).")
     parser.add_argument("--llm-threshold", type=float, default=0.6, help="Minimum confidence threshold for LLM detection (default: 0.6).")
-    parser.add_argument("--error-probability", type=float, default=0.1, help="Probability of injecting issues (errors or anomalies) in each row (default: 0.1).")
+    parser.add_argument("--injection-intensity", type=float, default=0.1, help="Probability of injecting issues (errors or anomalies) in each row (0.0-1.0, default: 0.1).")
     parser.add_argument("--error-injection-prob", type=float, default=0.7, help="Probability of injecting errors vs anomalies when both available (0.0-1.0, default: 0.7).")
     parser.add_argument("--anomaly-injection-prob", type=float, default=0.3, help="Probability of injecting anomalies. Set to 0 for errors only (0.0-1.0, default: 0.3).")
     parser.add_argument("--batch-size", type=int, help="Batch size for processing (default: auto-determined based on system).")
@@ -876,7 +876,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         # Similar to single-sample logic but adapted for multi-sample
         if args.anomaly_injection_prob == 0:
             # Only inject errors
-            error_prob = args.error_probability
+            error_prob = args.injection_intensity
             anomaly_prob = 0
         else:
             # Normalize the probabilities to sum to 1.0
@@ -885,8 +885,8 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
             anomaly_ratio = args.anomaly_injection_prob / total_prob if total_prob > 0 else 0.5
             
             # Split probability based on normalized ratios
-            error_prob = args.error_probability * error_ratio
-            anomaly_prob = args.error_probability * anomaly_ratio
+            error_prob = args.injection_intensity * error_ratio
+            anomaly_prob = args.injection_intensity * anomaly_ratio
         
         # Apply error injection (validation errors) if available
         if run_validation and 'rules' in locals() and error_prob > 0:
