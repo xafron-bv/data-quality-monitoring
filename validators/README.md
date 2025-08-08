@@ -8,85 +8,94 @@ Validators implement business rules and format constraints to detect definitive 
 
 ## Structure
 
-Each field validator consists of:
-- `{field_name}/validate.py`: Validator implementation
-- `{field_name}/error_messages.json`: Human-readable error descriptions
+The validation system uses a JSON-based approach similar to pattern-based anomaly detectors:
+
+- `rules/{field_name}.json`: Validation rules and error messages for each field
+- `json_validator.py`: Generic validator that reads rules from JSON files
+- `json_reporter.py`: Reporter that formats error messages using JSON configuration
 
 ## Creating a New Validator
 
-### 1. Create Directory Structure
+### 1. Create a JSON Rules File
+
+Create a new file in the `rules/` directory:
+
 ```bash
 validators/
-└── new_field/
-    ├── validate.py
-    └── error_messages.json
+└── rules/
+    └── new_field.json
 ```
 
-### 2. Implement Validator Class
-
-```python
-# validators/new_field/validate.py
-from validators.validator_interface import ValidatorInterface
-from validators.validation_error import ValidationError
-
-class Validator(ValidatorInterface):
-    def __init__(self):
-        self.field_type = "new_field"
-    
-    def validate(self, value, row_index=None):
-        errors = []
-        
-        # Add validation logic
-        if not value or str(value).strip() == "":
-            errors.append(ValidationError(
-                error_type="EMPTY_VALUE",
-                severity="ERROR",
-                confidence=1.0,
-                details={"value": value}
-            ))
-        
-        return errors
-```
-
-### 3. Define Error Messages
+### 2. Define Validation Rules
 
 ```json
 {
-  "EMPTY_VALUE": {
-    "message": "Value cannot be empty",
-    "description": "This field requires a non-empty value",
-    "severity": "ERROR",
-    "examples": ["", " ", null]
-  }
+  "field_name": "new_field",
+  "description": "Validation rules for new field",
+  "error_messages": {
+    "EMPTY_VALUE": "Field cannot be empty",
+    "INVALID_FORMAT": "Invalid format: {value}",
+    "OUT_OF_RANGE": "Value {value} is out of acceptable range"
+  },
+  "validation_rules": [
+    {
+      "name": "empty_check",
+      "description": "Check for empty values",
+      "type": "empty_string",
+      "error_code": "EMPTY_VALUE",
+      "probability": 1.0
+    },
+    {
+      "name": "format_check",
+      "description": "Check format using regex",
+      "type": "regex",
+      "pattern": "^[A-Z][0-9]{3}$",
+      "error_code": "INVALID_FORMAT",
+      "probability": 0.95
+    }
+  ]
 }
 ```
 
-## Common Validation Patterns
+## Supported Validation Types
 
-### Format Validation
-- Regular expressions for patterns
-- Length constraints
-- Character set restrictions
+The JSON validator supports the following validation types:
 
-### Business Rules
-- Required fields
-- Value dependencies
-- Cross-field validation
+### Basic Validations
+- `missing`: Check for missing/null values
+- `type_check`: Validate data type (e.g., string, number)
+- `empty_string`: Check for empty strings
+- `whitespace`: Check for leading/trailing whitespace
+- `min_length`: Minimum string length validation
+- `max_length`: Maximum string length validation
 
-### Domain Constraints
-- Allowed value lists
-- Range validation
-- Logical constraints
+### Pattern Matching
+- `regex`: Single regex pattern matching
+- `regex_multiple`: Multiple regex patterns (OR logic)
+- `regex_negative`: Pattern should NOT match (valid if no match)
 
-## Available Validators
+### Content Validation
+- `keyword_check`: Ensure required keywords are present
+- `percentage_sum_check`: Validate percentages sum to 100
+- `parenthesis_check`: Check for balanced parentheses
+- `year_range_check`: Validate years within range
+- `temperature_check`: Validate temperature values
 
-- `care_instructions/`: Validates care instruction formats
-- `category/`: Product category validation
-- `color_name/`: Color name validation
-- `material/`: Material composition validation
-- `season/`: Season code validation
-- `size/`: Size format validation
-- `template/`: Generic template for new validators
+### Advanced Validations
+- `contradiction_check`: Check for contradictory statements
+- `language_consistency`: Check for mixed languages
+- Custom validation functions can be added to the JSONValidator class
+
+## Available Validation Rules
+
+The following fields have JSON validation rules defined:
+
+- `rules/care_instructions.json`: Care instruction validation
+- `rules/category.json`: Product category validation
+- `rules/color_name.json`: Color name validation
+- `rules/material.json`: Material composition validation
+- `rules/season.json`: Season validation
+- `rules/size.json`: Size format validation
 
 ## Error Injection
 

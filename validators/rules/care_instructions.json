@@ -1,0 +1,115 @@
+{
+  "field_name": "care_instructions",
+  "description": "Validation rules for care instructions",
+  "error_messages": {
+    "MISSING_VALUE": "Care instructions are missing. All products must have care instructions.",
+    "INVALID_TYPE": "Care instructions must be a text value. Found: {actual}.",
+    "EMPTY_INSTRUCTIONS": "Empty care instructions are not allowed.",
+    "WHITESPACE_ERROR": "Care instructions contain leading or trailing whitespace.",
+    "TOO_SHORT": "Care instructions are too short (less than 10 characters): '{instructions}'.",
+    "MISSING_WASH_INSTRUCTIONS": "Care instructions missing washing/cleaning information.",
+    "CONTRADICTORY_INSTRUCTIONS": "Care instructions contain contradictory information: '{instructions}'.",
+    "INVALID_TEMPERATURE": "Care instructions contain invalid temperature values: '{instructions}'.",
+    "MIXED_LANGUAGE": "Care instructions contain mixed languages: '{instructions}'.",
+    "SPECIAL_CHARACTERS": "Care instructions contain invalid special characters.",
+    "REPEATED_CONTENT": "Care instructions contain repeated content: '{instructions}'.",
+    "NONSENSICAL_CONTENT": "Care instructions appear to contain nonsensical content: '{instructions}'.",
+    "ALL_CAPS": "Care instructions should not be in all capital letters: '{instructions}'.",
+    "EXCESSIVE_PUNCTUATION": "Care instructions contain excessive punctuation: '{instructions}'."
+  },
+  "validation_rules": [
+    {
+      "name": "missing_value",
+      "description": "Check for missing care instruction values",
+      "type": "missing",
+      "error_code": "MISSING_VALUE",
+      "probability": 1.0
+    },
+    {
+      "name": "invalid_type",
+      "description": "Check for invalid data type",
+      "type": "type_check",
+      "expected_type": "string",
+      "error_code": "INVALID_TYPE",
+      "probability": 1.0
+    },
+    {
+      "name": "empty_instructions",
+      "description": "Check for empty string",
+      "type": "empty_string",
+      "error_code": "EMPTY_INSTRUCTIONS",
+      "probability": 1.0
+    },
+    {
+      "name": "whitespace_error",
+      "description": "Check for leading/trailing whitespace",
+      "type": "whitespace",
+      "error_code": "WHITESPACE_ERROR",
+      "probability": 0.95
+    },
+    {
+      "name": "too_short",
+      "description": "Check if instructions are too short",
+      "type": "min_length",
+      "min_length": 10,
+      "error_code": "TOO_SHORT",
+      "probability": 0.9
+    },
+    {
+      "name": "missing_wash_instructions",
+      "description": "Check for washing/cleaning keywords",
+      "type": "keyword_check",
+      "required_keywords": ["wash", "clean", "launder", "dry clean", "hand wash", "machine wash"],
+      "case_insensitive": true,
+      "error_code": "MISSING_WASH_INSTRUCTIONS",
+      "probability": 0.85
+    },
+    {
+      "name": "special_characters",
+      "description": "Check for invalid special characters",
+      "type": "regex",
+      "pattern": "[^\\w\\s°℃℉\\-.,;:()/]",
+      "error_code": "SPECIAL_CHARACTERS",
+      "probability": 0.85
+    },
+    {
+      "name": "all_caps",
+      "description": "Check if entire text is in capital letters",
+      "type": "regex",
+      "pattern": "^[A-Z\\s\\d\\W]+$",
+      "min_length": 20,
+      "error_code": "ALL_CAPS",
+      "probability": 0.8
+    },
+    {
+      "name": "excessive_punctuation",
+      "description": "Check for excessive punctuation",
+      "type": "regex",
+      "pattern": "[!.?]{3,}|[,;]{3,}",
+      "error_code": "EXCESSIVE_PUNCTUATION",
+      "probability": 0.85
+    },
+    {
+      "name": "invalid_temperature",
+      "description": "Check for invalid temperature values",
+      "type": "temperature_check",
+      "min_celsius": -10,
+      "max_celsius": 100,
+      "error_code": "INVALID_TEMPERATURE",
+      "probability": 0.85
+    },
+    {
+      "name": "contradictory_instructions",
+      "description": "Check for contradictory care instructions",
+      "type": "contradiction_check",
+      "contradiction_pairs": [
+        ["machine wash", "do not wash"],
+        ["tumble dry", "do not tumble dry"],
+        ["iron", "do not iron"],
+        ["bleach", "do not bleach"]
+      ],
+      "error_code": "CONTRADICTORY_INSTRUCTIONS",
+      "probability": 0.9
+    }
+  ]
+}

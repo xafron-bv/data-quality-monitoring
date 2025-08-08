@@ -1,0 +1,393 @@
+{
+  "human_readable_summary": {
+    "overall_performance": {
+      "performance_level": "Needs Improvement",
+      "f1_score": 0.333,
+      "precision": 0.25,
+      "recall": 0.5,
+      "interpretation": {
+        "f1_score": "F1 score of 0.333 indicates needs improvement detection performance",
+        "precision": "Precision of 0.250 means 25.0% of flagged items are actual errors",
+        "recall": "Recall of 0.500 means 50.0% of actual errors were detected"
+      }
+    },
+    "detection_summary": {
+      "total_validation_errors": 10,
+      "total_anomalies_detected": 0,
+      "total_ml_issues_detected": 0,
+      "total_samples_evaluated": 6,
+      "error_types_found": [
+        "Category '<b>jackets</b>' contains HTML tags which are not allowed.",
+        "Category value is missing. All products must have a valid category.",
+        "Category '<b><b>jackets</b></b>' contains HTML tags which are not allowed."
+      ]
+    },
+    "detailed_metrics": {
+      "true_positives": 1,
+      "false_positives": 3,
+      "false_negatives": 1,
+      "accuracy_note": "True positives are correctly identified errors, false positives are incorrectly flagged valid data, false negatives are missed errors"
+    }
+  },
+  "cell_coordinates": {
+    "errors": [
+      {
+        "row_index": 1,
+        "column_name": "category",
+        "error_data": null,
+        "display_message": "Category value is missing. All products must have a valid category.",
+        "probability": 1.0,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 1,
+        "column_name": "category",
+        "error_data": null,
+        "display_message": "Category value is missing. All products must have a valid category.",
+        "probability": 1.0,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 1,
+        "column_name": "category",
+        "error_data": null,
+        "display_message": "Category value is missing. All products must have a valid category.",
+        "probability": 1.0,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 1,
+        "column_name": "category",
+        "error_data": null,
+        "display_message": "Category value is missing. All products must have a valid category.",
+        "probability": 1.0,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 1,
+        "column_name": "category",
+        "error_data": null,
+        "display_message": "Category value is missing. All products must have a valid category.",
+        "probability": 1.0,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 4,
+        "column_name": "category",
+        "error_data": "<b>jackets</b>",
+        "display_message": "Category '<b>jackets</b>' contains HTML tags which are not allowed.",
+        "probability": 0.98,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 4,
+        "column_name": "category",
+        "error_data": "<b>jackets</b>",
+        "display_message": "Category '<b>jackets</b>' contains HTML tags which are not allowed.",
+        "probability": 0.98,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 4,
+        "column_name": "category",
+        "error_data": "<b>jackets</b>",
+        "display_message": "Category '<b>jackets</b>' contains HTML tags which are not allowed.",
+        "probability": 0.98,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 4,
+        "column_name": "category",
+        "error_data": "<b>jackets</b>",
+        "display_message": "Category '<b>jackets</b>' contains HTML tags which are not allowed.",
+        "probability": 0.98,
+        "severity": "error",
+        "type": "validation"
+      },
+      {
+        "row_index": 4,
+        "column_name": "category",
+        "error_data": "<b><b>jackets</b></b>",
+        "display_message": "Category '<b><b>jackets</b></b>' contains HTML tags which are not allowed.",
+        "probability": 0.98,
+        "severity": "error",
+        "type": "validation"
+      }
+    ],
+    "anomalies": [],
+    "ml_issues": [],
+    "summary": {
+      "total_errors": 10,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_issues": 10,
+      "affected_rows": 2
+    }
+  },
+  "detailed_evaluation_results": [
+    {
+      "field_name": "category",
+      "row_count": 10,
+      "sample_id": 0,
+      "sample_path": "sample_0.csv",
+      "validation_results": [
+        {
+          "row_index": 1,
+          "error_data": null,
+          "display_message": "Category value is missing. All products must have a valid category.",
+          "column_name": "category",
+          "probability": 1.0,
+          "error_code": "MISSING_VALUE"
+        },
+        {
+          "row_index": 4,
+          "error_data": "<b>jackets</b>",
+          "display_message": "Category '<b>jackets</b>' contains HTML tags which are not allowed.",
+          "column_name": "category",
+          "probability": 0.98,
+          "error_code": "HTML_TAGS"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 2,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "true_positives": [],
+      "false_positives": [
+        {
+          "row_index": 1,
+          "error_data": null,
+          "display_message": "Category value is missing. All products must have a valid category."
+        },
+        {
+          "row_index": 4,
+          "error_data": "<b>jackets</b>",
+          "display_message": "Category '<b>jackets</b>' contains HTML tags which are not allowed."
+        }
+      ],
+      "false_negatives": [
+        {
+          "row_index": 7,
+          "error_data": "Stethoscope",
+          "injected_error": {
+            "rule_name": "inject_medical_categories",
+            "error_rule": "inject_medical_categories",
+            "injection_type": "anomaly",
+            "rule_description": "Replace with medical equipment and supplies",
+            "original_value": "blouses",
+            "anomalous_value": "Stethoscope",
+            "injected_data": "Stethoscope",
+            "operation": "value_replacement",
+            "row_index": 7,
+            "column_name": "category",
+            "field_name": "category"
+          }
+        }
+      ],
+      "true_positive_count": 0,
+      "false_positive_count": 2,
+      "false_negative_count": 1,
+      "validation_performed": true
+    },
+    {
+      "field_name": "category",
+      "row_count": 10,
+      "sample_id": 1,
+      "sample_path": "sample_1.csv",
+      "validation_results": [
+        {
+          "row_index": 1,
+          "error_data": null,
+          "display_message": "Category value is missing. All products must have a valid category.",
+          "column_name": "category",
+          "probability": 1.0,
+          "error_code": "MISSING_VALUE"
+        },
+        {
+          "row_index": 4,
+          "error_data": "<b>jackets</b>",
+          "display_message": "Category '<b>jackets</b>' contains HTML tags which are not allowed.",
+          "column_name": "category",
+          "probability": 0.98,
+          "error_code": "HTML_TAGS"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 2,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "category",
+      "row_count": 10,
+      "sample_id": 2,
+      "sample_path": "sample_2.csv",
+      "validation_results": [
+        {
+          "row_index": 1,
+          "error_data": null,
+          "display_message": "Category value is missing. All products must have a valid category.",
+          "column_name": "category",
+          "probability": 1.0,
+          "error_code": "MISSING_VALUE"
+        },
+        {
+          "row_index": 4,
+          "error_data": "<b>jackets</b>",
+          "display_message": "Category '<b>jackets</b>' contains HTML tags which are not allowed.",
+          "column_name": "category",
+          "probability": 0.98,
+          "error_code": "HTML_TAGS"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 2,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "category",
+      "row_count": 10,
+      "sample_id": 3,
+      "sample_path": "sample_3.csv",
+      "validation_results": [
+        {
+          "row_index": 1,
+          "error_data": null,
+          "display_message": "Category value is missing. All products must have a valid category.",
+          "column_name": "category",
+          "probability": 1.0,
+          "error_code": "MISSING_VALUE"
+        },
+        {
+          "row_index": 4,
+          "error_data": "<b>jackets</b>",
+          "display_message": "Category '<b>jackets</b>' contains HTML tags which are not allowed.",
+          "column_name": "category",
+          "probability": 0.98,
+          "error_code": "HTML_TAGS"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 2,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    },
+    {
+      "field_name": "category",
+      "row_count": 10,
+      "sample_id": 4,
+      "sample_path": "sample_4.csv",
+      "validation_results": [
+        {
+          "row_index": 1,
+          "error_data": null,
+          "display_message": "Category value is missing. All products must have a valid category.",
+          "column_name": "category",
+          "probability": 1.0,
+          "error_code": "MISSING_VALUE"
+        },
+        {
+          "row_index": 4,
+          "error_data": "<b><b>jackets</b></b>",
+          "display_message": "Category '<b><b>jackets</b></b>' contains HTML tags which are not allowed.",
+          "column_name": "category",
+          "probability": 0.98,
+          "error_code": "HTML_TAGS"
+        }
+      ],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 2,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false,
+      "precision": 0.5,
+      "recall": 1.0,
+      "f1_score": 0.6666666666666666,
+      "true_positives": [
+        {
+          "row_index": 4,
+          "error_data": "<b><b>jackets</b></b>",
+          "display_message": "Category '<b><b>jackets</b></b>' contains HTML tags which are not allowed."
+        }
+      ],
+      "false_positives": [
+        {
+          "row_index": 1,
+          "error_data": null,
+          "display_message": "Category value is missing. All products must have a valid category."
+        }
+      ],
+      "false_negatives": [],
+      "true_positive_count": 1,
+      "false_positive_count": 1,
+      "false_negative_count": 0,
+      "validation_performed": true
+    }
+  ],
+  "execution_metrics": {
+    "total_execution_time_seconds": 0.01803755760192871,
+    "peak_memory_mb": 815.59375,
+    "memory_increase_mb": 1.296875,
+    "tracemalloc_peak_mb": 0.2321014404296875,
+    "detection_times": {
+      "validation": 0,
+      "anomaly": 0,
+      "ml": 0,
+      "llm": 0,
+      "total": 0.006852149963378906
+    },
+    "per_sample_avg_time": 0.003607511520385742,
+    "timestamp": "2025-08-08T13:27:50.039296"
+  }
+}

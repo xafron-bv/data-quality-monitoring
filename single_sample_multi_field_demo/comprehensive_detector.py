@@ -221,6 +221,16 @@ class ComprehensiveFieldDetector:
 
     def _has_validation_capability(self, field_name: str) -> bool:
         """Check if validation is available for a field."""
+        # Check if JSON validation rules exist
+        import os
+        json_rules_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'validators', 'rules', f'{field_name}.json'
+        )
+        if os.path.exists(json_rules_path):
+            return True
+            
+        # Fall back to checking old system
         try:
             validator_module_str = f"validators.{field_name}.validate:Validator"
             load_module_class(validator_module_str)
@@ -262,16 +272,30 @@ class ComprehensiveFieldDetector:
         """
         if field_name not in self._validator_cache:
             try:
-                validator_module_str = f"validators.{field_name}.validate:Validator"
-                reporter_module_str = f"validators.report:Reporter"
-
-                ValidatorClass = load_module_class(validator_module_str)
-                ReporterClass = load_module_class(reporter_module_str)
-
-                validator = ValidatorClass()
-                reporter = ReporterClass(field_name)
-
+                # Try the new JSON-based validator first
+                from validators.json_validator import JSONValidator
+                from validators.json_reporter import JSONReporter
+                
+                validator = JSONValidator(field_name)
+                reporter = JSONReporter(field_name)
+                
                 self._validator_cache[field_name] = (validator, reporter)
+            except FileNotFoundError:
+                # Fall back to old system if JSON rules don't exist
+                try:
+                    validator_module_str = f"validators.{field_name}.validate:Validator"
+                    reporter_module_str = f"validators.report:Reporter"
+
+                    ValidatorClass = load_module_class(validator_module_str)
+                    ReporterClass = load_module_class(reporter_module_str)
+
+                    validator = ValidatorClass()
+                    reporter = ReporterClass(field_name)
+
+                    self._validator_cache[field_name] = (validator, reporter)
+                except Exception as e:
+                    print(f"      ⚠️  Could not load validation for {field_name}: {e}")
+                    self._validator_cache[field_name] = (None, None)
             except Exception as e:
                 print(f"      ⚠️  Could not load validation for {field_name}: {e}")
                 self._validator_cache[field_name] = (None, None)

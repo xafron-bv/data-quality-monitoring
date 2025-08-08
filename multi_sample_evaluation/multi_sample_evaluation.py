@@ -763,11 +763,20 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
             print(f"Error: Could not read or parse rules file at '{rules_path}'.\nDetails: {e}")
             raise FileOperationError(f"Could not read or parse rules file at '{rules_path}'.\nDetails: {e}")
 
-        ValidatorClass = load_module_class(validator_module_str)
-        ReporterClass = load_module_class(validator_reporter_module_str)
+        # Try JSON-based validator first
+        try:
+            from validators.json_validator import JSONValidator
+            from validators.json_reporter import JSONReporter
+            
+            validator = JSONValidator(validator_name)
+            validator_reporter = JSONReporter(validator_name)
+        except FileNotFoundError:
+            # Fall back to old system
+            ValidatorClass = load_module_class(validator_module_str)
+            ReporterClass = load_module_class(validator_reporter_module_str)
 
-        validator = ValidatorClass()
-        validator_reporter = ReporterClass(validator_name)
+            validator = ValidatorClass()
+            validator_reporter = ReporterClass(validator_name)
 
     # Load anomaly detection components if needed
     if run_anomaly:

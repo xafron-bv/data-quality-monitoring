@@ -1,0 +1,77 @@
+{
+  "field_name": "season",
+  "description": "Validation rules for product seasons",
+  "error_messages": {
+    "MISSING_VALUE": "Season value is missing. All products must have a valid season.",
+    "INVALID_TYPE": "Season must be a text value. Found: {actual}.",
+    "EMPTY_SEASON": "Empty season is not allowed.",
+    "WHITESPACE_ERROR": "Season contains leading or trailing whitespace: '{original}'.",
+    "INVALID_SEASON_FORMAT": "Invalid season format: '{season}'. Expected format like 'Spring 2024' or 'All Season'.",
+    "INVALID_YEAR": "Season contains invalid year: '{season}'. Year should be between {min_year} and {max_year}.",
+    "SPECIAL_CHARACTERS": "Season '{season}' contains invalid special characters.",
+    "INVALID_SEASON_NAME": "Invalid season name in '{season}'. Use Spring, Summer, Fall/Autumn, or Winter."
+  },
+  "validation_rules": [
+    {
+      "name": "missing_value",
+      "description": "Check for missing season values",
+      "type": "missing",
+      "error_code": "MISSING_VALUE",
+      "probability": 1.0
+    },
+    {
+      "name": "invalid_type",
+      "description": "Check for invalid data type",
+      "type": "type_check",
+      "expected_type": "string",
+      "error_code": "INVALID_TYPE",
+      "probability": 1.0
+    },
+    {
+      "name": "empty_season",
+      "description": "Check for empty string",
+      "type": "empty_string",
+      "error_code": "EMPTY_SEASON",
+      "probability": 1.0
+    },
+    {
+      "name": "whitespace_error",
+      "description": "Check for leading/trailing whitespace",
+      "type": "whitespace",
+      "error_code": "WHITESPACE_ERROR",
+      "probability": 0.95
+    },
+    {
+      "name": "special_characters",
+      "description": "Check for invalid special characters",
+      "type": "regex",
+      "pattern": "[^\\w\\s\\-/]",
+      "error_code": "SPECIAL_CHARACTERS",
+      "probability": 0.85
+    },
+    {
+      "name": "invalid_season_format",
+      "description": "Check for valid season formats",
+      "type": "regex_negative",
+      "patterns": [
+        "^(Spring|Summer|Fall|Autumn|Winter)\\s*\\d{4}$",
+        "^\\d{4}\\s*(Spring|Summer|Fall|Autumn|Winter)$",
+        "^All\\s*Season(s)?$",
+        "^Year\\s*Round$",
+        "^Multi\\s*Season$"
+      ],
+      "case_insensitive": true,
+      "error_code": "INVALID_SEASON_FORMAT",
+      "probability": 0.9
+    },
+    {
+      "name": "invalid_year",
+      "description": "Check for invalid year in season",
+      "type": "year_range_check",
+      "min_year": 2020,
+      "max_year": 2030,
+      "error_code": "INVALID_YEAR",
+      "probability": 0.85
+    }
+  ]
+}
