@@ -1,0 +1,100 @@
+{
+  "field_name": "material",
+  "description": "Validation rules for product materials",
+  "error_messages": {
+    "MISSING_VALUE": "Material information is missing. All products must have material composition.",
+    "INVALID_TYPE": "Material must be a text value. Found: {actual}.",
+    "EMPTY_MATERIAL": "Empty material is not allowed.",
+    "WHITESPACE_ERROR": "Material contains leading or trailing whitespace: '{original}'.",
+    "MISSING_PERCENTAGE": "Material composition missing percentage values: '{material}'.",
+    "INVALID_PERCENTAGE": "Invalid percentage values in material: '{material}'.",
+    "PERCENTAGE_SUM_ERROR": "Material percentages don't add up to 100%: '{material}' (sum: {sum}%).",
+    "SPECIAL_CHARACTERS": "Material '{material}' contains invalid special characters.",
+    "INVALID_MATERIAL_NAME": "Material contains invalid or unknown material names: '{material}'.",
+    "MIXED_LANGUAGE": "Material description contains mixed languages: '{material}'.",
+    "FORMATTING_ERROR": "Material has formatting errors: '{material}'.",
+    "DUPLICATE_MATERIALS": "Material contains duplicate entries: '{material}'.",
+    "INCONSISTENT_FORMAT": "Material composition has inconsistent formatting: '{material}'.",
+    "INVALID_SEPARATOR": "Material uses invalid separators. Use commas to separate materials: '{material}'.",
+    "UNCLOSED_PARENTHESIS": "Material has unclosed parentheses: '{material}'.",
+    "EMPTY_PERCENTAGE": "Material has empty percentage values: '{material}'."
+  },
+  "validation_rules": [
+    {
+      "name": "missing_value",
+      "description": "Check for missing material values",
+      "type": "missing",
+      "error_code": "MISSING_VALUE",
+      "probability": 1.0
+    },
+    {
+      "name": "invalid_type",
+      "description": "Check for invalid data type",
+      "type": "type_check",
+      "expected_type": "string",
+      "error_code": "INVALID_TYPE",
+      "probability": 1.0
+    },
+    {
+      "name": "empty_material",
+      "description": "Check for empty string",
+      "type": "empty_string",
+      "error_code": "EMPTY_MATERIAL",
+      "probability": 1.0
+    },
+    {
+      "name": "whitespace_error",
+      "description": "Check for leading/trailing whitespace",
+      "type": "whitespace",
+      "error_code": "WHITESPACE_ERROR",
+      "probability": 0.95
+    },
+    {
+      "name": "special_characters",
+      "description": "Check for invalid special characters",
+      "type": "regex",
+      "pattern": "[^\\w\\s\\-%,./()]",
+      "error_code": "SPECIAL_CHARACTERS",
+      "probability": 0.85
+    },
+    {
+      "name": "missing_percentage",
+      "description": "Check if material names exist without percentages",
+      "type": "regex",
+      "pattern": "\\b(cotton|polyester|wool|silk|linen|nylon|rayon|spandex|elastane|viscose|acrylic|leather|cashmere|modal|lyocell|bamboo|hemp|alpaca|mohair|angora)\\b(?!\\s*\\d+%)",
+      "case_insensitive": true,
+      "error_code": "MISSING_PERCENTAGE",
+      "probability": 0.9
+    },
+    {
+      "name": "invalid_percentage",
+      "description": "Check for invalid percentage formats",
+      "type": "regex",
+      "pattern": "\\d+\\.\\d+%|\\d{3,}%|[^\\d]%|%[^\\s,)]",
+      "error_code": "INVALID_PERCENTAGE",
+      "probability": 0.95
+    },
+    {
+      "name": "unclosed_parenthesis",
+      "description": "Check for unclosed parentheses",
+      "type": "parenthesis_check",
+      "error_code": "UNCLOSED_PARENTHESIS",
+      "probability": 0.95
+    },
+    {
+      "name": "percentage_sum",
+      "description": "Check if percentages add up to 100%",
+      "type": "percentage_sum_check",
+      "error_code": "PERCENTAGE_SUM_ERROR",
+      "probability": 0.95
+    },
+    {
+      "name": "mixed_separators",
+      "description": "Check for inconsistent use of separators",
+      "type": "regex",
+      "pattern": "[,;].*[;,]",
+      "error_code": "INVALID_SEPARATOR",
+      "probability": 0.85
+    }
+  ]
+}

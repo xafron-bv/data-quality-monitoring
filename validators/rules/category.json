@@ -1,0 +1,73 @@
+{
+  "field_name": "category",
+  "description": "Validation rules for product categories",
+  "error_messages": {
+    "MISSING_VALUE": "Category value is missing. All products must have a valid category.",
+    "INVALID_TYPE": "Category must be a text value. Found: {actual}.",
+    "EMPTY_CATEGORY": "Empty category is not allowed. All products must have a valid category.",
+    "WHITESPACE_ERROR": "Category contains leading or trailing whitespace. Please remove extra spaces from '{original}'.",
+    "RANDOM_NOISE": "Category '{category}' contains random characters or noise that doesn't form valid words.",
+    "SPECIAL_CHARACTERS": "Category '{category}' contains special characters. Only alphanumeric characters, spaces, hyphens, and underscores are allowed.",
+    "HTML_TAGS": "Category '{category}' contains HTML tags which are not allowed."
+  },
+  "validation_rules": [
+    {
+      "name": "missing_value",
+      "description": "Check for missing category values",
+      "type": "missing",
+      "error_code": "MISSING_VALUE",
+      "probability": 1.0
+    },
+    {
+      "name": "invalid_type", 
+      "description": "Check for invalid data type",
+      "type": "type_check",
+      "expected_type": "string",
+      "error_code": "INVALID_TYPE",
+      "probability": 1.0
+    },
+    {
+      "name": "empty_category",
+      "description": "Check for empty string",
+      "type": "empty_string",
+      "error_code": "EMPTY_CATEGORY",
+      "probability": 1.0
+    },
+    {
+      "name": "whitespace_error",
+      "description": "Check for leading/trailing whitespace",
+      "type": "whitespace",
+      "error_code": "WHITESPACE_ERROR",
+      "probability": 0.95
+    },
+    {
+      "name": "html_tags",
+      "description": "Check for HTML tags",
+      "type": "regex",
+      "pattern": "<[^>]+>",
+      "error_code": "HTML_TAGS",
+      "probability": 0.98
+    },
+    {
+      "name": "special_characters",
+      "description": "Check for invalid special characters",
+      "type": "regex",
+      "pattern": "[^\\w\\s\\-]",
+      "error_code": "SPECIAL_CHARACTERS",
+      "probability": 0.9
+    },
+    {
+      "name": "random_noise",
+      "description": "Check for random character patterns",
+      "type": "regex_multiple",
+      "patterns": [
+        "[A-Za-z]+\\d+[A-Za-z]+",
+        "([A-Z][a-z]){2,}",
+        "([a-z][A-Z]){2,}",
+        "[A-Za-z]\\d[A-Za-z]"
+      ],
+      "error_code": "RANDOM_NOISE",
+      "probability": 0.85
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "brand_name": "test_brand",
+  "field_mappings": {
+    "category": "category",
+    "color_name": "color_name",
+    "article_number": "article_number",
+    "material": "material",
+    "size": "size",
+    "care_instructions": "care_instructions",
+    "season": "season"
+  },
+  "default_data_path": "data/test_data.csv",
+  "training_data_path": "data/test_data.csv",
+  "enabled_fields": [
+    "material",
+    "color_name",
+    "category",
+    "size",
+    "care_instructions",
+    "season",
+    "article_number"
+  ]
+}

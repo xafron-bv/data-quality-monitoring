@@ -39,40 +39,61 @@ python main.py analyze-column data/sample.csv new_field_name
 
 ## Step 2: Create a Validator
 
-Validators provide high-confidence error detection through business rules.
+Validators provide high-confidence error detection through business rules. The system now uses a JSON-based approach for validators.
 
-### 2.1 Implement Validator Class
+### 2.1 Create Validation Rules JSON
 
-Create `validators/new_field/validate.py`:
+Create `validators/rules/new_field.json`:
 
-```python
-from validators.validator_interface import ValidatorInterface
-from validators.validation_error import ValidationError
-import re
-
-class Validator(ValidatorInterface):
-    def __init__(self):
-        self.field_type = "new_field"
-        self.valid_pattern = re.compile(r'^[A-Z]{2}\d{4}$')
-        self.min_length = 6
-        self.max_length = 50
-        
-    def _validate_entry(self, value):
-        str_value = str(value).strip()
-        if not str_value or str_value.lower() in ['nan', 'none', 'null']:
-            return ValidationError(error_type="EMPTY_VALUE", probability=1.0)
-        if len(str_value) < self.min_length:
-            return ValidationError(error_type="TOO_SHORT", probability=1.0)
-        if len(str_value) > self.max_length:
-            return ValidationError(error_type="TOO_LONG", probability=1.0)
-        if not self.valid_pattern.match(str_value):
-            return ValidationError(error_type="INVALID_FORMAT", probability=1.0)
-        return None
+```json
+{
+  "field_name": "new_field",
+  "description": "Validation rules for new field",
+  "error_messages": {
+    "MISSING_VALUE": "New field value is missing",
+    "INVALID_FORMAT": "Invalid format: '{value}'. Expected format: XXX-000",
+    "OUT_OF_RANGE": "Value '{value}' is out of acceptable range"
+  },
+  "validation_rules": [
+    {
+      "name": "missing_value",
+      "description": "Check for missing values",
+      "type": "missing",
+      "error_code": "MISSING_VALUE",
+      "probability": 1.0
+    },
+    {
+      "name": "format_validation",
+      "description": "Validate format pattern",
+      "type": "regex",
+      "pattern": "^[A-Z]{3}-\\d{3}$",
+      "error_code": "INVALID_FORMAT",
+      "probability": 0.95
+    }
+  ]
+}
 ```
 
-### 2.2 Create Error Messages
+### 2.2 Available Validation Types
 
-Create `validators/new_field/error_messages.json` with concise messages your reporter can render.
+The JSON validator supports various validation types:
+
+- `missing`: Check for missing/null values
+- `type_check`: Validate data type
+- `empty_string`: Check for empty strings  
+- `whitespace`: Check for leading/trailing whitespace
+- `min_length`/`max_length`: String length validation
+- `regex`: Pattern matching with regular expressions
+- `regex_multiple`: Multiple patterns (OR logic)
+- `regex_negative`: Pattern should NOT match
+- `keyword_check`: Ensure required keywords are present
+- `percentage_sum_check`: Validate percentages sum to 100
+- `year_range_check`: Validate years within range
+- And more...
+
+### 2.3 Create Error Injection Rules  
+
+For testing purposes, create `validators/error_injection_rules/new_field.json` to define how errors should be injected.
 
 ## Step 3: Define Pattern-Based Rules
 

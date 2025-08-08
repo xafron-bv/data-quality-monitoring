@@ -61,6 +61,8 @@ def get_available_injection_fields(field_mapper, error_rules_dir: str = os.path.
 
 def generate_comprehensive_sample(df: pd.DataFrame,
                                 injection_intensity: float = 0.2,
+                                error_injection_prob: float = 0.7,
+                                anomaly_injection_prob: float = 0.3,
                                 max_issues_per_row: int = 2,
                                 field_mapper: Optional[FieldMapper] = None,
                                 error_rules_dir: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'validators', 'error_injection_rules'),
@@ -71,6 +73,8 @@ def generate_comprehensive_sample(df: pd.DataFrame,
     Args:
         df: Source DataFrame
         injection_intensity: Probability of injecting issues in each cell (0.0-1.0)
+        error_injection_prob: Probability of injecting errors when both error and anomaly are available (0.0-1.0)
+        anomaly_injection_prob: Probability of injecting anomalies. Set to 0 for errors only (0.0-1.0)
         max_issues_per_row: Maximum number of fields to corrupt per row
         field_mapper: Optional field mapper
         error_rules_dir: Directory containing error injection rules
@@ -183,16 +187,25 @@ def generate_comprehensive_sample(df: pd.DataFrame,
             if pd.isna(original_value) or str(original_value).strip() == "":
                 continue
 
-            # Choose injection type (prefer anomalies over errors since errors often fail)
+            # Choose injection type based on provided probabilities
             available_injectors = field_injectors[field_name]
-            if "error" in available_injectors and "anomaly" in available_injectors:
-                # 30% chance for errors, 70% for anomalies (reverse the previous ratio)
-                # This is because error rules are very specific and often don't match
-                injection_type = "error" if random.random() < 0.3 else "anomaly"
+            
+            # If anomaly_injection_prob is 0, only inject errors
+            if anomaly_injection_prob == 0:
+                if "error" in available_injectors:
+                    injection_type = "error"
+                else:
+                    # Skip this field if no error injector available and anomalies disabled
+                    continue
+            elif "error" in available_injectors and "anomaly" in available_injectors:
+                # Use error_injection_prob to decide between error and anomaly
+                injection_type = "error" if random.random() < error_injection_prob else "anomaly"
             elif "error" in available_injectors:
                 injection_type = "error"
-            else:
+            elif "anomaly" in available_injectors:
                 injection_type = "anomaly"
+            else:
+                continue
 
             # Apply injection
             injector = available_injectors[injection_type]
@@ -311,7 +324,44 @@ def save_comprehensive_sample(sample_df: pd.DataFrame,
     # Save the corrupted sample data
     sample_path = os.path.join(os.path.dirname(__file__), output_dir, f"{sample_name}.csv")
     sample_df.to_csv(sample_path, index=False)
-    # Do not save metadata or summary files anymore
+    
+    # Save injection metadata for F1 score calculation
+    metadata_path = os.path.join(os.path.dirname(__file__), output_dir, f"{sample_name}_injection_metadata.json")
+    
+    # Create summary of injections
+    summary = {
+        "total_injections": 0,
+        "affected_rows": 0,
+        "fields_with_injections": {}
+    }
+    
+    affected_rows_set = set()
+    for field_name, injections in injection_metadata.items():
+        error_count = sum(1 for inj in injections if inj["injection_type"] == "error")
+        anomaly_count = sum(1 for inj in injections if inj["injection_type"] == "anomaly")
+        
+        summary["fields_with_injections"][field_name] = {
+            "total": len(injections),
+            "errors": error_count,
+            "anomalies": anomaly_count
+        }
+        summary["total_injections"] += len(injections)
+        
+        for injection in injections:
+            affected_rows_set.add(injection["row_index"])
+    
+    summary["affected_rows"] = len(affected_rows_set)
+    
+    # Save metadata with summary
+    metadata_to_save = {
+        "summary": summary,
+        "detailed_injections": injection_metadata
+    }
+    
+    with open(metadata_path, 'w') as f:
+        json.dump(metadata_to_save, f, indent=2)
+    
     return {
-        "sample_csv": sample_path
+        "sample_csv": sample_path,
+        "injection_metadata": metadata_path
     }

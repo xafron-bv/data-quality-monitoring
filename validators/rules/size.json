@@ -1,0 +1,96 @@
+{
+  "field_name": "size",
+  "description": "Validation rules for product sizes",
+  "error_messages": {
+    "MISSING_VALUE": "Size value is missing. All products must have a valid size.",
+    "INVALID_TYPE": "Size must be a text value. Found: {actual}.",
+    "EMPTY_SIZE": "Empty size is not allowed.",
+    "WHITESPACE_ERROR": "Size contains leading or trailing whitespace: '{original}'.",
+    "INVALID_FORMAT": "Size '{size}' does not match any recognized size format.",
+    "SPECIAL_CHARACTERS": "Size '{size}' contains invalid special characters.",
+    "MIXED_CONTENT": "Size field contains mixed content types: '{size}'.",
+    "NONSENSICAL_SIZE": "Size '{size}' appears to be nonsensical or contains random characters.",
+    "NUMERIC_RANGE_ERROR": "Invalid numeric range format in size '{size}'.",
+    "AGE_FORMAT_ERROR": "Invalid age format in size '{size}'.",
+    "INVALID_SIZE_VALUE": "Invalid size value '{size}'"
+  },
+  "validation_rules": [
+    {
+      "name": "missing_value",
+      "description": "Check for missing size values",
+      "type": "missing",
+      "error_code": "MISSING_VALUE",
+      "probability": 1.0
+    },
+    {
+      "name": "invalid_type",
+      "description": "Check for invalid data type",
+      "type": "type_check",
+      "expected_type": "string",
+      "error_code": "INVALID_TYPE",
+      "probability": 1.0
+    },
+    {
+      "name": "empty_size",
+      "description": "Check for empty string",
+      "type": "empty_string",
+      "error_code": "EMPTY_SIZE",
+      "probability": 1.0
+    },
+    {
+      "name": "whitespace_error",
+      "description": "Check for leading/trailing whitespace",
+      "type": "whitespace",
+      "error_code": "WHITESPACE_ERROR",
+      "probability": 0.95
+    },
+    {
+      "name": "special_characters",
+      "description": "Check for invalid special characters",
+      "type": "regex",
+      "pattern": "[^\\w\\s\\-/()]",
+      "error_code": "SPECIAL_CHARACTERS",
+      "probability": 0.85
+    },
+    {
+      "name": "mixed_letters_numbers",
+      "description": "Check for mixed content like letters and numbers without clear pattern",
+      "type": "regex",
+      "pattern": "^(?=.*[a-zA-Z])(?=.*\\d)[a-zA-Z0-9]+$",
+      "error_code": "MIXED_CONTENT",
+      "probability": 0.9,
+      "exclude_patterns": ["^\\d+[xX]?[lLsSmM]?$", "^[xX]{1,3}[lLsS]$"]
+    },
+    {
+      "name": "random_characters",
+      "description": "Check for random character sequences",
+      "type": "regex_multiple",
+      "patterns": [
+        "[a-zA-Z]{1,2}\\d[a-zA-Z]{1,2}\\d",
+        "([A-Z][a-z]){3,}",
+        "([a-z][A-Z]){3,}"
+      ],
+      "error_code": "NONSENSICAL_SIZE",
+      "probability": 0.85
+    },
+    {
+      "name": "invalid_numeric_range",
+      "description": "Check for invalid numeric range formats",
+      "type": "regex",
+      "pattern": "^\\d+-\\d+$",
+      "validation_function": "validate_numeric_range",
+      "error_code": "NUMERIC_RANGE_ERROR",
+      "probability": 0.9
+    },
+    {
+      "name": "invalid_age_format",
+      "description": "Check for invalid age formats",
+      "type": "regex",
+      "pattern": "\\d+\\s*(years?|yrs?|months?|m)\\b",
+      "case_insensitive": true,
+      "validation_function": "validate_age_format",
+      "error_code": "AGE_FORMAT_ERROR",
+      "probability": 0.9
+    }
+  ]
+}

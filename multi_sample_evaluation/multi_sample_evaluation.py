@@ -6,6 +6,7 @@ import sys
 import time
 import psutil
 import tracemalloc
+import random
 from datetime import datetime
 
 import pandas as pd
@@ -643,7 +644,9 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     parser.add_argument("--anomaly-threshold", type=float, default=0.7, help="Minimum confidence threshold for anomaly detection (default: 0.7).")
     parser.add_argument("--ml-threshold", type=float, default=0.7, help="Minimum confidence threshold for ML detection (default: 0.7).")
     parser.add_argument("--llm-threshold", type=float, default=0.6, help="Minimum confidence threshold for LLM detection (default: 0.6).")
-    parser.add_argument("--error-probability", type=float, default=0.1, help="Probability of injecting errors in each row (default: 0.1).")
+    parser.add_argument("--injection-intensity", type=float, default=0.1, help="Probability of injecting issues (errors or anomalies) in each row (0.0-1.0, default: 0.1).")
+    parser.add_argument("--error-injection-prob", type=float, default=0.7, help="Probability of injecting errors vs anomalies when both available (0.0-1.0, default: 0.7).")
+    parser.add_argument("--anomaly-injection-prob", type=float, default=0.3, help="Probability of injecting anomalies. Set to 0 for errors only (0.0-1.0, default: 0.3).")
     parser.add_argument("--batch-size", type=int, help="Batch size for processing (default: auto-determined based on system).")
     parser.add_argument("--max-workers", type=int, default=7, help="Maximum number of parallel workers (default: 7).")
     parser.add_argument("--high-confidence-threshold", type=float, default=0.8, help="Threshold for high confidence detection results (default: 0.8).")
@@ -709,7 +712,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         run_ml = False  # For now, don't auto-include ML with "both" to avoid complexity
         run_llm = False  # Same for LLM
 
-    rules_path = os.path.join('validators', 'error_injection_rules', f'{validator_name}.json')
+    rules_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'validators', 'error_injection_rules', f'{validator_name}.json')
     validator_module_str = f"validators.{validator_name}.validate:Validator"
     validator_reporter_module_str = f"validators.report:Reporter"
     anomaly_detector_module_str = f"anomaly_detectors.pattern_based.{detector_name}.detect:AnomalyDetector"
@@ -763,11 +766,20 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
             print(f"Error: Could not read or parse rules file at '{rules_path}'.\nDetails: {e}")
             raise FileOperationError(f"Could not read or parse rules file at '{rules_path}'.\nDetails: {e}")
 
-        ValidatorClass = load_module_class(validator_module_str)
-        ReporterClass = load_module_class(validator_reporter_module_str)
+        # Try JSON-based validator first
+        try:
+            from validators.json_validator import JSONValidator
+            from validators.json_reporter import JSONReporter
+            
+            validator = JSONValidator(validator_name)
+            validator_reporter = JSONReporter(validator_name)
+        except FileNotFoundError:
+            # Fall back to old system
+            ValidatorClass = load_module_class(validator_module_str)
+            ReporterClass = load_module_class(validator_reporter_module_str)
 
-        validator = ValidatorClass()
-        validator_reporter = ReporterClass(validator_name)
+            validator = ValidatorClass()
+            validator_reporter = ReporterClass(validator_name)
 
     # Load anomaly detection components if needed
     if run_anomaly:
@@ -860,21 +872,37 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         sample_df.name = f"sample_{i}"
         all_injected_items = []
 
+        # Calculate actual probabilities based on injection settings
+        # Similar to single-sample logic but adapted for multi-sample
+        if args.anomaly_injection_prob == 0:
+            # Only inject errors
+            error_prob = args.injection_intensity
+            anomaly_prob = 0
+        else:
+            # Normalize the probabilities to sum to 1.0
+            total_prob = args.error_injection_prob + args.anomaly_injection_prob
+            error_ratio = args.error_injection_prob / total_prob if total_prob > 0 else 0.5
+            anomaly_ratio = args.anomaly_injection_prob / total_prob if total_prob > 0 else 0.5
+            
+            # Split probability based on normalized ratios
+            error_prob = args.injection_intensity * error_ratio
+            anomaly_prob = args.injection_intensity * anomaly_ratio
+        
         # Apply error injection (validation errors) if available
-        if run_validation and 'rules' in locals():
+        if run_validation and 'rules' in locals() and error_prob > 0:
             error_injector = ErrorInjector(rules, field_mapper=field_mapper)
             sample_df, error_injections = error_injector.inject_errors(
-                sample_df, field_name, max_errors=args.max_errors//2,
-                error_probability=args.error_probability/2
+                sample_df, field_name, max_errors=args.max_errors,
+                error_probability=error_prob
             )
             all_injected_items.extend(error_injections)
 
         # Apply anomaly injection (semantic anomalies) if available
-        if anomaly_rules:
+        if anomaly_rules and anomaly_prob > 0:
             anomaly_injector = AnomalyInjector(anomaly_rules)
             sample_df, anomaly_injections = anomaly_injector.inject_anomalies(
-                sample_df, field_name, max_anomalies=args.max_errors//2,
-                anomaly_probability=args.error_probability/2
+                sample_df, field_name, max_anomalies=args.max_errors,
+                anomaly_probability=anomaly_prob
             )
             all_injected_items.extend(anomaly_injections)
 
