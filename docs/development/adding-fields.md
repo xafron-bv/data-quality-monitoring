@@ -31,13 +31,10 @@ flowchart TD
 
 Understand your field's characteristics:
 
-```python
-# Analyze field data distribution
-import subprocess
-subprocess.run(["python", "analyze_column/analyze_column.py", "data/sample.csv", "new_field_name"]) 
-
+```bash
+python analyze_column/analyze_column.py data/sample.csv new_field_name
 # Or use the main entry point
-subprocess.run(["python", "main.py", "analyze-column", "data/sample.csv", "new_field_name"]) 
+python main.py analyze-column data/sample.csv new_field_name
 ```
 
 ## Step 2: Create a Validator
@@ -142,26 +139,14 @@ for value in ['', 'abc123', '123ABC']:
 
 ### 6.2 Integration Tests
 
-```python
-import subprocess
-subprocess.run([
-  "python", "main.py", "single-demo",
-  "--data-file", "test_data/new_field_test.csv",
-  "--enable-validation", "--enable-pattern", "--enable-ml",
-  "--output-dir", "test_results/new_field",
-])
+```bash
+python main.py single-demo --data-file test_data/new_field_test.csv --enable-validation --enable-pattern --enable-ml --output-dir test_results/new_field
 ```
 
 ### 6.3 Performance Testing
 
-```python
-import subprocess
-subprocess.run([
-  "python", "main.py", "multi-eval",
-  "data/full_dataset.csv", "--field", "new_field",
-  "--num-samples", "100",
-  "--output-dir", "evaluation_results/new_field",
-])
+```bash
+python main.py multi-eval data/full_dataset.csv --field new_field --num-samples 100 --output-dir evaluation_results/new_field
 ```
 
 ## Documentation

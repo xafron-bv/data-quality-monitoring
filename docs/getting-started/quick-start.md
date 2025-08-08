@@ -10,15 +10,8 @@ Before starting, ensure you have completed the [Installation Guide](installation
 
 The easiest way to start is with the single sample demo:
 
-```python
-# run_demo.py
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "data/sample_data.csv",
-    "--output-dir", "results/quick_start",
-    "--enable-validation", "--enable-pattern", "--enable-ml",
-])
+```bash
+python main.py single-demo --data-file data/sample_data.csv --output-dir results/quick_start --enable-validation --enable-pattern --enable-ml
 ```
 
 This will:
@@ -51,19 +44,9 @@ Note: `<sample>` defaults to names used by the demo, e.g. `demo_analysis` or `co
 
 Now that you've seen the basic demo, try running with specific detection methods by adjusting the flags you pass in Python:
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "data/sample_data.csv",
-    "--enable-validation",
-])
-
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "data/sample_data.csv",
-    "--enable-pattern",
-])
+```bash
+python main.py single-demo --data-file data/sample_data.csv --enable-validation
+python main.py single-demo --data-file data/sample_data.csv --enable-pattern
 ```
 
 ## What's Next?

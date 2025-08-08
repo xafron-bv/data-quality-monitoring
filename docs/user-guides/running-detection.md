@@ -6,9 +6,8 @@ This guide covers how to run data quality detection on your datasets using vario
 
 The simplest way to run detection is using the demo command:
 
-```python
-import subprocess
-subprocess.run(["python", "main.py", "single-demo", "--data-file", "your_data.csv"]) 
+```bash
+python main.py single-demo --data-file your_data.csv
 ```
 
 This runs detection with default thresholds. Methods are disabled unless enabled with flags.
@@ -17,32 +16,17 @@ This runs detection with default thresholds. Methods are disabled unless enabled
 
 Enable specific detection methods:
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "your_data.csv",
-    "--enable-validation",
-    "--enable-pattern",
-    "--enable-ml",
-    # "--enable-llm",
-])
+```bash
+python main.py single-demo --data-file your_data.csv --enable-validation --enable-pattern --enable-ml
+# add --enable-llm if needed
 ```
 
 ## Setting Detection Thresholds
 
 Adjust sensitivity for each detection method:
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "your_data.csv",
-    "--validation-threshold", "0.0",
-    "--anomaly-threshold", "0.7",
-    "--ml-threshold", "0.7",
-    "--llm-threshold", "0.6",
-])
+```bash
+python main.py single-demo --data-file your_data.csv --validation-threshold 0.0 --anomaly-threshold 0.7 --ml-threshold 0.7 --llm-threshold 0.6
 ```
 
 ### Threshold Guidelines
@@ -56,24 +40,18 @@ subprocess.run([
 
 ### 1. Sample Processing
 
-```python
+```bash
+python - <<'PY'
 import pandas as pd
-# Create a sample file of first 1000 rows
 pd.read_csv("large_data.csv").head(1000).to_csv("sample_data.csv", index=False)
-
-import subprocess
-subprocess.run(["python", "main.py", "single-demo", "--data-file", "sample_data.csv"]) 
+PY
+python main.py single-demo --data-file sample_data.csv
 ```
 
 ### 2. Core Fields Only
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "large_data.csv",
-    "--core-fields-only",
-])
+```bash
+python main.py single-demo --data-file large_data.csv --core-fields-only
 ```
 
 ### 3. Specific Fields
@@ -84,13 +62,8 @@ Note: The single-demo command processes all configured fields. To process specif
 
 ### Specify Output Directory
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "your_data.csv",
-    "--output-dir", "results/2024-01-detection",
-])
+```bash
+python main.py single-demo --data-file your_data.csv --output-dir results/2024-01-detection
 ```
 
 ### Output Files
@@ -104,27 +77,16 @@ The single-demo command generates:
 
 For optimized detection based on historical performance:
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "your_data.csv",
-    "--use-weighted-combination",
-    "--weights-file", "detection_weights.json",
-])
+```bash
+python main.py single-demo --data-file your_data.csv --use-weighted-combination --weights-file detection_weights.json
 ```
 
 ## Injection Testing
 
 Test detection performance with synthetic errors:
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "clean_data.csv",
-    "--injection-intensity", "0.2",
-])
+```bash
+python main.py single-demo --data-file clean_data.csv --injection-intensity 0.2
 ```
 
 Note: Error injection is randomized. The exact errors will vary between runs.
@@ -141,40 +103,20 @@ After detection completes:
 
 ### Quick Quality Check
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "daily_upload.csv",
-    "--enable-pattern",
-])
+```bash
+python main.py single-demo --data-file daily_upload.csv --enable-pattern
 ```
 
 ### Full Production Run
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "production_data.csv",
-    "--enable-validation", "--enable-pattern", "--enable-ml",
-    "--validation-threshold", "0.0",
-    "--anomaly-threshold", "0.6",
-    "--ml-threshold", "0.7",
-    "--output-dir", "results/production_20240101",
-])
+```bash
+python main.py single-demo --data-file production_data.csv --enable-validation --enable-pattern --enable-ml --validation-threshold 0.0 --anomaly-threshold 0.6 --ml-threshold 0.7 --output-dir results/production_20240101
 ```
 
 ### Testing New Configuration
 
-```python
-import subprocess
-subprocess.run([
-    "python", "main.py", "single-demo",
-    "--data-file", "test_data.csv",
-    "--injection-intensity", "0.3",
-    "--enable-validation", "--enable-pattern",
-])
+```bash
+python main.py single-demo --data-file test_data.csv --injection-intensity 0.3 --enable-validation --enable-pattern
 ```
 
 ## Troubleshooting
