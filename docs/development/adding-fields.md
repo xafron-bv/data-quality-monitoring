@@ -36,9 +36,7 @@ Follow this process to add a new validator powered by JSON rules.
 ```bash
 validators/
 └── new_field/
-    ├── validate.py
     ├── rules.json
-    └── error_messages.json
 ```
 
 ### 2. Define Rules in rules.json
@@ -58,35 +56,17 @@ Create `validators/new_field/rules.json`:
 
 See `validators/README.md` for the list of supported rule types and examples in other fields.
 
-### 3. Implement Validator Stub
+### 3. No Python stub required
 
-Create `validators/new_field/validate.py`:
+Validators are instantiated generically via `JsonRulesValidator(field_name)` and read your `rules.json`. No per-field `validate.py` is needed.
+
+### 4. Test the Validator
 
 ```python
-from typing import Any, Optional
-from validators.validator_interface import ValidatorInterface
-from validators.validation_error import ValidationError
 from validators.rules_engine import JsonRulesValidator
-
-class Validator(ValidatorInterface):
-    def __init__(self) -> None:
-        self._engine = JsonRulesValidator(field_name="new_field")
-
-    def _validate_entry(self, value: Any) -> Optional[ValidationError]:
-        return self._engine._validate_entry(value)
-```
-
-### 4. Add Error Messages (Optional)
-
-Create `validators/new_field/error_messages.json` with mappings from error types to human-friendly messages.
-
-### 5. Test the Validator
-
-```python
-from validators.new_field.validate import Validator
 import pandas as pd
 
-validator = Validator()
+validator = JsonRulesValidator("new_field")
 assert validator._validate_entry("") is not None
 ```
 
@@ -144,7 +124,7 @@ The field is recognized once it's in brand config and the validator/rules exist.
 ### 6.1 Manual Testing
 
 ```python
-from validators.new_field.validate import Validator
+from validators.rules_engine import JsonRulesValidator
 validator = Validator()
 for value in ['AB1234', 'CD5678', 'EF9012']:
     assert validator._validate_entry(value) is None

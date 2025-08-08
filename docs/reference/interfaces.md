@@ -307,7 +307,7 @@ class DetectionResult:
 
 ```python
 from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
-from validators.material.validate import Validator as MaterialValidator
+from validators.rules_engine import JsonRulesValidator as MaterialValidator
 from validators.report import Reporter
 
 # Initialize components

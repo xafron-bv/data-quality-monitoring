@@ -615,7 +615,7 @@ Example Usage:
 This will automatically look for:
 - Error Injection Rules: validators/error_injection_rules/<validator>.json
 - Anomaly Injection Rules: anomaly_detectors/anomaly_injection_rules/<field>.json
-- Validator:  validators/<validator>/validate.py (expecting class 'Validator')
+- Validator:  validators/rules_engine:JsonRulesValidator
 - Reporter:   validators/report:Reporter
 - Anomaly Detector: anomaly_detectors/<detector>/detect.py (expecting class 'AnomalyDetector')
 - Anomaly Reporter: anomaly_detectors/report:AnomalyReporter
@@ -710,7 +710,7 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         run_llm = False  # Same for LLM
 
     rules_path = os.path.join('validators', 'error_injection_rules', f'{validator_name}.json')
-    validator_module_str = f"validators.{validator_name}.validate:Validator"
+    validator_module_str = f"validators.rules_engine:JsonRulesValidator"
     validator_reporter_module_str = f"validators.report:Reporter"
     anomaly_detector_module_str = f"anomaly_detectors.pattern_based.{detector_name}.detect:AnomalyDetector"
     anomaly_reporter_module_str = f"anomaly_detectors.pattern_based.report:AnomalyReporter"

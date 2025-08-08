@@ -2,24 +2,24 @@
   "field_name": "care_instructions",
   "description": "Validation rules for textile care instructions",
   "rule_flow": [
-    {"name": "not_empty", "type": "not_empty", "error_type": "MISSING_VALUE", "probability": 1.0},
-    {"name": "type_string", "type": "type_is_string", "allow_numeric_cast": false, "error_type": "INVALID_TYPE", "probability": 1.0},
-    {"name": "no_whitespace", "type": "no_leading_trailing_whitespace", "error_type": "HAS_LEADING_OR_TRAILING_WHITESPACE", "probability": 0.95},
-    {"name": "starts_with_prefix", "type": "starts_with", "prefix": "WASSEN OP MAX", "error_type": "CONTAINS_PREPENDED_TEXT", "probability": 0.9},
-    {"name": "contains_both_en", "type": "contains_both", "substr1": " - ", "substr2": "Machine wash cold", "error_type": "CONTAINS_APPENDED_TEXT", "probability": 0.9},
-    {"name": "multiple_spaces", "type": "contains_multiple_spaces", "error_type": "CONTAINS_MULTIPLE_SPACES", "probability": 0.85},
-    {"name": "no_line_breaks", "type": "no_line_breaks", "error_type": "CONTAINS_LINE_BREAK", "probability": 0.95},
-    {"name": "contains_html", "type": "contains_html", "error_type": "CONTAINS_HTML", "probability": 0.98},
-    {"name": "contains_emoji", "type": "contains_emoji", "error_type": "CONTAINS_EMOJI", "probability": 0.95},
-    {"name": "contains_symbol_Atilde", "type": "contains_disallowed_symbol", "symbol": "Ã", "error_type": "CONTAINS_DISALLOWED_SYMBOLS", "probability": 0.9},
-    {"name": "invalid_delimiter", "type": "invalid_delimiter", "error_type": "INVALID_DELIMITER", "probability": 0.9},
-    {"name": "missing_instruction", "type": "missing_instruction", "error_type": "MISSING_INSTRUCTION", "probability": 0.9},
-    {"name": "temperature_required", "type": "temperature_required", "pattern": "WASSEN OP MAX (\\d{2}°C)", "error_type": "INVALID_TEMPERATURE_FORMAT", "probability": 0.9},
-    {"name": "uppercase_instructions", "type": "uppercase_instructions", "error_type": "INCORRECT_CAPITALIZATION", "probability": 0.85},
+    {"name": "not_empty", "type": "not_empty", "error_type": "MISSING_VALUE", "probability": 1.0, "message": "Missing care instructions"},
+    {"name": "type_string", "type": "type_is_string", "allow_numeric_cast": false, "error_type": "INVALID_TYPE", "probability": 1.0, "message": "Expected a string value, received {received}"},
+    {"name": "no_whitespace", "type": "no_leading_trailing_whitespace", "error_type": "HAS_LEADING_OR_TRAILING_WHITESPACE", "probability": 0.95, "message": "Leading or trailing spaces detected"},
+    {"name": "starts_with_prefix", "type": "starts_with", "prefix": "WASSEN OP MAX", "error_type": "CONTAINS_PREPENDED_TEXT", "probability": 0.9, "message": "Instruction should start with 'WASSEN OP MAX'"},
+    {"name": "contains_both_en", "type": "contains_both", "substr1": " - ", "substr2": "Machine wash cold", "error_type": "CONTAINS_APPENDED_TEXT", "probability": 0.9, "message": "Appended English text detected"},
+    {"name": "multiple_spaces", "type": "contains_multiple_spaces", "error_type": "CONTAINS_MULTIPLE_SPACES", "probability": 0.85, "message": "Multiple consecutive spaces detected"},
+    {"name": "no_line_breaks", "type": "no_line_breaks", "error_type": "CONTAINS_LINE_BREAK", "probability": 0.95, "message": "Line breaks are not allowed"},
+    {"name": "contains_html", "type": "contains_html", "error_type": "CONTAINS_HTML", "probability": 0.98, "message": "HTML tags detected"},
+    {"name": "contains_emoji", "type": "contains_emoji", "error_type": "CONTAINS_EMOJI", "probability": 0.95, "message": "Emoji detected in instructions"},
+    {"name": "contains_symbol_Atilde", "type": "contains_disallowed_symbol", "symbol": "Ã", "error_type": "CONTAINS_DISALLOWED_SYMBOLS", "probability": 0.9, "message": "Disallowed symbol detected: '{symbol}'"},
+    {"name": "invalid_delimiter", "type": "invalid_delimiter", "error_type": "INVALID_DELIMITER", "probability": 0.9, "message": "Invalid delimiter used"},
+    {"name": "missing_instruction", "type": "missing_instruction", "error_type": "MISSING_INSTRUCTION", "probability": 0.9, "message": "Missing instruction between punctuation"},
+    {"name": "temperature_required", "type": "temperature_required", "pattern": "WASSEN OP MAX (\\d{2}°C)", "error_type": "INVALID_TEMPERATURE_FORMAT", "probability": 0.9, "message": "Missing or invalid temperature format"},
+    {"name": "uppercase_instructions", "type": "uppercase_instructions", "error_type": "INCORRECT_CAPITALIZATION", "probability": 0.85, "message": "Instruction must be uppercase"},
     {"name": "allowed_instructions", "type": "allowed_instructions", "allowed": [
       "WASSEN OP MAX 30°C", "WASSEN OP MAX 40°C", "WAS IN VERGELIJKBARE KLEUREN",
       "NIET BLEKEN", "NIET IN DE DROGER", "STRIJKEN OP LAGE TEMPERATUUR",
       "NIET STRIJKEN", "NIET STOMEN"
-    ], "error_type": "UNKNOWN_INSTRUCTION", "probability": 0.8}
+    ], "error_type": "UNKNOWN_INSTRUCTION", "probability": 0.8, "message": "Unknown instruction: '{instruction}'"}
   ]
 }

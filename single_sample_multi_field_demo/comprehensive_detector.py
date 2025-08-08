@@ -222,10 +222,9 @@ class ComprehensiveFieldDetector:
     def _has_validation_capability(self, field_name: str) -> bool:
         """Check if validation is available for a field."""
         try:
-            validator_module_str = f"validators.{field_name}.validate:Validator"
-            load_module_class(validator_module_str)
-            return True
-        except:
+            rules_path = Path(__file__).parent.parent / 'validators' / field_name / 'rules.json'
+            return rules_path.exists()
+        except Exception:
             return False
 
     def _has_anomaly_capability(self, field_name: str) -> bool:
@@ -262,14 +261,11 @@ class ComprehensiveFieldDetector:
         """
         if field_name not in self._validator_cache:
             try:
-                validator_module_str = f"validators.{field_name}.validate:Validator"
-                reporter_module_str = f"validators.report:Reporter"
+                from validators.rules_engine import JsonRulesValidator
+                from validators.report import Reporter
 
-                ValidatorClass = load_module_class(validator_module_str)
-                ReporterClass = load_module_class(reporter_module_str)
-
-                validator = ValidatorClass()
-                reporter = ReporterClass(field_name)
+                validator = JsonRulesValidator(field_name)
+                reporter = Reporter(field_name)
 
                 self._validator_cache[field_name] = (validator, reporter)
             except Exception as e:

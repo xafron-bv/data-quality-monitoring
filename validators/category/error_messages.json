@@ -1,9 +1,0 @@
-{
-  "MISSING_VALUE": "Category value is missing. All products must have a valid category.",
-  "INVALID_TYPE": "Category must be a text value. Found: {actual}.",
-  "EMPTY_CATEGORY": "Empty category is not allowed. All products must have a valid category.",
-  "WHITESPACE_ERROR": "Category contains leading or trailing whitespace. Please remove extra spaces from '{original}'.",
-  "RANDOM_NOISE": "Category '{category}' contains random characters or noise that doesn't form valid words.",
-  "SPECIAL_CHARACTERS": "Category '{category}' contains special characters. Only alphanumeric characters, spaces, hyphens, and underscores are allowed.",
-  "HTML_TAGS": "Category '{category}' contains HTML tags which are not allowed."
-}

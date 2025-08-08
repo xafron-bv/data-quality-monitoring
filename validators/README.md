@@ -4,7 +4,7 @@ This directory contains field-specific validators and a generic JSON rules engin
 
 - Each field lives under `validators/{field_name}`
 - Validation rules are configured in `validators/{field_name}/rules.json`
-- Human-readable error descriptions remain in `validators/{field_name}/error_messages.json`
+- Message placeholders live in `validators/{field_name}/rules.json` under each rule as `message`
 
 ## JSON Rules Engine
 
@@ -45,21 +45,8 @@ See examples in existing fields' `rules.json` files.
 
 1. Create a new directory `validators/{field_name}`
 2. Create `rules.json` describing your rule flow
-3. Create `validate.py` with:
-```python
-from typing import Any, Optional
-from validators.validation_error import ValidationError
-from validators.validator_interface import ValidatorInterface
-from validators.rules_engine import JsonRulesValidator
-
-class Validator(ValidatorInterface):
-    def __init__(self) -> None:
-        self._engine = JsonRulesValidator(field_name="{field_name}")
-
-    def _validate_entry(self, value: Any) -> Optional[ValidationError]:
-        return self._engine._validate_entry(value)
-```
-4. Optionally add `error_messages.json` mapping error types to messages.
+3. No per-field `validate.py` is required. The system uses `JsonRulesValidator(field_name)` automatically.
+4. Provide messages by adding a `message` string to each rule in `rules.json`.
 
 ## Backwards Compatibility
 
