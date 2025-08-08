@@ -1,0 +1,76 @@
+{
+  "human_readable_summary": {
+    "overall_performance": {
+      "performance_level": "Needs Improvement",
+      "f1_score": 0,
+      "precision": 0,
+      "recall": 0,
+      "interpretation": {
+        "f1_score": "F1 score of 0.000 indicates needs improvement detection performance",
+        "precision": "Precision of 0.000 means 0.0% of flagged items are actual errors",
+        "recall": "Recall of 0.000 means 0.0% of actual errors were detected"
+      }
+    },
+    "detection_summary": {
+      "total_validation_errors": 0,
+      "total_anomalies_detected": 0,
+      "total_ml_issues_detected": 0,
+      "total_samples_evaluated": 2,
+      "error_types_found": []
+    },
+    "detailed_metrics": {
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "accuracy_note": "True positives are correctly identified errors, false positives are incorrectly flagged valid data, false negatives are missed errors"
+    }
+  },
+  "cell_coordinates": {
+    "errors": [],
+    "anomalies": [],
+    "ml_issues": [],
+    "summary": {
+      "total_errors": 0,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_issues": 0,
+      "affected_rows": 0
+    }
+  },
+  "detailed_evaluation_results": [
+    {
+      "field_name": "material",
+      "row_count": 2,
+      "sample_id": 0,
+      "sample_path": "sample_0.csv",
+      "validation_results": [],
+      "anomaly_results": [],
+      "ml_results": [],
+      "llm_results": [],
+      "total_validation_errors": 0,
+      "total_anomalies": 0,
+      "total_ml_issues": 0,
+      "total_llm_issues": 0,
+      "validation_available": true,
+      "anomaly_detection_available": false,
+      "ml_detection_available": false,
+      "llm_detection_available": false,
+      "unified_approach_used": false
+    }
+  ],
+  "execution_metrics": {
+    "total_execution_time_seconds": 0.0032570362091064453,
+    "peak_memory_mb": 835.50390625,
+    "memory_increase_mb": 0.0,
+    "tracemalloc_peak_mb": 0.21231842041015625,
+    "detection_times": {
+      "validation": 0,
+      "anomaly": 0,
+      "ml": 0,
+      "llm": 0,
+      "total": 0.0005457401275634766
+    },
+    "per_sample_avg_time": 0.0032570362091064453,
+    "timestamp": "2025-08-08T08:30:15.524291"
+  }
+}

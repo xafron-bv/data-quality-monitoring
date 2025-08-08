@@ -1,0 +1,31 @@
+{
+  "field_name": "customs_tariff_number",
+  "description": "Validation rules for customs_tariff_number field",
+  "known_values": [
+    "# Add known valid values here (case-insensitive)",
+    "# Example: valid_option_1, valid_option_2"
+  ],
+  "format_patterns": [
+    {
+      "name": "basic_format",
+      "description": "Basic format validation",
+      "pattern": "^[\\w\\s\\-_%/().,:]+$",
+      "message": "Contains invalid characters"
+    }
+  ],
+  "validation_rules": [
+    {
+      "name": "not_empty",
+      "description": "Value should not be empty",
+      "type": "not_empty",
+      "message": "Value cannot be empty"
+    },
+    {
+      "name": "max_length",
+      "description": "Value should not be too long",
+      "type": "max_length",
+      "max_length": 200,
+      "message": "Value is too long"
+    }
+  ]
+}
