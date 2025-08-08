@@ -6,7 +6,7 @@ This document provides a comprehensive overview of the detection methods, their 
 
 The Data Quality Detection System employs a multi-layered approach to anomaly detection, combining deterministic rule-based validation with advanced machine learning methods. Each detection method addresses different types of data quality issues:
 
-1. **Rule-Based Validation** - Fast, deterministic checks for format violations and business rules
+1. **Rule-Based Validation** - Fast, deterministic checks for format violations and business rules (configured via JSON `rules.json` per field)
 2. **Pattern-Based Detection** - JSON-configured pattern matching for known formats
 3. **ML-Based Detection** - Machine learning models for semantic anomalies
 4. **LLM-Based Detection** - Large language models for complex linguistic patterns

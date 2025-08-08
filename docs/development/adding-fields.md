@@ -27,52 +27,68 @@ flowchart TD
     J --> K[Deploy Field Support]
 ```
 
-## Step 1: Analyze the Field
+## Adding a New Field
 
-Understand your field's characteristics:
+Follow this process to add a new validator powered by JSON rules.
+
+### 1. Create Directory Structure
 
 ```bash
-python analyze_column/analyze_column.py data/sample.csv new_field_name
-# Or use the main entry point
-python main.py analyze-column data/sample.csv new_field_name
+validators/
+└── new_field/
+    ├── validate.py
+    ├── rules.json
+    └── error_messages.json
 ```
 
-## Step 2: Create a Validator
+### 2. Define Rules in rules.json
 
-Validators provide high-confidence error detection through business rules.
+Create `validators/new_field/rules.json`:
 
-### 2.1 Implement Validator Class
+```json
+{
+  "field_name": "new_field",
+  "description": "Describe the field and its rules",
+  "rule_flow": [
+    {"name": "not_empty", "type": "not_empty", "error_type": "MISSING_VALUE", "probability": 1.0},
+    {"name": "type_string", "type": "type_is_string", "allow_numeric_cast": false, "error_type": "INVALID_TYPE", "probability": 1.0}
+  ]
+}
+```
+
+See `validators/README.md` for the list of supported rule types and examples in other fields.
+
+### 3. Implement Validator Stub
 
 Create `validators/new_field/validate.py`:
 
 ```python
+from typing import Any, Optional
 from validators.validator_interface import ValidatorInterface
 from validators.validation_error import ValidationError
-import re
+from validators.rules_engine import JsonRulesValidator
 
 class Validator(ValidatorInterface):
-    def __init__(self):
-        self.field_type = "new_field"
-        self.valid_pattern = re.compile(r'^[A-Z]{2}\d{4}$')
-        self.min_length = 6
-        self.max_length = 50
-        
-    def _validate_entry(self, value):
-        str_value = str(value).strip()
-        if not str_value or str_value.lower() in ['nan', 'none', 'null']:
-            return ValidationError(error_type="EMPTY_VALUE", probability=1.0)
-        if len(str_value) < self.min_length:
-            return ValidationError(error_type="TOO_SHORT", probability=1.0)
-        if len(str_value) > self.max_length:
-            return ValidationError(error_type="TOO_LONG", probability=1.0)
-        if not self.valid_pattern.match(str_value):
-            return ValidationError(error_type="INVALID_FORMAT", probability=1.0)
-        return None
+    def __init__(self) -> None:
+        self._engine = JsonRulesValidator(field_name="new_field")
+
+    def _validate_entry(self, value: Any) -> Optional[ValidationError]:
+        return self._engine._validate_entry(value)
 ```
 
-### 2.2 Create Error Messages
+### 4. Add Error Messages (Optional)
 
-Create `validators/new_field/error_messages.json` with concise messages your reporter can render.
+Create `validators/new_field/error_messages.json` with mappings from error types to human-friendly messages.
+
+### 5. Test the Validator
+
+```python
+from validators.new_field.validate import Validator
+import pandas as pd
+
+validator = Validator()
+assert validator._validate_entry("") is not None
+```
 
 ## Step 3: Define Pattern-Based Rules
 

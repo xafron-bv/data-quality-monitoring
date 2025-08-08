@@ -1,0 +1,21 @@
+{
+  "field_name": "size",
+  "description": "Validation rules for clothing sizes",
+  "rule_flow": [
+    {"name": "not_empty", "type": "not_empty", "error_type": "MISSING_VALUE", "probability": 1.0},
+    {"name": "type_string", "type": "type_is_string", "allow_numeric_cast": true, "error_type": "INVALID_TYPE", "probability": 1.0},
+    {"name": "no_whitespace", "type": "no_leading_trailing_whitespace", "error_type": "LEADING_TRAILING_SPACE", "probability": 1.0},
+    {"name": "invalid_prefix_size_colon", "type": "regex_forbidden", "pattern": "^SIZE:\\s", "ignore_case": true, "error_type": "INVALID_PREFIX", "probability": 0.95},
+    {"name": "appended_suffix_parentheses", "type": "regex_forbidden", "pattern": "\\(.+\\)$", "error_type": "APPENDED_SUFFIX", "probability": 0.9},
+    {"name": "fractional_size_with_dollar", "type": "regex_forbidden", "pattern": "^\\$\\d+\\s\\d+/\\d+$", "error_type": "FRACTIONAL_SIZE", "probability": 0.95},
+    {"name": "decimal_integer_with_dollar", "type": "regex_forbidden", "pattern": "^\\$\\d+\\.\\d+$", "error_type": "DECIMAL_IN_INTEGER", "probability": 0.95},
+    {"name": "wrong_delimiter_dash", "type": "regex_forbidden", "pattern": "^[XSMLxsml]+-[XSMLxsml]+$", "error_type": "WRONG_DELIMITER", "probability": 0.85},
+    {"name": "valid_patterns", "type": "must_match_one_of", "patterns": [
+      "^[XSMLxsml]+$",
+      "^[0-9]+$",
+      "^[0-9]+/[0-9]+$",
+      "^[XSMLxsml]+/[XSMLxsml]+$",
+      "^[0-9]+\\.[0-9]+$"
+    ], "error_type": "RANDOM_NOISE", "probability": 0.8}
+  ]
+}

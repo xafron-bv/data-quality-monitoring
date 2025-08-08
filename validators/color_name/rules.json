@@ -1,0 +1,13 @@
+{
+  "field_name": "color_name",
+  "description": "Validation rules for color names",
+  "rule_flow": [
+    {"name": "not_empty", "type": "not_empty", "error_type": "MISSING_VALUE", "probability": 1.0},
+    {"name": "type_string", "type": "type_is_string", "allow_numeric_cast": false, "error_type": "INVALID_TYPE", "probability": 1.0},
+    {"name": "no_whitespace", "type": "no_leading_trailing_whitespace", "error_type": "EXTRA_SPACE", "probability": 0.95},
+    {"name": "no_multiple_spaces", "type": "contains_multiple_spaces", "error_type": "EXTRA_SPACE", "probability": 0.95},
+    {"name": "merged_words", "type": "camelcase_merged_words", "error_type": "MERGED_WORDS", "probability": 0.85},
+    {"name": "random_text_noise", "type": "regex_forbidden", "pattern": "[0-9]|[^\\w\\s/]", "error_type": "RANDOM_TEXT_NOISE", "probability": 0.9},
+    {"name": "dashes_instead_of_slashes", "type": "dashes_instead_of_slashes", "error_type": "INVALID_FORMAT", "probability": 0.8}
+  ]
+}

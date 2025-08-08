@@ -1,0 +1,22 @@
+{
+  "field_name": "material",
+  "description": "Validation rules for material composition strings",
+  "rule_flow": [
+    {"name": "not_empty", "type": "not_empty", "error_type": "MISSING_VALUE", "probability": 1.0},
+    {"name": "type_string", "type": "type_is_string", "allow_numeric_cast": false, "error_type": "INVALID_TYPE", "probability": 1.0},
+    {"name": "no_whitespace", "type": "no_leading_trailing_whitespace", "error_type": "EXTRANEOUS_WHITESPACE", "probability": 0.8},
+    {"name": "no_line_breaks", "type": "no_line_breaks", "error_type": "LINE_BREAK_FOUND", "probability": 0.9},
+    {"name": "tokenize", "type": "tokenize", "token_regex": "(\\d+(?:\\.\\d+)?%?|[a-zA-Z]+|[^a-zA-Z0-9\\s%])"},
+    {"name": "tokens_not_empty", "type": "tokens_not_empty", "error_type": "EMPTY_PART", "probability": 1.0},
+    {"name": "invalid_characters", "type": "invalid_characters_tokens", "allowed_chars_regex": "[^a-zA-Z0-9\\s%\\-\\/\\(\\):\\.]", "error_type": "INVALID_CHARACTERS", "probability": 0.8},
+    {"name": "ambiguous_prefix", "type": "material_ambiguous_prefix", "error_type": "AMBIGUOUS_PREFIX", "probability": 0.6},
+    {"name": "prepended_text", "type": "material_prepended_text", "error_type": "PREPENDED_TEXT_DETECTED", "probability": 0.7},
+    {"name": "invalid_hyphen", "type": "material_invalid_hyphen_delimiter", "error_type": "INVALID_HYPHEN_DELIMITER", "probability": 0.8},
+    {"name": "malformed_token", "type": "material_malformed_token", "error_type": "MALFORMED_TOKEN", "probability": 0.9},
+    {"name": "missing_percent_sign", "type": "material_missing_percentage_sign", "error_type": "MISSING_PERCENTAGE_SIGN", "probability": 0.8},
+    {"name": "duplicate_material", "type": "token_duplicate_adjacent", "error_type": "DUPLICATE_MATERIAL_NAME", "probability": 0.9},
+    {"name": "missing_composition", "type": "material_missing_composition", "error_type": "MISSING_COMPOSITION", "probability": 1.0},
+    {"name": "extraneous_text", "type": "material_extraneous_text_appended", "error_type": "EXTRANEOUS_TEXT_APPENDED", "probability": 0.7},
+    {"name": "sum_to_100", "type": "material_sum_to_100", "error_type": "SUM_NOT_100", "probability": 0.9, "allow_colon_multi_parts": true}
+  ]
+}

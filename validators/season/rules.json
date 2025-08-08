@@ -1,0 +1,25 @@
+{
+  "field_name": "season",
+  "description": "Validation rules for season values (e.g., '2023 Fall')",
+  "rule_flow": [
+    {
+      "name": "season_pipeline",
+      "type": "season_validator",
+      "missing_error_type": "MISSING_VALUE",
+      "missing_probability": 1.0,
+      "type_error_type": "INVALID_TYPE",
+      "type_probability": 1.0,
+      "format_error_type": "INVALID_FORMAT",
+      "format_probability": 0.95,
+      "year_error_type": "INVALID_YEAR",
+      "year_probability": 0.9,
+      "year_probability_out_of_range": 0.95,
+      "season_name_error_type": "INVALID_SEASON_NAME",
+      "season_name_probability": 0.9,
+      "current_year": 2025,
+      "max_future_offset": 5,
+      "min_year": 1900,
+      "valid_seasons": ["Spring", "Summer", "Fall", "Winter", "Resort", "Holiday", "Pre-Fall", "Pre-Spring"]
+    }
+  ]
+}

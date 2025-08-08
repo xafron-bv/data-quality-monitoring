@@ -1,0 +1,13 @@
+{
+  "field_name": "category",
+  "description": "Validation rules for category names",
+  "rule_flow": [
+    {"name": "null_check", "type": "not_empty", "error_type": "MISSING_VALUE", "probability": 1.0},
+    {"name": "type_string", "type": "type_is_string", "allow_numeric_cast": false, "error_type": "INVALID_TYPE", "probability": 1.0},
+    {"name": "non_empty_string", "type": "regex_required", "pattern": ".+", "error_type": "EMPTY_CATEGORY", "probability": 1.0},
+    {"name": "no_whitespace", "type": "no_leading_trailing_whitespace", "error_type": "WHITESPACE_ERROR", "probability": 0.95},
+    {"name": "no_html", "type": "html_tags_forbidden", "error_type": "HTML_TAGS", "probability": 0.98},
+    {"name": "no_special_chars", "type": "special_characters_forbidden", "forbidden_regex": "[^\\w\\s\\-]", "error_type": "SPECIAL_CHARACTERS", "probability": 0.9},
+    {"name": "random_noise_patterns", "type": "regex_forbidden", "pattern": "([A-Za-z]+\\d+[A-Za-z]+)|(([A-Z][a-z]){2,})|(([a-z][A-Z]){2,})|([A-Za-z]\\d[A-Za-z])", "error_type": "RANDOM_NOISE", "probability": 0.85}
+  ]
+}
