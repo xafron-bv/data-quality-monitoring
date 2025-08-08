@@ -6,23 +6,58 @@ High-confidence, rule-based validation for data quality monitoring.
 
 Validators implement business rules and format constraints to detect definitive errors in data. Unlike anomaly detectors that identify unusual patterns, validators catch violations of known rules with high confidence.
 
-## Structure
+## Two Ways to Author Validation
+
+- Field-specific Python validators in `validators/{field}/validate.py` (legacy/custom)
+- Generic rule-based validator with JSON rules in `validators/rule_based/rules/{field}.json` (recommended)
+
+The rule-based approach mirrors the pattern-based anomaly detection: one JSON per field, hot-reloaded without code changes.
+
+## Rule-Based Validator
+
+- Code: `validators/rule_based/rule_based_validator.py`
+- Rules: `validators/rule_based/rules/{field}.json`
+- Reporter: `validators/report.py` (falls back to generic messages)
+
+Example rule file:
+
+```json
+{
+  "field_name": "material",
+  "description": "Validation rules for material",
+  "known_values": ["cotton", "polyester"],
+  "format_patterns": [
+    {"name": "chars", "pattern": "^[A-Za-z0-9\\s%/().,-]+$", "message": "Invalid characters"}
+  ],
+  "validation_rules": [
+    {"name": "not_empty", "type": "not_empty", "message": "Value cannot be empty"},
+    {"name": "maxlen", "type": "max_length", "max_length": 120, "message": "Too long"},
+    {"name": "must_contain_pct", "type": "must_contain", "substring": "%", "message": "Missing %"}
+  ]
+}
+```
+
+Supported rule types:
+- not_empty
+- max_length (max_length)
+- min_length (min_length)
+- numeric_range (min, max)
+- must_contain (substring)
+- must_not_contain (substring)
+- regex_must_match (pattern)
+- regex_must_not_match (pattern)
+
+## Creating a New Validator (Rule-Based)
+
+1. Create `validators/rule_based/rules/{field}.json`. On first run, a template will be generated automatically if missing.
+2. Populate `known_values`, `format_patterns`, and `validation_rules` as needed.
+3. Use any pipeline that enables validation; the system will load the rules and validate.
+
+## Creating a New Validator (Custom Python)
 
 Each field validator consists of:
 - `{field_name}/validate.py`: Validator implementation
 - `{field_name}/error_messages.json`: Human-readable error descriptions
-
-## Creating a New Validator
-
-### 1. Create Directory Structure
-```bash
-validators/
-└── new_field/
-    ├── validate.py
-    └── error_messages.json
-```
-
-### 2. Implement Validator Class
 
 ```python
 # validators/new_field/validate.py
@@ -30,67 +65,30 @@ from validators.validator_interface import ValidatorInterface
 from validators.validation_error import ValidationError
 
 class Validator(ValidatorInterface):
-    def __init__(self):
-        self.field_type = "new_field"
-    
-    def validate(self, value, row_index=None):
-        errors = []
-        
-        # Add validation logic
+    def _validate_entry(self, value):
         if not value or str(value).strip() == "":
-            errors.append(ValidationError(
-                error_type="EMPTY_VALUE",
-                severity="ERROR",
-                confidence=1.0,
-                details={"value": value}
-            ))
-        
-        return errors
+            return ValidationError(error_type="EMPTY_VALUE", probability=1.0, details={})
+        return None
 ```
 
-### 3. Define Error Messages
+Error messages file example:
 
 ```json
 {
-  "EMPTY_VALUE": {
-    "message": "Value cannot be empty",
-    "description": "This field requires a non-empty value",
-    "severity": "ERROR",
-    "examples": ["", " ", null]
-  }
+  "EMPTY_VALUE": "Value cannot be empty"
 }
 ```
 
-## Common Validation Patterns
-
-### Format Validation
-- Regular expressions for patterns
-- Length constraints
-- Character set restrictions
-
-### Business Rules
-- Required fields
-- Value dependencies
-- Cross-field validation
-
-### Domain Constraints
-- Allowed value lists
-- Range validation
-- Logical constraints
-
 ## Available Validators
 
-- `care_instructions/`: Validates care instruction formats
-- `category/`: Product category validation
-- `color_name/`: Color name validation
-- `material/`: Material composition validation
-- `season/`: Season code validation
-- `size/`: Size format validation
-- `template/`: Generic template for new validators
-
-## Error Injection
-
-The `error_injection_rules/` directory contains JSON files defining how to inject errors for testing validators.
+- `rule_based/`: Generic validator powered by JSON rules
+- `care_instructions/`: Custom validator
+- `category/`: Custom validator
+- `color_name/`: Custom validator
+- `material/`: Custom validator
+- `season/`: Custom validator
+- `size/`: Custom validator
+- `template/`: Template for new custom validators
 
 ## Best Practices
 

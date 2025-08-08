@@ -710,7 +710,8 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
         run_llm = False  # Same for LLM
 
     rules_path = os.path.join('validators', 'error_injection_rules', f'{validator_name}.json')
-    validator_module_str = f"validators.{validator_name}.validate:Validator"
+    # Use generic rule-based validator
+    validator_module_str = None
     validator_reporter_module_str = f"validators.report:Reporter"
     anomaly_detector_module_str = f"anomaly_detectors.pattern_based.{detector_name}.detect:AnomalyDetector"
     anomaly_reporter_module_str = f"anomaly_detectors.pattern_based.report:AnomalyReporter"
@@ -757,16 +758,10 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
 
     # Load validation components if needed
     if run_validation:
-        try:
-            rules = load_error_rules(rules_path)
-        except (FileNotFoundError, json.JSONDecodeError) as e:
-            print(f"Error: Could not read or parse rules file at '{rules_path}'.\nDetails: {e}")
-            raise FileOperationError(f"Could not read or parse rules file at '{rules_path}'.\nDetails: {e}")
-
-        ValidatorClass = load_module_class(validator_module_str)
+        # Load generic rule-based validator
+        from validators.rule_based.rule_based_validator import RuleBasedValidator
         ReporterClass = load_module_class(validator_reporter_module_str)
-
-        validator = ValidatorClass()
+        validator = RuleBasedValidator(validator_name)
         validator_reporter = ReporterClass(validator_name)
 
     # Load anomaly detection components if needed

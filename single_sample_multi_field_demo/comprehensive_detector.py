@@ -222,10 +222,10 @@ class ComprehensiveFieldDetector:
     def _has_validation_capability(self, field_name: str) -> bool:
         """Check if validation is available for a field."""
         try:
-            validator_module_str = f"validators.{field_name}.validate:Validator"
-            load_module_class(validator_module_str)
+            # Rule-based validator is generic and available for all fields
+            from validators.rule_based.rule_based_validator import RuleBasedValidator  # noqa: F401
             return True
-        except:
+        except Exception:
             return False
 
     def _has_anomaly_capability(self, field_name: str) -> bool:
@@ -262,13 +262,12 @@ class ComprehensiveFieldDetector:
         """
         if field_name not in self._validator_cache:
             try:
-                validator_module_str = f"validators.{field_name}.validate:Validator"
+                from validators.rule_based.rule_based_validator import RuleBasedValidator
                 reporter_module_str = f"validators.report:Reporter"
 
-                ValidatorClass = load_module_class(validator_module_str)
                 ReporterClass = load_module_class(reporter_module_str)
 
-                validator = ValidatorClass()
+                validator = RuleBasedValidator(field_name)
                 reporter = ReporterClass(field_name)
 
                 self._validator_cache[field_name] = (validator, reporter)

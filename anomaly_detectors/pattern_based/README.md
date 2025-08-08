@@ -2,6 +2,8 @@
 
 Rule-based anomaly detection using configurable JSON patterns.
 
+Note: The validation system now mirrors this approach with `validators/rule_based/rules/{field}.json` and a generic `RuleBasedValidator`.
+
 ## Overview
 
 This module provides a flexible, configuration-driven approach to anomaly detection. Instead of hardcoding detection logic, rules are defined in JSON files that are automatically loaded for each field.

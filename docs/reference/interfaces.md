@@ -161,25 +161,14 @@ class ValidationError:
     error_data: Any         # The actual problematic value
 ```
 
-### Creating Custom Validators
+### Implementations
 
-```python
-from validators.validator_interface import ValidatorInterface
-from validators.validation_error import ValidationError
+- `RuleBasedValidator(field_name)`: JSON rules in `validators/rule_based/rules/{field}.json`
+- Custom per-field classes under `validators/{field}/validate.py`
 
-class CustomValidator(ValidatorInterface):
-    def __init__(self):
-        self.field_type = "custom_field"
-    
-    def _validate_entry(self, value):
-        # Add validation logic
-        if not value:
-            return ValidationError(
-                error_type="MISSING_VALUE",
-                probability=1.0
-            )
-        return None
-```
+### Creating JSON Rules
+
+See `validators/rule_based/rules/README.md` for the rule schema and examples.
 
 ## ReporterInterface
 
@@ -306,13 +295,11 @@ class DetectionResult:
 ### Complete Detection Pipeline
 
 ```python
-from anomaly_detectors.ml_based.ml_anomaly_detector import MLAnomalyDetector
-from validators.material.validate import Validator as MaterialValidator
+from validators.rule_based.rule_based_validator import RuleBasedValidator
 from validators.report import Reporter
 
 # Initialize components
-ml_detector = MLAnomalyDetector()
-validator = MaterialValidator()
+validator = RuleBasedValidator('material')
 reporter = Reporter('material')
 
 # Load and prepare data
@@ -321,46 +308,6 @@ data = pd.read_csv('data.csv')
 # Detect validation errors
 validation_errors = validator.bulk_validate(data, 'material')
 
-# Detect ML anomalies
-ml_anomalies = ml_detector.bulk_detect(data, 'material', batch_size=1000, max_workers=4)
-
 # Generate human-readable report
 validation_report = reporter.generate_report(validation_errors, data)
 ```
-
-### Custom Implementation
-
-```python
-from anomaly_detectors.anomaly_detector_interface import AnomalyDetectorInterface
-from anomaly_detectors.anomaly_error import AnomalyError
-
-class CustomDetector(AnomalyDetectorInterface):
-    def __init__(self, threshold=0.8):
-        self.threshold = threshold
-        self.patterns = {}
-    
-    def _detect_anomaly(self, value, context=None):
-        # Implement detection logic
-        if value not in self.patterns:
-            return AnomalyError(
-                anomaly_type="unknown_pattern",
-                probability=0.85,
-                anomaly_data={"value": value}
-            )
-        return None
-    
-    def learn_patterns(self, df, column_name):
-        # Implement pattern learning
-        self.patterns = set(df[column_name].unique())
-    
-    def get_detector_args(self):
-        return {"threshold": self.threshold}
-```
-
-## Best Practices
-
-1. **Interface Compliance**: Always implement all required methods
-2. **Error Handling**: Handle edge cases gracefully
-3. **Documentation**: Document custom implementations thoroughly
-4. **Testing**: Write unit tests for interface implementations
-5. **Performance**: Implement bulk methods for efficiency

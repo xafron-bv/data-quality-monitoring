@@ -1,5 +1,10 @@
 # System Architecture Overview
 
+The system combines multiple detection methods. Validation is now rule-based and configured via JSON files, mirroring the pattern-based anomaly detector structure.
+
+- Rule-based validation rules: `validators/rule_based/rules/{field}.json`
+- Pattern-based anomaly rules: `anomaly_detectors/pattern_based/rules/{field}.json`
+
 The Data Quality Detection System is built on a modular, extensible architecture that enables multiple detection methods to work together seamlessly. This document provides a comprehensive overview of the system's architecture, design principles, and key components.
 
 ## Design Principles

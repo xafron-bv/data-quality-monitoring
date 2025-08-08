@@ -26,10 +26,8 @@ class Reporter(ReporterInterface):
         try:
             self.error_messages = self._load_error_messages(validator_name)
         except FileNotFoundError:
-            raise FileOperationError(
-                f"Error messages file not found for validator '{validator_name}'",
-                details={'validator_name': validator_name}
-            )
+            # Fallback to generic messages for rule-based validator
+            self.error_messages = self._get_generic_error_messages()
         except json.JSONDecodeError as e:
             raise FileOperationError(
                 f"Invalid JSON in error messages file for validator '{validator_name}'",
@@ -43,13 +41,18 @@ class Reporter(ReporterInterface):
             "validators", validator_name, "error_messages.json"
         )
 
-        try:
-            with open(error_messages_path, 'r') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            raise
-        except json.JSONDecodeError as e:
-            raise
+        with open(error_messages_path, 'r') as f:
+            return json.load(f)
+
+    def _get_generic_error_messages(self) -> Dict[str, str]:
+        return {
+            "MISSING_VALUE": "Value is missing",
+            "INVALID_TYPE": "Invalid type: expected {expected}, got {actual}",
+            "INVALID_FORMAT": "Invalid {field} format: {message}",
+            "VALUE_NOT_ALLOWED": "{value} is not an allowed {field} value",
+            "RULE_VIOLATION": "Invalid {field}: {message}",
+            "DEFAULT": "Unknown error with data: {error_data}",
+        }
 
     def generate_report(self, validation_errors: List[ValidationError], original_df: pd.DataFrame) -> List[Dict[str, Any]]:
         """
@@ -79,6 +82,8 @@ class Reporter(ReporterInterface):
             details = error.details.copy() if error.details else {}  # Create a copy to avoid modifying the original
             details['error_data'] = error.error_data  # Add original data for context
             details['probability'] = error.probability  # Add probability for potential use in message
+            # Default field to validator name when available
+            details.setdefault('field', self.validator_name)
 
             try:
                 display_message = message_template.format(**details)
