@@ -1,0 +1,108 @@
+{
+  "summary": {
+    "total_injections": 7,
+    "affected_rows": 5,
+    "fields_with_injections": {
+      "article_number": {
+        "total": 1,
+        "errors": 1,
+        "anomalies": 0
+      },
+      "category": {
+        "total": 2,
+        "errors": 2,
+        "anomalies": 0
+      },
+      "size": {
+        "total": 1,
+        "errors": 1,
+        "anomalies": 0
+      },
+      "color_name": {
+        "total": 1,
+        "errors": 1,
+        "anomalies": 0
+      },
+      "season": {
+        "total": 1,
+        "errors": 1,
+        "anomalies": 0
+      },
+      "care_instructions": {
+        "total": 1,
+        "errors": 1,
+        "anomalies": 0
+      }
+    }
+  },
+  "detailed_injections": {
+    "article_number": [
+      {
+        "row_index": 2,
+        "original_value": "SKU003",
+        "corrupted_value": "SKUO03",
+        "injection_type": "error",
+        "rule_name": "character_substitution_2",
+        "message": "Validation Error: character_substitution_2"
+      }
+    ],
+    "category": [
+      {
+        "row_index": 4,
+        "original_value": "jackets",
+        "corrupted_value": "jackets*",
+        "injection_type": "error",
+        "rule_name": "add_special_characters",
+        "message": "Validation Error: add_special_characters"
+      },
+      {
+        "row_index": 19,
+        "original_value": "vests",
+        "corrupted_value": "vests*",
+        "injection_type": "error",
+        "rule_name": "add_special_characters",
+        "message": "Validation Error: add_special_characters"
+      }
+    ],
+    "size": [
+      {
+        "row_index": 4,
+        "original_value": "L",
+        "corrupted_value": "SIZE: L",
+        "injection_type": "error",
+        "rule_name": "inject_invalid_size_prefix",
+        "message": "Validation Error: inject_invalid_size_prefix"
+      }
+    ],
+    "color_name": [
+      {
+        "row_index": 13,
+        "original_value": "Gray",
+        "corrupted_value": "Gr!ay",
+        "injection_type": "error",
+        "rule_name": "random_text_noise",
+        "message": "Validation Error: random_text_noise"
+      }
+    ],
+    "season": [
+      {
+        "row_index": 16,
+        "original_value": "Summer 2024",
+        "corrupted_value": "2024",
+        "injection_type": "error",
+        "rule_name": "year_only_error",
+        "message": "Validation Error: year_only_error"
+      }
+    ],
+    "care_instructions": [
+      {
+        "row_index": 19,
+        "original_value": "Professional clean only. Do not wash. Store uncompressed.",
+        "corrupted_value": "Professional   clean   only.   Do   not   wash.   Store   uncompressed.",
+        "injection_type": "error",
+        "rule_name": "inject_multiple_spaces_error",
+        "message": "Validation Error: inject_multiple_spaces_error"
+      }
+    ]
+  }
+}
