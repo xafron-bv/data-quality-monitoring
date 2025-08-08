@@ -1,0 +1,326 @@
+{
+  "overall": {
+    "matrix": {
+      "true_positives": 16,
+      "false_positives": 21,
+      "false_negatives": 3,
+      "true_negatives": 100
+    },
+    "metrics": {
+      "precision": 0.4324,
+      "recall": 0.8421,
+      "f1_score": 0.5714,
+      "accuracy": 0.8286
+    },
+    "counts": {
+      "total_detected": 37,
+      "total_injected": 19,
+      "total_correctly_detected": 16,
+      "total_incorrectly_detected": 21,
+      "total_missed": 3
+    }
+  },
+  "per_field": {
+    "category": {
+      "matrix": {
+        "true_positives": 3,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_negatives": 17
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "accuracy": 1.0
+      },
+      "counts": {
+        "total_detected": 3,
+        "total_injected": 3,
+        "total_correctly_detected": 3,
+        "total_incorrectly_detected": 0,
+        "total_missed": 0
+      }
+    },
+    "color_name": {
+      "matrix": {
+        "true_positives": 1,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_negatives": 19
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "accuracy": 1.0
+      },
+      "counts": {
+        "total_detected": 1,
+        "total_injected": 1,
+        "total_correctly_detected": 1,
+        "total_incorrectly_detected": 0,
+        "total_missed": 0
+      }
+    },
+    "article_number": {
+      "matrix": {
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 1,
+        "true_negatives": 19
+      },
+      "metrics": {
+        "precision": 0,
+        "recall": 0.0,
+        "f1_score": 0,
+        "accuracy": 0.95
+      },
+      "counts": {
+        "total_detected": 0,
+        "total_injected": 1,
+        "total_correctly_detected": 0,
+        "total_incorrectly_detected": 0,
+        "total_missed": 1
+      }
+    },
+    "material": {
+      "matrix": {
+        "true_positives": 6,
+        "false_positives": 14,
+        "false_negatives": 0,
+        "true_negatives": 0
+      },
+      "metrics": {
+        "precision": 0.3,
+        "recall": 1.0,
+        "f1_score": 0.4615,
+        "accuracy": 0.3
+      },
+      "counts": {
+        "total_detected": 20,
+        "total_injected": 6,
+        "total_correctly_detected": 6,
+        "total_incorrectly_detected": 14,
+        "total_missed": 0
+      }
+    },
+    "size": {
+      "matrix": {
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 1,
+        "true_negatives": 19
+      },
+      "metrics": {
+        "precision": 0,
+        "recall": 0.0,
+        "f1_score": 0,
+        "accuracy": 0.95
+      },
+      "counts": {
+        "total_detected": 0,
+        "total_injected": 1,
+        "total_correctly_detected": 0,
+        "total_incorrectly_detected": 0,
+        "total_missed": 1
+      }
+    },
+    "care_instructions": {
+      "matrix": {
+        "true_positives": 0,
+        "false_positives": 7,
+        "false_negatives": 1,
+        "true_negatives": 12
+      },
+      "metrics": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0,
+        "accuracy": 0.6
+      },
+      "counts": {
+        "total_detected": 7,
+        "total_injected": 1,
+        "total_correctly_detected": 0,
+        "total_incorrectly_detected": 7,
+        "total_missed": 1
+      }
+    },
+    "season": {
+      "matrix": {
+        "true_positives": 6,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_negatives": 14
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "accuracy": 1.0
+      },
+      "counts": {
+        "total_detected": 6,
+        "total_injected": 6,
+        "total_correctly_detected": 6,
+        "total_incorrectly_detected": 0,
+        "total_missed": 0
+      }
+    }
+  },
+  "per_detection_type": {
+    "validation": {
+      "matrix": {
+        "true_positives": 15,
+        "false_positives": 22,
+        "false_negatives": 3,
+        "true_negatives": 60
+      },
+      "metrics": {
+        "precision": 0.4054,
+        "recall": 0.8333,
+        "f1_score": 0.5455,
+        "accuracy": 0.75
+      },
+      "counts": {
+        "total_detected": 37,
+        "total_injected": 18,
+        "total_correctly_detected": 15,
+        "total_incorrectly_detected": 22,
+        "total_missed": 3
+      }
+    },
+    "pattern_based": {
+      "matrix": {
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 1,
+        "true_negatives": 99
+      },
+      "metrics": {
+        "precision": 0,
+        "recall": 0.0,
+        "f1_score": 0,
+        "accuracy": 0.99
+      },
+      "counts": {
+        "total_detected": 0,
+        "total_injected": 1,
+        "total_correctly_detected": 0,
+        "total_incorrectly_detected": 0,
+        "total_missed": 1
+      }
+    },
+    "ml_based": {
+      "matrix": {
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 1,
+        "true_negatives": 99
+      },
+      "metrics": {
+        "precision": 0,
+        "recall": 0.0,
+        "f1_score": 0,
+        "accuracy": 0.99
+      },
+      "counts": {
+        "total_detected": 0,
+        "total_injected": 1,
+        "total_correctly_detected": 0,
+        "total_incorrectly_detected": 0,
+        "total_missed": 1
+      }
+    },
+    "llm_based": {
+      "matrix": {
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_negatives": 100
+      },
+      "metrics": {
+        "precision": 0,
+        "recall": 0,
+        "f1_score": 0,
+        "accuracy": 1.0
+      },
+      "counts": {
+        "total_detected": 0,
+        "total_injected": 0,
+        "total_correctly_detected": 0,
+        "total_incorrectly_detected": 0,
+        "total_missed": 0
+      }
+    }
+  },
+  "summary": {
+    "overall_performance": {
+      "f1_score": 0.5714,
+      "precision": 0.4324,
+      "recall": 0.8421,
+      "accuracy": 0.8286
+    },
+    "best_performing_fields": [
+      {
+        "field_name": "category",
+        "f1_score": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      {
+        "field_name": "color_name",
+        "f1_score": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      {
+        "field_name": "season",
+        "f1_score": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      {
+        "field_name": "material",
+        "f1_score": 0.4615,
+        "precision": 0.3,
+        "recall": 1.0
+      },
+      {
+        "field_name": "article_number",
+        "f1_score": 0,
+        "precision": 0,
+        "recall": 0.0
+      }
+    ],
+    "best_performing_detection_types": [
+      {
+        "detection_type": "validation",
+        "f1_score": 0.5455,
+        "precision": 0.4054,
+        "recall": 0.8333
+      },
+      {
+        "detection_type": "pattern_based",
+        "f1_score": 0,
+        "precision": 0,
+        "recall": 0.0
+      },
+      {
+        "detection_type": "ml_based",
+        "f1_score": 0,
+        "precision": 0,
+        "recall": 0.0
+      },
+      {
+        "detection_type": "llm_based",
+        "f1_score": 0,
+        "precision": 0,
+        "recall": 0
+      }
+    ],
+    "total_fields_analyzed": 7,
+    "total_detection_types_analyzed": 4
+  }
+}
