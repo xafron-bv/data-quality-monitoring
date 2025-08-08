@@ -1,0 +1,16 @@
+{
+  "field_name": "material",
+  "description": "Rule-based validation for material composition",
+  "known_values": [],
+  "format_patterns": [
+    {"name": "allowed_chars", "pattern": "^[A-Za-z0-9%\s\-/:().]+$", "message": "Contains invalid characters"}
+  ],
+  "validation_rules": [
+    {"name": "not_empty", "type": "not_empty", "message": "Value cannot be empty"},
+    {"name": "no_line_breaks", "type": "regex_must_not_match", "pattern": ".*[\n\r].*", "message": "Line break found"},
+    {"name": "no_leading_trailing_space", "type": "regex_must_match", "pattern": "^(?!\s).*(?<!\s)$", "message": "Extraneous whitespace detected"},
+    {"name": "no_numbers_without_percent", "type": "regex_must_not_match", "pattern": "(^|.*\s)\d+(?:\.\d+)?(\s|$)", "message": "Number missing %"},
+    {"name": "no_duplicate_words", "type": "regex_must_not_match", "pattern": "\\b([A-Za-z]+)\\s+\\1\\b", "message": "Duplicate material name"},
+    {"name": "must_contain_percentage", "type": "regex_must_match", "pattern": ".*\\d+(?:\\.\\d+)?%.*", "message": "Missing composition percentages"}
+  ]
+}

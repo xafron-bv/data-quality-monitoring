@@ -7,7 +7,7 @@ This guide shows how to run validation and anomaly detection.
 Create a rule file for your field if not present:
 
 - Location: `validators/rule_based/rules/{field}.json`
-- A template is auto-generated on first run.
+- A template is auto-generated on first run. No Python validators are needed.
 
 Run the single-sample demo with validation enabled:
 

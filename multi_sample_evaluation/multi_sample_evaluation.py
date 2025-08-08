@@ -615,7 +615,7 @@ Example Usage:
 This will automatically look for:
 - Error Injection Rules: validators/error_injection_rules/<validator>.json
 - Anomaly Injection Rules: anomaly_detectors/anomaly_injection_rules/<field>.json
-- Validator:  validators/<validator>/validate.py (expecting class 'Validator')
+- Validator Rules: validators/rule_based/rules/<validator>.json (JSON-only)
 - Reporter:   validators/report:Reporter
 - Anomaly Detector: anomaly_detectors/<detector>/detect.py (expecting class 'AnomalyDetector')
 - Anomaly Reporter: anomaly_detectors/report:AnomalyReporter

@@ -1,0 +1,15 @@
+{
+  "field_name": "color_name",
+  "description": "Rule-based validation for color name",
+  "known_values": [],
+  "format_patterns": [
+    {"name": "allowed_chars", "pattern": "^[A-Za-z/\\s\-]+$", "message": "Invalid characters"}
+  ],
+  "validation_rules": [
+    {"name": "not_empty", "type": "not_empty", "message": "Value cannot be empty"},
+    {"name": "no_leading_trailing_space", "type": "regex_must_match", "pattern": "^(?!\\s).*(?<!\\s)$", "message": "Extra spaces"},
+    {"name": "no_merged_words", "type": "regex_must_not_match", "pattern": "[a-z][A-Z]", "message": "Merged words"},
+    {"name": "no_noise", "type": "regex_must_not_match", "pattern": "[0-9]|[^\\w\\s/]", "message": "Random text noise"},
+    {"name": "no_dash_as_delimiter", "type": "regex_must_not_match", "pattern": "\\s-\\s", "message": "Dash used instead of slash"}
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "field_name": "care_instructions",
+  "description": "Rule-based validation for care instructions",
+  "known_values": [],
+  "format_patterns": [
+    {"name": "allowed_chars", "pattern": "^[A-Za-z0-9\s\-.,°/()]+$", "message": "Invalid characters"}
+  ],
+  "validation_rules": [
+    {"name": "not_empty", "type": "not_empty", "message": "Value cannot be empty"},
+    {"name": "no_leading_trailing_space", "type": "regex_must_match", "pattern": "^(?!\\s).*(?<!\\s)$", "message": "Leading/trailing spaces"},
+    {"name": "no_double_spaces", "type": "regex_must_not_match", "pattern": ".*\\s{2,}.*", "message": "Multiple spaces"},
+    {"name": "no_line_breaks", "type": "regex_must_not_match", "pattern": ".*[\n\r].*", "message": "Line break found"},
+    {"name": "no_html", "type": "regex_must_not_match", "pattern": "<.*?>", "message": "HTML not allowed"},
+    {"name": "no_emoji", "type": "regex_must_not_match", "pattern": "[\u2600-\u27BF\U0001F300-\U0001F6FF\U0001F1E6-\U0001F1FF]", "message": "Emoji not allowed"},
+    {"name": "no_disallowed_symbol_Atilde", "type": "regex_must_not_match", "pattern": "Ã", "message": "Disallowed symbol"},
+    {"name": "no_semicolon_or_wrong_dash", "type": "regex_must_not_match", "pattern": ";|\\s-\\s(?=.*NIET)", "message": "Invalid delimiter"},
+    {"name": "no_missing_instruction", "type": "regex_must_not_match", "pattern": "\\. \\.|..", "message": "Missing instruction"},
+    {"name": "temperature_format", "type": "regex_must_match", "pattern": "WASSEN OP MAX \\d{2}°C", "message": "Invalid temperature format"},
+    {"name": "uppercase_instructions", "type": "regex_must_not_match", "pattern": "(?:^|\\. )(?!(WASSEN OP MAX|[A-Z\\s°]+))(?!$).*", "message": "Incorrect capitalization"}
+  ]
+}

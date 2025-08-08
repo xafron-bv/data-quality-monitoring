@@ -164,7 +164,7 @@ class ValidationError:
 ### Implementations
 
 - `RuleBasedValidator(field_name)`: JSON rules in `validators/rule_based/rules/{field}.json`
-- Custom per-field classes under `validators/{field}/validate.py`
+- JSON rules only (no Python per-field validators); legacy per-field classes have been removed
 
 ### Creating JSON Rules
 

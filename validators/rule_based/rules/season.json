@@ -1,0 +1,12 @@
+{
+  "field_name": "season",
+  "description": "Rule-based validation for season codes (e.g., '2022 Fall')",
+  "known_values": [],
+  "format_patterns": [
+    {"name": "season_format", "pattern": "^\\d{4} (Spring|Summer|Fall|Winter|Resort|Holiday|Pre-Fall|Pre-Spring)$", "message": "Expected format 'YYYY Season'"}
+  ],
+  "validation_rules": [
+    {"name": "not_empty", "type": "not_empty", "message": "Value cannot be empty"},
+    {"name": "year_range_min", "type": "regex_must_match", "pattern": "^(19\\d{2}|20\\d{2}|21\\d{2}) ", "message": "Unreasonable year"}
+  ]
+}

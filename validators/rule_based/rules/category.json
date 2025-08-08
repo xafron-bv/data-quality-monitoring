@@ -1,0 +1,13 @@
+{
+  "field_name": "category",
+  "description": "Rule-based validation for category",
+  "known_values": [],
+  "format_patterns": [],
+  "validation_rules": [
+    {"name": "not_empty", "type": "not_empty", "message": "Value cannot be empty"},
+    {"name": "no_leading_trailing_space", "type": "regex_must_match", "pattern": "^(?!\\s).*(?<!\\s)$", "message": "Whitespace error"},
+    {"name": "no_html", "type": "regex_must_not_match", "pattern": "<[^>]+>", "message": "HTML tags not allowed"},
+    {"name": "no_special_characters", "type": "regex_must_not_match", "pattern": "[^\\w\\s\-]", "message": "Special characters not allowed"},
+    {"name": "no_random_noise", "type": "regex_must_not_match", "pattern": "([A-Za-z]+\\d+[A-Za-z]+)|(([A-Z][a-z]){2,})|(([a-z][A-Z]){2,})|([A-Za-z]\\d[A-Za-z])", "message": "Random noise detected"}
+  ]
+}

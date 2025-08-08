@@ -1,0 +1,15 @@
+{
+  "field_name": "size",
+  "description": "Rule-based validation for size",
+  "known_values": [],
+  "format_patterns": [],
+  "validation_rules": [
+    {"name": "not_empty", "type": "not_empty", "message": "Value cannot be empty"},
+    {"name": "no_leading_trailing_space", "type": "regex_must_match", "pattern": "^(?!\\s).*(?<!\\s)$", "message": "Leading/trailing spaces"},
+    {"name": "invalid_prefix", "type": "regex_must_not_match", "pattern": "^SIZE:\\s", "message": "Invalid prefix"},
+    {"name": "appended_suffix", "type": "regex_must_not_match", "pattern": ".*\\(.+\\)$", "message": "Appended suffix"},
+    {"name": "fractional_size_wrong", "type": "regex_must_not_match", "pattern": "^\\$\\d+\\s\\d+/\\d+$", "message": "Fractional size with $"},
+    {"name": "decimal_size_wrong", "type": "regex_must_not_match", "pattern": "^\\$\\d+\\.\\d+$", "message": "Decimal size with $"},
+    {"name": "wrong_delimiter", "type": "regex_must_match", "pattern": "^(?:[XSMLxsml]+|[0-9]+(?:/[0-9]+)?|[XSMLxsml]+/[XSMLxsml]+|[0-9]+\\.[0-9]+)$", "message": "Invalid size format"}
+  ]
+}
