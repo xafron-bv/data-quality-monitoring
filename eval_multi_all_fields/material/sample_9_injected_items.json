@@ -1,0 +1,12 @@
+[
+  {
+    "row_index": 8,
+    "original_data": "70% Wool 30% Polyester",
+    "injected_data": "Blue 70% Wool 30% Polyester",
+    "error_rule": "inject_prepended_color_error",
+    "rule_operation": "prepend",
+    "injection_type": "error",
+    "column_name": "material",
+    "field_name": "material"
+  }
+]

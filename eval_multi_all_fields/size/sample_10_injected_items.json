@@ -1,0 +1,12 @@
+[
+  {
+    "row_index": 14,
+    "original_data": "S",
+    "injected_data": "SIZE: S",
+    "error_rule": "inject_invalid_size_prefix",
+    "rule_operation": "prepend",
+    "injection_type": "error",
+    "column_name": "size",
+    "field_name": "size"
+  }
+]

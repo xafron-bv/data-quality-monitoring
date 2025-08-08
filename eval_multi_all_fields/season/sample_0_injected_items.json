@@ -1,0 +1,22 @@
+[
+  {
+    "row_index": 13,
+    "original_data": "Fall 2024",
+    "injected_data": "Fall 2024 Collection",
+    "error_rule": "append_incorrect_suffix",
+    "rule_operation": "append",
+    "injection_type": "error",
+    "column_name": "season",
+    "field_name": "season"
+  },
+  {
+    "row_index": 8,
+    "original_data": "Fall 2024",
+    "injected_data": "Fall 2024 Collection",
+    "error_rule": "append_incorrect_suffix",
+    "rule_operation": "append",
+    "injection_type": "error",
+    "column_name": "season",
+    "field_name": "season"
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {
+    "row_index": 3,
+    "original_data": "Machine wash warm. Iron medium heat. Do not bleach.",
+    "injected_data": "Machine wash warm; Iron medium heat; Do not bleach;",
+    "error_rule": "inject_delimiter_error",
+    "rule_operation": "string_replace",
+    "injection_type": "error",
+    "column_name": "care_instructions",
+    "field_name": "care_instructions"
+  }
+]

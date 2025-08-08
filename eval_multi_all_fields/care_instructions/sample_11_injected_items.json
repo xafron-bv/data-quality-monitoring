@@ -1,0 +1,12 @@
+[
+  {
+    "row_index": 10,
+    "original_data": "Machine wash cold. Do not bleach. Tumble dry low.",
+    "injected_data": "Machine wa^sh cold. Do not bleach. Tumble dry low.",
+    "error_rule": "inject_random_noise_error",
+    "rule_operation": "random_noise",
+    "injection_type": "error",
+    "column_name": "care_instructions",
+    "field_name": "care_instructions"
+  }
+]

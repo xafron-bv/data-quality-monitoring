@@ -1,0 +1,32 @@
+[
+  {
+    "row_index": 19,
+    "original_data": "Winter 2024",
+    "injected_data": "Win$ter 2024",
+    "error_rule": "season_random_noise",
+    "rule_operation": "random_noise",
+    "injection_type": "error",
+    "column_name": "season",
+    "field_name": "season"
+  },
+  {
+    "row_index": 12,
+    "original_data": "All Season",
+    "injected_data": "All S$eason",
+    "error_rule": "season_random_noise",
+    "rule_operation": "random_noise",
+    "injection_type": "error",
+    "column_name": "season",
+    "field_name": "season"
+  },
+  {
+    "row_index": 7,
+    "original_data": "Spring 2024",
+    "injected_data": "Season: Spring 2024",
+    "error_rule": "prepend_incorrect_prefix",
+    "rule_operation": "prepend",
+    "injection_type": "error",
+    "column_name": "season",
+    "field_name": "season"
+  }
+]

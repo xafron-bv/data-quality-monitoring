@@ -1,0 +1,12 @@
+[
+  {
+    "row_index": 6,
+    "original_data": "Purple",
+    "injected_data": "P@urple",
+    "error_rule": "random_text_noise",
+    "rule_operation": "random_noise",
+    "injection_type": "error",
+    "column_name": "color_name",
+    "field_name": "color_name"
+  }
+]

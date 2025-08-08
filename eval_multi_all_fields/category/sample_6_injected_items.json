@@ -1,0 +1,32 @@
+[
+  {
+    "row_index": 15,
+    "original_data": "coats",
+    "injected_data": "coat,",
+    "error_rule": "add_comma_separator",
+    "rule_operation": "string_replace",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "row_index": 1,
+    "original_data": "blouses",
+    "injected_data": "blou,e,",
+    "error_rule": "add_comma_separator",
+    "rule_operation": "string_replace",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "row_index": 7,
+    "original_data": "blouses",
+    "injected_data": "b?louses",
+    "error_rule": "category_random_noise",
+    "rule_operation": "random_noise",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  }
+]

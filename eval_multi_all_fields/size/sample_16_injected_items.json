@@ -1,0 +1,12 @@
+[
+  {
+    "row_index": 1,
+    "original_data": "XL",
+    "injected_data": "X]L",
+    "error_rule": "inject_random_noise_in_size",
+    "rule_operation": "random_noise",
+    "injection_type": "error",
+    "column_name": "size",
+    "field_name": "size"
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "row_index": 16,
+    "original_data": "shorts",
+    "injected_data": "shorts*",
+    "error_rule": "add_special_characters",
+    "rule_operation": "append",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "row_index": 11,
+    "original_data": "shirts",
+    "injected_data": "shirts*",
+    "error_rule": "add_special_characters",
+    "rule_operation": "append",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  }
+]

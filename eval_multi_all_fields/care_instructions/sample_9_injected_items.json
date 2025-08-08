@@ -1,0 +1,22 @@
+[
+  {
+    "row_index": 12,
+    "original_data": "Machine wash inside out. Tumble dry medium.",
+    "injected_data": "Blue Machine wash inside out. Tumble dry medium.",
+    "error_rule": "inject_prepended_color_error",
+    "rule_operation": "prepend",
+    "injection_type": "error",
+    "column_name": "care_instructions",
+    "field_name": "care_instructions"
+  },
+  {
+    "row_index": 0,
+    "original_data": "Machine wash cold. Tumble dry low. Iron medium heat.",
+    "injected_data": "Machine wash cold - Tumble dry low - Iron medium heat.",
+    "error_rule": "inject_hyphen_delimiter_error",
+    "rule_operation": "string_replace",
+    "injection_type": "error",
+    "column_name": "care_instructions",
+    "field_name": "care_instructions"
+  }
+]

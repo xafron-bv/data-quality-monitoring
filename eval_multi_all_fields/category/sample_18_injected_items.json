@@ -1,0 +1,32 @@
+[
+  {
+    "row_index": 14,
+    "original_data": "tops",
+    "injected_data": "tops*",
+    "error_rule": "add_special_characters",
+    "rule_operation": "append",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "row_index": 7,
+    "original_data": "blouses",
+    "injected_data": "#blouses",
+    "error_rule": "add_hashtag",
+    "rule_operation": "prepend",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "row_index": 4,
+    "original_data": "jackets",
+    "injected_data": "jack\"ets",
+    "error_rule": "category_random_noise",
+    "rule_operation": "random_noise",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {
+    "row_index": 11,
+    "original_data": "100% Cotton",
+    "injected_data": "cotton 100",
+    "error_rule": "inject_malformed_structure_error",
+    "rule_operation": "string_replace",
+    "injection_type": "error",
+    "column_name": "material",
+    "field_name": "material"
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "row_index": 1,
+    "original_data": "80% Polyester 20% Cotton",
+    "injected_data": "Polyester Cotton",
+    "error_rule": "inject_missing_composition_value_error",
+    "rule_operation": "regex_replace",
+    "injection_type": "error",
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "row_index": 9,
+    "original_data": "100% Merino Wool",
+    "injected_data": "Blue 100% Merino Wool",
+    "error_rule": "inject_prepended_color_error",
+    "rule_operation": "prepend",
+    "injection_type": "error",
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "row_index": 14,
+    "original_data": "65% Cotton 35% Modal",
+    "injected_data": "65%\nCotton 35% Modal",
+    "error_rule": "inject_line_break_error",
+    "rule_operation": "regex_replace",
+    "injection_type": "error",
+    "column_name": "material",
+    "field_name": "material"
+  }
+]

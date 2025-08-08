@@ -1,0 +1,108 @@
+{
+  "summary": {
+    "total_injections": 7,
+    "affected_rows": 4,
+    "fields_with_injections": {
+      "size": {
+        "total": 1,
+        "errors": 1,
+        "anomalies": 0
+      },
+      "category": {
+        "total": 2,
+        "errors": 2,
+        "anomalies": 0
+      },
+      "care_instructions": {
+        "total": 1,
+        "errors": 1,
+        "anomalies": 0
+      },
+      "material": {
+        "total": 1,
+        "errors": 1,
+        "anomalies": 0
+      },
+      "article_number": {
+        "total": 1,
+        "errors": 1,
+        "anomalies": 0
+      },
+      "season": {
+        "total": 1,
+        "errors": 1,
+        "anomalies": 0
+      }
+    }
+  },
+  "detailed_injections": {
+    "size": [
+      {
+        "row_index": 1,
+        "original_value": "XL",
+        "corrupted_value": "SIZE: XL",
+        "injection_type": "error",
+        "rule_name": "inject_invalid_size_prefix",
+        "message": "Validation Error: inject_invalid_size_prefix"
+      }
+    ],
+    "category": [
+      {
+        "row_index": 1,
+        "original_value": "blouses",
+        "corrupted_value": "blouses*",
+        "injection_type": "error",
+        "rule_name": "add_special_characters",
+        "message": "Validation Error: add_special_characters"
+      },
+      {
+        "row_index": 6,
+        "original_value": "skirts",
+        "corrupted_value": "skirt<s",
+        "injection_type": "error",
+        "rule_name": "category_random_noise",
+        "message": "Validation Error: category_random_noise"
+      }
+    ],
+    "care_instructions": [
+      {
+        "row_index": 6,
+        "original_value": "Machine wash cold with like colors. Tumble dry low.",
+        "corrupted_value": "Machine wash cold with like colors; Tumble dry low;",
+        "injection_type": "error",
+        "rule_name": "inject_delimiter_error",
+        "message": "Validation Error: inject_delimiter_error"
+      }
+    ],
+    "material": [
+      {
+        "row_index": 14,
+        "original_value": "65% Cotton 35% Modal",
+        "corrupted_value": "65 Cotton 35 Modal",
+        "injection_type": "error",
+        "rule_name": "inject_missing_percentage_sign_error",
+        "message": "Validation Error: inject_missing_percentage_sign_error"
+      }
+    ],
+    "article_number": [
+      {
+        "row_index": 17,
+        "original_value": "SKU018",
+        "corrupted_value": "SKU018%",
+        "injection_type": "error",
+        "rule_name": "random_noise_3",
+        "message": "Validation Error: random_noise_3"
+      }
+    ],
+    "season": [
+      {
+        "row_index": 17,
+        "original_value": "Spring 2024",
+        "corrupted_value": "2024",
+        "injection_type": "error",
+        "rule_name": "year_only_error",
+        "message": "Validation Error: year_only_error"
+      }
+    ]
+  }
+}

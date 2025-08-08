@@ -1,0 +1,32 @@
+[
+  {
+    "row_index": 3,
+    "original_data": "100% Cotton",
+    "injected_data": "10/0% Cotton",
+    "error_rule": "inject_random_noise_error",
+    "rule_operation": "random_noise",
+    "injection_type": "error",
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "row_index": 15,
+    "original_data": "80% Wool 20% Nylon",
+    "injected_data": "80% Wool 20% Nylon?",
+    "error_rule": "inject_random_noise_error",
+    "rule_operation": "random_noise",
+    "injection_type": "error",
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "row_index": 5,
+    "original_data": "100% Cashmere",
+    "injected_data": "100% Cashmere - Machine wash cold",
+    "error_rule": "inject_appended_care_instruction_error",
+    "rule_operation": "append",
+    "injection_type": "error",
+    "column_name": "material",
+    "field_name": "material"
+  }
+]

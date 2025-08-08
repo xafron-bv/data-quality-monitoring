@@ -1,0 +1,32 @@
+[
+  {
+    "row_index": 13,
+    "original_data": "Fall 2024",
+    "injected_data": "2024",
+    "error_rule": "year_only_error",
+    "rule_operation": "replace_with",
+    "injection_type": "error",
+    "column_name": "season",
+    "field_name": "season"
+  },
+  {
+    "row_index": 12,
+    "original_data": "All Season",
+    "injected_data": "All Sea{son",
+    "error_rule": "season_random_noise",
+    "rule_operation": "random_noise",
+    "injection_type": "error",
+    "column_name": "season",
+    "field_name": "season"
+  },
+  {
+    "row_index": 8,
+    "original_data": "Fall 2024",
+    "injected_data": "2024",
+    "error_rule": "year_only_error",
+    "rule_operation": "replace_with",
+    "injection_type": "error",
+    "column_name": "season",
+    "field_name": "season"
+  }
+]

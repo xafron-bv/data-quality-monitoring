@@ -1,0 +1,32 @@
+[
+  {
+    "row_index": 15,
+    "original_data": "80% Wool 20% Nylon",
+    "injected_data": "80% Wool 20% Ny|lon",
+    "error_rule": "inject_random_noise_error",
+    "rule_operation": "random_noise",
+    "injection_type": "error",
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "row_index": 3,
+    "original_data": "100% Cotton",
+    "injected_data": "99.9% Cotton",
+    "error_rule": "inject_decimal_composition_error",
+    "rule_operation": "string_replace",
+    "injection_type": "error",
+    "column_name": "material",
+    "field_name": "material"
+  },
+  {
+    "row_index": 13,
+    "original_data": "55% Polyester 45% Viscose",
+    "injected_data": "55% Polyester 45% Viscose - Machine wash cold",
+    "error_rule": "inject_appended_care_instruction_error",
+    "rule_operation": "append",
+    "injection_type": "error",
+    "column_name": "material",
+    "field_name": "material"
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "row_index": 14,
+    "original_data": "Summer 2024",
+    "injected_data": "Season: Summer 2024",
+    "error_rule": "prepend_incorrect_prefix",
+    "rule_operation": "prepend",
+    "injection_type": "error",
+    "column_name": "season",
+    "field_name": "season"
+  },
+  {
+    "row_index": 6,
+    "original_data": "Summer 2024",
+    "injected_data": "Season: Summer 2024",
+    "error_rule": "prepend_incorrect_prefix",
+    "rule_operation": "prepend",
+    "injection_type": "error",
+    "column_name": "season",
+    "field_name": "season"
+  },
+  {
+    "row_index": 9,
+    "original_data": "Winter 2024",
+    "injected_data": "Season: Winter 2024",
+    "error_rule": "prepend_incorrect_prefix",
+    "rule_operation": "prepend",
+    "injection_type": "error",
+    "column_name": "season",
+    "field_name": "season"
+  }
+]

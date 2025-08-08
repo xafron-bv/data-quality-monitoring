@@ -1,0 +1,22 @@
+[
+  {
+    "row_index": 4,
+    "original_data": "jackets",
+    "injected_data": "<b>jackets</b>",
+    "error_rule": "add_html_tags",
+    "rule_operation": "regex_replace",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "row_index": 6,
+    "original_data": "skirts",
+    "injected_data": "skirts/",
+    "error_rule": "category_random_noise",
+    "rule_operation": "random_noise",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  }
+]

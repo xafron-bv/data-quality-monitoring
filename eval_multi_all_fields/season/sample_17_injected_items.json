@@ -1,0 +1,22 @@
+[
+  {
+    "row_index": 13,
+    "original_data": "Fall 2024",
+    "injected_data": "Season: Fall 2024",
+    "error_rule": "prepend_incorrect_prefix",
+    "rule_operation": "prepend",
+    "injection_type": "error",
+    "column_name": "season",
+    "field_name": "season"
+  },
+  {
+    "row_index": 3,
+    "original_data": "Winter 2024",
+    "injected_data": "?Winter 2024",
+    "error_rule": "season_random_noise",
+    "rule_operation": "random_noise",
+    "injection_type": "error",
+    "column_name": "season",
+    "field_name": "season"
+  }
+]

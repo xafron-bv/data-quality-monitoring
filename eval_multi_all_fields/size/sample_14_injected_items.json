@@ -1,0 +1,12 @@
+[
+  {
+    "row_index": 17,
+    "original_data": "L",
+    "injected_data": "L (Perfect Fit)",
+    "error_rule": "inject_appended_size_suffix",
+    "rule_operation": "append",
+    "injection_type": "error",
+    "column_name": "size",
+    "field_name": "size"
+  }
+]

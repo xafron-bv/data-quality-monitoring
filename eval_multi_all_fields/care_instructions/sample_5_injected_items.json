@@ -1,0 +1,12 @@
+[
+  {
+    "row_index": 1,
+    "original_data": "Hand wash only. Do not bleach. Lay flat to dry.",
+    "injected_data": "Blue Hand wash only. Do not bleach. Lay flat to dry.",
+    "error_rule": "inject_prepended_color_error",
+    "rule_operation": "prepend",
+    "injection_type": "error",
+    "column_name": "care_instructions",
+    "field_name": "care_instructions"
+  }
+]

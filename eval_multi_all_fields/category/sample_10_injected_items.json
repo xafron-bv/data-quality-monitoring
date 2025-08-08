@@ -1,0 +1,32 @@
+[
+  {
+    "row_index": 17,
+    "original_data": "hoodies",
+    "injected_data": "hoodie,",
+    "error_rule": "add_comma_separator",
+    "rule_operation": "string_replace",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "row_index": 2,
+    "original_data": "t-shirts",
+    "injected_data": "t-,hirt,",
+    "error_rule": "add_comma_separator",
+    "rule_operation": "string_replace",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  },
+  {
+    "row_index": 9,
+    "original_data": "cardigan",
+    "injected_data": "ca!rdigan",
+    "error_rule": "category_random_noise",
+    "rule_operation": "random_noise",
+    "injection_type": "error",
+    "column_name": "category",
+    "field_name": "category"
+  }
+]

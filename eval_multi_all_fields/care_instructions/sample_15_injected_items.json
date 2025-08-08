@@ -1,0 +1,22 @@
+[
+  {
+    "row_index": 17,
+    "original_data": "Machine wash cold. Tumble dry low. Do not iron print.",
+    "injected_data": "Machine wash cold; Tumble dry low; Do not iron print;",
+    "error_rule": "inject_delimiter_error",
+    "rule_operation": "string_replace",
+    "injection_type": "error",
+    "column_name": "care_instructions",
+    "field_name": "care_instructions"
+  },
+  {
+    "row_index": 0,
+    "original_data": "Machine wash cold. Tumble dry low. Iron medium heat.",
+    "injected_data": "Machine wash cold. Tumble dry low. Iron: medium heat.",
+    "error_rule": "inject_random_noise_error",
+    "rule_operation": "random_noise",
+    "injection_type": "error",
+    "column_name": "care_instructions",
+    "field_name": "care_instructions"
+  }
+]
