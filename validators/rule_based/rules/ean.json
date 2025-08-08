@@ -1,31 +1,11 @@
 {
   "field_name": "ean",
-  "description": "Validation rules for ean field",
-  "known_values": [
-    "# Add known valid values here (case-insensitive)",
-    "# Example: valid_option_1, valid_option_2"
-  ],
+  "description": "Rule-based validation for EAN-13",
+  "known_values": [],
   "format_patterns": [
-    {
-      "name": "basic_format",
-      "description": "Basic format validation",
-      "pattern": "^[\\w\\s\\-_%/().,:]+$",
-      "message": "Contains invalid characters"
-    }
+    {"name": "ean13_format", "pattern": "^\\d{13}$", "message": "EAN must be 13 digits"}
   ],
   "validation_rules": [
-    {
-      "name": "not_empty",
-      "description": "Value should not be empty",
-      "type": "not_empty",
-      "message": "Value cannot be empty"
-    },
-    {
-      "name": "max_length",
-      "description": "Value should not be too long",
-      "type": "max_length",
-      "max_length": 200,
-      "message": "Value is too long"
-    }
+    {"name": "not_empty", "type": "not_empty", "message": "Value cannot be empty"}
   ]
 }

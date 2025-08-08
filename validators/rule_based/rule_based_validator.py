@@ -261,14 +261,11 @@ class RuleBasedValidator(ValidatorInterface):
         # High-confidence validation: deterministic checks
         if pd.isna(value):
             return ValidationError(error_type=self.ErrorCode.MISSING_VALUE, probability=1.0, details={})
+        # Accept non-string values by coercing to string for validation
         if not isinstance(value, str):
-            return ValidationError(
-                error_type=self.ErrorCode.INVALID_TYPE,
-                probability=1.0,
-                details={"expected": "string", "actual": str(type(value))},
-            )
-
-        value_str = value
+            value_str = str(value)
+        else:
+            value_str = value
         # Apply validation rules (structural/business)
         rule_error = self._check_validation_rules(value_str)
         if rule_error:
