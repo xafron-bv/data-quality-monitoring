@@ -644,6 +644,8 @@ If --anomaly-detector is not specified, it defaults to the value of --validator.
     parser.add_argument("--ml-threshold", type=float, default=0.7, help="Minimum confidence threshold for ML detection (default: 0.7).")
     parser.add_argument("--llm-threshold", type=float, default=0.6, help="Minimum confidence threshold for LLM detection (default: 0.6).")
     parser.add_argument("--error-probability", type=float, default=0.1, help="Probability of injecting errors in each row (default: 0.1).")
+    parser.add_argument("--error-injection-prob", type=float, default=0.7, help="Probability of injecting errors vs anomalies when both available (0.0-1.0, default: 0.7).")
+    parser.add_argument("--anomaly-injection-prob", type=float, default=0.3, help="Probability of injecting anomalies. Set to 0 for errors only (0.0-1.0, default: 0.3).")
     parser.add_argument("--batch-size", type=int, help="Batch size for processing (default: auto-determined based on system).")
     parser.add_argument("--max-workers", type=int, default=7, help="Maximum number of parallel workers (default: 7).")
     parser.add_argument("--high-confidence-threshold", type=float, default=0.8, help="Threshold for high confidence detection results (default: 0.8).")
