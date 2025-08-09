@@ -1,0 +1,16 @@
+{
+  "field_name": "color_name",
+  "description": "Validation rules for color names (baseline)",
+  "error_messages": {
+    "MISSING_VALUE": "Color is missing.",
+    "INVALID_TYPE": "Color must be text. Found: {actual}.",
+    "EMPTY_VALUE": "Empty color is not allowed.",
+    "WHITESPACE_ERROR": "Color contains leading/trailing whitespace: '{original}'."
+  },
+  "validation_rules": [
+    { "name": "missing_value", "type": "missing", "error_code": "MISSING_VALUE", "probability": 1.0 },
+    { "name": "invalid_type", "type": "type_check", "expected_type": "string", "error_code": "INVALID_TYPE", "probability": 1.0 },
+    { "name": "empty_value", "type": "empty_string", "error_code": "EMPTY_VALUE", "probability": 1.0 },
+    { "name": "whitespace", "type": "whitespace", "error_code": "WHITESPACE_ERROR", "probability": 0.9 }
+  ]
+}

@@ -13,6 +13,77 @@ from torch.utils.data import Dataset
 from transformers import AutoModelForMaskedLM, AutoTokenizer, Trainer, TrainingArguments
 
 
+def get_gpu_memory_info():
+    """Get current GPU memory usage information."""
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
+        allocated = torch.cuda.memory_allocated() / 1024**3  # GB
+        cached = torch.cuda.memory_reserved() / 1024**3  # GB
+        total = torch.cuda.get_device_properties(0).total_memory / 1024**3  # GB
+        return {
+            'allocated_gb': allocated,
+            'cached_gb': cached,
+            'total_gb': total,
+            'free_gb': total - allocated
+        }
+    return None
+
+
+def setup_gpu_memory_management():
+    """Setup GPU memory management for RTX 3070 (8GB)."""
+    if not torch.cuda.is_available():
+        return torch.device('cpu')
+    
+    # Clear any existing cache
+    torch.cuda.empty_cache()
+    
+    # Get GPU info
+    gpu_name = torch.cuda.get_device_name(0)
+    total_memory = torch.cuda.get_device_properties(0).total_memory / 1024**3
+    
+    print(f"🖥️  GPU: {gpu_name} ({total_memory:.1f}GB)")
+    
+    # For RTX 3070 (8GB), use conservative memory management
+    if total_memory >= 8:
+        # Use 70% of available memory to be safe
+        memory_fraction = 0.7
+        torch.cuda.set_per_process_memory_fraction(memory_fraction)
+        print(f"🧹 Set memory fraction to {memory_fraction*100:.0f}% ({memory_fraction*total_memory:.1f}GB)")
+    
+    # Enable memory efficient attention if available
+    if hasattr(torch.backends, 'flash_attention') and torch.backends.flash_attention.is_available():
+        torch.backends.flash_attention.enable()
+        print("⚡ Enabled Flash Attention for memory efficiency")
+    
+    return torch.device('cuda')
+
+
+def calculate_safe_batch_size(model_size_mb: int = 500, max_memory_gb: float = 5.6) -> int:
+    """
+    Calculate safe batch size based on model size and available memory.
+    
+    Args:
+        model_size_mb: Estimated model size in MB
+        max_memory_gb: Maximum memory to use in GB (70% of 8GB = 5.6GB)
+    
+    Returns:
+        Safe batch size
+    """
+    # Conservative estimate: each sample needs ~2x model size for gradients and activations
+    memory_per_sample_mb = model_size_mb * 2.5
+    
+    # Convert to GB
+    memory_per_sample_gb = memory_per_sample_mb / 1024
+    
+    # Calculate safe batch size
+    safe_batch_size = int(max_memory_gb / memory_per_sample_gb)
+    
+    # Ensure minimum and maximum bounds
+    safe_batch_size = max(1, min(safe_batch_size, 16))
+    
+    return safe_batch_size
+
+
 class TextSequenceDataset(Dataset):
     """Dataset for training language models on text sequences."""
 
@@ -95,7 +166,7 @@ def get_model_config(field_name: str) -> Dict[str, Any]:
             'model_name': 'distilbert-base-uncased',
             'max_length': 128,
             'epochs': 3,
-            'batch_size': 8,
+            'batch_size': 4,  # Reduced from 8 for GPU memory safety
             'learning_rate': 2e-5,
             'mask_probability': 0.15
         },
@@ -103,7 +174,7 @@ def get_model_config(field_name: str) -> Dict[str, Any]:
             'model_name': 'distilbert-base-uncased',
             'max_length': 128,
             'epochs': 3,
-            'batch_size': 8,
+            'batch_size': 4,  # Reduced from 8 for GPU memory safety
             'learning_rate': 2e-5,
             'mask_probability': 0.15
         },
@@ -111,7 +182,7 @@ def get_model_config(field_name: str) -> Dict[str, Any]:
             'model_name': 'distilbert-base-uncased',
             'max_length': 256,
             'epochs': 2,
-            'batch_size': 4,
+            'batch_size': 2,  # Reduced from 4 for GPU memory safety
             'learning_rate': 2e-5,
             'mask_probability': 0.15
         },
@@ -119,7 +190,7 @@ def get_model_config(field_name: str) -> Dict[str, Any]:
             'model_name': 'distilbert-base-uncased',
             'max_length': 128,
             'epochs': 3,
-            'batch_size': 8,
+            'batch_size': 4,  # Reduced from 8 for GPU memory safety
             'learning_rate': 2e-5,
             'mask_probability': 0.15
         }
@@ -130,7 +201,7 @@ def get_model_config(field_name: str) -> Dict[str, Any]:
         'model_name': 'distilbert-base-uncased',
         'max_length': 128,
         'epochs': 2,
-        'batch_size': 8,
+        'batch_size': 4,  # Reduced from 8 for GPU memory safety
         'learning_rate': 2e-5,
         'mask_probability': 0.15
     }
@@ -153,10 +224,27 @@ def train_language_model(texts: List[str], field_name: str, config: Dict[str, An
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
+    # Move model to device
+    model = model.to(device)
+    print(f"   📍 Model moved to {device}")
+
+    # Calculate safe batch size based on GPU memory
+    if device.type == 'cuda':
+        # Estimate model size (DistilBERT is ~260MB)
+        model_size_mb = 260 if 'distilbert' in model_name.lower() else 500
+        safe_batch_size = calculate_safe_batch_size(model_size_mb)
+        config['batch_size'] = min(config['batch_size'], safe_batch_size)
+        print(f"   🎯 Using safe batch size: {config['batch_size']} (calculated: {safe_batch_size})")
+        
+        # Print memory info
+        memory_info = get_gpu_memory_info()
+        if memory_info:
+            print(f"   💾 GPU Memory: {memory_info['allocated_gb']:.1f}GB allocated, {memory_info['free_gb']:.1f}GB free")
+
     # Create dataset
     dataset = TextSequenceDataset(texts, tokenizer, config['max_length'])
 
-    # Training arguments
+    # Training arguments with memory optimization
     training_args = TrainingArguments(
         output_dir=output_dir,
         num_train_epochs=config['epochs'],
@@ -166,7 +254,11 @@ def train_language_model(texts: List[str], field_name: str, config: Dict[str, An
         logging_steps=10,
         remove_unused_columns=False,
         dataloader_pin_memory=False,
-        report_to=None  # Disable wandb logging
+        report_to=None,  # Disable wandb logging
+        gradient_accumulation_steps=max(1, 8 // config['batch_size']),  # Accumulate gradients if batch size is small
+        fp16=device.type == 'cuda',  # Use mixed precision on GPU
+        dataloader_num_workers=0,  # Avoid multiprocessing issues
+        warmup_steps=min(100, len(texts) // config['batch_size']),  # Warmup steps
     )
 
     # Create trainer
@@ -177,9 +269,36 @@ def train_language_model(texts: List[str], field_name: str, config: Dict[str, An
         tokenizer=tokenizer
     )
 
-    # Train the model
+    # Train the model with memory monitoring
     print(f"   🚀 Starting training...")
-    trainer.train()
+    try:
+        trainer.train()
+    except RuntimeError as e:
+        if "out of memory" in str(e).lower():
+            print(f"   ⚠️  GPU out of memory error: {e}")
+            print(f"   🔄 Trying with smaller batch size...")
+            
+            # Reduce batch size and try again
+            config['batch_size'] = max(1, config['batch_size'] // 2)
+            training_args.per_device_train_batch_size = config['batch_size']
+            training_args.gradient_accumulation_steps = max(1, 8 // config['batch_size'])
+            
+            trainer = Trainer(
+                model=model,
+                args=training_args,
+                train_dataset=dataset,
+                tokenizer=tokenizer
+            )
+            trainer.train()
+        else:
+            raise e
+
+    # Clear GPU memory after training
+    if device.type == 'cuda':
+        torch.cuda.empty_cache()
+        memory_info = get_gpu_memory_info()
+        if memory_info:
+            print(f"   🧹 GPU Memory after training: {memory_info['allocated_gb']:.1f}GB allocated")
 
     # Save the model and tokenizer
     print(f"   💾 Saving model to {output_dir}")
@@ -202,7 +321,10 @@ def calculate_sequence_probability(model, tokenizer, text: str, device: torch.de
             return_tensors='pt',
             truncation=True,
             max_length=128
-        ).to(device)
+        )
+        
+        # Move inputs to device
+        inputs = {k: v.to(device) for k, v in inputs.items()}
 
         # Get model predictions
         with torch.no_grad():
@@ -223,6 +345,11 @@ def calculate_sequence_probability(model, tokenizer, text: str, device: torch.de
                     total_log_prob += torch.log(torch.tensor(prob)).item()
                     count += 1
 
+        # Clear GPU memory
+        if device.type == 'cuda':
+            del inputs, outputs, logits, probs
+            torch.cuda.empty_cache()
+
         if count > 0:
             return total_log_prob / count
         else:
@@ -230,6 +357,9 @@ def calculate_sequence_probability(model, tokenizer, text: str, device: torch.de
 
     except Exception as e:
         print(f"Error calculating probability: {e}")
+        # Clear GPU memory on error
+        if device.type == 'cuda':
+            torch.cuda.empty_cache()
         return -10.0
 
 def test_anomaly_detection_with_probability(model_info: Dict[str, Any], clean_texts: List[str], field_name: str, threshold: float = -2.0) -> Dict[str, Any]:
@@ -299,19 +429,21 @@ def test_anomaly_detection_with_probability(model_info: Dict[str, Any], clean_te
 
 def setup_output_directory() -> str:
     """Setup output directory for training results."""
-    output_dir = os.path.join(os.path.dirname(__file__), "models")
+    output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "models", "llm")
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     return output_dir
 
 def entry(data_file=None, field=None, epochs=3, batch_size=8, learning_rate=2e-5,
-          threshold=-2.0, max_length=128):
+          threshold=-2.0, max_length=128, variation: str = None):
     """Entry function for LLM model training."""
 
     if not data_file:
         raise ValueError("data_file is required")
     if not field:
         raise ValueError("field is required")
+    if not variation:
+        raise ValueError("variation is required for LLM training")
 
     # Check if data file exists
     if not os.path.exists(data_file):
@@ -393,13 +525,24 @@ def entry(data_file=None, field=None, epochs=3, batch_size=8, learning_rate=2e-5
         'max_length': max_length
     })
 
-    # Setup device
-    device = torch.device('mps' if torch.backends.mps.is_available() else
-                         'cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"🖥️  Using device: {device}")
+    # Setup device with better error handling
+    try:
+        device = setup_gpu_memory_management()
+        if device.type == 'cuda':
+            # Test GPU memory availability
+            memory_info = get_gpu_memory_info()
+            if memory_info and memory_info['free_gb'] < 1.0:
+                print(f"⚠️  Low GPU memory available ({memory_info['free_gb']:.1f}GB), consider using CPU")
+                device = torch.device('cpu')
+                print(f"🖥️  Falling back to CPU")
+    except Exception as e:
+        print(f"⚠️  GPU setup failed: {e}")
+        device = torch.device('cpu')
+        print(f"🖥️  Using CPU")
 
-    # Train the model
-    model_output_dir = os.path.join(output_dir, f"{field}_model")
+    # Train the model under variation-specific directory
+    model_output_dir = os.path.join(output_dir, f"{field}_model", variation)
+    os.makedirs(model_output_dir, exist_ok=True)
     model_info = train_language_model(clean_texts, field, config, device, model_output_dir)
 
     # Test anomaly detection
@@ -408,9 +551,10 @@ def entry(data_file=None, field=None, epochs=3, batch_size=8, learning_rate=2e-5
     )
 
     # Save training results
-    results_file = os.path.join(output_dir, f"{field}_training_results.json")
+    results_file = os.path.join(output_dir, f"{field}_training_results__{variation}.json")
     results_summary = {
         'field_name': field,
+        'variation': variation,
         'column_name': column_name,
         'training_config': config,
         'data_analysis': analysis,
@@ -432,6 +576,7 @@ def main():
     parser = argparse.ArgumentParser(description="Train language model for anomaly detection")
     parser.add_argument("data_file", help="Path to the CSV data file")
     parser.add_argument("--field", required=True, help="Field name to train model for")
+    parser.add_argument("--variation", required=True, help="Variation key to train/save the model under")
     parser.add_argument("--epochs", type=int, default=3, help="Number of training epochs")
     parser.add_argument("--batch-size", type=int, default=8, help="Training batch size")
     parser.add_argument("--learning-rate", type=float, default=2e-5, help="Learning rate")
@@ -447,7 +592,8 @@ def main():
         batch_size=args.batch_size,
         learning_rate=args.learning_rate,
         threshold=args.threshold,
-        max_length=args.max_length
+        max_length=args.max_length,
+        variation=args.variation
     )
 
 

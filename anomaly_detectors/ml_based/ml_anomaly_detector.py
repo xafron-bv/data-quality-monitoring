@@ -35,7 +35,8 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
                  field_name: str,
                  threshold: float,
                  models_dir: str = None,
-                 use_gpu: bool = True):
+                 use_gpu: bool = True,
+                 variation: Optional[str] = None):
         """
         Initialize the ML anomaly detector.
 
@@ -44,6 +45,7 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
             models_dir: Directory containing trained models (defaults to ml_based/models)
             threshold: Similarity threshold for anomaly detection (lower = more sensitive)
             use_gpu: Whether to use GPU acceleration if available
+            variation: Optional variation key for brand/format-specific models
         """
         self.field_name = field_name
         if models_dir is None:
@@ -52,6 +54,7 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
         self.models_dir = models_dir
         self.threshold = threshold
         self.use_gpu = use_gpu
+        self.variation = variation
         self.model = None
         self.column_name = None
         self.reference_centroid = None
@@ -59,7 +62,7 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
 
     def _get_cache_key(self):
         """Generate a cache key for this detector configuration."""
-        return (self.field_name, self.models_dir, self.use_gpu)
+        return (self.field_name, self.models_dir, self.use_gpu, self.variation)
 
     def learn_patterns(self, df: pd.DataFrame, column_name: str) -> None:
         """
@@ -81,7 +84,7 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
             try:
                 # Load the model and reference centroid for the specified field
                 self.model, self.column_name, self.reference_centroid = load_model_for_field(
-                    self.field_name, self.models_dir, self.use_gpu
+                    self.field_name, self.models_dir, self.use_gpu, variation=self.variation
                 )
 
                 # Cache the loaded model and centroid
@@ -179,7 +182,8 @@ class MLAnomalyDetector(AnomalyDetectorInterface):
             'field_name': self.field_name,
             'models_dir': self.models_dir,
             'threshold': self.threshold,
-            'use_gpu': self.use_gpu
+            'use_gpu': self.use_gpu,
+            'variation': self.variation
         }
 
 

@@ -240,7 +240,7 @@ class DetectionCurveGenerator:
 
         # Load ML model with correct results directory
         results_dir = os.path.join("anomaly_detectors", "results")
-        model, column_name, reference_centroid = load_model_for_field(field_name, results_dir=results_dir)
+        model, column_name, reference_centroid = load_model_for_field(field_name, models_dir=results_dir)
 
         # Generate test data
         test_values, test_labels = self.generate_test_data(field_name)

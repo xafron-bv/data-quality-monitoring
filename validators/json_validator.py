@@ -19,29 +19,37 @@ class JSONValidator(ValidatorInterface):
     This replaces individual Python validation files with a unified JSON-based approach.
     """
     
-    def __init__(self, field_name: str):
+    def __init__(self, field_name: str, variation: Optional[str] = None):
         """
         Initialize the validator for a specific field.
         
         Args:
             field_name: The name of the field to validate (e.g., 'category', 'size')
+            variation: Optional variation key for brand/format-specific rules
         """
         self.field_name = field_name
+        self.variation = variation
         self.rules = self._load_validation_rules()
         self.error_messages = self.rules.get('error_messages', {})
         
     def _load_validation_rules(self) -> Dict[str, Any]:
         """Load validation rules from the JSON file."""
-        rules_path = os.path.join(
+        base_rules_dir = os.path.join(
             os.path.dirname(__file__),
-            'rules',
-            f'{self.field_name}.json'
+            'rules'
         )
-        
-        if not os.path.exists(rules_path):
-            raise FileNotFoundError(f"No validation rules found for field '{self.field_name}'")
-            
-        with open(rules_path, 'r') as f:
+
+        # Enforce variation is specified
+        if not self.variation:
+            raise ValueError(f"Variation is required for field '{self.field_name}'")
+
+        # Only allow variation-specific rules
+        variant_rules_path = os.path.join(base_rules_dir, self.field_name, f'{self.variation}.json')
+        if not os.path.exists(variant_rules_path):
+            raise FileNotFoundError(
+                f"Validation rules for field '{self.field_name}' variation '{self.variation}' not found at {variant_rules_path}"
+            )
+        with open(variant_rules_path, 'r') as f:
             return json.load(f)
     
     def _validate_entry(self, value: Any) -> Optional[ValidationError]:

@@ -1,0 +1,36 @@
+{
+  "field_name": "season",
+  "description": "Pattern-based rules for season with year-first format (e.g., '2025 Winter')",
+  "known_values": [],
+  "format_patterns": [
+    {
+      "name": "allowed_chars",
+      "description": "Only allow alphanumerics, spaces, dash, slash",
+      "pattern": "^[A-Za-z0-9\s\-\/]+$",
+      "message": "Contains invalid characters",
+      "probability": 0.8
+    },
+    {
+      "name": "year_first_format",
+      "description": "Must be 'YYYY <Season>'",
+      "pattern": "^\\d{4}\\s*(Spring|Summer|Fall|Autumn|Winter)$",
+      "message": "Invalid season format; expected 'YYYY Season'",
+      "probability": 0.85
+    }
+  ],
+  "validation_rules": [
+    {
+      "name": "not_empty",
+      "type": "not_empty",
+      "message": "Season cannot be empty",
+      "probability": 0.9
+    },
+    {
+      "name": "min_length",
+      "type": "min_length",
+      "min_length": 6,
+      "message": "Season too short",
+      "probability": 0.7
+    }
+  ]
+}

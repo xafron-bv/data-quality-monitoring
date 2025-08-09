@@ -133,7 +133,7 @@ def create_improved_triplet_dataset(data_series, rules, field_name):
     return triplets
 
 
-def train_and_evaluate_similarity_model(df, field_name, column_name, rules, device, best_params):
+def train_and_evaluate_similarity_model(df, field_name, column_name, rules, device, best_params, variation: str):
     """
     Train a sentence transformer model for RECALL-OPTIMIZED anomaly detection using triplet loss.
     Args:
@@ -143,12 +143,15 @@ def train_and_evaluate_similarity_model(df, field_name, column_name, rules, devi
         rules: Error injection rules for the field
         device: Training device
         best_params: Hyperparameters for training
+        variation: Required variation key for saving models per variation
     """
-    print(f"\n🎯 Training RECALL-OPTIMIZED model for field '{field_name}' (column '{column_name}')")
+    if not variation:
+        raise ValueError(f"Variation is required for training ML model for field '{field_name}'")
+    print(f"\n🎯 Training RECALL-OPTIMIZED model for field '{field_name}' (column '{column_name}', variation '{variation}')")
 
-    # Create results directory structure using field_name
-    models_base_dir = os.path.join(os.path.dirname(__file__), 'models')
-    model_results_dir = os.path.join(models_base_dir, 'trained', f'{field_name.replace(" ", "_").lower()}')
+    # Create results directory structure using field_name and variation
+    models_base_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'models', 'ml')
+    model_results_dir = os.path.join(models_base_dir, 'trained', f'{field_name.replace(" ", "_").lower()}', variation)
     checkpoints_dir = os.path.join(models_base_dir, 'checkpoints')
 
     # Ensure all directories exist
@@ -218,57 +221,52 @@ def train_and_evaluate_similarity_model(df, field_name, column_name, rules, devi
     # Test RECALL and PRECISION performance
     clean_texts = df[column_name].dropna().apply(preprocess_text).astype(str).tolist()
     print(f"\n💡 Testing final model performance with RECALL-OPTIMIZED threshold")
-    recall_rate, precision_rate, f1_rate = test_recall_precision_performance(model, clean_texts, rules, field_name)
+    recall_rate, precision_rate, f1_rate = test_recall_precision_performance(
+        model, clean_texts, rules, field_name, threshold=0.6
+    )
 
-    # Demonstrate anomaly detection with examples
-    demonstrate_similarity(model, df[column_name], field_name)
-
-    # 🆕 NEW: Compute and save reference centroid for production inference
+    # Compute and save reference centroid for production inference
     print(f"\n🔄 Computing reference centroid for production inference...")
     try:
-        # Get clean training texts for centroid computation
         clean_training_texts = [text for text in clean_texts if text and len(text.strip()) > 0]
-        if len(clean_training_texts) < 10:
+        if len(clean_training_texts) < 2:
             print(f"⚠️  Warning: Only {len(clean_training_texts)} clean texts available for centroid computation")
 
-        # Compute embeddings for clean training data
-        clean_embeddings = model.encode(clean_training_texts,
-                                       batch_size=32,
-                                       show_progress_bar=False,
-                                       convert_to_numpy=True)
-
-        # Compute reference centroid
+        clean_embeddings = model.encode(
+            clean_training_texts,
+            batch_size=32,
+            show_progress_bar=False,
+            convert_to_numpy=True
+        )
         reference_centroid = np.mean(clean_embeddings, axis=0)
 
-        # Save centroid as numpy array
         centroid_path = os.path.join(model_results_dir, "reference_centroid.npy")
         np.save(centroid_path, reference_centroid)
 
-        # Save centroid metadata
         centroid_metadata = {
             "num_samples": len(clean_training_texts),
-            "embedding_dim": reference_centroid.shape[0],
+            "embedding_dim": int(reference_centroid.shape[0]) if hasattr(reference_centroid, 'shape') else None,
             "created_at": datetime.now().isoformat(),
             "field_name": field_name,
             "column_name": column_name,
             "model_name": best_params['model_name'],
-            "training_params": best_params
+            "training_params": best_params,
+            "variation": variation
         }
-
         metadata_path = os.path.join(model_results_dir, "centroid_metadata.json")
         with open(metadata_path, 'w') as f:
             json.dump(centroid_metadata, f, indent=2, default=str)
 
-        print(f"✅ Reference centroid saved:")
-        print(f"   📄 Centroid: {os.path.basename(centroid_path)} (shape: {reference_centroid.shape})")
-        print(f"   📄 Metadata: {os.path.basename(metadata_path)}")
-        print(f"   📊 Based on {len(clean_training_texts)} clean training samples")
-
+        print(f"✅ Reference centroid saved at {centroid_path}")
+        print(f"   📊 Based on {len(clean_training_texts)} samples")
     except Exception as e:
-        print(f"⚠️  Warning: Could not compute reference centroid: {e}")
-        print(f"   Model will still work with batch-based inference")
+        print(f"⚠️  Warning: Could not compute/save reference centroid: {e}")
 
-    return model
+    print(f"✅ Training complete for field '{field_name}' (variation '{variation}')")
+    return {
+        'model_dir': model_results_dir,
+        'detection_rate': recall_rate # Return recall rate as detection rate
+    }
 
 
 def demonstrate_similarity(model, data_series, field_name):
@@ -585,7 +583,7 @@ def setup_results_directory_structure():
         os.makedirs(directory, exist_ok=True)
 
     print(f"📁 Model directory structure created:")
-    print(f"  - models/")
+    print(f"  - data/models/ml/")
     print(f"    ├── trained/          (trained models for each field)")
     print(f"    ├── summary/          (HP search results, summaries)")
     print(f"    └── checkpoints/      (temporary training checkpoints)")

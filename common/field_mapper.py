@@ -54,6 +54,19 @@ class FieldMapper:
             return column_name
         return None
 
+    def get_field_variation(self, field_name: str) -> Optional[str]:
+        """Return the configured variation key for a given field for this brand, if any."""
+        if not self._brand_name:
+            return None
+        try:
+            from common.brand_config import load_brand_config
+            cfg = load_brand_config(self._brand_name)
+            if getattr(cfg, 'field_variations', None):
+                return cfg.field_variations.get(field_name)
+        except Exception:
+            return None
+        return None
+
     @classmethod
     def from_brand(cls, brand_name: str) -> 'FieldMapper':
         """Get field mapper for a specific brand."""

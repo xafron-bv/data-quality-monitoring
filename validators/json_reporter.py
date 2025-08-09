@@ -4,7 +4,7 @@ JSON-based reporter that works with the new validation rules structure.
 
 import json
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from validators.reporter_interface import ReporterInterface
 from validators.validation_error import ValidationError
@@ -16,16 +16,17 @@ class JSONReporter(ReporterInterface):
     Reporter that loads error messages from the new JSON validation rules files.
     """
     
-    def __init__(self, field_name: str):
+    def __init__(self, field_name: str, variation: Optional[str] = None):
         """
         Initialize the reporter and load error messages from the JSON rules file.
         
         Args:
             field_name: The name of the field to load error messages for.
+            variation: Optional variation key for brand/format-specific rules
         """
         self.field_name = field_name
         try:
-            self.error_messages = self._load_error_messages(field_name)
+            self.error_messages = self._load_error_messages(field_name, variation)
         except FileNotFoundError:
             raise FileOperationError(
                 f"Validation rules file not found for field '{field_name}'",
@@ -37,15 +38,23 @@ class JSONReporter(ReporterInterface):
                 details={'field_name': field_name, 'json_error': str(e)}
             ) from e
     
-    def _load_error_messages(self, field_name: str) -> Dict[str, str]:
+    def _load_error_messages(self, field_name: str, variation: Optional[str]) -> Dict[str, str]:
         """Load error messages from the JSON rules file."""
-        rules_path = os.path.join(
+        base_rules_dir = os.path.join(
             os.path.dirname(__file__),
-            'rules',
-            f'{field_name}.json'
+            'rules'
         )
-        
-        with open(rules_path, 'r') as f:
+
+        # Enforce variation is provided
+        if not variation:
+            raise ValueError(f"Variation is required for field '{field_name}'")
+
+        variant_rules_path = os.path.join(base_rules_dir, field_name, f'{variation}.json')
+        if not os.path.exists(variant_rules_path):
+            raise FileNotFoundError(
+                f"Validation rules for field '{field_name}' variation '{variation}' not found at {variant_rules_path}"
+            )
+        with open(variant_rules_path, 'r') as f:
             rules = json.load(f)
             return rules.get('error_messages', {})
     
