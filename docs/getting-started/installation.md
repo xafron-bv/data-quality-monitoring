@@ -50,6 +50,71 @@ Note: Install a CUDA-enabled PyTorch from the official instructions for your pla
 export CUDA_VISIBLE_DEVICES=0
 ```
 
+## Data Management
+
+### Encrypted Data Files
+
+The project includes shell scripts to encrypt sensitive CSV data files for secure version control using native `zip` command with password protection. This allows you to commit encrypted data files to Git while keeping the original data secure.
+
+#### Encrypting Data Files
+
+To encrypt CSV files in the `data/` directory:
+
+```bash
+cd data
+./encrypt.sh <password>
+```
+
+This will:
+- Find all `.csv` files in the current directory
+- Create a password-protected `encrypted_csv_files.zip` containing all CSV files
+- Use native zip encryption for better compression and security
+
+#### Decrypting Data Files
+
+To decrypt and restore the original CSV files:
+
+```bash
+cd data
+./decrypt.sh <password>
+```
+
+This will:
+- Extract files from `encrypted_csv_files.zip` using the provided password
+- Restore the original CSV files to the current directory
+
+#### Workflow for New Clones
+
+When setting up a new local clone of the repository:
+
+1. **Clone the repository** (encrypted files are already committed)
+2. **Navigate to data directory**:
+   ```bash
+   cd data
+   ```
+3. **Decrypt the data files**:
+   ```bash
+   ./decrypt.sh <password>
+   ```
+4. **Verify files are restored**:
+   ```bash
+   ls -la *.csv
+   ```
+
+#### Security Notes
+
+- **Password Management**: Store the encryption password securely (e.g., in a password manager)
+- **File Size**: Native zip compression provides better file size management
+- **Backup**: Always keep a backup of the original data files
+- **Git Ignore**: The original CSV files should be in `.gitignore` to prevent accidental commits
+
+#### Troubleshooting
+
+- **Wrong Password**: If you get decryption errors, verify the password is correct
+- **Missing Files**: Ensure `encrypted_csv_files.zip` exists in the `data/` directory
+- **Permissions**: Make sure the scripts are executable (`chmod +x encrypt.sh decrypt.sh`)
+- **Zip Command**: Ensure `zip` and `unzip` commands are available on your system
+
 ## Verification
 
 List available commands and run help:
