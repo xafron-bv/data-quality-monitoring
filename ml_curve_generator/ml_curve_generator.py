@@ -143,9 +143,28 @@ class DetectionCurveGenerator:
         anomaly_rules = []
 
         try:
-            error_rules_path = f"validators/error_injection_rules/{field_name}/baseline.json"
-            error_rules = load_error_rules(error_rules_path)
-        except:
+            # Determine variation for this field if brand_config present
+            variation = None
+            if self.brand_config and hasattr(self.brand_config, 'field_variations'):
+                variation = self.brand_config.field_variations.get(field_name)
+            elif isinstance(self.brand_config, dict):
+                variation = self.brand_config.get('field_variations', {}).get(field_name)
+
+            # If variation known, use that; otherwise, try any *.json under field dir
+            base_dir = Path('validators/error_injection_rules') / field_name
+            candidate = base_dir / f"{variation}.json" if variation else None
+            if candidate and candidate.exists():
+                error_rules_path = str(candidate)
+            else:
+                # pick first available variation file if any
+                if base_dir.exists():
+                    json_files = sorted([p for p in base_dir.glob('*.json')])
+                    error_rules_path = str(json_files[0]) if json_files else None
+                else:
+                    error_rules_path = None
+            if error_rules_path:
+                error_rules = load_error_rules(error_rules_path)
+        except Exception:
             pass
 
         try:

@@ -128,13 +128,23 @@ def entry(csv_file=None, use_hp_search=False, hp_trials=15, fields=None, check_a
         all_rules = []
 
         # Load error injection rules (format/validation anomalies)
-        error_file_path = os.path.join(error_rules_dir, field_name, 'baseline.json')
         try:
-            error_rules = load_error_rules(error_file_path)
-            all_rules.extend(error_rules)
-            print(f"Loaded {len(error_rules)} error injection rules from {error_file_path}")
+            variation = brand_config_obj.field_variations.get(field_name) if hasattr(brand_config_obj, 'field_variations') else None
+            field_dir = os.path.join(error_rules_dir, field_name)
+            candidate = os.path.join(field_dir, f"{variation}.json") if variation else None
+            error_file_path = None
+            if candidate and os.path.exists(candidate):
+                error_file_path = candidate
+            elif os.path.isdir(field_dir):
+                json_files = sorted([f for f in os.listdir(field_dir) if f.endswith('.json')])
+                if json_files:
+                    error_file_path = os.path.join(field_dir, json_files[0])
+            if error_file_path:
+                error_rules = load_error_rules(error_file_path)
+                all_rules.extend(error_rules)
+                print(f"Loaded {len(error_rules)} error injection rules from {error_file_path}")
         except FileNotFoundError:
-            print(f"Warning: Error injection rules file '{error_file_path}' not found.")
+            pass
 
         # Load anomaly injection rules (semantic anomalies)
         anomaly_file_path = os.path.join(anomaly_rules_dir, f'{field_name}.json')

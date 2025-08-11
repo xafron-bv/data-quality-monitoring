@@ -48,11 +48,18 @@ def get_available_injection_fields(field_mapper, error_rules_dir: str = os.path.
     available_fields = {}
 
     for field_name in field_mapper.get_available_fields():
-        error_rules_path = os.path.join(error_rules_dir, field_name, "baseline.json")
+        # Determine variation for field
+        variation = field_mapper.get_field_variation(field_name) if hasattr(field_mapper, 'get_field_variation') else None
+        field_dir = os.path.join(error_rules_dir, field_name)
+        error_rules_path = os.path.join(field_dir, f"{variation}.json") if variation else None
+        if not error_rules_path or not os.path.exists(error_rules_path):
+            if os.path.isdir(field_dir):
+                json_files = sorted([f for f in os.listdir(field_dir) if f.endswith('.json')])
+                error_rules_path = os.path.join(field_dir, json_files[0]) if json_files else None
         anomaly_rules_path = os.path.join(anomaly_rules_dir, f"{field_name}.json")
 
         available_fields[field_name] = {
-            "errors": os.path.exists(error_rules_path),
+            "errors": bool(error_rules_path and os.path.exists(error_rules_path)),
             "anomalies": os.path.exists(anomaly_rules_path)
         }
 
@@ -140,12 +147,21 @@ def generate_comprehensive_sample(df: pd.DataFrame,
         # Load error injection rules if available
         if info["errors"]:
             try:
-                error_rules_path = os.path.join(error_rules_dir, field_name, "baseline.json")
-                error_rules = load_error_rules(error_rules_path)
+                # Resolve error rules path again (see availability section)
+                variation = field_mapper.get_field_variation(field_name) if hasattr(field_mapper, 'get_field_variation') else None
+                field_dir = os.path.join(error_rules_dir, field_name)
+                candidate = os.path.join(field_dir, f"{variation}.json") if variation else None
+                resolved_error_rules_path = candidate if candidate and os.path.exists(candidate) else None
+                if not resolved_error_rules_path and os.path.isdir(field_dir):
+                    json_files = sorted([f for f in os.listdir(field_dir) if f.endswith('.json')])
+                    resolved_error_rules_path = os.path.join(field_dir, json_files[0]) if json_files else None
+                if not resolved_error_rules_path:
+                    raise FileNotFoundError
+                error_rules = load_error_rules(resolved_error_rules_path)
                 injectors["error"] = ErrorInjector(error_rules, field_mapper)
                 print(f"   📝 Loaded {len(error_rules)} error rules for {field_name}")
-            except Exception as e:
-                print(f"   ⚠️  Could not load error rules for {field_name}: {e}")
+            except (FileNotFoundError, FileOperationError):
+                pass
 
         # Load anomaly injection rules if available
         if info["anomalies"]:
