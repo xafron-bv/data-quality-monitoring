@@ -130,19 +130,15 @@ def entry(csv_file=None, use_hp_search=False, hp_trials=15, fields=None, check_a
         # Load error injection rules (format/validation anomalies)
         try:
             variation = brand_config_obj.field_variations.get(field_name) if hasattr(brand_config_obj, 'field_variations') else None
+            if not variation:
+                raise ValueError(f"Variation is required for field '{field_name}' to load error injection rules")
             field_dir = os.path.join(error_rules_dir, field_name)
-            candidate = os.path.join(field_dir, f"{variation}.json") if variation else None
-            error_file_path = None
-            if candidate and os.path.exists(candidate):
-                error_file_path = candidate
-            elif os.path.isdir(field_dir):
-                json_files = sorted([f for f in os.listdir(field_dir) if f.endswith('.json')])
-                if json_files:
-                    error_file_path = os.path.join(field_dir, json_files[0])
-            if error_file_path:
-                error_rules = load_error_rules(error_file_path)
-                all_rules.extend(error_rules)
-                print(f"Loaded {len(error_rules)} error injection rules from {error_file_path}")
+            candidate = os.path.join(field_dir, f"{variation}.json")
+            if not os.path.exists(candidate):
+                raise FileNotFoundError(f"Error injection rules not found at {candidate}")
+            error_rules = load_error_rules(candidate)
+            all_rules.extend(error_rules)
+            print(f"Loaded {len(error_rules)} error injection rules from {candidate}")
         except FileNotFoundError:
             pass
 

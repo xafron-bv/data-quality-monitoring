@@ -143,29 +143,22 @@ class DetectionCurveGenerator:
         anomaly_rules = []
 
         try:
-            # Determine variation for this field if brand_config present
+            # Determine variation for this field; require it
             variation = None
             if self.brand_config and hasattr(self.brand_config, 'field_variations'):
                 variation = self.brand_config.field_variations.get(field_name)
             elif isinstance(self.brand_config, dict):
                 variation = self.brand_config.get('field_variations', {}).get(field_name)
-
-            # If variation known, use that; otherwise, try any *.json under field dir
+            if not variation:
+                raise ValueError(f"Variation is required for field '{field_name}' to load error injection rules")
             base_dir = Path('validators/error_injection_rules') / field_name
-            candidate = base_dir / f"{variation}.json" if variation else None
-            if candidate and candidate.exists():
-                error_rules_path = str(candidate)
-            else:
-                # pick first available variation file if any
-                if base_dir.exists():
-                    json_files = sorted([p for p in base_dir.glob('*.json')])
-                    error_rules_path = str(json_files[0]) if json_files else None
-                else:
-                    error_rules_path = None
-            if error_rules_path:
-                error_rules = load_error_rules(error_rules_path)
-        except Exception:
-            pass
+            candidate = base_dir / f"{variation}.json"
+            if not candidate.exists():
+                raise FileNotFoundError(f"Error injection rules not found at {candidate}")
+            error_rules = load_error_rules(str(candidate))
+        except Exception as _:
+            # Strict mode: no fallback; if rules can't be loaded, leave empty
+            error_rules = []
 
         try:
             anomaly_rules_path = f"anomaly_detectors/anomaly_injection_rules/{field_name}.json"

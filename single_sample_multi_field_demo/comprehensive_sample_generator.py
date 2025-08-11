@@ -51,11 +51,11 @@ def get_available_injection_fields(field_mapper, error_rules_dir: str = os.path.
         # Determine variation for field
         variation = field_mapper.get_field_variation(field_name) if hasattr(field_mapper, 'get_field_variation') else None
         field_dir = os.path.join(error_rules_dir, field_name)
-        error_rules_path = os.path.join(field_dir, f"{variation}.json") if variation else None
-        if not error_rules_path or not os.path.exists(error_rules_path):
-            if os.path.isdir(field_dir):
-                json_files = sorted([f for f in os.listdir(field_dir) if f.endswith('.json')])
-                error_rules_path = os.path.join(field_dir, json_files[0]) if json_files else None
+        error_rules_path = None
+        if variation:
+            candidate = os.path.join(field_dir, f"{variation}.json")
+            if os.path.exists(candidate):
+                error_rules_path = candidate
         anomaly_rules_path = os.path.join(anomaly_rules_dir, f"{field_name}.json")
 
         available_fields[field_name] = {
@@ -147,15 +147,12 @@ def generate_comprehensive_sample(df: pd.DataFrame,
         # Load error injection rules if available
         if info["errors"]:
             try:
-                # Resolve error rules path again (see availability section)
                 variation = field_mapper.get_field_variation(field_name) if hasattr(field_mapper, 'get_field_variation') else None
+                if not variation:
+                    raise FileNotFoundError
                 field_dir = os.path.join(error_rules_dir, field_name)
-                candidate = os.path.join(field_dir, f"{variation}.json") if variation else None
-                resolved_error_rules_path = candidate if candidate and os.path.exists(candidate) else None
-                if not resolved_error_rules_path and os.path.isdir(field_dir):
-                    json_files = sorted([f for f in os.listdir(field_dir) if f.endswith('.json')])
-                    resolved_error_rules_path = os.path.join(field_dir, json_files[0]) if json_files else None
-                if not resolved_error_rules_path:
+                resolved_error_rules_path = os.path.join(field_dir, f"{variation}.json")
+                if not os.path.exists(resolved_error_rules_path):
                     raise FileNotFoundError
                 error_rules = load_error_rules(resolved_error_rules_path)
                 injectors["error"] = ErrorInjector(error_rules, field_mapper)
