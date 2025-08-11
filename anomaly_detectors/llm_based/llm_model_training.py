@@ -435,7 +435,7 @@ def setup_output_directory() -> str:
     return output_dir
 
 def entry(data_file=None, field=None, epochs=3, batch_size=8, learning_rate=2e-5,
-          threshold=-2.0, max_length=128, variation: str = None):
+          threshold=-2.0, max_length=128, variation: str = None, device_opt: str = 'auto'):
     """Entry function for LLM model training."""
 
     if not data_file:
@@ -525,6 +525,7 @@ def entry(data_file=None, field=None, epochs=3, batch_size=8, learning_rate=2e-5
         'max_length': max_length
     })
 
+<<<<<<< HEAD
     # Setup device with better error handling
     try:
         device = setup_gpu_memory_management()
@@ -539,6 +540,17 @@ def entry(data_file=None, field=None, epochs=3, batch_size=8, learning_rate=2e-5
         print(f"⚠️  GPU setup failed: {e}")
         device = torch.device('cpu')
         print(f"🖥️  Using CPU")
+=======
+    # Setup device (auto/cpu/gpu)
+    if device_opt == 'cpu':
+        device = torch.device('cpu')
+    elif device_opt == 'gpu':
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    else:
+        # auto
+        device = torch.device('cuda' if torch.cuda.is_available() else ('mps' if getattr(torch.backends, 'mps', None) and torch.backends.mps.is_available() else 'cpu'))
+    print(f"🖥️  Using device: {device}")
+>>>>>>> 4bc0c1b (Refactor device selection, remove legacy fallbacks, and improve output directory handling)
 
     # Train the model under variation-specific directory
     model_output_dir = os.path.join(output_dir, f"{field}_model", variation)
@@ -582,6 +594,7 @@ def main():
     parser.add_argument("--learning-rate", type=float, default=2e-5, help="Learning rate")
     parser.add_argument("--threshold", type=float, default=-2.0, help="Anomaly detection threshold")
     parser.add_argument("--max-length", type=int, default=128, help="Maximum sequence length")
+    parser.add_argument("--device", choices=['auto','cpu','gpu'], default='auto', help="Device selection: auto/cpu/gpu")
 
     args = parser.parse_args()
 
@@ -593,7 +606,8 @@ def main():
         learning_rate=args.learning_rate,
         threshold=args.threshold,
         max_length=args.max_length,
-        variation=args.variation
+        variation=args.variation,
+        device_opt=args.device
     )
 
 

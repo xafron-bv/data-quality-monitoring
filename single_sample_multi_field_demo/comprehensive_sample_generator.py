@@ -319,14 +319,17 @@ def save_comprehensive_sample(sample_df: pd.DataFrame,
     Returns:
         Dict with file paths that were created
     """
-    os.makedirs(output_dir, exist_ok=True)
+    # Resolve output directory: allow absolute path; otherwise place under module directory
+    base_dir = os.path.dirname(__file__)
+    resolved_output_dir = output_dir if os.path.isabs(output_dir) else os.path.join(base_dir, output_dir)
+    os.makedirs(resolved_output_dir, exist_ok=True)
 
     # Save the corrupted sample data
-    sample_path = os.path.join(os.path.dirname(__file__), output_dir, f"{sample_name}.csv")
+    sample_path = os.path.join(resolved_output_dir, f"{sample_name}.csv")
     sample_df.to_csv(sample_path, index=False)
     
     # Save injection metadata for F1 score calculation
-    metadata_path = os.path.join(os.path.dirname(__file__), output_dir, f"{sample_name}_injection_metadata.json")
+    metadata_path = os.path.join(resolved_output_dir, f"{sample_name}_injection_metadata.json")
     
     # Create summary of injections
     summary = {

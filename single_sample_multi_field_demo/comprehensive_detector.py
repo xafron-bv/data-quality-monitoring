@@ -234,14 +234,7 @@ class ComprehensiveFieldDetector:
         variant_dir = os.path.join(base_dir, field_name)
         if os.path.isdir(variant_dir) and glob.glob(os.path.join(variant_dir, '*.json')):
             return True
-            
-        # Fall back to checking old system
-        try:
-            validator_module_str = f"validators.{field_name}.validate:Validator"
-            load_module_class(validator_module_str)
-            return True
-        except:
-            return False
+        return False
 
     def _has_anomaly_capability(self, field_name: str) -> bool:
         """Check if pattern-based anomaly detection is available for a field."""
@@ -256,13 +249,7 @@ class ComprehensiveFieldDetector:
         variant_dir = os.path.join(base_dir, field_name)
         if os.path.isdir(variant_dir) and glob.glob(os.path.join(variant_dir, '*.json')):
             return True
-        # Fall back to legacy python-based modules
-        try:
-            anomaly_detector_module_str = f"anomaly_detectors.pattern_based.{field_name}.detect:AnomalyDetector"
-            load_module_class(anomaly_detector_module_str)
-            return True
-        except:
-            return False
+        return False
 
     def _has_ml_capability(self, field_name: str) -> bool:
         """Check if ML-based anomaly detection is available for a field."""
@@ -300,22 +287,6 @@ class ComprehensiveFieldDetector:
                 reporter = JSONReporter(field_name, variation=variation)
                 
                 self._validator_cache[field_name] = (validator, reporter)
-            except FileNotFoundError:
-                # Fall back to old system if JSON rules don't exist
-                try:
-                    validator_module_str = f"validators.{field_name}.validate:Validator"
-                    reporter_module_str = f"validators.report:Reporter"
-
-                    ValidatorClass = load_module_class(validator_module_str)
-                    ReporterClass = load_module_class(reporter_module_str)
-
-                    validator = ValidatorClass()
-                    reporter = ReporterClass(field_name)
-
-                    self._validator_cache[field_name] = (validator, reporter)
-                except Exception as e:
-                    print(f"      ⚠️  Could not load validation for {field_name}: {e}")
-                    self._validator_cache[field_name] = (None, None)
             except Exception as e:
                 print(f"      ⚠️  Could not load validation for {field_name}: {e}")
                 self._validator_cache[field_name] = (None, None)

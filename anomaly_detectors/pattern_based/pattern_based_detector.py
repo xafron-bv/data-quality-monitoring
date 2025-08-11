@@ -254,8 +254,3 @@ class PatternBasedDetector(AnomalyDetectorInterface):
     def get_detector_args(self) -> Dict[str, Any]:
         """Return arguments needed to recreate this detector instance."""
         return {"field_name": self.field_name}
-
-
-def create_detector(field_name: str) -> PatternBasedDetector:
-    """Factory function to create a pattern-based detector for a field."""
-    return PatternBasedDetector(field_name)
