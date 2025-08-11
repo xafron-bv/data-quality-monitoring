@@ -221,19 +221,17 @@ class ComprehensiveFieldDetector:
 
     def _has_validation_capability(self, field_name: str) -> bool:
         """Check if validation is available for a field."""
-        # Check if JSON validation rules exist
         import os, glob
         base_dir = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             'validators', 'rules'
         )
-        json_rules_path = os.path.join(base_dir, f'{field_name}.json')
-        if os.path.exists(json_rules_path):
-            return True
-        # Check variation-specific directory
-        variant_dir = os.path.join(base_dir, field_name)
-        if os.path.isdir(variant_dir) and glob.glob(os.path.join(variant_dir, '*.json')):
-            return True
+        # We don't know variation here; just check if any variation dir contains the field
+        for variation_dir in glob.glob(os.path.join(base_dir, '*')):
+            if os.path.isdir(variation_dir):
+                candidate = os.path.join(variation_dir, f'{field_name}.json')
+                if os.path.exists(candidate):
+                    return True
         return False
 
     def _has_anomaly_capability(self, field_name: str) -> bool:
@@ -243,12 +241,11 @@ class ComprehensiveFieldDetector:
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             'anomaly_detectors', 'pattern_based', 'rules'
         )
-        json_rules_path = os.path.join(base_dir, f'{field_name}.json')
-        if os.path.exists(json_rules_path):
-            return True
-        variant_dir = os.path.join(base_dir, field_name)
-        if os.path.isdir(variant_dir) and glob.glob(os.path.join(variant_dir, '*.json')):
-            return True
+        for variation_dir in glob.glob(os.path.join(base_dir, '*')):
+            if os.path.isdir(variation_dir):
+                candidate = os.path.join(variation_dir, f'{field_name}.json')
+                if os.path.exists(candidate):
+                    return True
         return False
 
     def _has_ml_capability(self, field_name: str) -> bool:

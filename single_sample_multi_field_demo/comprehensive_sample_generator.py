@@ -26,7 +26,7 @@ from common.exceptions import ConfigurationError, FileOperationError
 from common.field_mapper import FieldMapper
 
 
-def get_available_injection_fields(field_mapper, error_rules_dir: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'validators', 'error_injection_rules'),
+def get_available_injection_fields(field_mapper, error_rules_dir: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'validators', 'error_injection_rules', 'baseline'),
                                  anomaly_rules_dir: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'anomaly_detectors', 'anomaly_injection_rules')) -> Dict[str, Dict[str, bool]]:
     """
     Get fields that have error or anomaly injection rules available.
@@ -65,7 +65,7 @@ def generate_comprehensive_sample(df: pd.DataFrame,
                                 anomaly_injection_prob: float = 0.3,
                                 max_issues_per_row: int = 2,
                                 field_mapper: Optional[FieldMapper] = None,
-                                error_rules_dir: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'validators', 'error_injection_rules'),
+                                error_rules_dir: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'validators', 'error_injection_rules', 'baseline'),
                                 anomaly_rules_dir: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'anomaly_detectors', 'anomaly_injection_rules')) -> Tuple[pd.DataFrame, Dict[str, List[Dict[str, Any]]]]:
     """
     Generate a comprehensive sample with errors and anomalies across all available fields.

@@ -60,7 +60,7 @@ class PatternBasedDetector(AnomalyDetectorInterface):
         if not self.variation:
             raise ValueError(f"Variation is required for field '{self.field_name}'")
 
-        rules_file = rules_dir / self.field_name / f"{self.variation}.json"
+        rules_file = rules_dir / self.variation / f"{self.field_name}.json"
         if not rules_file.exists():
             raise FileNotFoundError(
                 f"Pattern rules for field '{self.field_name}' variation '{self.variation}' not found at {rules_file}"
