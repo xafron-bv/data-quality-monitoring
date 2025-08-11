@@ -3,12 +3,8 @@ import json
 import os
 import random
 import re
-import sys
 from os import path
 from typing import Any, Dict, List, Optional
-
-# Add parent directories to path to import common modules
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 import numpy as np
 import pandas as pd
