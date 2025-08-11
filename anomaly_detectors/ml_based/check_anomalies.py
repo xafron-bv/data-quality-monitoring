@@ -53,20 +53,17 @@ def load_model_for_field(field_name, models_dir=None, use_gpu=True, variation=No
     if not variation:
         raise ValueError(f"Variation is required for field '{field_name}' when loading ML model")
 
-    trained_root = os.path.join(models_dir, 'trained')
+    trained_root = models_dir
     default_dir = os.path.join(trained_root, f'{field_name.replace(" ", "_").lower()}')
 
-    # Prefer nested variant directory, then flat variant naming
+    # Variant directory under unified structure
     variant_dir = os.path.join(default_dir, variation)
-    flat_variant = os.path.join(trained_root, f'{field_name.replace(" ", "_").lower()}__{variation}')
 
     if os.path.isdir(variant_dir):
         model_dir = variant_dir
-    elif os.path.isdir(flat_variant):
-        model_dir = flat_variant
     else:
         raise FileNotFoundError(
-            f"Model directory for field '{field_name}' variation '{variation}' not found (checked {variant_dir} and {flat_variant})"
+            f"Model directory for field '{field_name}' variation '{variation}' not found at {variant_dir}"
         )
 
     # Determine device to use

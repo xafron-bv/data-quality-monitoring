@@ -151,7 +151,7 @@ def train_and_evaluate_similarity_model(df, field_name, column_name, rules, devi
 
     # Create results directory structure using field_name and variation
     models_base_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'models', 'ml')
-    model_results_dir = os.path.join(models_base_dir, 'trained', f'{field_name.replace(" ", "_").lower()}', variation)
+    model_results_dir = os.path.join(models_base_dir, f'{field_name.replace(" ", "_").lower()}', variation)
     checkpoints_dir = os.path.join(models_base_dir, 'checkpoints')
 
     # Ensure all directories exist
@@ -569,14 +569,13 @@ def setup_results_directory_structure():
     Create the organized directory structure for all results and outputs.
     """
     base_dir = os.path.dirname(__file__)
-    models_dir = os.path.join(base_dir, 'models')
+    models_dir = os.path.join(os.path.dirname(os.path.dirname(base_dir)), 'data', 'models', 'ml')
 
     # Create main directories
     directories = [
         models_dir,
-        os.path.join(models_dir, 'trained'),           # For trained models
-        os.path.join(models_dir, 'summary'),           # For HP search results and summaries
-        os.path.join(models_dir, 'checkpoints'),       # For temporary training checkpoints
+        os.path.join(models_dir, 'checkpoints'),
+        os.path.join(models_dir, 'summary'),
     ]
 
     for directory in directories:
@@ -584,8 +583,8 @@ def setup_results_directory_structure():
 
     print(f"📁 Model directory structure created:")
     print(f"  - data/models/ml/")
-    print(f"    ├── trained/          (trained models for each field)")
-    print(f"    ├── summary/          (HP search results, summaries)")
-    print(f"    └── checkpoints/      (temporary training checkpoints)")
+    print(f"    ├── <field>/<variation>/  (trained models)")
+    print(f"    ├── summary/              (HP search results, summaries)")
+    print(f"    └── checkpoints/          (temporary training checkpoints)")
 
     return models_dir

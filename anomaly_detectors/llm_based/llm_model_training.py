@@ -166,7 +166,7 @@ def get_model_config(field_name: str) -> Dict[str, Any]:
             'model_name': 'distilbert-base-uncased',
             'max_length': 128,
             'epochs': 3,
-            'batch_size': 4,  # Reduced from 8 for GPU memory safety
+            'batch_size': 16,
             'learning_rate': 2e-5,
             'mask_probability': 0.15
         },
@@ -174,7 +174,7 @@ def get_model_config(field_name: str) -> Dict[str, Any]:
             'model_name': 'distilbert-base-uncased',
             'max_length': 128,
             'epochs': 3,
-            'batch_size': 4,  # Reduced from 8 for GPU memory safety
+            'batch_size': 16,
             'learning_rate': 2e-5,
             'mask_probability': 0.15
         },
@@ -182,7 +182,7 @@ def get_model_config(field_name: str) -> Dict[str, Any]:
             'model_name': 'distilbert-base-uncased',
             'max_length': 256,
             'epochs': 2,
-            'batch_size': 2,  # Reduced from 4 for GPU memory safety
+            'batch_size': 16,
             'learning_rate': 2e-5,
             'mask_probability': 0.15
         },
@@ -190,7 +190,7 @@ def get_model_config(field_name: str) -> Dict[str, Any]:
             'model_name': 'distilbert-base-uncased',
             'max_length': 128,
             'epochs': 3,
-            'batch_size': 4,  # Reduced from 8 for GPU memory safety
+            'batch_size': 16,
             'learning_rate': 2e-5,
             'mask_probability': 0.15
         }
@@ -201,7 +201,7 @@ def get_model_config(field_name: str) -> Dict[str, Any]:
         'model_name': 'distilbert-base-uncased',
         'max_length': 128,
         'epochs': 2,
-        'batch_size': 4,  # Reduced from 8 for GPU memory safety
+        'batch_size': 16,
         'learning_rate': 2e-5,
         'mask_probability': 0.15
     }
@@ -536,7 +536,7 @@ def entry(data_file=None, field=None, epochs=3, batch_size=8, learning_rate=2e-5
     print(f"🖥️  Using device: {device}")
 
     # Train the model under variation-specific directory
-    model_output_dir = os.path.join(output_dir, f"{field}_model", variation)
+    model_output_dir = os.path.join(output_dir, f"{field}", variation)
     os.makedirs(model_output_dir, exist_ok=True)
     model_info = train_language_model(clean_texts, field, config, device, model_output_dir)
 
@@ -546,7 +546,7 @@ def entry(data_file=None, field=None, epochs=3, batch_size=8, learning_rate=2e-5
     )
 
     # Save training results
-    results_file = os.path.join(output_dir, f"{field}_training_results__{variation}.json")
+    results_file = os.path.join(output_dir, f"{field}__{variation}__training_results.json")
     results_summary = {
         'field_name': field,
         'variation': variation,
