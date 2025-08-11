@@ -37,7 +37,7 @@
     "llm": 0.6
   },
   "field_variations": {
-    "season": "year_first",
+    "season": "baseline",
     "color_name": "baseline",
     "material": "baseline",
     "category": "baseline",
