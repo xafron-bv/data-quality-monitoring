@@ -151,7 +151,7 @@ def train_and_evaluate_similarity_model(df, field_name, column_name, rules, devi
 
     # Create results directory structure using field_name and variation
     models_base_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'models', 'ml')
-    model_results_dir = os.path.join(models_base_dir, f'{field_name.replace(" ", "_").lower()}', variation)
+    model_results_dir = os.path.join(models_base_dir, variation, field_name)
     checkpoints_dir = os.path.join(models_base_dir, 'checkpoints')
 
     # Ensure all directories exist
@@ -583,7 +583,7 @@ def setup_results_directory_structure():
 
     print(f"📁 Model directory structure created:")
     print(f"  - data/models/ml/")
-    print(f"    ├── <field>/<variation>/  (trained models)")
+    print(f"    ├── <variation>/<field>/  (trained models)")
     print(f"    ├── summary/              (HP search results, summaries)")
     print(f"    └── checkpoints/          (temporary training checkpoints)")
 

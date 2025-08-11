@@ -147,19 +147,17 @@ matches_filters() {
 echo "📁 Collecting model variants..."
 MODEL_VARIANTS=()
 
-# Collect ML models
-if [ -d "$MODELS_DIR/ml/trained" ]; then
-    for field_dir in "$MODELS_DIR/ml/trained"/*; do
-        if [ -d "$field_dir" ]; then
-            field_name=$(basename "$field_dir")
-            for variant_dir in "$field_dir"/*; do
-                if [ -d "$variant_dir" ]; then
-                    variant_name=$(basename "$variant_dir")
-                    
-                    # Check if this model matches our filters
-                    if matches_filters "$field_name" "$variant_name"; then
-                        model_path="ml/trained/$field_name/$variant_name"
-                        MODEL_VARIANTS+=("$model_path|ml|$field_name|$variant_name")
+# Collect ML models in variation-first layout: ml/<variation>/<field>
+if [ -d "$MODELS_DIR/ml" ]; then
+    for variation_dir in "$MODELS_DIR/ml"/*; do
+        if [ -d "$variation_dir" ]; then
+            variation_name=$(basename "$variation_dir")
+            for field_dir in "$variation_dir"/*; do
+                if [ -d "$field_dir" ]; then
+                    field_name=$(basename "$field_dir")
+                    if matches_filters "$field_name" "$variation_name"; then
+                        model_path="ml/$variation_name/$field_name"
+                        MODEL_VARIANTS+=("$model_path|ml|$field_name|$variation_name")
                     fi
                 fi
             done
@@ -167,22 +165,17 @@ if [ -d "$MODELS_DIR/ml/trained" ]; then
     done
 fi
 
-# Collect LLM models
+# Collect LLM models in variation-first layout: llm/<variation>/<field>
 if [ -d "$MODELS_DIR/llm" ]; then
-    for model_dir in "$MODELS_DIR/llm"/*_model; do
-        if [ -d "$model_dir" ]; then
-            model_name=$(basename "$model_dir")
-            # Extract field name from model name (remove _model suffix)
-            field_name=$(echo "$model_name" | sed 's/_model$//')
-            
-            for variant_dir in "$model_dir"/*; do
-                if [ -d "$variant_dir" ]; then
-                    variant_name=$(basename "$variant_dir")
-                    
-                    # Check if this model matches our filters
-                    if matches_filters "$field_name" "$variant_name"; then
-                        model_path="llm/$model_name/$variant_name"
-                        MODEL_VARIANTS+=("$model_path|llm|$field_name|$variant_name")
+    for variation_dir in "$MODELS_DIR/llm"/*; do
+        if [ -d "$variation_dir" ]; then
+            variation_name=$(basename "$variation_dir")
+            for field_dir in "$variation_dir"/*; do
+                if [ -d "$field_dir" ]; then
+                    field_name=$(basename "$field_dir")
+                    if matches_filters "$field_name" "$variation_name"; then
+                        model_path="llm/$variation_name/$field_name"
+                        MODEL_VARIANTS+=("$model_path|llm|$field_name|$variation_name")
                     fi
                 fi
             done
@@ -196,7 +189,7 @@ if [ ${#MODEL_VARIANTS[@]} -eq 0 ]; then
     echo "❌ Error: No models found matching the specified filters." >&2
     if [ -n "$FIELD_FILTER" ] || [ -n "$VARIATION_FILTER" ]; then
         echo "💡 Available fields and variations:" >&2
-        echo "  Fields: $(find "$MODELS_DIR" -type d -name "*" | grep -E "(ml/trained|llm/.*_model)" | sed 's/.*\///' | sort -u | tr '\n' ' ')" >&2
+        echo "  Fields: $(find "$MODELS_DIR" -mindepth 2 -maxdepth 2 -type d | sed 's:.*/::' | sort -u | tr '\n' ' ')" >&2
         echo "  Variations: $(find "$MODELS_DIR" -type d -mindepth 2 | sed 's/.*\///' | sort -u | tr '\n' ' ')" >&2
     fi
     exit 1

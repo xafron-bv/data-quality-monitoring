@@ -86,5 +86,5 @@ Each detection method can be configured through:
 - GPU usage settings
 
 ## Model Artifacts
-- ML models: `data/models/ml/{field}/{variation}/`
-- LLM models: `data/models/llm/{field}/{variation}/`
+- ML models: `data/models/ml/{variation}/{field}/`
+- LLM models: `data/models/llm/{variation}/{field}/`

@@ -7,8 +7,8 @@ This directory contains scripts for managing data files, models, and GitHub rele
 ```
 data/
 ├── models/                          # Extracted models (created by decrypt/extract)
-│   ├── ml/                          # ML models: data/models/ml/{field}/{variation}/
-│   └── llm/                         # LLM models: data/models/llm/{field}/{variation}/
+│   ├── ml/                          # ML models: data/models/ml/{variation}/{field}/
+│   └── llm/                         # LLM models: data/models/llm/{variation}/{field}/
 ├── model_zips/                      # Individual model zip files (created by zip_models_individually.sh)
 │   ├── ml/                          # ML model zips
 │   │   ├── category/

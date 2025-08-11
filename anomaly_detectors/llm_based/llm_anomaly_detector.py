@@ -349,7 +349,7 @@ class LLMAnomalyDetector:
             return
 
         # Load trained model from variation-specific path
-        model_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "models", "llm", f"{self.field_name}", self.variation)
+        model_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "models", "llm", self.variation, f"{self.field_name}")
         if not os.path.exists(model_path):
             print(f"❌ No trained model found for field '{self.field_name}' variation '{self.variation}' at {model_path}")
             print(f"💡 Skipping LLM detection for this field")
