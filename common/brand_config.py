@@ -17,6 +17,7 @@ class BrandConfig:
     training_data_path: Optional[str] = None
     custom_thresholds: Optional[Dict[str, float]] = None
     enabled_fields: Optional[List[str]] = None
+    field_variations: Optional[Dict[str, str]] = None  # field_name -> variation key
 
     def get_column_name(self, field_name: str) -> str:
         """Get column name for a given field, returns field_name if not mapped."""

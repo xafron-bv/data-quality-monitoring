@@ -143,10 +143,22 @@ class DetectionCurveGenerator:
         anomaly_rules = []
 
         try:
-            error_rules_path = f"validators/error_injection_rules/{field_name}.json"
-            error_rules = load_error_rules(error_rules_path)
-        except:
-            pass
+            # Determine variation for this field; require it
+            variation = None
+            if self.brand_config and hasattr(self.brand_config, 'field_variations'):
+                variation = self.brand_config.field_variations.get(field_name)
+            elif isinstance(self.brand_config, dict):
+                variation = self.brand_config.get('field_variations', {}).get(field_name)
+            if not variation:
+                raise ValueError(f"Variation is required for field '{field_name}' to load error injection rules")
+            base_dir = Path('validators/error_injection_rules') / field_name
+            candidate = base_dir / f"{variation}.json"
+            if not candidate.exists():
+                raise FileNotFoundError(f"Error injection rules not found at {candidate}")
+            error_rules = load_error_rules(str(candidate))
+        except Exception as _:
+            # Strict mode: no fallback; if rules can't be loaded, leave empty
+            error_rules = []
 
         try:
             anomaly_rules_path = f"anomaly_detectors/anomaly_injection_rules/{field_name}.json"
@@ -240,7 +252,7 @@ class DetectionCurveGenerator:
 
         # Load ML model with correct results directory
         results_dir = os.path.join("anomaly_detectors", "results")
-        model, column_name, reference_centroid = load_model_for_field(field_name, results_dir=results_dir)
+        model, column_name, reference_centroid = load_model_for_field(field_name, models_dir=results_dir)
 
         # Generate test data
         test_values, test_labels = self.generate_test_data(field_name)

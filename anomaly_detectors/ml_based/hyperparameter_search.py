@@ -29,47 +29,31 @@ from common.anomaly_injection import load_anomaly_rules
 def get_optimal_parameters(field_name, fallback_model_name, fallback_epochs):
     """
     Get RECALL-OPTIMIZED parameters for each field based on ACTUAL hyperparameter search results.
-    Updated with real performance data from 5-trial hyperparameter search.
-    Now loads optimal_params from an external JSON file using field names.
-    Args:
-        field_name: The field name (not column name)
-        fallback_model_name: Default model if no optimal params found
-        fallback_epochs: Default epochs if no optimal params found
+    Now requires optimal_params.json to be present and include the field.
     """
-    # Path to the optimal_params JSON file (relative to this script)
     params_path = os.path.join(os.path.dirname(__file__), "optimal_params.json")
     try:
         with open(params_path, "r") as f:
             optimal_params = json.load(f)
     except Exception as e:
-        print(f"Warning: Could not load optimal_params.json: {e}")
-        optimal_params = {}
+        raise FileNotFoundError(f"optimal_params.json is required but could not be loaded: {e}")
 
-    # Convert string distance_metric to actual TripletDistanceMetric
     def parse_distance_metric(metric_str):
-        if metric_str == "COSINE":
-            return losses.TripletDistanceMetric.COSINE
-        elif metric_str == "EUCLIDEAN":
-            return losses.TripletDistanceMetric.EUCLIDEAN
-        elif metric_str == "MANHATTAN":
-            return losses.TripletDistanceMetric.MANHATTAN
-        else:
-            return losses.TripletDistanceMetric.COSINE  # Default fallback
-
-    if field_name in optimal_params:
-        params = optimal_params[field_name]
-        params["distance_metric"] = parse_distance_metric(params["distance_metric"])
-        return params
-    else:
-        # Fallback to recall-optimized parameters
-        return {
-            'model_name': fallback_model_name,
-            'triplet_margin': 0.8,  # Smaller for better recall
-            'distance_metric': losses.TripletDistanceMetric.COSINE,
-            'batch_size': 24,
-            'epochs': max(3, fallback_epochs),  # At least 3 epochs for recall
-            'learning_rate': 1e-5
+        mapping = {
+            "COSINE": losses.TripletDistanceMetric.COSINE,
+            "EUCLIDEAN": losses.TripletDistanceMetric.EUCLIDEAN,
+            "MANHATTAN": losses.TripletDistanceMetric.MANHATTAN,
         }
+        if metric_str not in mapping:
+            raise ValueError(f"Unknown distance metric: {metric_str}")
+        return mapping[metric_str]
+
+    if field_name not in optimal_params:
+        raise KeyError(f"No optimal parameters found for field '{field_name}' in {params_path}")
+
+    params = optimal_params[field_name]
+    params["distance_metric"] = parse_distance_metric(params["distance_metric"])
+    return params
 
 
 def train_with_params(df, field_name, column_name, rules, params):

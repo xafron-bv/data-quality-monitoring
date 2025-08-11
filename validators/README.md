@@ -10,21 +10,42 @@ Validators implement business rules and format constraints to detect definitive 
 
 The validation system uses a JSON-based approach similar to pattern-based anomaly detectors:
 
-- `rules/{field_name}.json`: Validation rules and error messages for each field
+- `rules/{field_name}/{variation}.json`: Validation rules and error messages for each field variation
 - `json_validator.py`: Generic validator that reads rules from JSON files
 - `json_reporter.py`: Reporter that formats error messages using JSON configuration
+
+### Variation-Specific Rules (Required)
+
+There are no default variations. Every field used by a brand must have a specified `variation` in `brand_configs/{brand}.json`:
+
+- Place rules under `rules/{field_name}/{variation}.json`
+- If `field_variations.{field_name}` is missing or the file does not exist, the system raises an error.
+
+Example:
+
+```
+validators/
+└── rules/
+    └── season/
+        ├── year_first.json        # e.g., "2025 Winter"
+        └── name_first.json        # e.g., "Winter 2025"
+```
+
+In `brand_configs/mybrand.json`:
+
+```
+{
+  "brand_name": "mybrand",
+  "field_mappings": { "season": "season" },
+  "field_variations": { "season": "year_first" }
+}
+```
 
 ## Creating a New Validator
 
 ### 1. Create a JSON Rules File
 
-Create a new file in the `rules/` directory:
-
-```bash
-validators/
-└── rules/
-    └── new_field.json
-```
+Create a new file in the `rules/{field}/` directory, named `{variation}.json`.
 
 ### 2. Define Validation Rules
 
@@ -38,64 +59,22 @@ validators/
     "OUT_OF_RANGE": "Value {value} is out of acceptable range"
   },
   "validation_rules": [
-    {
-      "name": "empty_check",
-      "description": "Check for empty values",
-      "type": "empty_string",
-      "error_code": "EMPTY_VALUE",
-      "probability": 1.0
-    },
-    {
-      "name": "format_check",
-      "description": "Check format using regex",
-      "type": "regex",
-      "pattern": "^[A-Z][0-9]{3}$",
-      "error_code": "INVALID_FORMAT",
-      "probability": 0.95
-    }
+    { "name": "empty_check", "type": "empty_string", "error_code": "EMPTY_VALUE", "probability": 1.0 },
+    { "name": "format_check", "type": "regex", "pattern": "^[A-Z][0-9]{3}$", "error_code": "INVALID_FORMAT", "probability": 0.95 }
   ]
 }
 ```
 
 ## Supported Validation Types
 
-The JSON validator supports the following validation types:
-
-### Basic Validations
-- `missing`: Check for missing/null values
-- `type_check`: Validate data type (e.g., string, number)
-- `empty_string`: Check for empty strings
-- `whitespace`: Check for leading/trailing whitespace
-- `min_length`: Minimum string length validation
-- `max_length`: Maximum string length validation
-
-### Pattern Matching
-- `regex`: Single regex pattern matching
-- `regex_multiple`: Multiple regex patterns (OR logic)
-- `regex_negative`: Pattern should NOT match (valid if no match)
-
-### Content Validation
-- `keyword_check`: Ensure required keywords are present
-- `percentage_sum_check`: Validate percentages sum to 100
-- `parenthesis_check`: Check for balanced parentheses
-- `year_range_check`: Validate years within range
-- `temperature_check`: Validate temperature values
-
-### Advanced Validations
-- `contradiction_check`: Check for contradictory statements
-- `language_consistency`: Check for mixed languages
-- Custom validation functions can be added to the JSONValidator class
+- Basic: `missing`, `type_check`, `empty_string`, `whitespace`, `min_length`, `max_length`
+- Pattern: `regex`, `regex_multiple`, `regex_negative`
+- Content: `keyword_check`, `percentage_sum_check`, `parenthesis_check`, `year_range_check`, `temperature_check`
+- Advanced: `contradiction_check`, `language_consistency`
 
 ## Available Validation Rules
 
-The following fields have JSON validation rules defined:
-
-- `rules/care_instructions.json`: Care instruction validation
-- `rules/category.json`: Product category validation
-- `rules/color_name.json`: Color name validation
-- `rules/material.json`: Material composition validation
-- `rules/season.json`: Season validation
-- `rules/size.json`: Size format validation
+Create per-variation files as needed under `rules/{field}/`.
 
 ## Error Injection
 
@@ -103,7 +82,8 @@ The `error_injection_rules/` directory contains JSON files defining how to injec
 
 ## Best Practices
 
-1. **High Confidence**: Only flag definitive errors
-2. **Clear Messages**: Provide actionable error descriptions
-3. **Fast Execution**: Validators should be lightweight
-4. **Consistent Interface**: Follow the ValidatorInterface contract
+1. **Explicit Variations**: Always set `field_variations` in brand config
+2. **High Confidence**: Only flag definitive errors
+3. **Clear Messages**: Provide actionable error descriptions
+4. **Fast Execution**: Validators should be lightweight
+5. **Consistent Interface**: Follow the ValidatorInterface contract

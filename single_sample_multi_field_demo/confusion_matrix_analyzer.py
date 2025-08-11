@@ -108,7 +108,7 @@ class ConfusionMatrixAnalyzer:
         # that were analyzed by detection methods. Since we don't have this information
         # directly, we'll estimate based on the fields that were analyzed
         if dataset_size is None:
-            dataset_size = 2704  # Default fallback
+            raise ValueError("dataset_size is required to compute confusion matrix true negatives")
 
         total_cells_analyzed = dataset_size * len(field_results)
 

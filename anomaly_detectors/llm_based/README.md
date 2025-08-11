@@ -1,170 +1,93 @@
 # LLM-Based Anomaly Detection
 
-Advanced anomaly detection using language models with contextual understanding.
+This module provides language model-based anomaly detection for text fields using pre-trained transformers.
 
-## Overview
+## Features
 
-This module leverages large language models (LLMs) for sophisticated anomaly detection with:
-- Dynamic context encoding
-- Few-shot learning capabilities
-- Temporal awareness
-- Prototype-based reprogramming
+- **GPU Memory Management**: Automatic GPU memory management for RTX 3070 (8GB) and other GPUs
+- **Safe Batch Sizing**: Dynamic batch size calculation based on available GPU memory
+- **Memory Monitoring**: Real-time GPU memory usage tracking
+- **Fallback Support**: Automatic fallback to CPU if GPU memory is insufficient
+- **Mixed Precision**: FP16 training for memory efficiency on GPU
 
-## Key Features
+## GPU Memory Management
 
-### 1. Dynamic Context Encoding
-Incorporates contextual information beyond the field value:
-- Temporal data (dates, seasons)
-- Related fields (category, brand)
-- Historical patterns
+The system includes comprehensive GPU memory management for the RTX 3070 (8GB):
 
-### 2. Few-Shot Learning
-Can adapt to new patterns with minimal examples:
-```python
-detector = create_llm_detector_for_field(
-    field_name="material",
-    few_shot_examples=["100% Cotton", "Polyester Blend"]
-)
-```
+### Memory Allocation
+- Uses 70% of available GPU memory (5.6GB for RTX 3070)
+- Automatic memory fraction setting
+- Memory cache clearing after operations
 
-### 3. Prototype-Based Reprogramming
-Learns semantic prototypes from data clusters to improve detection accuracy.
+### Safe Batch Sizing
+- Calculates safe batch size based on model size and available memory
+- DistilBERT: ~260MB model size → safe batch size of 8
+- Conservative default: batch size of 4 for most fields
+- Automatic batch size reduction if OOM occurs
 
-## Architecture
+### Memory Monitoring
+- Real-time GPU memory usage tracking
+- Memory cleanup after training and inference
+- Automatic fallback to CPU if memory < 1GB available
 
-### Core Components
-- `llm_anomaly_detector.py`: Main detector with advanced features
-- `llm_model_training.py`: Fine-tuning script for LLMs
-- `DynamicAwareEncoder`: Handles temporal and categorical context
-- `PrototypeBasedReprogramming`: Semantic alignment using prototypes
-- `InContextLearningDetector`: Few-shot learning implementation
+## Usage
 
-## Training Process
-
-### 1. Prepare Training Data
-```python
-# Format: DataFrame with labeled anomalies
-train_df = pd.DataFrame({
-    'material': ['Cotton', 'Poly3ster', 'Wool'],
-    'is_anomaly': [0, 1, 0]
-})
-```
-
-### 2. Configure Context (Optional)
-For LLM-based detection, configure context in the main single-demo or multi-eval commands:
 ```bash
-python ../../main.py single-demo \
-    --data-file your_data.csv \
-    --enable-llm \
-    --llm-temporal-column date \
-    --llm-context-columns category,brand
+# Basic training with GPU memory management
+python anomaly_detectors/llm_based/llm_model_training.py \
+    data/esqualo_2022_fall.csv \
+    --field material \
+    --variation baseline \
+    --epochs 3 \
+    --batch-size 4
+
+# Force CPU usage
+CUDA_VISIBLE_DEVICES="" python anomaly_detectors/llm_based/llm_model_training.py \
+    data/esqualo_2022_fall.csv \
+    --field material \
+    --variation baseline
 ```
 
-### 3. Run Training
-```bash
-python ../../main.py llm-train train_data.csv \
-    --field material
-```
+## Configuration
 
-## Usage Examples
+### Model Configurations
+- **material**: batch_size=4, max_length=128
+- **care_instructions**: batch_size=4, max_length=128  
+- **long_description_nl**: batch_size=2, max_length=256
+- **product_name_en**: batch_size=4, max_length=128
 
-### Basic Detection
-```python
-detector = create_llm_detector_for_field("material")
-detector.learn_patterns(df, "Material_Column")
-anomalies = detector.bulk_detect(df, "Material_Column")
-```
+### GPU Settings
+- Memory fraction: 70% of total GPU memory
+- Mixed precision: Enabled on GPU
+- Gradient accumulation: Automatic based on batch size
+- Warmup steps: 100 or batch_size dependent
 
-### With Context
-```python
-detector = create_llm_detector_for_field(
-    field_name="material",
-    temporal_column="season",
-    context_columns=["category", "brand"]
-)
-```
+## Memory Optimization Features
 
-### Few-Shot Learning
-```python
-detector = create_llm_detector_for_field(
-    field_name="color_name",
-    few_shot_examples=[
-        "Royal Blue",
-        "Forest Green",
-        "Crimson Red"
-    ]
-)
-```
+1. **Automatic Memory Management**
+   - GPU memory fraction setting
+   - Memory cache clearing
+   - Memory usage monitoring
 
-## Configuration Options
+2. **Safe Training**
+   - Dynamic batch size calculation
+   - OOM error handling with automatic retry
+   - Gradient accumulation for small batches
 
-### Model Selection
-- Default: `distilbert-base-uncased`
-- Options: Any HuggingFace transformer model
-
-### Thresholds
-- `threshold`: Anomaly detection sensitivity (default: 0.6)
-- `dynamic_threshold`: Enable adaptive thresholding
-
-### Context Settings
-- `temporal_column`: Column with time-based data
-- `context_columns`: List of related columns
-- `enable_prototypes`: Use prototype learning
-
-## Performance Optimization
-
-### Memory Management
-- Model quantization available
-- Batch processing with configurable size
-- Automatic cleanup after detection
-
-### Speed Optimization
-- GPU acceleration when available
-- Cached tokenization
-- Parallel processing support
-
-## Advanced Features
-
-### Temporal Awareness
-```python
-# Detects seasonal anomalies
-detector = create_llm_detector_for_field(
-    "material",
-    temporal_column="season",
-    enable_temporal_encoding=True
-)
-```
-
-### Multi-Field Context
-```python
-# Uses category context for material validation
-detector = create_llm_detector_for_field(
-    "material",
-    context_columns=["category", "sub_category"],
-    cross_field_attention=True
-)
-```
-
-## Best Practices
-
-1. **Training Data Quality**: Ensure balanced, representative training sets
-2. **Context Selection**: Choose relevant context columns
-3. **Threshold Tuning**: Adjust based on precision/recall requirements
-4. **Regular Retraining**: Update models with new patterns
+3. **Memory Efficient Operations**
+   - Mixed precision training (FP16)
+   - Memory cleanup after operations
+   - Efficient attention mechanisms
 
 ## Troubleshooting
 
-### High False Positive Rate
-- Lower detection threshold
-- Add more training examples
-- Enable few-shot learning
+### GPU Out of Memory
+If you encounter GPU OOM errors:
+1. Reduce batch size: `--batch-size 2`
+2. Use CPU: Set `CUDA_VISIBLE_DEVICES=""`
+3. Check memory usage: Monitor GPU memory in output
 
-### Slow Performance
-- Reduce batch size
-- Use smaller model (e.g., DistilBERT)
-- Enable GPU acceleration
-
-### Context Not Working
-- Verify column names
-- Check data types
-- Ensure context columns have values
+### Performance Optimization
+- Use batch size 4-8 for RTX 3070
+- Enable mixed precision (automatic on GPU)
+- Monitor memory usage in training logs

@@ -1,4 +1,4 @@
-# ML-Based Anomaly Detection
+# ML-based Anomaly Detection
 
 Semantic similarity-based anomaly detection using sentence transformers.
 
@@ -56,11 +56,9 @@ python ../../main.py ml-train your_data.csv \
     --fields new_field
 ```
 
-### 4. Model Output
-Models are saved to `models/trained/{field_name}/`:
-- `config.json`: Model configuration
-- `model.safetensors`: Model weights
-- `reference_centroid.npy`: Reference embedding
+## Model Outputs
+
+Models are saved to `data/models/ml/{field_name}/{variation}/` with a `reference_centroid.npy` and `centroid_metadata.json` for inference.
 
 ## Performance by Field
 

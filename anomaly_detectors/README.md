@@ -1,4 +1,4 @@
-# Anomaly Detectors Module
+# Anomaly Detectors
 
 This module contains three different anomaly detection approaches, each with its own strengths and use cases.
 
@@ -84,3 +84,7 @@ Each detection method can be configured through:
 - Model parameters
 - Rule definitions
 - GPU usage settings
+
+## Model Artifacts
+- ML models: `data/models/ml/{field}/{variation}/`
+- LLM models: `data/models/llm/{field}/{variation}/`

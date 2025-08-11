@@ -23,7 +23,7 @@ class PatternBasedDetector(AnomalyDetectorInterface):
     """
     Generic pattern-based anomaly detector that loads field-specific rules from JSON files.
 
-    Rules files should be located in: anomaly_detectors/pattern_based/rules/{field_name}.json
+    Rules files should be located in: anomaly_detectors/pattern_based/rules/{field_name}/{variation}.json
     """
 
     class ErrorCode(str, Enum):
@@ -34,14 +34,16 @@ class PatternBasedDetector(AnomalyDetectorInterface):
         SUSPICIOUS_PATTERN = "SUSPICIOUS_PATTERN"
         DOMAIN_VIOLATION = "DOMAIN_VIOLATION"
 
-    def __init__(self, field_name: str):
+    def __init__(self, field_name: str, variation: Optional[str] = None):
         """
         Initialize the detector for a specific field.
 
         Args:
             field_name: The name of the field to detect anomalies for
+            variation: Optional variation key for brand/format-specific rules
         """
         self.field_name = field_name
+        self.variation = variation
         self.rules = {}
         self.known_values = set()
         self.format_patterns = []
@@ -53,29 +55,37 @@ class PatternBasedDetector(AnomalyDetectorInterface):
     def _load_rules(self):
         """Load field-specific rules from JSON file."""
         rules_dir = Path(__file__).parent / "rules"
-        rules_file = rules_dir / f"{self.field_name}.json"
 
+        # Require variation
+        if not self.variation:
+            raise ValueError(f"Variation is required for field '{self.field_name}'")
+
+        rules_file = rules_dir / self.field_name / f"{self.variation}.json"
         if not rules_file.exists():
-            # Create a default rules file template
-            self._create_default_rules_file(rules_file)
+            raise FileNotFoundError(
+                f"Pattern rules for field '{self.field_name}' variation '{self.variation}' not found at {rules_file}"
+            )
 
         try:
             with open(rules_file, 'r', encoding='utf-8') as f:
                 self.rules = json.load(f)
 
-            # Extract rule components (removed invalid_values)
-            # Filter out comments and empty strings from known_values
-            raw_values = self.rules.get('known_values', [])
-            self.known_values = set(
-                val.lower() for val in raw_values 
-                if val and not val.strip().startswith('#')
-            )
-            self.format_patterns = self.rules.get('format_patterns', [])
-            self.validation_rules = self.rules.get('validation_rules', [])
+            self._extract_components_from_rules()
 
         except Exception as e:
             print(f"Warning: Could not load rules for field '{self.field_name}': {e}")
             self.rules = {}
+
+    def _extract_components_from_rules(self):
+        """Extract rule components from self.rules"""
+        # Filter out comments and empty strings from known_values
+        raw_values = self.rules.get('known_values', [])
+        self.known_values = set(
+            val.lower() for val in raw_values 
+            if val and not str(val).strip().startswith('#')
+        )
+        self.format_patterns = self.rules.get('format_patterns', [])
+        self.validation_rules = self.rules.get('validation_rules', [])
 
     def _create_default_rules_file(self, rules_file: Path):
         """Create a default rules file template."""
@@ -244,8 +254,3 @@ class PatternBasedDetector(AnomalyDetectorInterface):
     def get_detector_args(self) -> Dict[str, Any]:
         """Return arguments needed to recreate this detector instance."""
         return {"field_name": self.field_name}
-
-
-def create_detector(field_name: str) -> PatternBasedDetector:
-    """Factory function to create a pattern-based detector for a field."""
-    return PatternBasedDetector(field_name)

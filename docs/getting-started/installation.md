@@ -127,7 +127,7 @@ python main.py single-demo --help
 ## Troubleshooting
 
 - ImportError: ensure your virtual environment is active; reinstall requirements
-- CUDA OOM: reduce batch sizes; run without LLM; CPU fallback
+- CUDA OOM: reduce batch sizes; run without LLM; use `--device cpu` explicitly for LLM training
 - Model downloads: check connectivity; pre-download into model cache
 - Permissions: ensure write access to output directories
 

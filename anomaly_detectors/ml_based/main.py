@@ -25,16 +25,17 @@ from common.error_injection import load_error_rules
 
 # Import field-to-column mapping
 from common.field_column_map import get_field_to_column_map
+from common.brand_config import load_brand_config
 
 # Import anomaly checking functions
-from .check_anomalies import check_anomalies, load_model_for_field
+from anomaly_detectors.ml_based.check_anomalies import check_anomalies, load_model_for_field
 
 # Import GPU utilities
-from .gpu_utils import get_optimal_device, print_device_info
+from anomaly_detectors.ml_based.gpu_utils import get_optimal_device, print_device_info
 
 # Import separated modules
-from .hyperparameter_search import get_optimal_parameters, random_hyperparameter_search, save_aggregated_hp_results
-from .model_training import get_field_configs, setup_results_directory_structure, train_and_evaluate_similarity_model
+from anomaly_detectors.ml_based.hyperparameter_search import get_optimal_parameters, random_hyperparameter_search, save_aggregated_hp_results
+from anomaly_detectors.ml_based.model_training import get_field_configs, setup_results_directory_structure, train_and_evaluate_similarity_model
 
 # --- Main Execution ---
 
@@ -127,13 +128,19 @@ def entry(csv_file=None, use_hp_search=False, hp_trials=15, fields=None, check_a
         all_rules = []
 
         # Load error injection rules (format/validation anomalies)
-        error_file_path = os.path.join(error_rules_dir, f'{field_name}.json')
         try:
-            error_rules = load_error_rules(error_file_path)
+            variation = brand_config_obj.field_variations.get(field_name) if hasattr(brand_config_obj, 'field_variations') else None
+            if not variation:
+                raise ValueError(f"Variation is required for field '{field_name}' to load error injection rules")
+            field_dir = os.path.join(error_rules_dir, field_name)
+            candidate = os.path.join(field_dir, f"{variation}.json")
+            if not os.path.exists(candidate):
+                raise FileNotFoundError(f"Error injection rules not found at {candidate}")
+            error_rules = load_error_rules(candidate)
             all_rules.extend(error_rules)
-            print(f"Loaded {len(error_rules)} error injection rules from {error_file_path}")
+            print(f"Loaded {len(error_rules)} error injection rules from {candidate}")
         except FileNotFoundError:
-            print(f"Warning: Error injection rules file '{error_file_path}' not found.")
+            pass
 
         # Load anomaly injection rules (semantic anomalies)
         anomaly_file_path = os.path.join(anomaly_rules_dir, f'{field_name}.json')
@@ -191,7 +198,8 @@ def entry(csv_file=None, use_hp_search=False, hp_trials=15, fields=None, check_a
             column_name,
             field_rules,
             device=device,
-            best_params=best_params
+            best_params=best_params,
+            variation=brand_config_obj.field_variations[field_name]
         )
 
     # Save aggregated hyperparameter search results if HP search was used
