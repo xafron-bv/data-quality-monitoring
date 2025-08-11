@@ -22,15 +22,22 @@ This system combines multiple detection approaches to identify data quality issu
 ## Quick Start
 
 ```bash
-# Install
+# Clone and setup
 git clone <repository-url>
-cd <project-directory>
+cd data-quality-monitoring
+
+# Create virtual environment
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install project in development mode
+pip install -e .
+
+# Install dependencies
 pip install -r requirements.txt
 
-# Run detection
-python main.py single-demo --data-file your_data.csv
+# Run detection (example with esqualo brand)
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py --brand esqualo --data-file your_data.csv
 
 # View results
 # Open single_sample_multi_field_demo/data_quality_viewer.html
