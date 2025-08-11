@@ -62,11 +62,11 @@ For issues, questions, or contributions, please [specify contact method].
 ## Large data handling (GitHub Releases)
 
 Helpers in `data/`:
-- Encrypt: `./data/encrypt.sh <password>` → creates `encrypted_csv_files.zip` and `models.zip` (models not encrypted for speed)
-- Release: `./data/release.sh <tag> [target_branch]` (requires `gh` CLI) → creates/updates a release and uploads the zips
+- Encrypt: `./data/encrypt.sh <password>` → creates `encrypted_csv_files.zip` and `encrypted_models.zip`
+- Release: `./data/release.sh [tag] [target_branch]` (requires `gh` CLI) → creates/updates a release and uploads the zips
 - Download: `./data/download.sh <owner/repo> <tag> [asset1 asset2 ...]` → fetches release assets into `data/`
 - Decrypt: `./data/decrypt.sh <password> [zip_file]` → extracts the assets
 
 Models live under `data/models/` (and are gitignored):
-- ML: `data/models/ml/trained/{field}/{variation}/`
-- LLM: `data/models/llm/{field}_model/{variation}/`
+- ML: `data/models/ml/{field}/{variation}/`
+- LLM: `data/models/llm/{field}/{variation}/`

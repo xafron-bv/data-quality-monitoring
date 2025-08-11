@@ -91,8 +91,8 @@ pip install -r requirements-dev.txt
 - **CSV files**: Handled by `encrypt.sh` and `decrypt.sh` only
 - **Models**: Handled by `zip_models_individually.sh` and `extract_models.sh` only
 - Models are stored under `data/models/`:
-  - ML: `data/models/ml/trained/{field}/{variation}/`
-  - LLM: `data/models/llm/{field}_model/{variation}/`
+  - ML: `data/models/ml/{field}/{variation}/`
+  - LLM: `data/models/llm/{field}/{variation}/`
 - Individual model zips are stored in `data/model_zips/` with organized structure:
   - ML models: `data/model_zips/ml/{field}/{variation}.zip`
   - LLM models: `data/model_zips/llm/{field}/{variation}.zip`
