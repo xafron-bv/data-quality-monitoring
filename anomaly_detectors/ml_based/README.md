@@ -58,7 +58,7 @@ python ../../main.py ml-train your_data.csv \
 
 ## Model Outputs
 
-Models are saved to `data/models/ml/trained/{field_name}/{variation}/` with a `reference_centroid.npy` and `centroid_metadata.json` for inference.
+Models are saved to `data/models/ml/{field_name}/{variation}/` with a `reference_centroid.npy` and `centroid_metadata.json` for inference.
 
 ## Performance by Field
 
