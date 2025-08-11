@@ -1,42 +1,25 @@
 #!/usr/bin/env python3
 """
-Data Quality Monitoring System Demo
+Single Sample Multi-Field Demo
 
-This script demonstrates the capabilities of the data quality monitoring system
-for detecting errors and anomalies in fashion product data using a comprehensive
-single-sample approach. It showcases:
+This demo processes one sample at a time across multiple fields, running:
+1. ML anomaly detection
+2. LLM anomaly detection  
+3. Pattern-based anomaly detection
+4. Validation checks
 
-1. Comprehensive error and anomaly injection across ALL available fields
-2. Three-tiered detection approach:
-   - Validation (rule-based, high confidence)
-   - Anomaly Detection (pattern-based, medium confidence)
-   - ML Detection (semantic similarity, adaptive)
-3. Cell-level classification with priority: validation > pattern-based > ML-based
-4. Consolidated reporting compatible with data_quality_viewer.html
-
-The demo uses a single comprehensive sample with configurable injection intensity
-to simulate real-world data quality issues across multiple fields simultaneously.
-This approach is more realistic and efficient than the previous multi-sample method.
+The results are combined into a unified report showing all detected issues.
 """
 
 import argparse
 import json
 import os
 import sys
-import time
-import traceback
-from datetime import datetime
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-import numpy as np
 import pandas as pd
-
-# Ensure we can import from the project
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-# Add parent directory to path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from comprehensive_detector import ComprehensiveFieldDetector
 

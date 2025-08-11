@@ -15,8 +15,6 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from comprehensive_detector import CellClassification, FieldDetectionResult
 
 

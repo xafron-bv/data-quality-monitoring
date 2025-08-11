@@ -8,8 +8,6 @@ import pandas as pd
 from anomaly_detectors.anomaly_error import AnomalyError
 from anomaly_detectors.reporter_interface import AnomalyReporterInterface
 
-# Add the parent directory to the path to import our exception module
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from common.exceptions import ConfigurationError, FileOperationError
 
 

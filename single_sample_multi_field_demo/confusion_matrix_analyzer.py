@@ -17,8 +17,6 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from comprehensive_detector import CellClassification, FieldDetectionResult
 
 from common.field_mapper import FieldMapper

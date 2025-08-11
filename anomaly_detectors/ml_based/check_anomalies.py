@@ -7,9 +7,6 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# Add parent directories to path so we can import field_column_map
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-
 from anomaly_detectors.ml_based.gpu_utils import get_optimal_batch_size, get_optimal_device, print_device_info
 from anomaly_detectors.ml_based.model_training import preprocess_text
 from common.field_column_map import get_field_to_column_map

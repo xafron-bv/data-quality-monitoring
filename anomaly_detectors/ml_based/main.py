@@ -13,14 +13,8 @@ import numpy as np
 import pandas as pd
 import torch
 
-# Add parent directories to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-
 from common.anomaly_injection import load_anomaly_rules
 from common.brand_config import get_available_brands, load_brand_config
-
-# Add the parent directory to the path to import the error injection module
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from common.error_injection import load_error_rules
 
 # Import field-to-column mapping
@@ -150,11 +144,6 @@ def entry(csv_file=None, use_hp_search=False, hp_trials=15, fields=None, check_a
         # Load anomaly injection rules (semantic anomalies)
         anomaly_file_path = os.path.join(anomaly_rules_dir, f'{field_name}.json')
         try:
-            # Import anomaly injection functions
-            import sys
-            sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-            from common.anomaly_injection import load_anomaly_rules
-
             anomaly_rules = load_anomaly_rules(anomaly_file_path)
             # Convert anomaly rules to error rule format for compatibility
             converted_anomaly_rules = []

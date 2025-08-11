@@ -18,8 +18,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from common.anomaly_injection import AnomalyInjector, load_anomaly_rules
 from common.error_injection import ErrorInjector, load_error_rules
 from common.exceptions import ConfigurationError, FileOperationError
