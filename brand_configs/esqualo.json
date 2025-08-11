@@ -19,8 +19,6 @@
     "brand": "brand",
     "collection": "collection"
   },
-  "default_data_path": "data/esqualo_2022_fall_original.csv",
-  "training_data_path": "data/esqualo_2022_fall_original.csv",
   "enabled_fields": [
     "material",
     "color_name",

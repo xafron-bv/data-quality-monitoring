@@ -9,8 +9,6 @@
     "care_instructions": "care_instructions",
     "season": "season"
   },
-  "default_data_path": "data/test_data.csv",
-  "training_data_path": "data/test_data.csv",
   "enabled_fields": [
     "material",
     "color_name",

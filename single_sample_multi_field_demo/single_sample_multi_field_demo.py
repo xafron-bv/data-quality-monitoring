@@ -444,13 +444,9 @@ Example usage:
     except FileNotFoundError as e:
         raise ConfigurationError(f"Brand configuration not found: {e}") from e
 
-    # Use brand's data file if --data-file not provided
+    # Ensure data file is provided
     if not args.data_file:
-        if brand_config.default_data_path:
-            args.data_file = brand_config.default_data_path
-            print(f"Using brand data file: {args.data_file}")
-        else:
-            raise ConfigurationError(f"No data file configured for brand '{args.brand}'")
+        raise ConfigurationError("Data file must be specified with --data-file")
 
     # Validate arguments
     if not (0.0 <= args.injection_intensity <= 1.0):
