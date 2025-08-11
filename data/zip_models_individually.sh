@@ -147,17 +147,17 @@ matches_filters() {
 echo "📁 Collecting model variants..."
 MODEL_VARIANTS=()
 
-# Collect ML models in variation-first layout: ml/<variation>/<field>
+# Collect ML models in field-first layout: ml/<field>/<variation>
 if [ -d "$MODELS_DIR/ml" ]; then
-    for variation_dir in "$MODELS_DIR/ml"/*; do
-        if [ -d "$variation_dir" ]; then
-            variation_name=$(basename "$variation_dir")
-            for field_dir in "$variation_dir"/*; do
-                if [ -d "$field_dir" ]; then
-                    field_name=$(basename "$field_dir")
-                    if matches_filters "$field_name" "$variation_name"; then
-                        model_path="ml/$variation_name/$field_name"
-                        MODEL_VARIANTS+=("$model_path|ml|$field_name|$variation_name")
+    for field_dir in "$MODELS_DIR/ml"/*; do
+        if [ -d "$field_dir" ]; then
+            field_name=$(basename "$field_dir")
+            for variant_dir in "$field_dir"/*; do
+                if [ -d "$variant_dir" ]; then
+                    variant_name=$(basename "$variant_dir")
+                    if matches_filters "$field_name" "$variant_name"; then
+                        model_path="ml/$field_name/$variant_name"
+                        MODEL_VARIANTS+=("$model_path|ml|$field_name|$variant_name")
                     fi
                 fi
             done
@@ -165,17 +165,17 @@ if [ -d "$MODELS_DIR/ml" ]; then
     done
 fi
 
-# Collect LLM models in variation-first layout: llm/<variation>/<field>
+# Collect LLM models in field-first layout: llm/<field>/<variation>
 if [ -d "$MODELS_DIR/llm" ]; then
-    for variation_dir in "$MODELS_DIR/llm"/*; do
-        if [ -d "$variation_dir" ]; then
-            variation_name=$(basename "$variation_dir")
-            for field_dir in "$variation_dir"/*; do
-                if [ -d "$field_dir" ]; then
-                    field_name=$(basename "$field_dir")
-                    if matches_filters "$field_name" "$variation_name"; then
-                        model_path="llm/$variation_name/$field_name"
-                        MODEL_VARIANTS+=("$model_path|llm|$field_name|$variation_name")
+    for field_dir in "$MODELS_DIR/llm"/*; do
+        if [ -d "$field_dir" ]; then
+            field_name=$(basename "$field_dir")
+            for variant_dir in "$field_dir"/*; do
+                if [ -d "$variant_dir" ]; then
+                    variant_name=$(basename "$variant_dir")
+                    if matches_filters "$field_name" "$variant_name"; then
+                        model_path="llm/$field_name/$variant_name"
+                        MODEL_VARIANTS+=("$model_path|llm|$field_name|$variant_name")
                     fi
                 fi
             done

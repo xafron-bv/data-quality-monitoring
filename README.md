@@ -68,5 +68,5 @@ Helpers in `data/`:
 - Decrypt: `./data/decrypt.sh <password> [zip_file]` → extracts the assets
 
 Models live under `data/models/` (and are gitignored):
-- ML: `data/models/ml/{variation}/{field}/`
-- LLM: `data/models/llm/{variation}/{field}/`
+- ML: `data/models/ml/{field}/{variation}/`
+- LLM: `data/models/llm/{field}/{variation}/`

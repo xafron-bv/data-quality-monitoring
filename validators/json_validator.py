@@ -43,8 +43,9 @@ class JSONValidator(ValidatorInterface):
         if not self.variation:
             raise ValueError(f"Variation is required for field '{self.field_name}'")
 
-        # Only allow variation-specific rules under rules/{variation}/{field}.json
-        variant_rules_path = os.path.join(base_rules_dir, self.variation, f'{self.field_name}.json')
+        # Only allow variation-specific rules under rules/{field}/{variation}.json
+        field_dir = os.path.join(base_rules_dir, f'{self.field_name}')
+        variant_rules_path = os.path.join(field_dir, f'{self.variation}.json')
         if not os.path.exists(variant_rules_path):
             raise FileNotFoundError(
                 f"Validation rules for field '{self.field_name}' variation '{self.variation}' not found at {variant_rules_path}"

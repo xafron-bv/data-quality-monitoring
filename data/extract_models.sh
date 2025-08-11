@@ -132,15 +132,15 @@ extract_model() {
         
         # Show extraction path based on model path
         if [[ "$model_path" == ml/* ]]; then
-            # ML model: ml/variation/field -> models/ml/variation/field
-            variant_name=$(echo "$model_path" | cut -d'/' -f2)
-            field_name=$(echo "$model_path" | cut -d'/' -f3)
-            extracted_path="models/ml/$variant_name/$field_name"
+            # ML model: ml/field/variation -> models/ml/field/variation
+            field_name=$(echo "$model_path" | cut -d'/' -f2)
+            variant_name=$(echo "$model_path" | cut -d'/' -f3)
+            extracted_path="models/ml/$field_name/$variant_name"
         elif [[ "$model_path" == llm/* ]]; then
-            # LLM model: llm/variation/field -> models/llm/variation/field
-            variant_name=$(echo "$model_path" | cut -d'/' -f2)
-            field_name=$(echo "$model_path" | cut -d'/' -f3)
-            extracted_path="models/llm/$variant_name/$field_name"
+            # LLM model: llm/field/variation -> models/llm/field/variation
+            field_name=$(echo "$model_path" | cut -d'/' -f2)
+            variant_name=$(echo "$model_path" | cut -d'/' -f3)
+            extracted_path="models/llm/$field_name/$variant_name"
         fi
         
         if [ -d "$extracted_path" ]; then

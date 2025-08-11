@@ -143,7 +143,7 @@ class DetectionCurveGenerator:
         anomaly_rules = []
 
         try:
-            error_rules_path = f"validators/error_injection_rules/baseline/{field_name}.json"
+            error_rules_path = f"validators/error_injection_rules/{field_name}/baseline.json"
             error_rules = load_error_rules(error_rules_path)
         except:
             pass

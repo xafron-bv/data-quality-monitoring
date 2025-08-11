@@ -26,7 +26,7 @@ from common.exceptions import ConfigurationError, FileOperationError
 from common.field_mapper import FieldMapper
 
 
-def get_available_injection_fields(field_mapper, error_rules_dir: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'validators', 'error_injection_rules', 'baseline'),
+def get_available_injection_fields(field_mapper, error_rules_dir: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'validators', 'error_injection_rules'),
                                  anomaly_rules_dir: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'anomaly_detectors', 'anomaly_injection_rules')) -> Dict[str, Dict[str, bool]]:
     """
     Get fields that have error or anomaly injection rules available.
@@ -48,7 +48,7 @@ def get_available_injection_fields(field_mapper, error_rules_dir: str = os.path.
     available_fields = {}
 
     for field_name in field_mapper.get_available_fields():
-        error_rules_path = os.path.join(error_rules_dir, f"{field_name}.json")
+        error_rules_path = os.path.join(error_rules_dir, field_name, "baseline.json")
         anomaly_rules_path = os.path.join(anomaly_rules_dir, f"{field_name}.json")
 
         available_fields[field_name] = {
@@ -65,7 +65,7 @@ def generate_comprehensive_sample(df: pd.DataFrame,
                                 anomaly_injection_prob: float = 0.3,
                                 max_issues_per_row: int = 2,
                                 field_mapper: Optional[FieldMapper] = None,
-                                error_rules_dir: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'validators', 'error_injection_rules', 'baseline'),
+                                error_rules_dir: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'validators', 'error_injection_rules'),
                                 anomaly_rules_dir: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'anomaly_detectors', 'anomaly_injection_rules')) -> Tuple[pd.DataFrame, Dict[str, List[Dict[str, Any]]]]:
     """
     Generate a comprehensive sample with errors and anomalies across all available fields.
@@ -140,7 +140,7 @@ def generate_comprehensive_sample(df: pd.DataFrame,
         # Load error injection rules if available
         if info["errors"]:
             try:
-                error_rules_path = os.path.join(error_rules_dir, f"{field_name}.json")
+                error_rules_path = os.path.join(error_rules_dir, field_name, "baseline.json")
                 error_rules = load_error_rules(error_rules_path)
                 injectors["error"] = ErrorInjector(error_rules, field_mapper)
                 print(f"   📝 Loaded {len(error_rules)} error rules for {field_name}")

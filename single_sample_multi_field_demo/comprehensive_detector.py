@@ -226,12 +226,9 @@ class ComprehensiveFieldDetector:
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             'validators', 'rules'
         )
-        # We don't know variation here; just check if any variation dir contains the field
-        for variation_dir in glob.glob(os.path.join(base_dir, '*')):
-            if os.path.isdir(variation_dir):
-                candidate = os.path.join(variation_dir, f'{field_name}.json')
-                if os.path.exists(candidate):
-                    return True
+        field_dir = os.path.join(base_dir, field_name)
+        if os.path.isdir(field_dir) and glob.glob(os.path.join(field_dir, '*.json')):
+            return True
         return False
 
     def _has_anomaly_capability(self, field_name: str) -> bool:
@@ -241,11 +238,9 @@ class ComprehensiveFieldDetector:
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             'anomaly_detectors', 'pattern_based', 'rules'
         )
-        for variation_dir in glob.glob(os.path.join(base_dir, '*')):
-            if os.path.isdir(variation_dir):
-                candidate = os.path.join(variation_dir, f'{field_name}.json')
-                if os.path.exists(candidate):
-                    return True
+        field_dir = os.path.join(base_dir, field_name)
+        if os.path.isdir(field_dir) and glob.glob(os.path.join(field_dir, '*.json')):
+            return True
         return False
 
     def _has_ml_capability(self, field_name: str) -> bool:

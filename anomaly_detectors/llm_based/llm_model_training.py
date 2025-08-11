@@ -536,7 +536,7 @@ def entry(data_file=None, field=None, epochs=3, batch_size=8, learning_rate=2e-5
     print(f"🖥️  Using device: {device}")
 
     # Train the model under variation-specific directory
-    model_output_dir = os.path.join(output_dir, variation, f"{field}")
+    model_output_dir = os.path.join(output_dir, f"{field}", variation)
     os.makedirs(model_output_dir, exist_ok=True)
     model_info = train_language_model(clean_texts, field, config, device, model_output_dir)
 
