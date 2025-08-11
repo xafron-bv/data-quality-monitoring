@@ -199,7 +199,7 @@ def entry(csv_file=None, use_hp_search=False, hp_trials=15, fields=None, check_a
             field_rules,
             device=device,
             best_params=best_params,
-            variation=load_brand_config(brand).field_variations.get(field_name, "baseline")
+            variation=brand_config_obj.field_variations[field_name]
         )
 
     # Save aggregated hyperparameter search results if HP search was used
