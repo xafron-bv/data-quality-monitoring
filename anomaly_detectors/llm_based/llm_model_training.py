@@ -525,22 +525,6 @@ def entry(data_file=None, field=None, epochs=3, batch_size=8, learning_rate=2e-5
         'max_length': max_length
     })
 
-<<<<<<< HEAD
-    # Setup device with better error handling
-    try:
-        device = setup_gpu_memory_management()
-        if device.type == 'cuda':
-            # Test GPU memory availability
-            memory_info = get_gpu_memory_info()
-            if memory_info and memory_info['free_gb'] < 1.0:
-                print(f"⚠️  Low GPU memory available ({memory_info['free_gb']:.1f}GB), consider using CPU")
-                device = torch.device('cpu')
-                print(f"🖥️  Falling back to CPU")
-    except Exception as e:
-        print(f"⚠️  GPU setup failed: {e}")
-        device = torch.device('cpu')
-        print(f"🖥️  Using CPU")
-=======
     # Setup device (auto/cpu/gpu)
     if device_opt == 'cpu':
         device = torch.device('cpu')
@@ -550,7 +534,6 @@ def entry(data_file=None, field=None, epochs=3, batch_size=8, learning_rate=2e-5
         # auto
         device = torch.device('cuda' if torch.cuda.is_available() else ('mps' if getattr(torch.backends, 'mps', None) and torch.backends.mps.is_available() else 'cpu'))
     print(f"🖥️  Using device: {device}")
->>>>>>> 4bc0c1b (Refactor device selection, remove legacy fallbacks, and improve output directory handling)
 
     # Train the model under variation-specific directory
     model_output_dir = os.path.join(output_dir, f"{field}_model", variation)
