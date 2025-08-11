@@ -83,13 +83,12 @@ class AnomalyReporter(AnomalyReporterInterface):
                 return f"Domain violation in {field}: {reason}"
 
             else:
-                # Generic fallback
+                # Strict default: no implicit template formatting with unknown keys
                 field = details.get('field', self.detector_name)
-                return template.format(field=field, details=str(details), **details)
+                return f"{self.detector_name}: {error_type} - {str(details)}"
 
         except (KeyError, ValueError):
-            # Fallback to simple message
-            return f"{error_type}: {str(details)}"
+            return f"{self.detector_name}: {error_type} - {str(details)}"
 
     def generate_report(self, anomaly_errors: List[AnomalyError], original_df: pd.DataFrame) -> List[Dict[str, Any]]:
         """

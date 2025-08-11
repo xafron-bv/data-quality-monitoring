@@ -577,7 +577,7 @@ def main():
     parser.add_argument("--learning-rate", type=float, default=2e-5, help="Learning rate")
     parser.add_argument("--threshold", type=float, default=-2.0, help="Anomaly detection threshold")
     parser.add_argument("--max-length", type=int, default=128, help="Maximum sequence length")
-    parser.add_argument("--device", choices=['auto','cpu','gpu'], default='auto', help="Device selection: auto/cpu/gpu")
+    parser.add_argument("--device", choices=['auto','cpu','gpu'], required=True, help="Device selection: auto/cpu/gpu")
 
     args = parser.parse_args()
 

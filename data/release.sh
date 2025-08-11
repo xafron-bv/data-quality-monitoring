@@ -76,10 +76,18 @@ done
 DEFAULT_TAG="data-$(date +%Y%m%d)"
 TAG="${TAG:-$DEFAULT_TAG}"
 
-# Determine default branch from origin; fallback to main
+# Determine default branch from origin; do not assume main if unknown
 DETECTED_BRANCH="$(git remote show origin 2>/dev/null | sed -n '/HEAD branch/s/.*: //p')"
-DEFAULT_BRANCH="${DETECTED_BRANCH:-main}"
-TARGET_BRANCH="${TARGET_BRANCH:-$DEFAULT_BRANCH}"
+if [ -z "$DETECTED_BRANCH" ] && [ -z "${2:-}" ]; then
+  echo "❌ Could not detect default branch from 'origin'. Please specify target branch: ./release.sh [tag] <target_branch>" >&2
+  exit 1
+fi
+DEFAULT_BRANCH="${DETECTED_BRANCH:-}" 
+TARGET_BRANCH="${2:-$DEFAULT_BRANCH}"
+if [ -z "$TARGET_BRANCH" ]; then
+  echo "❌ Target branch is required when default cannot be detected." >&2
+  exit 1
+fi
 
 TITLE="Data assets $TAG"
 BODY="Encrypted CSV files and individual model zips (models not encrypted for speed)"
