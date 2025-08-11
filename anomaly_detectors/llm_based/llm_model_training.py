@@ -11,6 +11,7 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset
 from transformers import AutoModelForMaskedLM, AutoTokenizer, Trainer, TrainingArguments
+from common.brand_config import load_brand_config
 
 
 def get_gpu_memory_info():
@@ -570,8 +571,9 @@ def entry(data_file=None, field=None, epochs=3, batch_size=8, learning_rate=2e-5
 def main():
     parser = argparse.ArgumentParser(description="Train language model for anomaly detection")
     parser.add_argument("data_file", help="Path to the CSV data file")
-    parser.add_argument("--field", required=True, help="Field name to train model for")
-    parser.add_argument("--variation", required=True, help="Variation key to train/save the model under")
+    parser.add_argument("--field", required=False, help="Field name to train model for")
+    parser.add_argument("--variation", required=False, help="Variation key to train/save the model under")
+    parser.add_argument("--brand", required=False, help="Brand name; trains all fields in brand config using field_variations")
     parser.add_argument("--epochs", type=int, default=3, help="Number of training epochs")
     parser.add_argument("--batch-size", type=int, default=8, help="Training batch size")
     parser.add_argument("--learning-rate", type=float, default=2e-5, help="Learning rate")
@@ -580,6 +582,30 @@ def main():
     parser.add_argument("--device", choices=['auto','cpu','gpu'], required=True, help="Device selection: auto/cpu/gpu")
 
     args = parser.parse_args()
+
+    # If --brand is provided, train for all fields in brand config
+    if args.brand:
+        cfg = load_brand_config(args.brand)
+        field_vars = getattr(cfg, 'field_variations', None)
+        if not field_vars:
+            raise ValueError(f"Brand '{args.brand}' has no field_variations configured")
+        for field_name, variation in field_vars.items():
+            entry(
+                data_file=args.data_file,
+                field=field_name,
+                epochs=args.epochs,
+                batch_size=args.batch_size,
+                learning_rate=args.learning_rate,
+                threshold=args.threshold,
+                max_length=args.max_length,
+                variation=variation,
+                device_opt=args.device
+            )
+        return
+
+    # Otherwise, require --field and --variation
+    if not args.field or not args.variation:
+        raise ValueError("Either provide --brand, or both --field and --variation")
 
     entry(
         data_file=args.data_file,
