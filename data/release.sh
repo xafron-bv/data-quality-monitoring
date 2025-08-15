@@ -115,15 +115,15 @@ matches_filters() {
     # Handle both old and new naming conventions
     local relative_path=$(echo "$zip_file" | sed "s|model_zips/||")
     
-    # Check if it's the new naming convention: {model_type}_{field_name}_{variant_name}.zip
-    if [[ "$relative_path" =~ ^(ml|llm)/([^/]+)/([^/]+)_([^/]+)_([^/]+)\.zip$ ]]; then
+    # Check if it's the new naming convention: {model_type}_{field_name}_{variant_name}.zip/.manifest/.partN.zip
+    if [[ "$relative_path" =~ ^(ml|llm)/([^/]+)/([^/]+)_([^/]+)_([^/]+)\.(zip|manifest|part[0-9]+\.zip)$ ]]; then
         local model_type="${BASH_REMATCH[1]}"
         local field_name="${BASH_REMATCH[2]}"
         local variant_name="${BASH_REMATCH[5]}"  # Last part after the last underscore
         model_path="$model_type/$field_name/$variant_name"
     else
-        # Old naming convention: just remove .zip
-        model_path=$(echo "$relative_path" | sed 's|\.zip$||')
+        # Old naming convention: just remove .zip/.manifest/.partN.zip
+        model_path=$(echo "$relative_path" | sed 's|\.zip$||' | sed 's|\.manifest$||' | sed 's|\.part[0-9]*\.zip$||')
     fi
     
     # Extract field and variation from model path
@@ -152,7 +152,7 @@ matches_filters() {
 }
 
 # Check for individual model zips first (preferred)
-if [ -d "model_zips" ] && [ "$(find model_zips -name "*.zip" | wc -l)" -gt 0 ]; then
+if [ -d "model_zips" ] && [ "$(find model_zips -name "*.zip" -o -name "*.manifest" | wc -l)" -gt 0 ]; then
   echo "📁 Found individual model zips in model_zips/ directory"
   echo "These are ready for GitHub releases (each under 2GB limit)"
   
@@ -163,18 +163,22 @@ if [ -d "model_zips" ] && [ "$(find model_zips -name "*.zip" | wc -l)" -gt 0 ]; 
     [ -n "$VARIATION_FILTER" ] && echo "  - Variation: $VARIATION_FILTER"
   fi
   
-  # Add filtered model zips
-  while IFS= read -r -d '' zip_file; do
+  # Add filtered model zips and multi-part files
+  while IFS= read -r -d '' file; do
     if [ -z "$FIELD_FILTER" ] && [ -z "$VARIATION_FILTER" ]; then
       # No filters, include all
-      ASSETS+=( "$zip_file" )
-    elif matches_filters "$zip_file"; then
+      ASSETS+=( "$file" )
+    elif matches_filters "$file"; then
       # Matches filters, include
-      ASSETS+=( "$zip_file" )
+      ASSETS+=( "$file" )
     fi
-  done < <(find model_zips -name "*.zip" -print0)
+  done < <(find model_zips \( -name "*.zip" -o -name "*.manifest" \) -print0)
   
-  echo "📊 Will upload ${#ASSETS[@]} assets (CSV + $((${#ASSETS[@]} - 1)) model zips)"
+  # Count unique models (excluding part files)
+  unique_models=$(find model_zips -name "*.zip" -o -name "*.manifest" | grep -v "\.part[0-9]*\.zip$" | sed 's/\.manifest$//' | sed 's/\.zip$//' | sort -u | wc -l)
+  total_files=${#ASSETS[@]}
+  
+  echo "📊 Will upload ${total_files} files for ${unique_models} models (including multi-part files)"
 else
   echo "❌ Error: Individual model zips not found in model_zips/ directory" >&2
   echo "💡 Please run ./zip_models_individually.sh first to create individual model zips" >&2
@@ -197,22 +201,36 @@ else
   gh release create "$TAG" -t "$TITLE" -n "$BODY" --target "$TARGET_BRANCH"
 fi
 
-echo "📤 Uploading assets: ${ASSETS[*]}"
+echo "📤 Uploading ${#ASSETS[@]} assets..."
 # Upload each asset individually to handle errors gracefully
-for asset in "${ASSETS[@]}"; do
-  echo "  📤 Uploading $asset..."
+uploaded_count=0
+failed_count=0
+for i in "${!ASSETS[@]}"; do
+  asset="${ASSETS[$i]}"
+  progress=$((i + 1))
+  relative_asset=$(echo "$asset" | sed 's|^model_zips/||')
+  
+  echo "  📤 Uploading [$progress/${#ASSETS[@]}] $relative_asset..."
   if gh release upload "$TAG" "$asset" --clobber 2>/dev/null; then
-    echo "    ✅ Successfully uploaded $asset"
+    echo "    ✅ Successfully uploaded"
+    uploaded_count=$((uploaded_count + 1))
   else
-    echo "    ⚠️  Failed to upload $asset (may already exist or be too large)"
+    echo "    ⚠️  Failed to upload (may already exist)"
     # Try without clobber for new assets
     if gh release upload "$TAG" "$asset" 2>/dev/null; then
-      echo "    ✅ Successfully uploaded $asset (new asset)"
+      echo "    ✅ Successfully uploaded (new asset)"
+      uploaded_count=$((uploaded_count + 1))
     else
-      echo "    ❌ Failed to upload $asset"
+      echo "    ❌ Failed to upload"
+      failed_count=$((failed_count + 1))
     fi
   fi
 done
+
+echo ""
+echo "📊 Upload summary:"
+echo "  ✅ Successfully uploaded: $uploaded_count files"
+[ "$failed_count" -gt 0 ] && echo "  ❌ Failed to upload: $failed_count files"
 
 echo "✅ Release published:"
 gh release view "$TAG" --web || true

@@ -26,6 +26,9 @@ fi
 MODELS_DIR="models"
 OUTPUT_DIR="model_zips"
 
+# Maximum file size in bytes (2GB - 100MB for safety margin)
+MAX_FILE_SIZE=$((2000 * 1024 * 1024))  # 2000 MB
+
 # Parse command line arguments
 FIELD_FILTER=""
 VARIATION_FILTER=""
@@ -89,6 +92,54 @@ get_dir_size() {
     fi
 }
 
+# Function to split a large zip file into parts
+split_zip_file() {
+    local zip_path="$1"
+    local base_name="${zip_path%.zip}"
+    local zip_size=$(stat -c%s "$zip_path" 2>/dev/null || stat -f%z "$zip_path" 2>/dev/null)
+    
+    if [ -z "$zip_size" ] || [ "$zip_size" -le "$MAX_FILE_SIZE" ]; then
+        # File is small enough, no need to split
+        return 0
+    fi
+    
+    echo "    🔀 Splitting large zip file ($(du -h "$zip_path" | cut -f1)) into parts..."
+    
+    # Split the file into parts
+    # Use 1900MB parts to ensure each part is well under 2GB
+    split -b 1900M "$zip_path" "${base_name}.part"
+    
+    # Rename parts to have .zip extension for better GitHub release handling
+    local part_num=1
+    for part in "${base_name}".part*; do
+        if [ -f "$part" ]; then
+            mv "$part" "${base_name}.part${part_num}.zip"
+            echo "      📦 Created part ${part_num}: $(du -h "${base_name}.part${part_num}.zip" | cut -f1)"
+            part_num=$((part_num + 1))
+        fi
+    done
+    
+    # Remove the original large zip file
+    rm -f "$zip_path"
+    
+    # Create a manifest file with information about the parts
+    local manifest_path="${base_name}.manifest"
+    {
+        echo "# Multi-part zip manifest"
+        echo "original_file: $(basename "$zip_path")"
+        echo "total_parts: $((part_num - 1))"
+        echo "split_size: 1900M"
+        echo "created: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+        echo ""
+        echo "# To reconstruct the original file, use:"
+        echo "# cat ${base_name}.part*.zip > $(basename "$zip_path")"
+    } > "$manifest_path"
+    
+    echo "      📄 Created manifest: $(basename "$manifest_path")"
+    
+    return 0
+}
+
 # Function to zip a model variant (will be called in parallel)
 zip_model_variant() {
     local model_path="$1"
@@ -109,6 +160,10 @@ zip_model_variant() {
     # Remove existing zip if it exists
     [ -f "$zip_path" ] && rm -f "$zip_path"
     
+    # Also remove any existing part files
+    rm -f "${zip_path%.zip}".part*.zip
+    rm -f "${zip_path%.zip}".manifest
+    
     # Create zip file from the models directory
     cd "$MODELS_DIR"
     if [ -d "$model_path" ]; then
@@ -119,6 +174,9 @@ zip_model_variant() {
         local zip_size=$(du -h "$zip_path" | cut -f1)
         
         echo "    ✅ Created: $model_type/$field_name/$zip_name (${size} -> ${zip_size})"
+        
+        # Check if the zip file needs to be split
+        split_zip_file "$zip_path"
     else
         cd ..
         echo "    ❌ Directory not found: $model_path"
@@ -262,13 +320,13 @@ echo "📊 Creating summary..."
     echo "$OUTPUT_DIR/"
     echo "├── ml/"
     echo "│   ├── category/"
-    echo "│   │   └── baseline.zip"
+    echo "│   │   └── baseline.zip (or baseline.part*.zip for large files)"
     echo "│   ├── material/"
     echo "│   │   └── baseline.zip"
     echo "│   └── ..."
     echo "└── llm/"
     echo "    ├── category/"
-    echo "    │   ├── baseline.zip"
+    echo "    │   ├── baseline.zip (or baseline.part*.zip)"
     echo "    │   └── v1.zip"
     echo "    ├── material/"
     echo "    │   └── baseline.zip"
@@ -277,19 +335,55 @@ echo "📊 Creating summary..."
     echo ""
     echo "## ML Models"
     if [ -d "$OUTPUT_DIR/ml" ]; then
-        find "$OUTPUT_DIR/ml" -name "*.zip" | sort | while read file; do
-            size=$(du -h "$file" | cut -f1)
-            relative_path=$(echo "$file" | sed "s|$OUTPUT_DIR/||")
-            echo "- $relative_path ($size)"
+        # Process each model, grouping multi-part files
+        find "$OUTPUT_DIR/ml" -name "*.zip" -o -name "*.manifest" | sed 's/\.part[0-9]*\.zip$//' | sed 's/\.manifest$//' | sort -u | while read base_path; do
+            if [ -f "${base_path}.manifest" ]; then
+                # Multi-part file
+                total_size=0
+                parts_count=0
+                for part in "${base_path}".part*.zip; do
+                    if [ -f "$part" ]; then
+                        part_size=$(stat -c%s "$part" 2>/dev/null || stat -f%z "$part" 2>/dev/null)
+                        total_size=$((total_size + part_size))
+                        parts_count=$((parts_count + 1))
+                    fi
+                done
+                relative_path=$(echo "${base_path}.zip" | sed "s|$OUTPUT_DIR/||")
+                total_size_human=$(echo "$total_size" | awk '{ split("B KB MB GB TB", units); for(i=1; $1>=1024 && i<5; i++) $1/=1024; printf "%.1f%s", $1, units[i] }')
+                echo "- $relative_path ($total_size_human in $parts_count parts)"
+            elif [ -f "${base_path}.zip" ]; then
+                # Single file
+                size=$(du -h "${base_path}.zip" | cut -f1)
+                relative_path=$(echo "${base_path}.zip" | sed "s|$OUTPUT_DIR/||")
+                echo "- $relative_path ($size)"
+            fi
         done
     fi
     echo ""
     echo "## LLM Models"
     if [ -d "$OUTPUT_DIR/llm" ]; then
-        find "$OUTPUT_DIR/llm" -name "*.zip" | sort | while read file; do
-            size=$(du -h "$file" | cut -f1)
-            relative_path=$(echo "$file" | sed "s|$OUTPUT_DIR/||")
-            echo "- $relative_path ($size)"
+        # Process each model, grouping multi-part files
+        find "$OUTPUT_DIR/llm" -name "*.zip" -o -name "*.manifest" | sed 's/\.part[0-9]*\.zip$//' | sed 's/\.manifest$//' | sort -u | while read base_path; do
+            if [ -f "${base_path}.manifest" ]; then
+                # Multi-part file
+                total_size=0
+                parts_count=0
+                for part in "${base_path}".part*.zip; do
+                    if [ -f "$part" ]; then
+                        part_size=$(stat -c%s "$part" 2>/dev/null || stat -f%z "$part" 2>/dev/null)
+                        total_size=$((total_size + part_size))
+                        parts_count=$((parts_count + 1))
+                    fi
+                done
+                relative_path=$(echo "${base_path}.zip" | sed "s|$OUTPUT_DIR/||")
+                total_size_human=$(echo "$total_size" | awk '{ split("B KB MB GB TB", units); for(i=1; $1>=1024 && i<5; i++) $1/=1024; printf "%.1f%s", $1, units[i] }')
+                echo "- $relative_path ($total_size_human in $parts_count parts)"
+            elif [ -f "${base_path}.zip" ]; then
+                # Single file
+                size=$(du -h "${base_path}.zip" | cut -f1)
+                relative_path=$(echo "${base_path}.zip" | sed "s|$OUTPUT_DIR/||")
+                echo "- $relative_path ($size)"
+            fi
         done
     fi
 } > "$OUTPUT_DIR/README.md"
@@ -298,7 +392,7 @@ echo "📊 Creating summary..."
 echo ""
 echo "🎯 Individual model zipping completed!"
 echo "📁 Output directory: $OUTPUT_DIR"
-echo "📊 Total zip files created: $(find "$OUTPUT_DIR" -name "*.zip" | wc -l)"
+echo "📊 Total files created: $(find "$OUTPUT_DIR" \( -name "*.zip" -o -name "*.manifest" \) | wc -l)"
 echo "📄 Summary: $OUTPUT_DIR/README.md"
 
 # Show directory structure
@@ -306,14 +400,29 @@ echo ""
 echo "📁 Directory structure created:"
 echo "  $OUTPUT_DIR/"
 echo "  ├── ml/"
-echo "  │   └── [field]/[variation].zip"
+echo "  │   └── [field]/[model].zip (or .part*.zip + .manifest for large files)"
 echo "  └── llm/"
-echo "      └── [field]/[variation].zip"
+echo "      └── [field]/[model].zip (or .part*.zip + .manifest for large files)"
 
-# Show largest files
+# Show largest files and multi-part files
 echo ""
-echo "📏 Largest zip files:"
-find "$OUTPUT_DIR" -name "*.zip" -exec du -h {} \; | sort -h | tail -5 | while read size file; do
-    relative_path=$(echo "$file" | sed "s|$OUTPUT_DIR/||")
-    echo "  $relative_path ($size)"
+echo "📏 File summary:"
+# Count multi-part files
+multi_part_count=$(find "$OUTPUT_DIR" -name "*.manifest" | wc -l)
+if [ "$multi_part_count" -gt 0 ]; then
+    echo "  🔀 Multi-part files: $multi_part_count"
+    find "$OUTPUT_DIR" -name "*.manifest" | while read manifest; do
+        base_name=$(basename "${manifest%.manifest}")
+        dir_name=$(dirname "$manifest" | sed "s|$OUTPUT_DIR/||")
+        parts_count=$(grep "total_parts:" "$manifest" | cut -d' ' -f2)
+        echo "    - $dir_name/$base_name.zip (split into $parts_count parts)"
+    done
+fi
+
+# Show single large files
+echo ""
+echo "  📦 Largest single files:"
+find "$OUTPUT_DIR" -name "*.zip" | grep -v "\.part[0-9]*\.zip$" | xargs -I {} sh -c 'du -h "$1" | echo "$(cat) $1"' _ {} | sort -h | tail -5 | while read size file_path actual_file; do
+    relative_path=$(echo "$actual_file" | sed "s|$OUTPUT_DIR/||")
+    echo "    - $relative_path ($size)"
 done

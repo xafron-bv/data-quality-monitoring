@@ -112,12 +112,13 @@ matches_filters() {
     # Handle both old and new naming conventions
     # Parse model path: ml/category/baseline.zip, llm/category/baseline.zip
     # or new format: ml_category_baseline.zip, llm_category_baseline.zip
-    if [[ "$asset" =~ ^(ml|llm)/([^/]+)/([^/]+)\.zip$ ]]; then
+    # Also handle multi-part files: ml_category_baseline.part1.zip, ml_category_baseline.manifest
+    if [[ "$asset" =~ ^(ml|llm)/([^/]+)/([^/]+)\.(zip|part[0-9]+\.zip|manifest)$ ]]; then
         # Old format: ml/category/baseline.zip
         field_name="${BASH_REMATCH[2]}"
         variant_name="${BASH_REMATCH[3]}"
-    elif [[ "$asset" =~ ^(ml|llm)_([^_]+)_([^_]+)\.zip$ ]]; then
-        # New format: ml_category_baseline.zip
+    elif [[ "$asset" =~ ^(ml|llm)_([^_]+)_([^_]+)\.(zip|part[0-9]+\.zip|manifest)$ ]]; then
+        # New format: ml_category_baseline.zip or ml_category_baseline.part1.zip
         field_name="${BASH_REMATCH[2]}"
         variant_name="${BASH_REMATCH[3]}"
     else
@@ -138,6 +139,70 @@ matches_filters() {
     return 0
 }
 
+# Function to download and merge multi-part files
+download_and_merge_parts() {
+    local base_name="$1"
+    local output_path="$2"
+    local manifest_name="${base_name}.manifest"
+    
+    echo "  🔍 Checking for multi-part file: $base_name"
+    
+    # First, try to download the manifest
+    local manifest_path="${output_path%.zip}.manifest"
+    if gh release download "$TAG" --repo "$REPO" --pattern "$manifest_name" --output "$manifest_path" 2>/dev/null; then
+        echo "  📄 Found manifest file, this is a multi-part download"
+        
+        # Read the number of parts from manifest
+        local total_parts=$(grep "total_parts:" "$manifest_path" | cut -d' ' -f2)
+        echo "  📦 Total parts to download: $total_parts"
+        
+        # Download all parts
+        local all_parts_success=true
+        for i in $(seq 1 "$total_parts"); do
+            local part_name="${base_name}.part${i}.zip"
+            local part_path="${output_path%.zip}.part${i}.zip"
+            
+            echo "  ⬇️  Downloading part $i/$total_parts: $part_name..."
+            if gh release download "$TAG" --repo "$REPO" --pattern "$part_name" --output "$part_path" 2>/dev/null; then
+                echo "    ✅ Downloaded: $(du -h "$part_path" | cut -f1)"
+            else
+                echo "    ❌ Failed to download part $i"
+                all_parts_success=false
+                break
+            fi
+        done
+        
+        if [ "$all_parts_success" = true ]; then
+            # Merge all parts
+            echo "  🔀 Merging ${total_parts} parts into $output_path..."
+            cat "${output_path%.zip}".part*.zip > "$output_path"
+            
+            # Verify the merged file exists and has content
+            if [ -f "$output_path" ] && [ -s "$output_path" ]; then
+                echo "  ✅ Successfully merged: $(du -h "$output_path" | cut -f1)"
+                
+                # Clean up part files
+                echo "  🧹 Cleaning up part files..."
+                rm -f "${output_path%.zip}".part*.zip
+                
+                return 0
+            else
+                echo "  ❌ Failed to merge parts"
+                rm -f "$output_path"
+                return 1
+            fi
+        else
+            # Clean up any downloaded parts if we failed
+            rm -f "${output_path%.zip}".part*.zip
+            rm -f "$manifest_path"
+            return 1
+        fi
+    else
+        # No manifest found, this is not a multi-part file
+        return 1
+    fi
+}
+
 # If no specific assets provided and filters are specified, try to discover available models
 if [ ${#ASSETS[@]} -eq 0 ] && ([ -n "$FIELD_FILTER" ] || [ -n "$VARIATION_FILTER" ]); then
     echo "🔍 Discovering available models with filters..."
@@ -149,24 +214,47 @@ if [ ${#ASSETS[@]} -eq 0 ] && ([ -n "$FIELD_FILTER" ] || [ -n "$VARIATION_FILTER
         # Extract asset names from the release using gh CLI
         ASSET_NAMES=$(gh release view "$TAG" --repo "$REPO" --json assets --jq '.assets[].name')
         
+        # Group multi-part files together
+        declare -A seen_base_names
+        
         # Filter assets based on criteria
         for asset_name in $ASSET_NAMES; do
-            if matches_filters "$asset_name"; then
-                ASSETS+=("$asset_name")
+            # Skip part files and manifests when building the main list
+            if [[ "$asset_name" =~ \.part[0-9]+\.zip$ ]] || [[ "$asset_name" =~ \.manifest$ ]]; then
+                continue
+            fi
+            
+            # Check if this is the base file of a multi-part set
+            base_name="${asset_name%.zip}"
+            
+            # Check if manifest exists for this file (indicating it's multi-part)
+            if echo "$ASSET_NAMES" | grep -q "^${base_name}.manifest$"; then
+                # This is a multi-part file, add only if not seen
+                if [ -z "${seen_base_names[$base_name]:-}" ]; then
+                    if matches_filters "$asset_name"; then
+                        ASSETS+=("$asset_name")
+                        seen_base_names[$base_name]=1
+                    fi
+                fi
+            else
+                # Regular single file
+                if matches_filters "$asset_name"; then
+                    ASSETS+=("$asset_name")
+                fi
             fi
         done
         
         if [ ${#ASSETS[@]} -eq 0 ]; then
             echo "❌ Error: No assets found matching the specified filters." >&2
             echo "Available assets:" >&2
-            echo "$ASSET_NAMES" | head -10
-            if [ "$(echo "$ASSET_NAMES" | wc -l)" -gt 10 ]; then
-                echo "  ... and $(($(echo "$ASSET_NAMES" | wc -l) - 10)) more"
+            echo "$ASSET_NAMES" | grep -v "\.part[0-9]*\.zip$" | grep -v "\.manifest$" | head -10
+            if [ "$(echo "$ASSET_NAMES" | grep -v "\.part[0-9]*\.zip$" | grep -v "\.manifest$" | wc -l)" -gt 10 ]; then
+                echo "  ... and $(($(echo "$ASSET_NAMES" | grep -v "\.part[0-9]*\.zip$" | grep -v "\.manifest$" | wc -l) - 10)) more"
             fi
             exit 1
         fi
         
-        echo "📊 Found ${#ASSETS[@]} matching assets to download"
+        echo "📊 Found ${#ASSETS[@]} matching models to download"
     else
         echo "❌ Error: Could not fetch release information for $REPO@$TAG" >&2
         echo "💡 Please check that the repository and tag exist, and you have access to them" >&2
@@ -197,7 +285,19 @@ for ASSET in "${ASSETS[@]}"; do
         OUTPUT_PATH="$ASSET"
     fi
     
-    # Download the asset using gh CLI
+    # Skip if this is a part file or manifest (these are handled by the main file)
+    if [[ "$ASSET" =~ \.part[0-9]+\.zip$ ]] || [[ "$ASSET" =~ \.manifest$ ]]; then
+        continue
+    fi
+    
+    # Try to download as a multi-part file first
+    base_name="${ASSET%.zip}"
+    if download_and_merge_parts "$base_name" "$OUTPUT_PATH"; then
+        # Successfully downloaded and merged multi-part file
+        continue
+    fi
+    
+    # If not a multi-part file, download normally
     if gh release download "$TAG" --repo "$REPO" --pattern "$ASSET" --output "$OUTPUT_PATH"; then
         echo "✅ Saved: $OUTPUT_PATH ($(du -h "$OUTPUT_PATH" | cut -f1))"
     else
