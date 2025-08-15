@@ -116,42 +116,98 @@ extract_model() {
     # Try both naming conventions
     local zip_path="$MODEL_ZIPS_DIR/${model_path}.zip"
     local new_zip_path="$MODEL_ZIPS_DIR/$model_type/$field_name/${model_type}_${field_name}_${variant_name}.zip"
+    local manifest_path="$MODEL_ZIPS_DIR/$model_type/$field_name/${model_type}_${field_name}_${variant_name}.manifest"
     
-    if [ -f "$new_zip_path" ]; then
+    # Check if this is a multi-part file
+    if [ -f "$manifest_path" ]; then
+        echo "📦 Found multi-part model: $model_path"
+        
+        # Read the number of parts from manifest
+        local total_parts=$(grep "total_parts:" "$manifest_path" | cut -d' ' -f2)
+        echo "    📄 Total parts: $total_parts"
+        
+        # Check if all parts exist
+        local all_parts_exist=true
+        for i in $(seq 1 "$total_parts"); do
+            local part_path="$MODEL_ZIPS_DIR/$model_type/$field_name/${model_type}_${field_name}_${variant_name}.part${i}.zip"
+            if [ ! -f "$part_path" ]; then
+                echo "    ❌ Missing part ${i}: $(basename "$part_path")"
+                all_parts_exist=false
+            fi
+        done
+        
+        if [ "$all_parts_exist" = false ]; then
+            echo "    ❌ Cannot extract: missing parts"
+            return 1
+        fi
+        
+        # Create temporary merged file
+        local temp_zip="/tmp/${model_type}_${field_name}_${variant_name}_merged.zip"
+        echo "    🔀 Merging ${total_parts} parts..."
+        cat "$MODEL_ZIPS_DIR/$model_type/$field_name/${model_type}_${field_name}_${variant_name}".part*.zip > "$temp_zip"
+        
+        # Extract the merged file
+        echo "    📦 Extracting merged file..."
+        if unzip -o "$temp_zip" >/dev/null 2>&1; then
+            echo "    ✅ Successfully extracted $model_path"
+            
+            # Clean up temp file
+            rm -f "$temp_zip"
+            
+            # Show extraction path
+            extracted_path="models/$model_path"
+            if [ -d "$extracted_path" ]; then
+                size=$(du -sh "$extracted_path" | cut -f1)
+                echo "       📁 Extracted to: $extracted_path ($size)"
+            fi
+            
+            return 0
+        else
+            echo "    ❌ Failed to extract merged file"
+            rm -f "$temp_zip"
+            return 1
+        fi
+    elif [ -f "$new_zip_path" ]; then
+        # Single file with new naming convention
         zip_path="$new_zip_path"
     elif [ ! -f "$zip_path" ]; then
+        # File not found
         echo "    ❌ Model not found: $zip_path or $new_zip_path"
+        echo "    💡 Also checked for multi-part files with manifest at: $manifest_path"
         return 1
     fi
     
-    echo "📦 Extracting $model_path..."
-    unzip -o "$zip_path" >/dev/null 2>&1
-    
-    if [ $? -eq 0 ]; then
-        echo "    ✅ Successfully extracted $model_path"
+    # Extract single file
+    if [ -f "$zip_path" ]; then
+        echo "📦 Extracting $model_path..."
+        unzip -o "$zip_path" >/dev/null 2>&1
         
-        # Show extraction path based on model path
-        if [[ "$model_path" == ml/* ]]; then
-            # ML model: ml/field/variation -> models/ml/field/variation
-            field_name=$(echo "$model_path" | cut -d'/' -f2)
-            variant_name=$(echo "$model_path" | cut -d'/' -f3)
-            extracted_path="models/ml/$field_name/$variant_name"
-        elif [[ "$model_path" == llm/* ]]; then
-            # LLM model: llm/field/variation -> models/llm/field/variation
-            field_name=$(echo "$model_path" | cut -d'/' -f2)
-            variant_name=$(echo "$model_path" | cut -d'/' -f3)
-            extracted_path="models/llm/$field_name/$variant_name"
+        if [ $? -eq 0 ]; then
+            echo "    ✅ Successfully extracted $model_path"
+            
+            # Show extraction path based on model path
+            if [[ "$model_path" == ml/* ]]; then
+                # ML model: ml/field/variation -> models/ml/field/variation
+                field_name=$(echo "$model_path" | cut -d'/' -f2)
+                variant_name=$(echo "$model_path" | cut -d'/' -f3)
+                extracted_path="models/ml/$field_name/$variant_name"
+            elif [[ "$model_path" == llm/* ]]; then
+                # LLM model: llm/field/variation -> models/llm/field/variation
+                field_name=$(echo "$model_path" | cut -d'/' -f2)
+                variant_name=$(echo "$model_path" | cut -d'/' -f3)
+                extracted_path="models/llm/$field_name/$variant_name"
+            fi
+            
+            if [ -d "$extracted_path" ]; then
+                size=$(du -sh "$extracted_path" | cut -f1)
+                echo "       📁 Extracted to: $extracted_path ($size)"
+            fi
+            
+            return 0
+        else
+            echo "    ❌ Failed to extract $model_path"
+            return 1
         fi
-        
-        if [ -d "$extracted_path" ]; then
-            size=$(du -sh "$extracted_path" | cut -f1)
-            echo "       📁 Extracted to: $extracted_path ($size)"
-        fi
-        
-        return 0
-    else
-        echo "    ❌ Failed to extract $model_path"
-        return 1
     fi
 }
 
@@ -180,33 +236,44 @@ if [ ${#MODEL_PATHS[@]} -eq 0 ]; then
     ML_MODELS=()
     LLM_MODELS=()
     
-    # Find all zip files and convert to model paths
-    while IFS= read -r -d '' zip_file; do
-        # Convert zip path to model path
+    # Find all zip files and manifests, convert to model paths
+    while IFS= read -r -d '' file; do
+        # Skip part files
+        if [[ "$file" =~ \.part[0-9]+\.zip$ ]]; then
+            continue
+        fi
+        
+        # Convert file path to model path
         # Handle both old format: model_zips/ml/category/baseline.zip -> ml/category/baseline
         # and new format: model_zips/ml/category/ml_category_baseline.zip -> ml/category/baseline
-        local relative_path=$(echo "$zip_file" | sed "s|$MODEL_ZIPS_DIR/||")
+        local relative_path=$(echo "$file" | sed "s|$MODEL_ZIPS_DIR/||")
         local model_path=""
         
-        # Check if it's the new naming convention: {model_type}_{field_name}_{variant_name}.zip
-        if [[ "$relative_path" =~ ^(ml|llm)/([^/]+)/([^/]+)_([^/]+)_([^/]+)\.zip$ ]]; then
+        # Check if it's the new naming convention: {model_type}_{field_name}_{variant_name}.zip or .manifest
+        if [[ "$relative_path" =~ ^(ml|llm)/([^/]+)/([^/]+)_([^/]+)_([^/]+)\.(zip|manifest)$ ]]; then
             local model_type="${BASH_REMATCH[1]}"
             local field_name="${BASH_REMATCH[2]}"
             local variant_name="${BASH_REMATCH[5]}"  # Last part after the last underscore
             model_path="$model_type/$field_name/$variant_name"
         else
-            # Old naming convention: just remove .zip
-            model_path=$(echo "$relative_path" | sed 's|\.zip$||')
+            # Old naming convention: just remove .zip or .manifest
+            model_path=$(echo "$relative_path" | sed 's|\.zip$||' | sed 's|\.manifest$||')
         fi
         
         if matches_filters "$model_path"; then
             if [[ "$model_path" == ml/* ]]; then
-                ML_MODELS+=("$model_path")
+                # Check if we already have this model (avoid duplicates from .zip and .manifest)
+                if [[ ! " ${ML_MODELS[@]} " =~ " ${model_path} " ]]; then
+                    ML_MODELS+=("$model_path")
+                fi
             elif [[ "$model_path" == llm/* ]]; then
-                LLM_MODELS+=("$model_path")
+                # Check if we already have this model (avoid duplicates from .zip and .manifest)
+                if [[ ! " ${LLM_MODELS[@]} " =~ " ${model_path} " ]]; then
+                    LLM_MODELS+=("$model_path")
+                fi
             fi
         fi
-    done < <(find "$MODEL_ZIPS_DIR" -name "*.zip" -print0)
+    done < <(find "$MODEL_ZIPS_DIR" \( -name "*.zip" -o -name "*.manifest" \) -print0)
     
     echo "🔍 ML Models (${#ML_MODELS[@]} found):"
     if [ ${#ML_MODELS[@]} -gt 0 ]; then
@@ -226,7 +293,23 @@ if [ ${#MODEL_PATHS[@]} -eq 0 ]; then
                 size=$(du -h "$zip_path" | cut -f1)
                 echo "  📦 $model ($size)"
             else
-                echo "  📦 $model (file not found)"
+                # Check for manifest (multi-part file)
+                local manifest_path="$MODEL_ZIPS_DIR/$model_type/$field_name/${model_type}_${field_name}_${variant_name}.manifest"
+                if [ -f "$manifest_path" ]; then
+                    local total_parts=$(grep "total_parts:" "$manifest_path" | cut -d' ' -f2)
+                    local total_size=0
+                    for i in $(seq 1 "$total_parts"); do
+                        local part_path="$MODEL_ZIPS_DIR/$model_type/$field_name/${model_type}_${field_name}_${variant_name}.part${i}.zip"
+                        if [ -f "$part_path" ]; then
+                            part_size=$(stat -c%s "$part_path" 2>/dev/null || stat -f%z "$part_path" 2>/dev/null)
+                            total_size=$((total_size + part_size))
+                        fi
+                    done
+                    total_size_human=$(echo "$total_size" | awk '{ split("B KB MB GB TB", units); for(i=1; $1>=1024 && i<5; i++) $1/=1024; printf "%.1f%s", $1, units[i] }')
+                    echo "  📦 $model ($total_size_human in $total_parts parts)"
+                else
+                    echo "  📦 $model (file not found)"
+                fi
             fi
         done
     else
@@ -252,7 +335,23 @@ if [ ${#MODEL_PATHS[@]} -eq 0 ]; then
                 size=$(du -h "$zip_path" | cut -f1)
                 echo "  📦 $model ($size)"
             else
-                echo "  📦 $model (file not found)"
+                # Check for manifest (multi-part file)
+                local manifest_path="$MODEL_ZIPS_DIR/$model_type/$field_name/${model_type}_${field_name}_${variant_name}.manifest"
+                if [ -f "$manifest_path" ]; then
+                    local total_parts=$(grep "total_parts:" "$manifest_path" | cut -d' ' -f2)
+                    local total_size=0
+                    for i in $(seq 1 "$total_parts"); do
+                        local part_path="$MODEL_ZIPS_DIR/$model_type/$field_name/${model_type}_${field_name}_${variant_name}.part${i}.zip"
+                        if [ -f "$part_path" ]; then
+                            part_size=$(stat -c%s "$part_path" 2>/dev/null || stat -f%z "$part_path" 2>/dev/null)
+                            total_size=$((total_size + part_size))
+                        fi
+                    done
+                    total_size_human=$(echo "$total_size" | awk '{ split("B KB MB GB TB", units); for(i=1; $1>=1024 && i<5; i++) $1/=1024; printf "%.1f%s", $1, units[i] }')
+                    echo "  📦 $model ($total_size_human in $total_parts parts)"
+                else
+                    echo "  📦 $model (file not found)"
+                fi
             fi
         done
     else
@@ -282,29 +381,37 @@ if [ -n "$FIELD_FILTER" ] || [ -n "$VARIATION_FILTER" ]; then
     # Collect all matching models
     MATCHING_MODELS=()
     
-    # Find all zip files and convert to model paths
-    while IFS= read -r -d '' zip_file; do
-        # Convert zip path to model path
+    # Find all zip files and manifests, convert to model paths
+    while IFS= read -r -d '' file; do
+        # Skip part files
+        if [[ "$file" =~ \.part[0-9]+\.zip$ ]]; then
+            continue
+        fi
+        
+        # Convert file path to model path
         # Handle both old format: model_zips/ml/category/baseline.zip -> ml/category/baseline
         # and new format: model_zips/ml/category/ml_category_baseline.zip -> ml/category/baseline
-        local relative_path=$(echo "$zip_file" | sed "s|$MODEL_ZIPS_DIR/||")
+        local relative_path=$(echo "$file" | sed "s|$MODEL_ZIPS_DIR/||")
         local model_path=""
         
-        # Check if it's the new naming convention: {model_type}_{field_name}_{variant_name}.zip
-        if [[ "$relative_path" =~ ^(ml|llm)/([^/]+)/([^/]+)_([^/]+)_([^/]+)\.zip$ ]]; then
+        # Check if it's the new naming convention: {model_type}_{field_name}_{variant_name}.zip or .manifest
+        if [[ "$relative_path" =~ ^(ml|llm)/([^/]+)/([^/]+)_([^/]+)_([^/]+)\.(zip|manifest)$ ]]; then
             local model_type="${BASH_REMATCH[1]}"
             local field_name="${BASH_REMATCH[2]}"
             local variant_name="${BASH_REMATCH[5]}"  # Last part after the last underscore
             model_path="$model_type/$field_name/$variant_name"
         else
-            # Old naming convention: just remove .zip
-            model_path=$(echo "$relative_path" | sed 's|\.zip$||')
+            # Old naming convention: just remove .zip or .manifest
+            model_path=$(echo "$relative_path" | sed 's|\.zip$||' | sed 's|\.manifest$||')
         fi
         
         if matches_filters "$model_path"; then
-            MATCHING_MODELS+=("$model_path")
+            # Check if we already have this model (avoid duplicates from .zip and .manifest)
+            if [[ ! " ${MATCHING_MODELS[@]} " =~ " ${model_path} " ]]; then
+                MATCHING_MODELS+=("$model_path")
+            fi
         fi
-    done < <(find "$MODEL_ZIPS_DIR" -name "*.zip" -print0)
+    done < <(find "$MODEL_ZIPS_DIR" \( -name "*.zip" -o -name "*.manifest" \) -print0)
     
     if [ ${#MATCHING_MODELS[@]} -eq 0 ]; then
         echo "❌ Error: No models found matching the specified filters." >&2
