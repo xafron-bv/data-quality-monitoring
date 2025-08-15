@@ -20,24 +20,26 @@ brand_configs/
 
 ```json
 {
-  "brand_name": "your_brand",
+  "brand_name": "my_brand",
   "field_mappings": {
-    "material": "Material_Column",
-    "color_name": "Color_Description",
-    "category": "Product_Category",
-    "size": "Size_Value",
-    "product_name": "Product_Name",
-    "product_id": "SKU",
+    "material": "Material",
+    "color_name": "Color_Name",
+    "category": "Category",
+    "size": "Size",
     "description": "Long_Description"
   },
-  "default_data_path": "data/your_data.csv",
   "custom_thresholds": {
     "validation_threshold": 0.0,
-    "anomaly_threshold": 0.7,
-    "ml_threshold": 0.7,
-    "llm_threshold": 0.6
+    "anomaly_threshold": 0.8,
+    "ml_threshold": 0.6
   },
-  "enabled_fields": ["material", "color_name", "size"]
+  "enabled_fields": ["material", "color_name", "category", "size"],
+  "field_variations": {
+    "material": "baseline",
+    "color_name": "baseline",
+    "category": "baseline",
+    "size": "baseline"
+  }
 }
 ```
 

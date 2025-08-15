@@ -19,12 +19,6 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-# Add the project root to the path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-# Add parent directory to path for imports
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import random
 
 from anomaly_detectors.llm_based.llm_anomaly_detector import LLMAnomalyDetector

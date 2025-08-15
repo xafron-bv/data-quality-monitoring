@@ -19,9 +19,6 @@ from sentence_transformers import InputExample, SentenceTransformer, evaluation,
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
-# Add parent directory to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-
 from anomaly_detectors.ml_based.model_training import create_improved_triplet_dataset, preprocess_text
 from common.anomaly_injection import load_anomaly_rules
 

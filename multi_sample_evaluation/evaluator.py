@@ -4,9 +4,6 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
-# Add parent directory to path for imports
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import unified_detection_interface
 CombinedDetector = unified_detection_interface.CombinedDetector
 DetectionConfig = unified_detection_interface.DetectionConfig  

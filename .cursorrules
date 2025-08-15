@@ -1,0 +1,66 @@
+# Data Quality Monitoring System - Cursor IDE Instructions
+
+## Project Setup
+
+This is a Python project that should be installed in development mode for proper imports.
+
+### Initial Setup (Required)
+
+When opening this project for the first time or after cloning:
+
+1. Create a virtual environment:
+   ```bash
+   python -m venv venv
+   # or
+   python3 -m venv venv
+   ```
+
+2. Activate the virtual environment:
+   - Windows: `venv\Scripts\activate`
+   - macOS/Linux: `source venv/bin/activate`
+
+3. Install the project in development mode:
+   ```bash
+   pip install -e .
+   ```
+
+4. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   # For development:
+   pip install -r requirements-dev.txt
+   ```
+
+### Important Notes
+
+- **No sys.path.append**: This project uses proper Python packaging. All imports should work without `sys.path.append()`.
+- **Module imports**: Import from project modules directly, e.g., `from common.brand_config import load_brand_config`
+- **Data files**: All training and inference scripts require explicit data file paths as arguments (no default paths).
+
+### Common Commands
+
+```bash
+# Train ML models for a brand
+python anomaly_detectors/ml_based/main.py <data.csv> --brand <brand_name>
+
+# Train LLM models for a brand
+python anomaly_detectors/llm_based/llm_model_training.py <data.csv> --brand <brand_name> --device auto
+
+# Run single sample demo
+python single_sample_multi_field_demo/single_sample_multi_field_demo.py --brand <brand_name> --data-file <data.csv>
+```
+
+### Project Structure
+
+- `common/` - Shared utilities and configurations
+- `anomaly_detectors/` - Detection algorithms (ML, LLM, pattern-based)
+- `validators/` - Rule-based validation
+- `brand_configs/` - Brand-specific configurations
+- `data/` - Data files (not included in repo)
+
+### Development Guidelines
+
+1. Always ensure the virtual environment is activated before running scripts
+2. Use absolute imports from the project root
+3. Add new dependencies to setup.py or pyproject.toml
+4. Follow the existing code style and patterns

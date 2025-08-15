@@ -13,14 +13,8 @@ import numpy as np
 import pandas as pd
 import torch
 
-# Add parent directories to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-
 from common.anomaly_injection import load_anomaly_rules
 from common.brand_config import get_available_brands, load_brand_config
-
-# Add the parent directory to the path to import the error injection module
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from common.error_injection import load_error_rules
 
 # Import field-to-column mapping
@@ -57,6 +51,11 @@ def entry(csv_file=None, use_hp_search=False, hp_trials=15, fields=None, check_a
 
     brand_config_obj = load_brand_config(brand)
     print(f"Using brand configuration: {brand}")
+
+    # If no fields are specified but brand has field_variations, use those fields
+    if not fields and hasattr(brand_config_obj, 'field_variations') and brand_config_obj.field_variations:
+        fields = list(brand_config_obj.field_variations.keys())
+        print(f"Using fields from brand's field_variations: {', '.join(fields)}")
 
     if check_anomalies:
         field_name = check_anomalies
@@ -145,11 +144,6 @@ def entry(csv_file=None, use_hp_search=False, hp_trials=15, fields=None, check_a
         # Load anomaly injection rules (semantic anomalies)
         anomaly_file_path = os.path.join(anomaly_rules_dir, f'{field_name}.json')
         try:
-            # Import anomaly injection functions
-            import sys
-            sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-            from common.anomaly_injection import load_anomaly_rules
-
             anomaly_rules = load_anomaly_rules(anomaly_file_path)
             # Convert anomaly rules to error rule format for compatibility
             converted_anomaly_rules = []
@@ -212,11 +206,11 @@ if __name__ == "__main__":
     parser.add_argument("csv_file", help="The path to the input CSV file.")
     parser.add_argument("--use-hp-search", action="store_true", help="Use RECALL-FOCUSED hyperparameter search.")
     parser.add_argument("--hp-trials", type=int, default=15, help="Number of hyperparameter search trials (default: 15).")
-    parser.add_argument("--fields", nargs='+', default=None, help="List of field names to include in training/hp search (by field name, space-separated, e.g. 'size material'). If not set, all fields are used.")
+    parser.add_argument("--fields", nargs='+', default=None, help="List of field names to include in training/hp search (by field name, space-separated, e.g. 'size material'). If not set with --brand, uses fields from brand's field_variations. Without --brand, all fields are used.")
     parser.add_argument("--check-anomalies", metavar="FIELD", help="Run anomaly check on the given field using the trained model.")
     parser.add_argument("--threshold", type=float, default=0.6, help="Similarity threshold for anomaly detection (default: 0.6)")
     parser.add_argument("--output", default=None, help="Optional output CSV file for anomaly check results.")
-    parser.add_argument("--brand", help="Brand name (deprecated - uses static config)")
+    parser.add_argument("--brand", help="Brand name. When used without --fields, automatically trains models for all fields in the brand's field_variations.")
     parser.add_argument("--brand-config", help="Path to brand configuration JSON file (deprecated - uses static config)")
     args = parser.parse_args()
 

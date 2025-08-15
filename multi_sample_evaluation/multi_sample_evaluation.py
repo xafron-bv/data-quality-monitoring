@@ -12,13 +12,6 @@ from datetime import datetime
 import pandas as pd
 
 # Add the script's directory to the Python path.
-# This ensures that top-level modules like 'interfaces.py' are found
-# when validator/reporter modules are loaded dynamically from subdirectories.
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-# Add parent directory to path for imports
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from evaluator import Evaluator
 
 import common.debug_config as debug_config

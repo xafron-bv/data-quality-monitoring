@@ -13,8 +13,6 @@ class BrandConfig:
     """Configuration for a specific brand."""
     brand_name: str
     field_mappings: Dict[str, str]  # field_name -> column_name
-    default_data_path: Optional[str] = None
-    training_data_path: Optional[str] = None
     custom_thresholds: Optional[Dict[str, float]] = None
     enabled_fields: Optional[List[str]] = None
     field_variations: Optional[Dict[str, str]] = None  # field_name -> variation key

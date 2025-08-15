@@ -8,9 +8,6 @@ import sys
 
 import pandas as pd
 
-# Add parent directory to path for imports
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from common.brand_config import load_brand_config
 from common.exceptions import ConfigurationError, DataError, FileOperationError
 from common.field_mapper import FieldMapper

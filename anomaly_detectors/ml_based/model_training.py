@@ -20,8 +20,6 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
-# Add the parent directory to the path to import the error injection module
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from common.error_injection import apply_error_rule, load_error_rules
 
 
